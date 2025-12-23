@@ -1,0 +1,404 @@
+NS-LUM-004 — LIFECYCLE
+
+0. Overview
+
+This document defines the lifecycle of LUM (Luminance Engine) artifacts and operational processes, including:
+
+telemetry signal lifecycle (logs/metrics/traces/events)
+
+schema lifecycle
+
+SLI/SLO lifecycle
+
+alert lifecycle
+
+incident lifecycle
+
+evidence bundle lifecycle
+
+access lifecycle (evidence access + audit)
+
+LUM implements lifecycle controls. Governance requirements (what must exist, approvals, retention, who can access) are defined by GGP.
+
+1. Telemetry Signal Lifecycle
+
+1.1 Signal creation
+
+Source: Any NS engine/service or integration connector.
+
+Trigger: Request, workflow step, job execution, provider callback, system event.
+
+Requirements (minimum):
+
+structured payload (machine-parseable)
+
+canonical correlation fields (request/trace/workflow/etc.)
+
+environment + source metadata
+
+redaction applied prior to shipping
+
+1.2 Signal ingestion
+
+Stages:
+
+receive (ingest gateway)
+
+validate (schema + required fields)
+
+enrich (add/normalize correlation + metadata)
+
+route (to correct pipeline and storage tiers)
+
+Failure handling:
+
+malformed payloads are quarantined (do not poison pipelines)
+
+backpressure signals emitted to producers
+
+ingestion failures generate internal LUM alerts
+
+1.3 Signal retention and aging
+
+Signals are assigned a retention class:
+
+hot: fast query (incident response)
+
+warm: longer-term analytics
+
+cold: archive/compliance (if required)
+
+evidence: immutable-ish, governed
+
+Lifecycle outcome:
+
+hot → warm → cold/archive → deletion
+
+evidence → sealed → retention → deletion (per GGP policy)
+
+2. Schema Lifecycle (Telemetry & Events)
+
+2.1 States
+
+draft
+
+proposed
+
+approved
+
+published
+
+deprecated
+
+retired
+
+2.2 Flow
+
+Draft schema created with version tag.
+
+Proposed for review (impact assessment, migration plan).
+
+Approved (by platform governance; may require GGP gate if it affects audit fields/retention).
+
+Published to schema registry.
+
+Deprecated when superseded (sunset window begins).
+
+Retired after all producers/consumers migrated.
+
+2.3 Compatibility rules (starter)
+
+additive fields: backwards-compatible
+
+changing field meaning/type: breaking change (new major)
+
+required-field additions: breaking unless defaulted
+
+3. SLI/SLO Lifecycle
+
+3.1 SLI lifecycle
+
+States: draft → validated → active → deprecated
+
+Flow:
+
+Draft SLI definition (source metric + aggregation + filters).
+
+Validate correctness against known incidents and baseline.
+
+Activate in production dashboards.
+
+Deprecate if replaced or unhelpful.
+
+3.2 SLO lifecycle
+
+States: draft → approved → active → tuned → deprecated
+
+Flow:
+
+Draft SLO target and window.
+
+Approval (often requires ownership sign-off; may require GGP if it gates automation).
+
+Active: alert rules generated from SLO.
+
+Tuned: adjust targets/alerts based on data.
+
+Deprecated: replaced by new SLO.
+
+3.3 Error budget lifecycle
+
+error budget computed continuously
+
+budget burn triggers:
+
+alert(s)
+
+optional gating signal to GGP (limit automation / require approvals)
+
+4. Alert Lifecycle
+
+4.1 Alert definition states
+
+draft
+
+staged
+
+enabled
+
+suppressed
+
+retired
+
+4.2 Trigger → notification flow
+
+Condition met (threshold/anomaly/SLO burn/quota).
+
+Deduplicate/group.
+
+Assign severity.
+
+Route to destinations.
+
+Escalate if unacked.
+
+Close when condition resolves.
+
+4.3 Alert outcomes
+
+auto-resolved (short transient)
+
+escalated (human response)
+
+converted to incident
+
+4.4 Alert hygiene loop
+
+recurring alerts must either:
+
+get fixed (root cause)
+
+get tuned (reduce noise)
+
+be retired
+
+5. Incident Lifecycle
+
+5.1 Incident states (canonical)
+
+detected
+
+triaging
+
+mitigating
+
+monitoring
+
+resolved
+
+closed
+
+5.2 Roles
+
+Incident Commander (IC) — owns coordination
+
+Responder(s) — execute mitigations
+
+Scribe — timeline + notes
+
+Stakeholder Liaison — comms
+
+5.3 Flow
+
+Detected
+
+created automatically from high-severity alerts, or manually.
+
+Triaging
+
+identify blast radius; attach dashboards/traces; establish hypotheses.
+
+Mitigating
+
+apply fixes: rollback, disable feature, switch provider, increase capacity.
+
+Monitoring
+
+verify metrics recover; ensure no regression.
+
+Resolved
+
+service stabilized; immediate follow-ups captured.
+
+Closed
+
+postmortem completed (if required); action items created and assigned.
+
+5.4 Closure requirements (starter)
+
+incident summary
+
+impact window
+
+timeline
+
+root cause / contributing factors
+
+action items with owners (handoff to CWP)
+
+6. Evidence Bundle Lifecycle
+
+Evidence bundles are governed artifacts that support audit-grade traceability.
+
+6.1 Evidence bundle states
+
+open
+
+collecting
+
+ready_to_seal
+
+sealed
+
+released (optional; access granted to stakeholders)
+
+expired
+
+deleted
+
+6.2 Flow
+
+Open
+
+created when a governed action begins (via GGP decision or policy trigger).
+
+Collecting
+
+artifacts and audit events attached as work proceeds.
+
+Ready to seal
+
+required artifacts present; validations passed.
+
+Sealed
+
+bundle becomes immutable-ish; hash recorded; retention timer begins.
+
+Released (optional)
+
+access granted according to GGP/IDN policy.
+
+Expired / Deleted
+
+retention satisfied; bundle removed or archived.
+
+6.3 Artifact lifecycle
+
+referenced (pointer only)
+
+captured (stored copy)
+
+verified (hash/signature)
+
+attached (to bundle)
+
+sealed (immutable)
+
+expired / deleted
+
+7. Access Lifecycle (Evidence & Sensitive Telemetry)
+
+7.1 Access request states
+
+requested
+
+approved
+
+denied
+
+expired
+
+7.2 Flow
+
+Actor requests access to evidence bundle.
+
+IDN resolves actor identity/role.
+
+GGP evaluates policy (approve/deny/time-box).
+
+LUM grants access and logs access event.
+
+Access expires automatically.
+
+7.3 Access logging (required)
+
+who accessed
+
+what was accessed
+
+when
+
+purpose/context (if required)
+
+decision_id authorizing access
+
+8. Integration Lifecycle (Providers)
+
+8.1 Integration onboarding
+
+define integration_id
+
+define baseline SLIs/SLOs
+
+configure dashboards + alerts
+
+validate webhook verification telemetry
+
+run load/limit tests (quotas)
+
+8.2 Integration steady-state
+
+monitor quotas and error distributions
+
+track retries and idempotency collisions
+
+periodic credential rotation verification (signals)
+
+8.3 Integration change
+
+provider API version change → update schemas + dashboards
+
+new endpoints/scopes → trigger GGP approval gate
+
+9. Continuous Improvement Loop
+
+LUM lifecycle is closed by an improvement loop:
+
+incident → postmortem → action items → implementation → validation
+
+alert noise → tuning → stable alert catalog
+
+SLO misses → capacity/architecture changes
+
+CWP receives action items for execution; GGP gates high-risk remediation.
+

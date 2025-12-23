@@ -1,0 +1,463 @@
+NS-FIRMAMENT-012 — STATE
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines Firmament state: the canonical state machines and state representations used across:
+
+layers and features,
+
+signals and hotspots,
+
+events and readiness,
+
+briefs and recommendations,
+
+actions and execution,
+
+governance gates,
+
+scenario/plan posture,
+
+and system health (staleness and projection lag).
+
+Firmament state is designed to be:
+
+human legible (simple states that map to visuals),
+
+machine consistent (stable enums for rules),
+
+traceable (state changes are attributable to inputs),
+
+zoom-aware (state can aggregate upward).
+
+2. State Domains
+
+Firmament state is grouped into 8 domains:
+
+Layer State
+
+Feature State
+
+Signal State
+
+Event & Readiness State
+
+Sector State
+
+Brief State
+
+Action & Execution State
+
+Governance Gate State
+
+Cross-cutting: Plan Mode State and System Health State
+
+3. Layer State
+
+Represents whether a layer is available, visible, and healthy.
+
+3.1 LayerAvailability
+
+Active — layer is enabled and serving data
+
+Degraded — layer is serving data but beyond freshness/latency targets
+
+Disabled — layer intentionally turned off (admin or policy)
+
+Error — layer unavailable due to system failure
+
+3.2 LayerVisibility
+
+Shown — currently visible in UI
+
+Hidden — toggled off
+
+AutoHidden — hidden due to zoom/role/policy rules
+
+3.3 LayerFreshness
+
+Fresh — within staleness budget
+
+Stale — exceeded staleness budget
+
+Unknown — missing source timestamps
+
+4. Feature State
+
+Features are the renderable units (pins/paths/polygons/heat cells).
+
+4.1 FeatureLifecycle
+
+Active — current and renderable
+
+Muted — renderable but visually suppressed (filtered or deprioritized)
+
+Archived — no longer in current state; remains in snapshots
+
+Invalid — geometry or payload broken; should not render
+
+4.2 FeatureOperationalState (Severity)
+
+Normalized state used for coloring and prioritization.
+
+Green
+
+Watch
+
+AtRisk
+
+Failing
+
+Blocked
+
+4.3 FeatureSelectionState
+
+Unselected
+
+Hovered
+
+Selected
+
+Pinned (persist selection)
+
+5. Signal State
+
+Signals represent detected conditions (alerts, anomalies, disruptions).
+
+5.1 SignalLifecycle
+
+New
+
+Acknowledged
+
+Monitoring
+
+Resolved
+
+FalsePositive
+
+5.2 SignalSeverity
+
+Info
+
+Low
+
+Medium
+
+High
+
+Critical
+
+5.3 SignalConfidence
+
+numeric 0..1 (stored)
+
+plus bucketed labels (derived):
+
+LowConfidence (<0.4)
+
+MediumConfidence (0.4–0.7)
+
+HighConfidence (>0.7)
+
+6. Event & Readiness State
+
+6.1 EventLifecycle
+
+Draft
+
+Scheduled
+
+InProgress
+
+Completed
+
+Canceled
+
+6.2 ReadinessState
+
+Unplanned
+
+Planning
+
+OnTrack
+
+AtRisk
+
+Ready
+
+6.3 ChecklistState (Optional)
+
+NotStarted
+
+InProgress
+
+Complete
+
+7. Sector State
+
+7.1 SectorHealthBand
+
+Derived from health_score.
+
+Healthy
+
+Watch
+
+AtRisk
+
+Failing
+
+7.2 SectorTrend
+
+Derived over a time window.
+
+Improving
+
+Stable
+
+Deteriorating
+
+Volatile
+
+7.3 SectorExposureState
+
+From FLO (budget/margin/runway/exposure).
+
+WithinBounds
+
+NearLimit
+
+Exceeded
+
+Unknown
+
+8. Brief State
+
+8.1 BriefLifecycle
+
+Generated
+
+Reviewed
+
+Executing
+
+Reassess
+
+Superseded
+
+8.2 BriefConfidence
+
+Low
+
+Medium
+
+High
+
+8.3 BriefStaleness
+
+Fresh
+
+Stale
+
+9. Action & Execution State
+
+9.1 ActionLifecycle
+
+Proposed
+
+Selected (user intends to run)
+
+Submitted
+
+Approved (if gated)
+
+InProgress
+
+Blocked
+
+Done
+
+Abandoned
+
+9.2 ExecutionState
+
+NotStarted
+
+InProgress
+
+Blocked
+
+Complete
+
+9.3 ActionPriorityBand
+
+Derived from scoring.
+
+P0 (urgent/high impact)
+
+P1
+
+P2
+
+P3
+
+10. Governance Gate State (GGE)
+
+10.1 GateLifecycle
+
+Draft
+
+Submitted
+
+UnderReview
+
+Approved
+
+Rejected
+
+Expired
+
+10.2 GateUrgency
+
+Standard
+
+Expedited
+
+Emergency
+
+11. Plan Mode State
+
+Plan mode is the risk/ambition posture that modifies prioritization.
+
+11.1 PlanMode
+
+Conservative
+
+Balanced
+
+Aggressive
+
+11.2 PlanModeRepresentation
+
+discrete enum (above)
+
+or continuous numeric: plan_mode_value: 0..100
+
+11.3 ScenarioAvailability
+
+Available
+
+Unavailable
+
+Degraded (slow, partial, or outdated)
+
+12. System Health State
+
+12.1 ProjectionHealth
+
+Healthy — projection lag within target
+
+Lagging — behind SLA
+
+Stalled — no updates for extended window
+
+12.2 RealtimeHealth
+
+Connected
+
+Disconnected
+
+Degraded
+
+12.3 SourceHealth
+
+Per source engine:
+
+Healthy
+
+Degraded
+
+Unavailable
+
+12.4 StalenessBadge
+
+UI-facing summary:
+
+Fresh
+
+Stale
+
+Unknown
+
+13. State Transitions (Canonical)
+
+13.1 Signal Lifecycle
+
+stateDiagram-v2
+  [*] --> New
+  New --> Acknowledged
+  Acknowledged --> Monitoring
+  Monitoring --> Resolved
+  Monitoring --> FalsePositive
+  New --> FalsePositive
+  Resolved --> [*]
+  FalsePositive --> [*]
+
+13.2 Action Lifecycle (with Gate)
+
+stateDiagram-v2
+  [*] --> Proposed
+  Proposed --> Selected
+  Selected --> Submitted
+  Submitted --> UnderReview: if gated
+  UnderReview --> Approved
+  UnderReview --> Rejected
+  Submitted --> InProgress: if not gated
+  Approved --> InProgress
+  InProgress --> Blocked
+  Blocked --> InProgress
+  InProgress --> Done
+  InProgress --> Abandoned
+  Rejected --> Proposed
+  Done --> [*]
+  Abandoned --> [*]
+
+13.3 Brief Lifecycle
+
+stateDiagram-v2
+  [*] --> Generated
+  Generated --> Reviewed
+  Reviewed --> Executing
+  Executing --> Reassess
+  Generated --> Superseded
+  Reviewed --> Superseded
+  Reassess --> Generated
+  Superseded --> [*]
+
+14. Aggregation Rules (Zoom-Aware)
+
+When zooming out, Firmament aggregates states upward:
+
+FeatureOperationalState aggregates by worst-case severity (Blocked > Failing > AtRisk > Watch > Green)
+
+SignalSeverity aggregates by max severity
+
+Staleness aggregates by worst staleness
+
+This ensures the globe never “looks green” if a critical issue exists in the region.
+
+15. Definition of Done (STATE v0)
+
+STATE is “done” when:
+
+all primary objects have stable enums,
+
+transitions are defined for signals, briefs, actions, and gates,
+
+aggregation rules exist for zoom-out behavior,
+
+and state is consistently usable across rendering, scoring, and governance routing.
+

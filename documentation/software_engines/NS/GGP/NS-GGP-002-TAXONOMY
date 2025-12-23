@@ -1,0 +1,101 @@
+GGE Component Taxonomy
+Overview
+System Name: Governance Graph Engine (GGE) 
+Document Title: Governance Graph Engine Component Taxonomy 
+Document Id: NS-GGP-002-TAXONOMY
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: Annual or Upon Material Change
+1. Purpose
+The Component Taxonomy defines all atomic governance elements that form the source-of-truth for the Governance Graph Engine (GGE). These components drive SOP generation, versioning, and dependency management.
+Objectives:
+  Ensure consistent, modular representation of governance elements
+  Support automated SOP updates through structured data
+  Define interdependencies between components, SOPs, and decision logic
+2. Component Categories
+ Authority Components
+  Authority Matrix
+  Approval levels (Execute, Approve, Review, Recommend, Override)
+  Role definitions (Parent, Subsidiary, Finance, Compliance, Legal, Tax)
+ Materiality Components
+  Thresholds for financial transactions
+  Risk sensitivity levels (Low, Medium, High, Emergency)
+  Operational limits and tolerances
+ SOP Components
+  SOP metadata (Title, ID, Version, Effective Date, Review Cycle)
+  SOP sections (Purpose, Scope, Procedures, Controls, KPIs, etc.)
+  SOP dependency references (cross-SOP citations)
+ Process / Workflow Components
+  Inputs and outputs of each SOP
+  Step-by-step process definitions
+  Escalation paths
+  Exception handling rules
+ Risk & Contingency Components
+  Risk events and scenarios
+  Trigger thresholds
+  Escalation and mitigation procedures
+ IP & Licensing Components
+  IP assets
+  Licensing terms
+  Approval and oversight requirements
+ Financial Components
+  Capital flows
+  Intercompany transactions
+  Revenue and cash flow rules
+  Accounting treatment rules
+ Compliance & Tax Components
+  Regulatory rules
+  Filing requirements
+  Transfer pricing policies
+  Tax elections
+ System & Metadata Components
+  Versioning schema
+  Component creation and update history
+  Dependency graph references
+  Audit logs and records
+3. Component Attributes
+Each component should include the following attributes:
+Attribute
+Description
+Component ID
+Unique identifier
+Name
+Clear descriptive name
+Type
+Category (Authority, Materiality, Risk, etc.)
+Version
+Current version number
+Dependencies
+Other components/SOPs it affects
+Status
+Active, Deprecated, Pending
+Owner
+Responsible role/entity
+Effective Date
+Date of current version
+Review Cycle
+Frequency of review
+Notes
+Additional context or rules
+4. Component Relationships
+  Hierarchical dependencies: Authority components may govern multiple SOPs.
+  Cross-SOP references: Materiality changes impact Financial SOPs, Capital Flow, and Intercompany SOPs.
+  Event-driven updates: Risk or compliance events trigger automatic reassessment of related components.
+  Version propagation: Changes to a component trigger version bumps in dependent SOPs according to GGE rules.
+5. Next Steps
+ Assign initial Component IDs and ownership.
+ Map dependencies for all current SOPs.
+ Configure GGE to recognize each component and track versioning.
+ Build automated impact analysis rules based on taxonomy.
+6. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial Component Taxonomy Draft
+Parent / HoldCo Manager
+End of Document

@@ -1,0 +1,171 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This runbook defines production-grade operational procedures for bringing up, validating, operating, and troubleshooting the Content Distribution Engine (CDE).
+It is intended for:
+  operators
+  governance reviewers
+  platform engineers
+  auditors
+CDE operations prioritize governed execution, idempotency, and proof-based correctness.
+2. Operational Invariants (Never Violate)
+Operators must never:
+  execute distribution without approval
+  mark an attempt successful without proof
+  overwrite or delete attempts, proofs, decisions, or events
+  rerun attempts without idempotency controls
+All corrections occur through new attempts, new decisions, and reconciliation artifacts.
+3. Startup Procedure
+3.1 Preflight Checks
+Before starting CDE services:
+ PostgreSQL reachable (read/write)
+ DB migrations applied successfully
+ GGP reachable (approval checks)
+ MUX reachable (adapter dispatch)
+ SIG reachable (feedback forwarding)
+ Secrets available (adapter auth handled in MUX)
+ Observability stack reachable (logs/metrics)
+If GGP is down → start CDE in plan-draft-only mode (no approvals, no execution).
+3.2 Startup Order
+ PostgreSQL
+ cde-api
+ cde-orchestrator
+ cde-dispatcher
+ cde-feedback
+ cde-projector (optional)
+4. Normal Operations
+4.1 Content Artifact Registration
+Checklist:
+  validate source engine
+  ensure idempotency key
+  confirm content metadata completeness
+If content is missing upstream → reject registration.
+4.2 Plan Drafting & Submission
+Checklist:
+  content references valid
+  destinations valid
+  schedule and constraints set
+  actor + reason captured
+Submission:
+  plan moves draft → submitted
+  approval request sent to GGP
+4.3 Governance Approval Handling
+Outcomes:
+  approved → eligible for execution
+  rejected → revise and resubmit (new version)
+Approvals are immutable.
+4.4 Intent Materialization
+Orchestrator checks:
+  plan is approved
+  schedule window is active
+Actions:
+  create intent
+  fan-out attempts
+No intents are created for unapproved plans.
+4.5 Attempt Execution & Retry
+Dispatcher workflow:
+ claim attempt (row lock)
+ call MUX adapter
+ classify response
+ record decision
+ success requires proof
+Retry rules:
+  transient errors → retry with backoff
+  credential errors → stop, open incident
+  permanent errors → stop, open DLQ item
+5. DLQ / Failure Queue Operations
+5.1 DLQ Intake
+An attempt enters DLQ when:
+  retries exhausted
+  idempotency uncertainty detected
+  proof insufficiency persists
+5.2 DLQ Resolution Paths
+  rerun attempt (guarded)
+  attach proof via reconciliation
+  dismiss as non-actionable
+All resolutions require actor + reason.
+6. Proof & Reconciliation
+6.1 Proof Validation
+Proof sufficiency is ruleset-driven per destination.
+If proof is insufficient:
+  do not mark success
+  open reconciliation task
+6.2 Manual Reconciliation
+Steps:
+ verify external platform state
+ attach proof artifact
+ record reconciliation decision
+ close DLQ item
+7. Feedback Operations
+7.1 Feedback Ingestion
+Checklist:
+  destination recognized
+  content_id known
+  timestamp present
+7.2 Forwarding to SIG
+Forward only normalized signals:
+  impressions
+  clicks
+  conversions
+  rejection notices
+Ensure correlation_id propagation.
+8. Projection & Reporting Operations
+When dashboards appear stale:
+ verify event ingestion
+ rebuild projections
+ validate counts:
+  plans by status
+  attempts by terminal state
+  proofs per success
+Projections are derived; do not hand-edit.
+9. Incident Response Playbooks
+9.1 Spike in Failures for a Destination
+Actions:
+ pause dispatch for destination (if supported)
+ inspect adapter errors via MUX
+ check credential status
+ reroute to DLQ
+ open incident
+9.2 Duplicate External Listings Suspected
+Actions:
+ stop reruns for destination
+ verify idempotency key behavior
+ inspect proof history
+ escalate to governance review if policy breach
+9.3 GGP Unavailable
+Actions:
+ disable plan approvals
+ disable intent materialization
+ allow draft creation only
+ queue approval checks for later
+10. Backup & Disaster Recovery
+10.1 PostgreSQL Restore
+Steps:
+  restore database backup
+  validate integrity (FKs, uniqueness)
+  rebuild projections
+10.2 Replay & Reconciliation
+Because attempts and proofs are immutable:
+  replay yields deterministic distribution history
+  reconcile only via new artifacts
+11. Change Management
+  plan schema changes are additive
+  ruleset changes are versioned
+  adapter changes are managed in MUX
+  any behavioral change must preserve replay correctness
+12. Document Position in CDE Corpus
+This runbook is informed by:
+  NS-CDE-004 — LIFECYCLE
+  NS-CDE-005 — DECISION
+  NS-CDE-012 — STATE
+It complements:
+  NS-CDE-014 — DATADEF
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Operational Runbook
+Parent / HoldCo Manager
+Status: Draft

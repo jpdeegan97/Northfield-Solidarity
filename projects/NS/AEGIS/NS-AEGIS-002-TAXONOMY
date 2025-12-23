@@ -1,0 +1,398 @@
+NS-AEGIS-002 — TAXONOMY
+
+Project: Aegis (Dependency Management Product)
+
+0) Taxonomy Goals
+
+Aegis taxonomy is designed to:
+
+Normalize many dependency “shapes” (code, vendor, infra, data) into one governed model
+
+Enable consistent policy application (risk tiers, evidence requirements, approvals)
+
+Support graph-native queries (impact, blast radius, transitive exposure)
+
+Support lifecycle operations (drift, renewal, EOL, replacement)
+
+1) Core Objects (Canonical)
+
+1.1 Dependency
+
+A real-world thing NS relies on.
+
+Examples: postgresql, Stripe, Auth0, EKS cluster, Snowflake, Twilio, Kafka, OpenAI API.
+
+1.2 Dependency Unit (DU)
+
+A specific instantiation of a dependency within a boundary.
+
+Used to model environment scoping and “same vendor, multiple uses.”
+
+Example: Stripe@prod vs Stripe@sandbox; Redis@cluster-A.
+
+1.3 Dependency Edge
+
+A directed relationship between two nodes.
+
+Edge types are defined in §4.
+
+1.4 Change Request (CR)
+
+A governed request that mutates dependency posture.
+
+CR types are defined in §6.
+
+1.5 Evidence Artifact
+
+A document or machine artifact that supports trust.
+
+Evidence types are defined in §7.
+
+1.6 Signal
+
+An incoming observation that may require action.
+
+Signal types are defined in §8.
+
+1.7 Policy Profile
+
+A rule bundle applied to a dependency/DU.
+
+Drives approvals, evidence requirements, monitoring thresholds.
+
+2) Dependency Classes
+
+2.1 Software Dependencies
+
+Library (language package): npm/pip/maven/nuget
+
+Runtime: JVM, Node, Python, Go toolchain, CUDA
+
+OS/Base Image: Ubuntu image, distroless, alpine
+
+Container Image: app image, sidecar image
+
+Artifact: JAR, wheel, binary release
+
+2.2 Vendor / SaaS Dependencies
+
+Payments: Stripe, Adyen
+
+Auth/Identity: Auth0, Okta
+
+Comms: Twilio, SendGrid
+
+Observability: Datadog, New Relic
+
+Hosting/Cloud: AWS service, GCP service
+
+AI/LLM Provider: model endpoints, inference platforms
+
+2.3 Infrastructure Dependencies
+
+Compute Cluster: Kubernetes/EKS/AKS, VM groups
+
+Network Component: gateways, load balancers, DNS
+
+Storage: S3 buckets, block storage, object stores
+
+Queue/Stream: Kafka, SQS, RabbitMQ
+
+Secrets/Key Mgmt: Vault, KMS, HSM
+
+2.4 Data Dependencies
+
+External Feed: third-party dataset/API feed
+
+Internal Dataset: governed NS dataset
+
+Pipeline: ingestion/transform pipeline dependency
+
+Schema Contract: versioned schema or interface
+
+2.5 Process / Human Dependencies (optional, future)
+
+Runbook/Procedure: manual dependency
+
+Service Provider: MSP/managed ops dependency
+
+3) Identity & Naming (IDN-aligned)
+
+3.1 Canonical Identifier
+
+Each dependency must have a stable ID.
+
+Format (suggested): aegis:<class>:<namespace>:<name>
+
+Example: aegis:software:npm:react
+
+Example: aegis:vendor:saas:stripe
+
+3.2 Aliases
+
+Allow multiple labels that resolve to the canonical ID.
+
+GitHub repo names, internal nicknames, vendor product names.
+
+3.3 Version / Variant Keys
+
+Software: SemVer or vendor-specific
+
+Vendors: contract period + plan SKU + region
+
+Infra: cluster/resource IDs
+
+Data: schema version, feed version
+
+4) Edge Taxonomy (Relationship Types)
+
+4.1 Core Edge Types
+
+depends_on — direct reliance (primary)
+
+uses — softer reliance (non-critical coupling)
+
+calls — API call dependency (service-to-service)
+
+build_depends_on — build-time dependency
+
+runtime_depends_on — runtime dependency
+
+data_sources_from — reads data from
+
+writes_to — writes data into
+
+authenticates_via — identity/auth dependency
+
+monitored_by — observability dependency
+
+4.2 Structural Edge Types
+
+contains — component containment (service contains module)
+
+hosts — infra hosts service
+
+routes_through — traffic passes through gateway/LB
+
+secured_by — security control dependency
+
+4.3 Edge Qualifiers (metadata)
+
+environment: dev/uat/prod
+
+criticality: low/med/high/mission
+
+transitive: boolean + depth
+
+confidence: observed/declared/inferred
+
+directionality: upstream/downstream
+
+5) Lifecycle Taxonomy
+
+5.1 Lifecycle States
+
+proposed
+
+approved
+
+active
+
+constrained (allowed but gated / limited)
+
+deprecated (scheduled for removal)
+
+removed
+
+5.2 Lifecycle Drivers
+
+security_risk (CVE/incident)
+
+compliance_gap (missing evidence)
+
+eol_eos (end-of-life / end-of-support)
+
+cost_change (pricing / renewal)
+
+performance_reliability (SLA breaches)
+
+strategic_migration (standardization)
+
+6) Change Request Taxonomy
+
+6.1 CR Types
+
+add_dependency
+
+update_version
+
+renew_vendor
+
+change_plan_sku
+
+add_environment_scope
+
+deprecate_dependency
+
+replace_dependency
+
+emergency_exception (time-boxed)
+
+remove_dependency
+
+6.2 CR Attributes
+
+diff: before/after representation
+
+risk_tier: derived + overrideable with justification
+
+required_evidence: computed by policy
+
+approval_chain: computed by policy
+
+rollout_plan / rollback_plan: required by tier
+
+expiry: for exceptions
+
+7) Evidence Taxonomy
+
+7.1 Software Evidence
+
+sbom
+
+vuln_scan_report
+
+license_report
+
+signing_attestation (SLSA/cosign/etc.)
+
+reproducible_build_proof (optional)
+
+7.2 Vendor Evidence
+
+soc2_report
+
+iso_certificate
+
+security_questionnaire
+
+dpa / privacy_terms
+
+pen_test_summary
+
+incident_history_summary
+
+7.3 Infra/Data Evidence
+
+architecture_review
+
+data_classification
+
+sla_slo_definition
+
+backup_restore_test
+
+access_review
+
+7.4 Evidence Qualifiers
+
+freshness_window: how long it remains valid
+
+source: uploaded / fetched / attested
+
+verification_status: pending/verified/expired
+
+8) Signal Taxonomy (SIG-aligned)
+
+8.1 Security Signals
+
+cve
+
+vendor_incident
+
+supply_chain_alert
+
+malicious_package_alert
+
+8.2 Reliability Signals
+
+outage
+
+sla_breach
+
+latency_regression
+
+8.3 Lifecycle Signals
+
+eol_notice
+
+renewal_window
+
+version_drift
+
+contract_change
+
+8.4 Signal Qualifiers
+
+severity: info/low/med/high/critical
+
+scope: dependency/DU/environment
+
+confidence: confirmed/likely/rumor
+
+action_hint: monitor/triage/remediate/block
+
+9) Policy Taxonomy (GGE-aligned)
+
+9.1 Risk Tiers
+
+tier_0 — experimental / low impact
+
+tier_1 — internal non-critical
+
+tier_2 — customer-impacting
+
+tier_3 — mission critical / regulated / high exposure
+
+9.2 Control Sets (examples)
+
+Evidence Baseline (required artifacts per tier/class)
+
+Approval Baseline (who must approve)
+
+Monitoring Baseline (what signals trigger what actions)
+
+Exception Policy (duration limits + compensating controls)
+
+10) Operational Loops (CWP-aligned)
+
+10.1 Freshness Loop
+
+Verify ownership, evidence validity, and scope
+
+10.2 Drift Loop
+
+Detect version drift vs declared desired state
+
+10.3 Renewal Loop
+
+Upcoming renewal → evidence refresh → approval
+
+10.4 Incident Loop
+
+Signal → impact map → remediation plan → closure
+
+11) Query Taxonomy (Graph Questions Aegis Must Answer)
+
+“What depends on X (direct + transitive) in prod?”
+
+“If X is vulnerable, what customer-facing systems are affected?”
+
+“Which tier-3 dependencies are missing fresh evidence?”
+
+“What dependencies are EOL within 90 days?”
+
+“Which services call vendor Y, and what data do they send?”
+
+“Which dependencies are exceptions, and when do they expire?”
+

@@ -1,0 +1,152 @@
+Identity & Entity Nexus (IDN)
+Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for IDN, strictly aligned to the existing NS-GGP document structure (000–014).
+IDN is the identity resolution, entity graph, and trust anchor engine for Northfield Solidarity. It provides a canonical way to represent people, services, agents, organizations, and external accounts, and to reason about their relationships. IDN does not make business decisions (GGP), execute actions (DAT), or generate insights (PIE).
+
+IDN Documentation Index (Canonical)
+
+NS-IDN-000 — CHARTER
+Purpose: Define why IDN exists
+Scope:
+Mission of IDN
+Why identity and entity resolution must be centralized
+IDN’s role as a trust anchor across engines
+Explicit non-goals (business logic, execution, scoring)
+Mirrors: NS-GGP-000
+
+NS-IDN-001 — OVERVIEW
+Purpose: High-level conceptual framing
+Scope:
+What IDN represents (entities, identities, relationships)
+How IDN supports governance, audit, and execution
+Downstream consumers: GGP, DAT, FLO, MUX, SIM
+Mirrors: NS-GGP-001
+
+NS-IDN-002 — TAXONOMY
+Purpose: Define IDN’s atomic identity concepts
+Scope:
+Entity
+Identity
+Credential
+Relationship
+Trust Assertion
+Mirrors: NS-GGP-002
+
+NS-IDN-003 — ARCHITECTURE
+Purpose: Logical identity architecture
+Scope:
+Identity ingestion
+Entity resolution
+Relationship graph
+Trust assertion management
+Logical design only (not infra).
+Mirrors: NS-GGP-003
+
+NS-IDN-004 — LIFECYCLE
+Purpose: End-to-end identity lifecycle
+Scope:
+Identity creation
+Verification
+Linking / merging
+Revocation
+Retirement
+Mirrors: NS-GGP-004
+
+NS-IDN-005 — DECISION
+Purpose: Identity decision semantics
+Scope:
+When identities may be linked
+When access is granted or revoked
+Manual override conditions
+All identity decisions are auditable and policy-bounded.
+Mirrors: NS-GGP-005
+
+NS-IDN-006 — VERSION
+Purpose: Identity and entity versioning
+Scope:
+Versioning of identity assertions
+Relationship changes over time
+Historical correctness
+Mirrors: NS-GGP-006
+
+NS-IDN-007 — DATAMODEL
+Purpose: Identity persistence and contracts
+Scope:
+Entity tables / graphs
+Identity records
+Credential storage
+Replay assumptions
+Mirrors: NS-GGP-007
+
+NS-IDN-008 — EEE (End-to-End Example)
+Purpose: Validate identity coherence
+Scope:
+New actor onboarding
+Identity verification
+Permission use in execution
+Audit trail visibility
+Mirrors: NS-GGP-008
+
+NS-IDN-009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+MVP identity services
+Resolution algorithms
+Integration points
+Mirrors: NS-GGP-009
+
+NS-IDN-010 — FE / VISUALIZATION
+Purpose: Identity visibility UX
+Scope:
+Entity graphs
+Identity histories
+Access views
+Mirrors: NS-GGP-010
+
+NS-IDN-011 — APIMAP
+Purpose: API → identity surface mapping
+Scope:
+Identity APIs
+Relationship queries
+Trust assertion endpoints
+Mirrors: NS-GGP-011
+
+NS-IDN-012 — STATE
+Purpose: Identity state semantics
+Scope:
+Active vs revoked identities
+Consistency guarantees
+Conflict resolution
+Mirrors: NS-GGP-012
+
+NS-IDN-013 — RUNBOOK
+Purpose: Operational identity controls
+Scope:
+Credential rotation
+Compromise response
+Identity recovery
+Mirrors: NS-GGP-013
+
+NS-IDN-014 — DATADEF
+Purpose: Canonical identity data definitions
+Scope:
+Entity schemas
+Identity schemas
+Relationship schemas
+Mirrors: NS-GGP-014
+
+Cross-Engine Dependencies
+IDN integrates with but does not own:
+GGP — authorization and governance
+DAT — execution permissions
+MUX — external credential use
+FLO — financial attribution
+
+Completion Criteria
+IDN documentation is complete when:
+NS-IDN-000 → NS-IDN-014 exist
+Identity resolution is deterministic and auditable
+Trust assertions are explicit and versioned
+All engines reference identity consistently
+
+Next engine to generate:➡️ CDE — Content Distribution Engine

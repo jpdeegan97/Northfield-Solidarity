@@ -1,0 +1,110 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the logical and operational architecture of the Content Distribution Engine (CDE).
+The architecture is designed to:
+execute governed distribution plans safely
+fan out content to multiple channels via adapters
+provide idempotent, retryable execution
+capture delivery proof and feedback
+support audit, replay, and observability
+2. Architectural Principles
+Plan–Execute Separation — intent is isolated from execution mechanics
+Adapter Isolation — channel logic lives behind MUX adapters
+Idempotent Execution — retries never create duplicates
+Governance First — no execution without approval state
+Observable by Default — every attempt is logged and traceable
+3. High-Level Architecture
+CDE is composed of seven logical layers:
+Plan Intake & Validation
+Governance Gate
+Intent Orchestration
+Execution Dispatcher
+Channel Adapter Interface (via MUX)
+Proof & Feedback Capture
+Event Ledger & Read Models
+4. Plan Intake & Validation Layer
+Responsibilities:
+accept distribution plans from upstream engines
+validate content references and destinations
+ensure schema correctness and constraint completeness
+Invalid plans are rejected before governance.
+5. Governance Gate
+Responsibilities:
+verify approval state via GGP
+ensure actor authority and scope
+block unapproved or expired plans
+The governance gate is a hard stop; execution cannot bypass it.
+6. Intent Orchestration Layer
+Responsibilities:
+materialize distribution intents
+expand plans into per-destination intents
+record triggering context (actor, reason, time)
+An intent is immutable once created.
+7. Execution Dispatcher
+Responsibilities:
+schedule execution attempts
+manage concurrency and backoff
+ensure idempotency per destination
+Execution state machine:
+pending → running → success / failed → retried
+8. Channel Adapter Interface (MUX)
+Responsibilities:
+translate generic distribution requests into channel-specific API calls
+normalize responses and errors
+CDE never embeds channel logic directly.
+9. Proof & Feedback Capture
+Responsibilities:
+persist delivery proofs (IDs, URLs, receipts)
+ingest platform feedback
+forward performance signals to SIG
+Proofs are immutable artifacts.
+10. Event Ledger & Read Models
+Responsibilities:
+record all distribution events append-only
+build read-optimized views for operators and auditors
+Events include:
+PlanApproved
+IntentCreated
+AttemptStarted
+AttemptSucceeded
+AttemptFailed
+11. Storage Strategy
+Authoritative stores:
+PostgreSQL for plans, intents, attempts, proofs, events
+Optional stores:
+Kafka for execution and feedback events
+Redis for hot execution state
+12. Failure & Retry Architecture
+transient failures → retry with backoff
+permanent failures → mark failed, require intervention
+retries are idempotent per (content, destination)
+13. Security & Governance Boundaries
+execution requires governance approval
+adapter credentials managed externally
+actor attribution recorded for every action
+14. Observability
+Metrics:
+attempts per channel
+success/failure rates
+retry counts
+Logs:
+correlation_id
+plan_id / intent_id / attempt_id
+15. Document Position in CDE Corpus
+This architecture builds upon:
+NS-CDE-001 — OVERVIEW
+NS-CDE-002 — TAXONOMY
+It informs:
+NS-CDE-004 — LIFECYCLE
+NS-CDE-005 — DECISION
+NS-CDE-007 — DATAMODEL
+16. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Architecture
+Parent / HoldCo Manager
+Status: Draft

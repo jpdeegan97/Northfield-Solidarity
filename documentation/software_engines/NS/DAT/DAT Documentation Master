@@ -1,0 +1,161 @@
+Digital Arbitrage Tooling (DAT)
+Documentation Master Plan (Aligned to NS‑GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for DAT, strictly aligned to the existing NS‑GGP document structure (000–014).
+DAT is an execution engine. It converts approved opportunities into market actions (listings, pricing, sourcing, routing). DAT never governs itself; it executes within constraints defined by GGP and informed by PIE / SIG / SIM.
+This master plan ensures:
+DAT documentation mirrors GGP structurally
+Execution risk is auditable
+Automation never bypasses governance
+
+DAT Documentation Index (Canonical)
+
+NS‑DAT‑000 — CHARTER
+Purpose: Define why DAT exists
+Scope:
+Mission of DAT
+Why execution must be systematized
+DAT’s role in the NS engine ecosystem
+Explicit non‑goals (governance, accounting, identity)
+Mirrors: NS‑GGP‑000
+
+NS‑DAT‑001 — OVERVIEW
+Purpose: High‑level conceptual framing
+Scope:
+What DAT executes (arbitrage, listings, pricing actions)
+Execution surfaces (marketplaces, channels)
+Relationship to PIE (insights) and GGP (authorization)
+Mirrors: NS‑GGP‑001
+
+NS‑DAT‑002 — TAXONOMY
+Purpose: Define DAT’s atomic execution components
+Scope:
+Opportunity
+Execution Plan
+Action Step
+Channel
+Constraint
+Execution Result
+These primitives define how execution is reasoned about.
+Mirrors: NS‑GGP‑002
+
+NS‑DAT‑003 — ARCHITECTURE
+Purpose: Logical execution architecture
+Scope:
+Opportunity intake
+Plan generation
+Channel adapters
+Execution workers
+Result collection
+Logical design only (not infra).
+Mirrors: NS‑GGP‑003
+
+NS‑DAT‑004 — LIFECYCLE
+Purpose: End‑to‑end execution lifecycle
+Scope:
+Opportunity receipt
+Authorization check (GGP)
+Plan instantiation
+Action execution
+Outcome reporting
+Mirrors: NS‑GGP‑004
+
+NS‑DAT‑005 — DECISION
+Purpose: Execution decision semantics
+Scope:
+When DAT may execute automatically
+When human confirmation is required
+Abort / rollback decisions
+All execution decisions are bounded by GGP policy.
+Mirrors: NS‑GGP‑005
+
+NS‑DAT‑006 — VERSION
+Purpose: Execution plan versioning
+Scope:
+Versioning of execution plans
+Changes due to channel differences
+Impact of plan updates mid‑execution
+Mirrors: NS‑GGP‑006
+
+NS‑DAT‑007 — DATAMODEL
+Purpose: Persistence and execution data contracts
+Scope:
+Execution plans
+Execution attempts
+Results and errors
+Replay safety
+Mirrors: NS‑GGP‑007
+
+NS‑DAT‑008 — EEE (End‑to‑End Example)
+Purpose: Validate execution logic
+Scope:
+Insight from PIE
+Approval via GGP
+Execution via DAT
+Feedback loop to PIE and FLO
+Mirrors: NS‑GGP‑008
+
+NS‑DAT‑009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+MVP execution components
+Channel adapters
+Worker orchestration
+Mirrors: NS‑GGP‑009
+
+NS‑DAT‑010 — FE / VISUALIZATION
+Purpose: Execution visibility UX
+Scope:
+Execution status views
+Error visibility
+Intervention controls
+Mirrors: NS‑GGP‑010
+
+NS‑DAT‑011 — APIMAP
+Purpose: API → execution surface mapping
+Scope:
+Command APIs
+Event outputs
+Control endpoints
+Mirrors: NS‑GGP‑011
+
+NS‑DAT‑012 — STATE
+Purpose: Execution state semantics
+Scope:
+In‑flight execution state
+Idempotency
+Retry vs abort semantics
+Mirrors: NS‑GGP‑012
+
+NS‑DAT‑013 — RUNBOOK
+Purpose: Operational execution controls
+Scope:
+Startup / shutdown
+Kill‑switches
+Throttling
+Incident response
+Mirrors: NS‑GGP‑013
+
+NS‑DAT‑014 — DATADEF
+Purpose: Canonical execution data definitions
+Scope:
+Execution entities
+Event schemas
+Result contracts
+Mirrors: NS‑GGP‑014
+
+Cross‑Engine Dependencies
+DAT integrates with but does not own:
+PIE — opportunity generation
+SIG — signal provenance
+SIM — scenario constraints
+GGP — execution authorization
+FLO — financial outcomes
+
+Completion Criteria
+DAT documentation is complete when:
+NS‑DAT‑000 → NS‑DAT‑014 exist
+Each document maps 1:1 to the GGP template
+Execution cannot bypass governance
+All outcomes are observable and auditable
+
+Next engine to generate:➡️ FLO — Financial Ledger Orchestrator

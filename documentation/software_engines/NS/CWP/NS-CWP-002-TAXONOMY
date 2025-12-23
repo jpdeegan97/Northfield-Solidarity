@@ -1,0 +1,162 @@
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document defines the canonical taxonomy of the Cognitive Work Plane (CWP).
+The taxonomy establishes the atomic, composable building blocks of work used to coordinate, supervise, and audit human and agentic activity across Northfield Solidarity.
+This taxonomy ensures:
+  consistent definition of work across engines
+  safe agentic execution
+  explicit accountability and escalation
+  replayable operational history
+2. Taxonomy Design Principles
+ Work Is Explicit — no implicit or background activity
+ Agents Are Bounded — agents act only within assigned work
+ Hierarchy Without Ambiguity — tasks compose into missions and programs
+ Human Authority Is Preserved — acceptance and escalation require humans
+ Everything Is Auditable — all work emits events
+3. Core Identity Primitives
+3.1 Agent
+Represents an actor capable of performing work.
+Types:
+  human_agent
+  ai_agent
+  hybrid_agent
+Attributes:
+  agent_id (IDN canonical)
+  agent_type
+  capabilities
+  trust_level
+  availability_state
+Agents never act outside assigned work.
+3.2 Role
+Defines a responsibility profile.
+Attributes:
+  role_id
+  name
+  permitted_actions
+  review_authority
+Roles are assigned to agents dynamically.
+4. Work Primitives
+4.1 Task
+The smallest unit of work.
+Attributes:
+  task_id
+  description
+  input_refs
+  expected_output
+  constraints
+  assigned_agent_id
+  status
+  created_at
+States:
+  pending
+  in_progress
+  blocked
+  completed
+  failed
+4.2 Mission
+A coordinated set of tasks with a shared objective.
+Attributes:
+  mission_id
+  objective
+  task_ids
+  success_criteria
+  sla
+  priority
+  owner_agent_id
+4.3 Program
+A long-running collection of missions.
+Attributes:
+  program_id
+  strategic_goal
+  mission_ids
+  cadence
+  governance_constraints
+Programs align work to strategy.
+5. Control & Supervision Primitives
+5.1 Checkpoint
+A required review point.
+Attributes:
+  checkpoint_id
+  work_ref
+  reviewer_role
+  acceptance_criteria
+  due_at
+5.2 Review
+A formal evaluation of work output.
+Attributes:
+  review_id
+  checkpoint_id
+  outcome
+  notes
+  reviewed_by
+  reviewed_at
+5.3 Escalation
+Represents failure or risk requiring intervention.
+Attributes:
+  escalation_id
+  trigger_condition
+  severity
+  routed_to
+  resolution_status
+6. Scheduling & Cadence Primitives
+6.1 SLA
+Defines time and quality expectations.
+Attributes:
+  sla_id
+  response_time
+  completion_time
+  quality_threshold
+6.2 Schedule
+Defines when work runs.
+Attributes:
+  schedule_id
+  trigger_type (time, event, manual)
+  recurrence
+7. State & Event Primitives
+7.1 Work State
+All work artifacts maintain explicit state.
+Common states:
+  created
+  assigned
+  active
+  waiting_review
+  completed
+  escalated
+  closed
+7.2 Work Event
+Append-only record of activity.
+Attributes:
+  event_id
+  event_type
+  work_ref
+  actor_id
+  payload
+  occurred_at
+8. Cross-Engine Work Bindings
+CWP work artifacts may reference:
+  DRE artifacts (themes, hypotheses)
+  PIE insights
+  SIM scenarios
+  DAT execution plans
+  CDE content plans
+CWP never mutates domain artifacts; it supervises work around them.
+9. Invariants
+  no agent performs unassigned work
+  no work completes without meeting acceptance criteria
+  escalations are explicit and logged
+  governance constraints are always respected
+10. Document Position in CWP Corpus
+This taxonomy underpins:
+  NS-CWP-003 — ARCHITECTURE
+  NS-CWP-004 — LIFECYCLE
+  NS-CWP-005 — DECISION
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CWP Taxonomy
+Parent / HoldCo Manager
+Status: Draft

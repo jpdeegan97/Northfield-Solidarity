@@ -1,0 +1,146 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This runbook defines the production-grade operational procedures for the Identity & Entity Nexus (IDN).
+It is intended for:
+platform operators
+governance reviewers
+system engineers
+auditors
+IDN operations prioritize identity correctness, determinism, and auditability over speed.
+2. Operational Invariants (Never Violate)
+Operators must never:
+delete canonical actors or entities
+rewrite historical identity events
+silently reassign identifiers
+mutate relationship history
+All corrections occur via new events and decisions.
+3. Startup Procedure
+3.1 Preflight Checks
+Before starting IDN services:
+PostgreSQL reachable (read/write)
+Migrations applied successfully
+Projection tables/views present
+Kafka reachable (if enabled)
+Config + secrets loaded
+If any check fails → IDN must start in read-only mode.
+3.2 Startup Order
+PostgreSQL
+Kafka (optional)
+idn-event-ledger
+idn-projector
+idn-resolver
+idn-graph
+idn-api
+4. Normal Operations
+4.1 Creating Actors and Entities
+Checklist:
+verify initiator identity
+confirm entity/actor type
+confirm initial identifiers (if any)
+ensure idempotency key provided
+Failure handling:
+validation failure → reject
+conflict → quarantine
+4.2 Identifier Linking
+Checklist:
+normalize identifier
+check resolution view
+check issuing system
+Outcomes:
+linked
+quarantined (collision)
+rejected
+4.3 Relationship Management
+Checklist:
+validate source/target existence
+validate relationship type
+confirm effective dates
+Updates always close old edges and open new ones.
+5. Conflict & Quarantine Handling
+5.1 Identifier Collision
+Steps:
+inspect conflict details
+review evidence
+choose resolution path:
+approve link
+reject link
+open merge case
+All actions generate decision artifacts.
+6. Merge / Split Operations (Governed)
+6.1 Merge Execution
+Steps:
+review merge case
+confirm survivor canonical
+verify governance reference (if required)
+execute merge
+verify alias redirection
+rebuild projections
+6.2 Split Execution (Phase 2)
+Steps:
+define resulting canonicals
+reassign identifiers and relationships
+execute split
+rebuild projections
+7. Projection Management
+7.1 Rebuild Projections
+Use when:
+projection marked stale
+after merge/split
+after schema change
+Steps:
+pause write operations (optional)
+trigger rebuild
+verify counts and hashes
+8. Incident Response Playbooks
+8.1 Resolution Inconsistency Detected
+Symptoms:
+same identifier resolves to multiple canonicals
+Actions:
+freeze linking
+inspect event ledger
+rebuild projections
+open incident
+8.2 Non-Deterministic Replay
+Symptoms:
+replay produces different state
+Actions:
+verify event ordering
+verify ruleset versions
+disable faulty ruleset
+escalate immediately
+9. Backup & Disaster Recovery
+9.1 Database Recovery
+restore PostgreSQL backup
+replay identity events
+rebuild projections
+9.2 Kafka Recovery (if used)
+restore Kafka
+reprocess identity events if needed
+10. Governance & Audit Readiness
+IDN must always support:
+tracing any identity to creation
+explaining merge/split rationale
+reproducing resolution outcomes
+exporting audit packs
+11. Change Management
+ruleset changes are versioned
+schema changes are additive
+projection logic changes are replay-safe
+12. Document Position in IDN Corpus
+This runbook is informed by:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-011 — APIMAP
+NS-IDN-012 — STATE
+It complements:
+NS-IDN-014 — DATADEF
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Operational Runbook
+Parent / HoldCo Manager
+Status: Draft

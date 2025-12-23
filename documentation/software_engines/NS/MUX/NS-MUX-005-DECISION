@@ -1,0 +1,174 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the decision framework used by the Market Integration Layer (MUX).
+MUX decisions determine:
+whether external data is trusted enough to ingest
+how duplicates are handled
+when connectors are degraded or disabled
+how replay, backfill, and reprocessing are performed
+MUX does not decide business meaning, financial classification, or strategy. It decides external truth admissibility and integrity only.
+2. Decision Design Principles
+External Truth Supremacy — MUX reflects what external systems assert
+Fail Closed on Trust — ambiguity blocks promotion, not capture
+Deterministic Outcomes — same input + ruleset → same decision
+Append-Only Effects — decisions never delete history
+Governance Visibility — risky decisions are surfaced to GGP
+3. Decision Categories
+MUX decisions fall into six primary categories:
+Connector Admission Decisions
+Payload Trust & Integrity Decisions
+Normalization Decisions
+Deduplication Decisions
+Publication Decisions
+Replay & Backfill Decisions
+Each decision produces a Decision Artifact.
+4. Connector Admission Decisions
+4.1 Connector Enablement Decision
+Question: Should this connector be enabled?
+Inputs:
+connector configuration
+credential validity
+governance approval (if required)
+Outcomes:
+connector.enabled
+connector.disabled
+High-risk connectors require GGP approval.
+4.2 Connector Degradation Decision
+Question: Should this connector be degraded or disabled?
+Triggers:
+repeated auth failures
+schema drift
+excessive error rate
+rate limit exhaustion
+Outcomes:
+connector.degraded
+connector.disabled
+5. Payload Trust & Integrity Decisions
+5.1 Signature Verification Decision
+Question: Is the payload authentic?
+Outcomes:
+payload.accepted
+payload.rejected_invalid_signature
+Rejected payloads are quarantined.
+5.2 Integrity Hash Decision
+Question: Has payload content been tampered with?
+Outcomes:
+integrity.valid
+integrity.invalid
+6. Normalization Decisions
+6.1 Schema Mapping Decision
+Question: Can this payload be mapped to a canonical artifact type?
+Outcomes:
+normalize.success
+normalize.blocked_schema_unknown
+Blocked payloads are retained for later reprocessing.
+7. Deduplication Decisions
+7.1 Artifact Deduplication Decision
+Question: Is this artifact new or a duplicate?
+Inputs:
+source_system
+external_id
+integrity_hash
+Outcomes:
+dedupe.accept_new
+dedupe.link_existing
+Duplicates create reference links; they are not deleted.
+8. Publication Decisions
+8.1 Event Publication Decision
+Question: Should this canonical artifact be published downstream?
+Conditions:
+integrity valid
+normalization successful
+Outcomes:
+publish.allowed
+publish.blocked
+9. Replay & Backfill Decisions
+9.1 Replay Authorization Decision
+Question: Is replay allowed?
+Inputs:
+replay scope
+requester identity
+governance reference (if needed)
+Outcomes:
+replay.allowed
+replay.denied
+9.2 Backfill Execution Decision
+Question: Should backfill be executed now?
+Inputs:
+connector health
+requested time window
+Outcomes:
+backfill.allowed
+backfill.deferred
+10. Decision Artifacts
+Each MUX decision produces a persisted artifact:
+Decision Artifact Fields:
+decision_id
+decision_type
+input_refs
+outcome
+rationale
+ruleset_version
+evaluated_at
+actor_type (system / operator / governance)
+correlation_id
+Decision artifacts are immutable and replayable.
+11. Determinism & Replay
+Decisions are deterministic per ruleset version
+Rule changes produce new decision artifacts
+Historical decisions remain inspectable
+12. Cross-Engine Boundaries
+
+
+
+Engine
+
+Responsibility
+
+
+MUX
+
+External truth admissibility
+
+
+FLO
+
+Financial meaning & reconciliation
+
+
+DAT
+
+Execution verification
+
+
+GGP
+
+Policy approval & oversight
+13. Document Position in MUX Corpus
+This decision document builds upon:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+It informs:
+NS-MUX-006 — VERSION
+NS-MUX-007 — DATAMODEL
+14. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Decision Framework
+
+Parent / HoldCo Manager
+Status: Draft

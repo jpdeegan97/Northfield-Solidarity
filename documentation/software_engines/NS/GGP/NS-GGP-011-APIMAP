@@ -1,0 +1,71 @@
+GGE API Endpoints to Frontend Component Mapping v0.1
+Cover Page
+Document Title: Governance Graph Engine – API Endpoints to Frontend Component Mapping 
+Document ID: NS-GGE-011-APIMAP 
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+This document defines the mapping between backend API endpoints and frontend components for the GGE MVP. This ensures that all FE modules can retrieve the required data and maintain consistent state management.
+2. API Endpoint to FE Component Mapping
+FE Screen / Component
+API Endpoint
+Data Returned
+Notes
+ExecutionAuditScreen
+GET /api/executions/{execution_id}
+execution_audit_view object
+Provides full execution details including component changes and SOP versions updated.
+ComponentChangesTable
+Included in execution_audit_view
+List of component changes
+Displays Component ID, previous/new version, change type, materiality, rationale
+SOPVersionsTable
+Included in execution_audit_view
+List of SOP version updates
+Displays SOP ID, version, change type, approval status, published date
+SOPVersionHistoryScreen
+GET /api/sops/{sop_id}/versions
+sop_history_view object
+Provides SOP version history with published links
+VersionHistoryTable
+Included in sop_history_view
+List of SOP versions
+Columns: version, execution ID, change type, approval status, published date, notes
+DependencyGraphSnippet
+Optional GET /api/sops/{sop_id}/dependencies
+dependency graph object
+Visualizes cross-SOP dependencies, optional for MVP
+FilterPanel
+Frontend only
+N/A
+Updates context; used to filter tables and fetch API data based on user selections
+3. Interaction Flow
+ User applies filters in FilterPanel → updates context
+ ExecutionAuditScreen fetches /api/executions/{execution_id} → populates ComponentChangesTable and SOPVersionsTable
+ SOPVersionHistoryScreen fetches /api/sops/{sop_id}/versions → populates VersionHistoryTable
+ Optional: DependencyGraphSnippet fetches /api/sops/{sop_id}/dependencies → renders visual graph
+ Clicking on SOP ID / version opens published SOP in viewer
+4. Considerations
+  All endpoints should support pagination for large datasets
+  API responses should be consistent and immutable for audit reliability
+  Role-based filtering to ensure security and proper access control
+  Error handling: FE displays fallback messages if API fails
+  Future-proofing: API versioning to handle updates without breaking FE
+5. Next Steps
+ Implement API mocks for frontend development
+ Validate data mapping with sample backend data
+ Integrate FE components with API services using context or Redux
+ Add optional dependency graph visualization in FE MVP
+6. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial API-to-FE Component Mapping
+Parent / HoldCo Manager
+End of Document

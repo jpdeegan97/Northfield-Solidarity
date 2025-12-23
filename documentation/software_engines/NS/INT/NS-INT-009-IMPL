@@ -1,0 +1,426 @@
+NS-INT-009 — IMPL (Implementation)
+
+1. Purpose
+
+This document defines the implementation blueprint for Intervention (quickscope). It is intentionally prescriptive enough to build an MVP while remaining flexible for iteration.
+
+Intervention implementation is structured as:
+
+Core (cluster): ingest → log → project → query → stream
+
+Edge (per engine/UI): bootstrap → cache → subscribe → publish
+
+2. MVP Implementation Goals
+
+MVP should achieve:
+
+Canonical event ingest with idempotency
+
+Immutable event persistence
+
+At least two projections:
+
+EntityState
+
+WorkflowState
+
+Snapshot query API
+
+Delta streams (SSE) for Firmament + engine edges
+
+Edge client that:
+
+bootstraps snapshot
+
+subscribes to deltas
+
+provides local reads
+
+publishes events upstream
+
+GGP gating for at least one protected transition class
+
+3. Reference Tech Stack (Suggested Default)
+
+These are recommended defaults aligned with your broader architecture style.
+
+3.1 Transport / Backbone
+
+Kafka as the canonical event transport spine
+
+Topics partitioned by partition_key (entity/workflow/correlation)
+
+3.2 Core Storage
+
+Event Log Store: Postgres (append-only table) for MVP
+
+Simple, debuggable, easy to query/replay
+
+Read Models: Postgres tables (separate schemas per projection)
+
+Fast enough for MVP; can split later
+
+3.3 Stream Gateway
+
+SSE for deltas (simple, browser-friendly)
+
+Optional: WebSockets later for high fanout interactive sessions
+
+3.4 Services / Runtime
+
+Java/Spring Boot (consistent with your existing backend preference)
+
+Containerized deployment (OpenShift/K8s)
+
+Note: If you prefer polyglot, Projection Runtime is a good place for Python workers, but MVP should stay simple.
+
+4. Core Services (Concrete Modules)
+
+4.1 Ingest Service
+
+Responsibilities
+
+Accept events via:
+
+POST /v1/events (HTTP)
+
+and/or Kafka producer endpoint (edge publishes to Kafka directly)
+
+Validate:
+
+required envelope fields
+
+schema_version compatibility
+
+authz (producer may emit event_type)
+
+Idempotency:
+
+dedupe by event_id
+
+Assign:
+
+observed_at
+
+validity state
+
+Implementation Notes
+
+Keep schema validation lightweight at ingest:
+
+envelope validation always
+
+payload validation: MVP can be “type-based minimal,” later add registry-based validation
+
+4.2 Governance Gate Adapter (GGP Connector)
+
+Responsibilities
+
+Maintain config list: protected_event_types[]
+
+For protected events:
+
+call GGP decision endpoint
+
+store gating outcome
+
+Modes
+
+Sync gating (MVP): event becomes authoritative only after allow
+
+Async gating (later): accept → quarantine → authorize on approval
+
+4.3 Event Log Service
+
+Responsibilities
+
+Append-only persistence
+
+Efficient retrieval by:
+
+entity_id, workflow_id, correlation_id
+
+time window
+
+MVP Postgres Table (conceptual)
+
+events(event_id PK, event_type, engine_id, occurred_at, observed_at, entity_id, workflow_id, correlation_id, causation_id, envelope_version, schema_version, validity, payload_jsonb, tags_jsonb)
+
+Indexes
+
+(entity_id, occurred_at)
+
+(workflow_id, occurred_at)
+
+(correlation_id, occurred_at)
+
+(engine_id, occurred_at)
+
+4.4 Projection Runtime
+
+Responsibilities
+
+Consume events (from Kafka or from events table tail)
+
+Apply projector logic deterministically
+
+Write materialized views
+
+Emit deltas to Stream Gateway
+
+MVP Approach
+
+Single projection worker service with:
+
+projector registry (in code)
+
+versioned projector interfaces
+
+Projectors (MVP)
+
+EntityStateProjector
+
+WorkflowStateProjector
+
+Delta Emission
+
+Create StateDelta objects per update
+
+Publish to:
+
+Kafka int.deltas.* topics OR
+
+a Stream Gateway internal queue
+
+4.5 Read Model Store
+
+MVP Tables (conceptual)
+
+entity_state(entity_id PK, status, version, owner_engine_id, workflow_id, correlation_id, last_event_id, last_updated_at, attributes_jsonb)
+
+workflow_state(workflow_id PK, status, version, correlation_id, current_step_id, current_gate_id, last_event_id, updated_at, details_jsonb)
+
+4.6 Query API Service
+
+Endpoints (MVP)
+
+GET /v1/state/entity/{entity_id}
+
+GET /v1/state/workflow/{workflow_id}
+
+GET /v1/events?entity_id=...&since=...
+
+GET /v1/threads/{correlation_id} (optional in MVP)
+
+Time Travel (Phase 2+)
+
+GET /v1/state/entity/{entity_id}/at?t=...
+
+4.7 Stream Gateway
+
+MVP SSE Endpoints
+
+GET /v1/stream/global?cursor=...
+
+GET /v1/stream/entity/{entity_id}?cursor=...
+
+GET /v1/stream/workflow/{workflow_id}?cursor=...
+
+GET /v1/stream/correlation/{correlation_id}?cursor=...
+
+Cursor Model
+
+cursor can be:
+
+occurred_at + event_id tuple
+
+or Kafka offset
+
+Backpressure
+
+drop/compact non-critical deltas under load
+
+preserve critical workflow/incident deltas
+
+5. Edge Implementation (quickscope Edge)
+
+5.1 Form Factor
+
+MVP recommendation:
+
+Embedded SDK for Java engines
+
+Lightweight local sidecar for Firmament UI (Node service) if needed
+
+Edge provides a local API:
+
+GET /v1/edge/state/...
+
+POST /v1/edge/events
+
+5.2 Bootstrap Algorithm
+
+Request snapshot(s) for required keys
+
+Persist snapshot locally
+
+Subscribe to streams starting from returned cursor
+
+Apply deltas in order
+
+Report EdgeStatus to Core periodically
+
+5.3 Local Store
+
+In-memory cache for MVP
+
+Optional:
+
+SQLite / LevelDB for warm restarts
+
+5.4 Publishing
+
+Edge wraps outbound events with:
+
+standard envelope defaults
+
+correlation/causation helpers
+
+Sends to Core ingest (HTTP) or Kafka
+
+6. Firmament Integration (First-Class)
+
+6.1 Snapshot + Deltas
+
+Firmament should:
+
+load global snapshot (graph view later)
+
+subscribe to:
+
+global deltas
+
+focused thread deltas when zoomed/drilled
+
+6.2 Visualization-Ready Projection (Phase 2)
+
+Add FirmamentGraphProjector producing:
+
+GraphNode / GraphEdge
+
+Pulse events
+
+7. Protected Transitions (MVP Rule Set)
+
+Start with a small protected set:
+
+*_approved
+
+*_denied
+
+ledger_*
+
+settlement_*
+
+Implementation:
+
+Ingest detects protected type
+
+Calls GGP
+
+Marks event authoritative only if allowed
+
+8. Operational Concerns
+
+8.1 Observability
+
+Emit metrics:
+
+ingest rate, reject/quarantine counts
+
+projector lag
+
+stream fanout
+
+edge sync state distribution
+
+8.2 Rebuild Strategy
+
+MVP:
+
+manual rebuild endpoint:
+
+POST /v1/admin/projections/{id}/rebuild
+
+rebuild reads from event log store
+
+8.3 Disaster Recovery
+
+Event log is source of truth
+
+Read models are rebuildable
+
+Regular DB backups + Kafka retention
+
+9. Phased Implementation Plan
+
+Phase 0 — Contracts
+
+Canonical envelope library
+
+Minimal schema registry discipline
+
+Phase 1 — Core Spine
+
+Ingest + Event Log (Postgres)
+
+Basic query for raw events
+
+Phase 2 — Present State
+
+Projections (EntityState, WorkflowState)
+
+Snapshot APIs
+
+Phase 3 — Streams + Edge
+
+SSE stream gateway
+
+Edge SDK + Firmament consumer
+
+Phase 4 — Governance Gating
+
+Protected transitions + GGP connector
+
+Phase 5 — quickscope Extensions
+
+time travel
+
+replay to sandbox
+
+graph projections for Firmament
+
+10. Implementation Deliverables
+
+MVP deliverables checklist:
+
+
+
+11. Summary
+
+Intervention MVP can be built cleanly by:
+
+using Kafka as the spine
+
+using Postgres for event memory + read models
+
+implementing deterministic projectors
+
+streaming deltas via SSE
+
+deploying edges to every engine/UI
+
+gating protected transitions through GGP
+
+This delivers the “quickscope” state fabric without overbuilding.
+

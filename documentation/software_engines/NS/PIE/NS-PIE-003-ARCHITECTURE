@@ -1,0 +1,197 @@
+0. Overview
+System Name: Product InsightIQ Engine
+Document Title: Product InsightIQ Engine Architecture
+ARCHITECTUREARCHITECTU3-ARCHITECTURE
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: Annual or Upon Material Change
+1. Purpose of This Document
+This document defines the logical architecture of the Product InsightIQ Engine (PIE), aligned to the canonical PIE taxonomy in NS-PIE-002.
+PIE’s architecture is designed to:
+Convert raw, trust-scored inputs into explainable Insights
+Maintain replayability and historical traceability
+Emit outputs that are governance-compatible with GGP
+This document describes components and interfaces, not deployment topology.
+
+2. Architectural Overview
+PIE is structured as a pipeline of bounded subsystems:
+Input Intake (from SIG and DRE)
+Normalization & Context Assembly
+Insight Generation
+Scoring & Ranking
+Narrative Synthesis
+Output & Publication
+Persistence & Replay Support
+Each subsystem is designed to be:
+Deterministic given the same inputs and model versions
+Independently testable
+Observable and auditable
+
+3. Core Components
+3.1 Signal Intake Adapter (SIG → PIE)
+Responsibility:
+Pull/subscribe to normalized signals from SIG
+Validate envelope + required fields (Signal ID, trust score, timestamp)
+Apply lightweight filtering (e.g., drop below minimal trust threshold)
+Outputs:
+Signal References for downstream Context Assembly
+Notes:
+SIG is the source of truth for signal provenance and trust scoring
+PIE must not rewrite or overwrite SIG trust scores
+
+3.2 Research Intake Adapter (DRE → PIE)
+Responsibility:
+Ingest Research Artifacts from DRE
+Associate artifacts to Topics, themes, or market segments
+Outputs:
+Research Artifact references for Context Assembly
+
+3.3 Context Assembly Layer
+Responsibility:
+Build a contextual snapshot that binds:
+Signals (what is observed)
+Research artifacts (long-horizon context)
+Optional priors (historical performance, known constraints)
+Primary Function:
+Produce an Evidence Bundle per candidate Insight
+Notes:
+Context Assembly is where “raw facts” become a structured basis for inference
+
+3.4 Insight Generator
+Responsibility:
+Convert Evidence Bundles into candidate Insights
+Produce a stable Opportunity Statement
+Assign Insight Type
+Key Design Requirements:
+Must be deterministic given:
+Evidence Bundle contents
+Generator version
+Outputs:
+Insight (status: Proposed)
+
+3.5 Scoring & Ranking Service
+Responsibility:
+Apply one or more Scoring Models to candidate Insights
+Compute Confidence Score and supporting metrics
+Produce a comparable ranking surface
+Key Design Requirements:
+Every score references a Scoring Model version
+Scores must be replayable for audit
+Outputs:
+Scored Insight
+Score breakdown (for explainability)
+
+3.6 Risk Profiling Service
+Responsibility:
+Identify and annotate known risks
+Attach a Risk Profile to each Insight
+Inputs:
+Evidence Bundle
+Known constraint sources (SIM rules, MUX constraints, historical execution)
+Outputs:
+Risk Profile + risk flags
+
+3.7 Decay & Relevance Manager
+Responsibility:
+Attach Decay Model and Relevance Window to each Insight
+Reduce ranking prominence over time when evidence becomes stale
+Key Design Requirements:
+Decay rules are explicit (no hidden time decay)
+Decay must be visible to downstream systems
+
+3.8 Narrative & Explanation Layer
+Responsibility:
+Produce a human-readable explanation that ties:
+Opportunity Statement
+Evidence Bundle
+Score breakdown
+Risk Profile
+Uncertainty and counter-signals
+Outputs:
+Narrative summary
+Evidence pointers
+Notes:
+Narrative must not introduce new “facts” that are not supported by evidence
+
+3.9 Output Publisher
+Responsibility:
+Emit insights to downstream consumers via:
+Events (async)
+Read APIs (sync)
+Event Outputs (conceptual):
+pie.insight.proposed
+pie.insight.updated
+pie.insight.expired
+API Outputs (conceptual):
+Query ranked insights
+Retrieve full insight detail (evidence + narrative)
+Notes:
+Promotion/approval is governed by GGP; PIE output is advisory
+
+4. Persistence & Replay Architecture
+PIE requires two categories of persistence:
+Authoritative Insight Records
+Insight versions
+Evidence Bundle references
+Scoring model versions
+Derived Read Models
+Ranked lists
+Filtered dashboards
+Search indexes
+Replay Goals:
+Rebuild derived read models from authoritative records
+Recompute scores when a scoring model version changes
+PIE must preserve:
+Model versions
+Input references (signal IDs, artifact IDs)
+Deterministic transform versions
+
+5. Interfaces & Integrations
+5.1 PIE ↔ SIG
+PIE consumes trust-scored signals
+PIE does not mutate provenance
+5.2 PIE ↔ DRE
+PIE consumes long-horizon artifacts
+PIE may reference hypotheses but must preserve attribution
+5.3 PIE ↔ SIM
+SIM consumes PIE Insights as scenario inputs
+SIM returns constraints / risk feedback (optional)
+5.4 PIE ↔ DAT
+DAT consumes approved insights for execution planning
+DAT provides execution outcomes as feedback (via FLO/PTE)
+5.5 PIE ↔ GGP
+GGP governs promotion thresholds and approval
+PIE provides audit-ready evidence and narratives
+5.6 PIE ↔ PTE
+PTE tracks performance trajectories for insight-driven initiatives
+
+6. Control Surfaces
+PIE exposes control surfaces that are governance compatible:
+Model Registry (versions, activation)
+Threshold Controls (minimum trust, minimum confidence)
+Kill Switch (pause publication)
+Replay Controls (rebuild read models)
+All control changes should be governed by GGP.
+
+7. Observability Requirements
+PIE must be observable at each stage:
+Intake throughput and lag
+Candidate insight generation rate
+Score distributions
+Decay events
+Publication success/failure
+All observability should be attributable to:
+Model versions
+Input sources
+Time windows
+
+8. Document Position in PIE Corpus
+This architecture document is based on:
+NS-PIE-001 — OVERVIEW
+NS-PIE-002 — TAXONOMY
+It is complemented by:
+NS-PIE-004 — LIFECYCLE
+NS-PIE-005 — DECISION
+NS-PIE-007 — DATAMODEL

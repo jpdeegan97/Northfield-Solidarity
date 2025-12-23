@@ -1,0 +1,181 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the frontend (FE) / finance operator UI specification for FLO.
+FLO is the system of financial record, so the UI must prioritize:
+explainability
+reconciliation workflows
+audit-grade traceability
+safe, governed exceptions (manual adjustments, overrides)
+This document defines canonical screens, components, interactions, and data requirements, independent of any UI framework.
+2. FE Design Principles
+Ledger as Source of Truth
+Ledger entries are immutable
+UI must never suggest edits to historical entries
+Reconciliation-Centric Workflow
+The primary operational task is matching internal truth to external truth
+Evidence-First
+Every meaningful financial line should link to evidence (invoice/receipt/processor id)
+Governed Exceptions Only
+Manual adjustments and overrides require governance refs, reason, and identity
+Traceability Everywhere
+correlation_id, source_system, and upstream references must be visible
+3. User Personas
+Finance Operator — reconciliation, exception handling, reporting export
+Controller / Approver — governed manual adjustments, policy oversight
+Operator (Execution) — view budget burn and constraints (read-only)
+Auditor — inspect immutable timelines and evidence
+4. Canonical Screens (MVP)
+4.1 Ledger Explorer
+Goal: Search and inspect canonical ledger entries.
+Core Elements:
+Filters:entityaccounttime windowtransaction_typesource_systembudget_id / allocation_idcorrelation_id
+Ledger table:datetransaction_iddebit/creditamountaccountcategorysourceevidence indicator
+Key Interactions:
+Drill into Transaction Detail
+Drill into Ledger Entry Detail
+4.2 Transaction Detail
+Goal: Explain a logical transaction grouping.
+Sections:
+Summary header: transaction_id, type, entity
+Ledger entries list (debits/credits)
+Upstream attribution:DAT plan_id/version (if present)MUX external ids
+Ruleset version used
+4.3 Ledger Entry Detail (Audit View)
+Goal: Provide a complete immutable audit record for a single ledger entry.
+Sections:
+Ledger entry fields
+Source normalized_event reference
+Evidence links
+Budget/allocation bindings
+Reconciliation matches (0..n)
+Timeline of decisions (classification, admission, recon)
+4.4 Budget & Allocation Dashboard
+Goal: Show budget burn and enforcement state.
+Core Elements:
+Budget list:budget_idscopecapspentremainingstate (ok/near_limit/exhausted)
+Allocation breakdown per budget
+Key Interactions:
+Open Budget Detail
+Filter ledger explorer by budget
+4.5 Budget Detail
+Goal: Explain why budget state is what it is.
+Sections:
+Budget definition (versioned)
+Governance decision reference
+Spend contributors (top transactions)
+State transitions timeline
+4.6 Reconciliation Inbox
+Goal: Provide an operational queue of reconciliation exceptions.
+Queues:
+Missing (statement exists, ledger missing)
+Excess (ledger exists, statement missing)
+Disputed
+Key Interactions:
+Open Reconciliation Work Item
+Mark as disputed with reason
+Trigger re-run reconciliation (governed)
+4.7 Reconciliation Work Item
+Goal: Compare external statement line(s) to candidate ledger entries.
+Sections:
+Statement line details
+Candidate ledger matches
+Evidence links
+Proposed match rationale
+Governed Actions:
+Accept match (if policy allows)
+Mark disputed
+Create manual adjustment request
+Note:
+Acceptance should create a reconciliation record; it does not mutate the ledger.
+4.8 Manual Adjustment Request (Governed)
+Goal: Safely correct forward when internal truth is missing or misclassified.
+Fields:
+adjustment_type (correction, accrual, reclass, write-off)
+amount, currency
+target entity/account
+reason
+governance reference required
+Output:
+new ledger entries with source attribution = MANUAL
+4.9 Reporting / Export
+Goal: Produce exports for tax, bookkeeping, and governance review.
+Outputs:
+CSV exports
+Reconciliation status reports
+Budget burn reports
+All exports are reproducible from ledger.
+5. Cross-Engine Visibility Requirements
+FLO FE must surface upstream references when available:
+DAT: execution_plan_id + plan_version attribution
+GGP: budget approval decision id
+MUX: processor/bank statement ids
+PTE: performance references (link-outs)
+IDN/PECA: entity/account ownership
+6. Component Inventory (Suggested)
+LedgerTable
+LedgerFiltersPanel
+TransactionCard
+DebitCreditPill
+EvidenceBadge
+BudgetMeter
+BudgetStateBadge
+ReconciliationQueue
+ReconWorkItemCard
+StatementLineCard
+MatchCandidateTable
+RulesetVersionBadge
+CorrelationTracePanel
+GovernedActionModal (confirm + reason + governance ref)
+ExportPanel
+7. Data Requirements (API Needs)
+7.1 Ledger Explorer
+list ledger entries
+filter by entity/account/time/budget/source
+7.2 Transaction Detail
+fetch transaction + all entries
+fetch upstream attribution fields
+7.3 Budget Dashboard
+list budgets + burn state
+list allocations per budget
+7.4 Reconciliation Inbox
+list reconciliation exceptions by outcome
+fetch statement line details
+fetch candidate matches
+7.5 Governed Actions
+create reconciliation resolution record
+create manual adjustment (requires governance ref)
+trigger reconciliation rerun
+8. Non-Functional Requirements
+Audit-grade: immutable views and stable IDs
+Performance: fast search over large ledgers
+Redaction: no secrets, no sensitive payment tokens
+Role safety: read-only by default; governed writes restricted
+9. Document Position in FLO Corpus
+This FE document is informed by:
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+NS-FLO-007 — DATAMODEL
+It complements:
+NS-FLO-011 — APIMAP
+NS-FLO-012 — STATE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO FE / Finance Operator UI Spec
+
+Parent / HoldCo Manager
+Status: Draft

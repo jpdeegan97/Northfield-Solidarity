@@ -1,0 +1,412 @@
+NS-INT-003 — ARCHITECTURE
+
+1. Purpose
+
+This document defines the reference architecture for Intervention (quickscope) as a first-class NS engine providing:
+
+immutable event memory
+
+authoritative state projections
+
+real-time deltas/subscriptions
+
+correlation/causality threading
+
+edge-local performance via caches/sidecars
+
+The architecture is designed to make NS behave like a single coherent, stateful system.
+
+2. Architectural Principles
+
+Event-first truth: events are the primitive; state is derived.
+
+Append-only memory: the event log is immutable.
+
+Projection as product: read models are explicit, versioned, and testable.
+
+Edge-first reads: low-latency access happens close to consumers.
+
+Resumable streaming: consumers can reconnect and continue.
+
+Governance-gated transitions: protected event classes consult GGP.
+
+Idempotency everywhere: duplicates are safe; replay is normal.
+
+3. Component Model
+
+3.1 Intervention Core (Cluster)
+
+A. Ingest Gateway
+
+Accepts canonical event envelopes via HTTP/gRPC and/or message bus
+
+Performs structural validation (schema/version, required fields)
+
+Enforces idempotency (event_id dedupe)
+
+Assigns observed_at
+
+B. Router / Partitioning Layer
+
+Routes events to partitions keyed by:
+
+entity_id (primary)
+
+workflow_id (secondary)
+
+correlation_id (optional thread key)
+
+Guarantees ordered-per-key processing where required
+
+C. Governance Gate Adapter (GGP Connector)
+
+Determines if an event is in a protected transition class
+
+Requests decision from GGP (sync or async modes)
+
+Writes gating outcomes as governance events (or attaches refs)
+
+D. Event Log (Immutable Store)
+
+Append-only persistence of all accepted events
+
+Supports:
+
+by-key reads (entity/workflow/correlation)
+
+time-window reads
+
+replay streams
+
+E. Projection Runtime
+
+Hosts projector workers that consume the event log / bus
+
+Produces versioned materialized views
+
+Supports:
+
+streaming projection
+
+rebuild/reconciliation
+
+snapshotting
+
+F. Materialized State Stores (Read Models)
+
+Query-optimized stores for “current state”
+
+Typical separation:
+
+canonical state store (engine-agnostic)
+
+domain projections (registered)
+
+UI projections (Firmament-optimized)
+
+G. Query API
+
+Snapshot reads
+
+Time-travel reads (state at time T)
+
+Correlation/thread queries (story view)
+
+Debug endpoints (projection status, lag)
+
+H. Stream Gateway
+
+Real-time delivery via SSE/WebSocket
+
+Topic routing by engine/entity/workflow/correlation/event_type
+
+Resumable subscriptions:
+
+cursor / offset / last_event_id
+
+Backpressure handling
+
+I. Admin / Control Plane
+
+Projection management (deploy, version, rebuild)
+
+Schema registry / contract enforcement
+
+Quarantine review (if used)
+
+Health, metrics, and SLO dashboards
+
+3.2 Intervention Edge (Per Engine / UI)
+
+Intervention Edge is a sidecar process or embedded SDK deployed alongside each consumer.
+
+Edge Responsibilities
+
+Bootstrap
+
+Obtain initial snapshot(s) from Core
+
+Subscribe to relevant streams
+
+Local Read Model Cache
+
+Maintain a local materialized view for fast reads
+
+Optionally persist locally (disk) for warm restarts
+
+Delta Application
+
+Apply deltas in ordered-per-key fashion
+
+Track versions and last_event_id to prevent regressions
+
+Event Publishing
+
+Publish canonical events upstream
+
+Provide local buffering (optional) when disconnected
+
+Resync / Reconciliation
+
+Detect drift or lag
+
+Request replay from a cursor
+
+Re-bootstrap if necessary
+
+Local API Surface
+
+Provide a small local API (HTTP/IPC) for the host engine/UI:
+
+get_state(...)
+
+subscribe(...)
+
+publish_event(...)
+
+4. Data Flow Patterns
+
+4.1 Standard State Update Flow (Unprotected)
+
+Engine publishes event to its local Intervention Edge
+
+Edge forwards event to Ingest Gateway
+
+Ingest validates, dedupes, appends to Event Log
+
+Projection Runtime updates read models
+
+Stream Gateway emits deltas
+
+All subscribed Edges apply deltas locally
+
+4.2 Protected Transition Flow (GGP-gated)
+
+Engine publishes a protected event class
+
+Core checks protected rules and calls GGP Gate Adapter
+
+GGP returns allow/deny/allow_with_conditions/escalate
+
+Intervention records gating outcome and either:
+
+marks event authoritative and projects it, or
+
+quarantines / rejects it per policy
+
+Deltas are streamed to subscribers including gating context refs
+
+4.3 Firmament Visualization Flow
+
+Firmament UI Edge loads:
+
+global snapshot(s)
+
+active threads/workflows snapshot
+
+Firmament subscribes to:
+
+global delta feed
+
+entity/workflow feeds relevant to the view
+
+Firmament renders:
+
+nodes/edges from state graph projections
+
+pulses from deltas/events
+
+5. Storage Architecture
+
+5.1 Event Memory
+
+Immutable, append-only storage
+
+Partitioned by key to preserve ordered-per-key semantics
+
+5.2 State Present (Read Models)
+
+Read models are separated by purpose:
+
+Canonical State Store: minimal, engine-agnostic state summaries
+
+Workflow State Store: workflow instances, steps, gates, timers
+
+Thread/Correlation Store: story view and causal chain indices
+
+Firmament View Store: visualization-ready graph projections
+
+5.3 Edge Local Stores
+
+In-memory cache (baseline)
+
+Optional local persistence (for warm restart, offline tolerance)
+
+6. Reliability & Consistency Model
+
+6.1 Delivery Semantics
+
+Default: at-least-once delivery
+
+Exactly-once behavior is achieved operationally via:
+
+event_id idempotency
+
+version checks
+
+deterministic projection functions
+
+6.2 Ordering Guarantees
+
+Ordered-per-key (entity/workflow/correlation)
+
+Not necessarily global total order
+
+6.3 Consistency Guarantees
+
+Core provides authoritative state eventually consistent across consumers
+
+Edge provides near-real-time local reads that converge via deltas/replay
+
+6.4 Failure Handling
+
+Ingest: retries are safe (idempotent)
+
+Projectors: rebuildable from event log
+
+Streams: resumable via cursor/offset
+
+Edge: re-bootstrap on drift
+
+7. Security & Governance Touchpoints
+
+7.1 AuthN/AuthZ (conceptual)
+
+Producer/consumer identity via IDN
+
+Topic-level permissions for subscriptions
+
+Write permissions for event classes
+
+7.2 Governance Gating
+
+Protected event classes require GGP approval
+
+Policy context references are attached to authoritative state
+
+7.3 Auditability
+
+Event log provides full provenance
+
+Correlation/causation provide story reconstruction
+
+8. Reference Interfaces
+
+8.1 Canonical Event Envelope (required)
+
+Fields:
+
+event_id, event_type, engine_id
+
+entity_id (or aggregate_id)
+
+occurred_at, observed_at
+
+correlation_id, causation_id
+
+actor
+
+schema_version
+
+policy_context_ref
+
+payload
+
+8.2 Core APIs (high-level)
+
+POST /events (ingest)
+
+GET /state/snapshot?... (snapshot reads)
+
+GET /state/at?...t=... (time travel)
+
+GET /threads/{correlation_id} (story view)
+
+GET /stream?...cursor=... (SSE/WebSocket bootstrap)
+
+8.3 Edge APIs (local)
+
+GET /edge/state?...
+
+POST /edge/events
+
+GET /edge/health
+
+9. Observability
+
+Intervention emits:
+
+ingest rate, reject/quarantine counts
+
+projector lag, rebuild durations
+
+stream fanout, backpressure metrics
+
+edge sync status (in_sync/degraded/stale)
+
+correlation coverage (% of events with correlation_id)
+
+10. Deployment Topology (Reference)
+
+10.1 Core
+
+Deployed as a clustered service
+
+Horizontal scale on:
+
+ingest throughput
+
+projector workers
+
+stream gateway fanout
+
+10.2 Edge
+
+Deployed with each engine and UI service
+
+Can be:
+
+sidecar container
+
+embedded library with local service endpoint
+
+11. Architecture Summary
+
+Intervention (quickscope) is built as:
+
+Core cluster: ingest → immutable memory → projections → query → streams
+
+Edge sidecars/SDKs: fast local reads + resumable streaming + event publishing
+
+Paired with GGP for governance gating, Intervention turns NS into a coherent, replayable, real-time system that Firmament can visualize and operators can understand.
+

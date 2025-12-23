@@ -1,0 +1,408 @@
+NS-PIE — Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+
+Purpose
+
+This document defines the authoritative documentation master plan for PIE (Product InsightIQ Engine), strictly aligned to the NS-GGP canonical document structure (000–014).
+
+PIE is Northfield Solidarity’s product research and product intelligence engine. It is responsible for:
+
+market and product discovery
+
+product catalog intelligence (attributes, pricing, demand proxies)
+
+competitor and listing analysis
+
+sourcing/logistics signal capture (vendor/3PL/lead-times)
+
+roadmap outputs for building or selling products
+
+packaging insight into actionable work (CWP tasks) and simulations (SIM)
+
+PIE is not:
+
+a governance authority (GGP)
+
+the integration gateway itself (MUX)
+
+the financial ledger (FLO)
+
+the operational work coordinator (CWP)
+
+PIE produces insights, structured datasets, and recommended actions, all governed by GGP.
+
+PIE Documentation Index (Canonical)
+
+NS-PIE-000 — CHARTER
+
+Purpose: Define why PIE exists.
+
+Scope
+
+Mission and non-goals
+
+What “Product InsightIQ” means in NS
+
+Boundaries vs DRE/SIG/SIM/MUX/FLO/CWP
+
+Core outputs (insight packages, product candidates, research dossiers)
+
+Outputs
+
+One-paragraph mission
+
+Core responsibilities (allowed actions)
+
+Explicit non-responsibilities
+
+NS-PIE-001 — OVERVIEW
+
+Purpose: Provide executive overview of PIE capabilities and operating model.
+
+Scope
+
+Primary use cases:
+
+top-selling product discovery
+
+niche validation
+
+competitor listing and pricing analysis
+
+supplier/3PL shortlist generation
+
+build-vs-buy recommendation
+
+Data sources (internal and external categories)
+
+Insight pipeline stages (collect → normalize → score → recommend)
+
+Reliability and quality posture
+
+Outputs
+
+Capability map
+
+Typical user journeys (operator and automation)
+
+NS-PIE-002 — TAXONOMY
+
+Purpose: Define the canonical vocabulary for product intelligence.
+
+Scope
+
+Entities: ProductCandidate, Listing, Offer, Vendor, Supplier, 3PL, Market, Channel
+
+Signals: price, rank, reviews, sentiment, inventory, lead time, shipping cost
+
+Metrics: margin estimate, demand proxy, volatility, risk tier
+
+Research artifacts: Dossier, EvidenceRefs, SourceAttribution
+
+Scoring and ranking terms (confidence, freshness, coverage)
+
+Outputs
+
+Terms and definitions
+
+Naming conventions (product_id, candidate_id, dossier_id)
+
+NS-PIE-003 — ARCHITECTURE
+
+Purpose: Describe PIE’s system architecture and engine boundaries.
+
+Scope
+
+Data ingestion pathways (via MUX + DRE/SIG)
+
+Normalization/feature extraction
+
+Scoring + ranking layer
+
+Knowledge store(s) and index/search
+
+Output packaging to CWP and SIM
+
+Observability via LUM
+
+Governance gates via GGP
+
+Outputs
+
+Component diagram
+
+Dataflow diagrams (sources → insight outputs)
+
+NS-PIE-004 — LIFECYCLE
+
+Purpose: Define the lifecycle of research, candidates, and insight outputs.
+
+Scope
+
+Candidate lifecycle (discovered → enriched → scored → shortlisted → approved → executed/archived)
+
+Dossier lifecycle (draft → reviewed → published → deprecated)
+
+Refresh and recrawl schedules
+
+Human review checkpoints
+
+Outputs
+
+Lifecycle state machines
+
+Refresh/retention guidelines
+
+NS-PIE-005 — DECISION
+
+Purpose: Define decision points and governance gates.
+
+Scope
+
+When GGP approval is required:
+
+using a new data source
+
+scraping/terms-of-service risk decisions
+
+vendor outreach automation
+
+committing spend (samples, subscriptions)
+
+publishing recommendations to downstream execution
+
+Evidence requirements for “recommended product” decisions
+
+Risk tiers and confidence thresholds
+
+Outputs
+
+Decision matrix
+
+Required evidence per decision class
+
+NS-PIE-006 — VERSION
+
+Purpose: Define versioning for models, scoring rules, and research outputs.
+
+Scope
+
+Dossier versioning
+
+Scoring model/rules versioning (semver)
+
+Dataset schema versioning
+
+Backtesting snapshots
+
+Deprecation windows for old scoring versions
+
+Outputs
+
+Version policy
+
+Upgrade and rollback strategy
+
+NS-PIE-007 — DATAMODEL
+
+Purpose: Define the canonical data model for PIE.
+
+Scope
+
+ProductCandidate
+
+Listing/Offer
+
+Market/Channel
+
+Vendor/Supplier/3PL
+
+SignalRecord (typed)
+
+FeatureVector (derived)
+
+ScoreCard (outputs + confidence)
+
+Dossier (narrative + citations)
+
+Recommendation (action proposal) + EvidenceRefs
+
+Outputs
+
+Entity definitions + required fields
+
+Correlation requirements (workflow_id, decision_id, integration_id)
+
+NS-PIE-008 — EEE (End-to-End Example)
+
+Purpose: Provide a full scenario showing PIE producing actionable outcomes.
+
+Scope (example scenario)
+
+Discover product candidates via SIG/DRE
+
+Enrich with pricing, reviews, and supplier shortlist via MUX
+
+Compute margin + demand proxy score
+
+Route to CWP for human review + vendor outreach tasks
+
+If approved, hand off to FLO (sample purchase) and SIM (scenario modeling)
+
+LUM correlates the end-to-end workflow
+
+Outputs
+
+Sequence diagram
+
+Happy path + failure path (data source unavailable, low confidence, policy blocked)
+
+NS-PIE-009 — IMPL
+
+Purpose: Implementation guidance and reference patterns.
+
+Scope
+
+Source ingestion patterns (pull vs push)
+
+Normalization and deduping
+
+Feature extraction (pricing history, review sentiment, volatility)
+
+Scoring pipeline patterns (batch + streaming)
+
+Citation/attribution and evidence handling
+
+Confidence and quality scoring
+
+Outputs
+
+Reference pipeline skeleton
+
+MVP build plan
+
+NS-PIE-010 — FE (Optional Operator UI)
+
+Purpose: Optional UI for operators and analysts.
+
+Scope
+
+Candidate browser (filter/sort)
+
+Dossier viewer/editor
+
+Score explanations (why this product ranks)
+
+Source attribution viewer
+
+“Create tasks in CWP” actions
+
+Export packs (redacted)
+
+Outputs
+
+Page map
+
+Role model and access constraints
+
+NS-PIE-011 — APIMAP
+
+Purpose: Define PIE’s API surfaces.
+
+Scope
+
+Candidate CRUD
+
+Signal ingestion endpoints (internal)
+
+Score compute and retrieval
+
+Dossier creation/versioning
+
+Recommendation publish endpoints
+
+Export endpoints
+
+Events emitted to LUM
+
+Outputs
+
+Endpoint catalog
+
+Standard headers (correlation + idempotency)
+
+NS-PIE-012 — STATE
+
+Purpose: Define canonical states for PIE objects.
+
+Scope
+
+Candidate states (discovered/enriched/scored/shortlisted/approved/archived)
+
+Dossier states (draft/reviewed/published/deprecated)
+
+Recommendation states (draft/proposed/approved/rejected/executed)
+
+Data source states (active/degraded/disabled)
+
+Outputs
+
+State machines + invalid transition rules
+
+NS-PIE-013 — RUNBOOK
+
+Purpose: Operator runbooks for common failures.
+
+Scope
+
+Data freshness issues and recrawl failures
+
+Source outages and degraded mode
+
+Scoring pipeline failures
+
+Quality regressions and backtest rollback
+
+Compliance incidents (source restrictions)
+
+Outputs
+
+Playbooks by incident type
+
+Escalation guidance and comms templates
+
+NS-PIE-014 — DATADEF
+
+Purpose: Field-level definitions, enums, validation, and redaction rules.
+
+Scope
+
+Candidate and listing fields
+
+Signal and feature definitions
+
+Score definitions and confidence fields
+
+Citation/source attribution fields
+
+Redaction rules (never store secrets; handle personal data carefully)
+
+High-cardinality constraints for labels/metrics
+
+Outputs
+
+Canonical field dictionary
+
+Validation constraints + “never store” list
+
+Notes on Alignment
+
+PIE uses MUX for external provider calls and must not embed provider secrets.
+
+PIE routes operational actions into CWP (tasks) rather than acting directly.
+
+Any spending decisions or payments flow through FLO, governed by GGP.
+
+PIE’s analysis is observable via LUM and should always emit correlation IDs.
+
+PIE may consume signals from SIG and deep research outputs from DRE, but PIE is responsible for product-level normalization, scoring, and recommendations.
+

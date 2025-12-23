@@ -1,0 +1,112 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the versioning model for the Deep Research Engine (DRE).
+Versioning in DRE ensures:
+research evolution without loss of history
+reproducible synthesis and confidence states
+auditable promotion of research downstream
+deterministic replay of past research conclusions
+2. Versioning Principles
+Append-Only Knowledge — prior versions are never mutated or deleted
+Explicit Version Increments — any semantic change creates a new version
+Separation of Content vs Logic — research artifacts and decision rules version independently
+Replay Fidelity — historical conclusions can be reconstructed exactly
+Governed Promotion Snapshots — downstream engines consume frozen versions
+3. Versioned Artifact Types
+The following DRE artifacts are versioned:
+Evidence Items (logical versioning via capture time)
+Hypotheses
+Research Narratives
+Evidence Bundles
+Themes / Subthemes
+Assumptions
+Decision Rulesets
+Promotion Snapshots
+4. Evidence Versioning
+4.1 Evidence Items
+evidence items are immutable
+new evidence creates a new item, never an update
+4.2 Evidence Corrections
+corrections are recorded as supplemental evidence
+original evidence remains intact
+5. Hypothesis Versioning
+5.1 Hypothesis Identity
+Each hypothesis has:
+hypothesis_id (stable)
+hypothesis_version (monotonic)
+5.2 Version Triggers
+A new hypothesis version is created when:
+confidence score changes
+supporting or contradicting evidence changes
+hypothesis state changes
+statement text changes
+6. Narrative Versioning
+narratives are versioned documents
+drafts may change freely
+accepted narratives are immutable
+revisions create new versions
+Narratives reference specific hypothesis versions.
+7. Theme & Assumption Versioning
+themes evolve slowly and are versioned on semantic change
+assumptions are versioned when confidence or description changes
+Downstream engines consume assumption versions explicitly.
+8. Decision Ruleset Versioning
+decision logic (confidence thresholds, relevance heuristics) is versioned
+every decision artifact references its ruleset_version
+This guarantees interpretability of historical decisions.
+9. Promotion Snapshot Versioning
+When research is promoted:
+a promotion snapshot is created
+snapshot includes:
+artifact_id
+artifact_version
+decision_ruleset_version
+promotion_timestamp
+Downstream engines consume snapshots, not live artifacts.
+10. Compatibility & Replay
+Change Type
+Backward Compatible
+Requires Replay
+New evidence
+Yes
+Optional
+Confidence logic change
+Yes
+Yes
+Hypothesis revision
+No (new version)
+No
+Narrative update
+No (new version)
+No
+11. Cross-Engine Version Alignment
+Engine
+Version Interaction
+PIE
+Consumes promoted hypothesis/narrative versions
+SIM
+Consumes assumption versions
+DAT
+Consumes sourcing research snapshots
+GGP
+Governs promotion approvals
+12. Failure Scenarios
+missing version reference → promotion blocked
+ruleset mismatch → human review required
+incompatible downstream schema → promotion rejected
+13. Document Position in DRE Corpus
+This versioning specification builds upon:
+NS-DRE-005 — DECISION
+It informs:
+NS-DRE-007 — DATAMODEL
+NS-DRE-013 — RUNBOOK
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Versioning Specification
+Parent / HoldCo Manager
+Status: Draft

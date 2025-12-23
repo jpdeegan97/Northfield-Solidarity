@@ -1,0 +1,159 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the canonical taxonomy for the Deep Research Engine (DRE).
+The taxonomy specifies all atomic research components that serve as the source-of-truth for long-horizon knowledge, evidence, and hypothesis tracking. These components are designed to be:
+composable
+versioned
+explainable
+governable
+This taxonomy prevents research sprawl and ensures consistent downstream interpretation.
+2. Taxonomy Design Principles
+Evidence First — claims cannot exist without evidence
+Explicit Uncertainty — confidence is always quantified or described
+Versioned Knowledge — research evolves without erasing history
+Separation of Claim and Proof — hypotheses reference evidence; they do not embed it
+Promotion Is Governed — moving research downstream requires approval
+3. Core Research Primitives
+3.1 Source
+Represents an origin of information.
+Attributes:
+source_id
+source_type (paper, filing, forum, vendor, interview)
+publisher / author
+credibility_score
+bias_notes
+first_seen_at
+Sources are stable references.
+3.2 Evidence Item
+Atomic unit of captured proof.
+Attributes:
+evidence_id
+source_id
+excerpt / data payload
+capture_method (manual, crawler, agent)
+captured_at
+relevance_tags
+Evidence items are immutable.
+3.3 Citation
+Links evidence to research artifacts.
+Attributes:
+citation_id
+evidence_id
+cited_by (artifact_id)
+citation_context
+4. Research Artifacts
+4.1 Theme
+A long-horizon research area.
+Attributes:
+theme_id
+name
+description
+status (emerging, active, declining)
+created_at
+4.2 Subtheme
+A focused dimension of a theme.
+Attributes:
+subtheme_id
+theme_id
+description
+4.3 Hypothesis
+A testable research claim.
+Attributes:
+hypothesis_id
+statement
+related_theme_ids
+confidence_score
+status (open, supported, contradicted)
+last_updated_at
+4.4 Assumption
+An explicit assumption used by downstream engines.
+Attributes:
+assumption_id
+description
+confidence
+originating_hypothesis_id
+5. Synthesis Artifacts
+5.1 Research Narrative
+Human-readable synthesis of findings.
+Attributes:
+narrative_id
+scope (theme, hypothesis, time range)
+summary
+author_id
+version
+created_at
+5.2 Evidence Bundle
+A curated set of evidence supporting a claim.
+Attributes:
+bundle_id
+included_evidence_ids
+coverage_notes
+completeness_score
+6. Relationship & Graph Elements
+6.1 Entity
+Referenced real-world or conceptual entity.
+Attributes:
+entity_id (IDN canonical)
+entity_type (company, technology, regulation)
+6.2 Relationship
+Assertion about entities.
+Attributes:
+relationship_id
+subject_entity_id
+predicate
+object_entity_id
+temporal_scope
+confidence
+Relationships reference evidence via citations.
+7. Versioned State & Promotion Artifacts
+7.1 Research Version
+Represents a snapshot of a research artifact.
+Attributes:
+artifact_id
+artifact_type
+version
+created_at
+change_summary
+7.2 Promotion Request
+Request to promote research downstream.
+Attributes:
+promotion_id
+artifact_id
+target_engine (PIE, SIM, DAT)
+rationale
+status
+Governed by GGP.
+8. Cross-Engine Taxonomy Alignment
+Engine
+DRE Element Consumed
+PIE
+Themes, hypotheses, narratives
+SIM
+Assumptions, drivers, confidence
+DAT
+Vendor/supply research, constraints
+GGP
+Promotion requests, audit trail
+SIG
+Evidence references (optional)
+9. Taxonomy Invariants
+hypotheses must reference evidence via citations
+confidence is mandatory for claims
+evidence items are immutable
+promotions require governance approval
+10. Document Position in DRE Corpus
+This taxonomy underpins all other DRE documents.
+It informs:
+NS-DRE-003 — ARCHITECTURE
+NS-DRE-004 — LIFECYCLE
+NS-DRE-007 — DATAMODEL
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Taxonomy
+Parent / HoldCo Manager
+Status: Draft

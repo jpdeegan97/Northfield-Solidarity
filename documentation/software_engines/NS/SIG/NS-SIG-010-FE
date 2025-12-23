@@ -1,0 +1,136 @@
+
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the optional frontend (FE) / operator UI for the Signal Aggregation Engine (SIG).
+The SIG operator UI is designed to:
+provide visibility into signal ingestion and health
+surface trust, confidence, and decay behavior
+allow governed operational controls (replay, rebuild, source tuning)
+support audit and explainability for downstream decisions
+SIG FE is observational first, control second.
+2. FE Design Principles
+Signals Are Immutable — UI never edits signal facts
+Trust Is Visible — scores and rationale are always shown
+Derived ≠ Authoritative — aggregates are labeled clearly
+Governed Controls — operational actions require identity and reason
+Traceability — lineage is one click away
+3. Primary Personas
+Signal Operator — monitors ingestion and health
+Data Steward — investigates anomalies and schema drift
+Research / Strategy — explores signal landscapes
+Auditor — inspects provenance and decisions
+4. Canonical Screens (MVP)
+4.1 Signal Health Dashboard
+Goal: System-wide health snapshot.
+Displays:
+ingestion rate by source
+backlog/lag per source
+normalization error rate
+scoring anomalies
+dedupe rate
+4.2 Source Detail View
+Goal: Deep visibility into a single source.
+Sections:
+source reliability profile
+recent signals
+trust/confidence distributions
+schema drift events
+Actions (Governed):
+pause/resume ingestion
+adjust reliability weight
+4.3 Signal Explorer
+Goal: Search and inspect canonical signals.
+Filters:
+signal_class
+signal_type
+source_system
+trust_score range
+observed_at range
+Results:
+signal_id
+value
+scores
+decay model
+4.4 Signal Detail (Explainability View)
+Goal: Full explainability for a single signal.
+Sections:
+normalized signal payload
+trust & confidence rationale
+decay parameters
+provenance links (MUX artifacts, telemetry)
+decision artifacts
+4.5 Aggregate Explorer
+Goal: Inspect derived aggregates.
+Views:
+windowed aggregates
+weighted aggregates
+Clearly labeled as derived.
+4.6 Correlation Group Viewer
+Goal: Inspect signal correlation groups.
+Displays:
+correlation key
+member signals
+time span
+No causal claims shown.
+4.7 Replay & Rebuild Console (Governed)
+Goal: Trigger and monitor operational jobs.
+Job Types:
+replay canonical signals
+rebuild aggregates
+rebuild correlations
+Required:
+actor identity
+reason
+governance reference (if required)
+4.8 Anomaly & Drift Inbox
+Goal: Surface system and data quality issues.
+Items:
+schema drift detected
+missing data windows
+abnormal trust-score shifts
+Actions:
+acknowledge
+investigate
+trigger reprocess
+5. Component Inventory (Suggested)
+SignalHealthPanel
+SourceReliabilityCard
+SignalTable
+SignalDetailPanel
+ProvenanceGraph
+AggregateTable
+CorrelationGroupViewer
+ReplayJobWizard
+JobStatusTable
+GovernedActionModal
+6. Data Requirements (API Needs)
+list signals (filtered)
+get signal detail + lineage
+list aggregates
+list correlation groups
+list source health
+create replay/rebuild job
+list job status
+7. Non-Functional Requirements
+Performance: fast filtering over large signal sets
+Security: RBAC on sensitive provenance views
+Auditability: log all operator actions
+Clarity: derived vs authoritative always explicit
+8. Document Position in SIG Corpus
+This FE document is informed by:
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+NS-SIG-007 — DATAMODEL
+It complements:
+NS-SIG-011 — APIMAP
+NS-SIG-012 — STATE
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Operator UI Spec
+Parent / HoldCo Manager
+Status: Draft

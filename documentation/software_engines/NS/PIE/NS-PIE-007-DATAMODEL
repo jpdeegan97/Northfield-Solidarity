@@ -1,0 +1,206 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the canonical data model for PIE, including:
+Authoritative entities and their relationships
+Storage strategy (authoritative vs derived)
+Event contract persistence requirements
+Replay and rebuild assumptions
+This document is aligned to:
+NS-PIE-002 — TAXONOMY
+NS-PIE-004 — LIFECYCLE
+NS-PIE-005 — DECISION
+2. Data Model Principles
+PIE data modeling follows these principles:
+Authoritative vs Derived SeparationAuthoritative records are append-only and replayable. Derived read models are rebuildable.
+Immutability by DefaultHistorical records are never overwritten; changes create new versions.
+Versioned DeterminismEvery score and decision references explicit model versions.
+Evidence TraceabilityEvery Insight must be traceable to evidence references (signals/artifacts).
+Governance CompatibilityThe model must map cleanly to GGP intake, approval, and audit requirements.
+3. Persistence Strategy
+PIE uses a dual-layer persistence model:
+3.1 Authoritative Store (System of Record)
+Holds:
+Insight versions
+Evidence Bundle references
+Decision Context snapshots
+State transition history
+Properties:
+Append-only semantics
+Replayable
+Audit friendly
+3.2 Derived Read Models
+Holds:
+Ranked insight lists
+Search indexes
+Filtered dashboards
+Properties:
+Rebuildable
+Optimized for read performance
+4. Canonical Entities (Authoritative)
+4.1 insight
+Description: Canonical, versioned Insight record.
+Key Fields:
+insight_id (stable)
+insight_version (monotonic)
+insight_type
+opportunity_statement
+status (proposed / under_review / approved / rejected / expired)
+created_at
+updated_at
+Notes:
+A new version is created when semantic content changes.
+4.2 evidence_bundle
+Description: Grouping of references that support an Insight version.
+Key Fields:
+bundle_id
+insight_id
+insight_version
+created_at
+4.3 evidence_item
+Description: A single referenced piece of evidence inside a bundle.
+Key Fields:
+item_id
+bundle_id
+evidence_type (signal_ref | research_artifact)
+ref_id (signal_id or artifact_id)
+trust_score (if applicable)
+captured_at
+Notes:
+Evidence is referenced, not duplicated.
+4.4 scoring_result
+Description: Score outputs for an Insight version.
+Key Fields:
+score_id
+insight_id
+insight_version
+scoring_model_id
+scoring_model_version
+confidence_score
+score_breakdown (structured)
+scored_at
+4.5 risk_profile
+Description: Risk annotation for an Insight version.
+Key Fields:
+risk_id
+insight_id
+insight_version
+risk_band
+risk_flags (structured)
+risk_notes
+assessed_at
+4.6 decay_model
+Description: Relevance and decay configuration for an Insight version.
+Key Fields:
+decay_id
+insight_id
+insight_version
+relevance_window_start
+relevance_window_end
+decay_type (time | event | signal)
+decay_params (structured)
+4.7 narrative
+Description: Human-readable explanation layer for an Insight version.
+Key Fields:
+narrative_id
+insight_id
+insight_version
+summary
+rationale
+counter_signals
+generated_at
+4.8 decision_context
+Description: Immutable snapshot of all inputs used for Promotion Readiness.
+Key Fields:
+decision_id
+insight_id
+insight_version
+scoring_model_version
+confidence_score
+risk_band
+decay_state
+evidence_bundle_id
+evaluated_at
+4.9 insight_state_transition
+Description: Append-only state transition ledger.
+Key Fields:
+transition_id
+insight_id
+from_status
+to_status
+actor_type (system | governance | human)
+actor_id
+correlation_id
+occurred_at
+5. Derived Read Models (Non-Authoritative)
+5.1 insight_rankings
+Description: Cached ranking views for fast consumption.
+Fields:
+ranking_id
+time_window
+insight_id
+rank
+ranking_score
+computed_at
+5.2 insight_search_index
+Description: Search-friendly document representation.
+Fields:
+insight_id
+current_version
+searchable_text
+tags
+updated_at
+6. Relationship Diagram (Logical)
+insight (1) → (many) insight_state_transition
+insight (1) → (many) evidence_bundle
+evidence_bundle (1) → (many) evidence_item
+insight (1) → (many) scoring_result
+insight (1) → (many) risk_profile
+insight (1) → (many) decay_model
+insight (1) → (many) narrative
+insight (1) → (many) decision_context
+Authoritative relationships are always bound by (insight_id, insight_version).
+7. Replay & Rebuild Semantics
+PIE must support:
+Read Model Rebuild
+Clear derived models
+Recompute rankings from authoritative records
+Score Replay
+Re-run scoring models for historical insights
+Preserve original scoring outputs as historical truth
+Decision Replay
+Re-evaluate promotion readiness under a new model version
+Store results as new decision_context records
+Replay never mutates history; it appends.
+8. External References (IDs Only)
+PIE stores references to external objects by ID:
+Signals: sig.signal_id
+Research artifacts: dre.artifact_id
+Governance approvals: ggp.decision_id
+PIE never duplicates foreign authoritative records.
+9. Constraints & Invariants
+All authoritative entities are keyed by (insight_id, insight_version)
+Evidence bundles must exist before scoring/risk/narrative
+Decision contexts are immutable
+State transitions are append-only
+Derived models can be dropped and rebuilt at any time
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE Canonical Data Model
+
+Parent / HoldCo Manager
+Status: Draft

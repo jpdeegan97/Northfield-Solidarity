@@ -1,0 +1,308 @@
+NS-FIRMAMENT-010 — FE (Frontend)
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the Firmament frontend (FE) architecture for:
+
+a zoomable 3D Earth,
+
+layer toggles + filters,
+
+sector heatmap/treemap + drilldowns,
+
+realtime updates,
+
+and action routing UX (CWP + GGE).
+
+Firmament FE is a render engine + interaction cockpit. It is optimized for smooth navigation, clarity, and explainable drilldowns.
+
+2. Technology Baseline
+
+React + Vite (no TypeScript)
+
+CesiumJS (recommended) for globe + imagery + LOD
+
+State management: Zustand (preferred) or Redux Toolkit
+
+Data fetching: native fetch + lightweight wrappers (or TanStack Query if desired)
+
+Realtime: WebSocket (primary) + SSE/poll fallback
+
+3. UI Information Architecture
+
+Firmament FE is organized into three simultaneous surfaces:
+
+Globe Surface — the 3D Earth with overlays
+
+Layer Control Surface — toggles, filters, legends
+
+Insight Surface — events list, sector heatmap, drilldowns, action panel
+
+3.1 Default Layout
+
+Center: globe
+
+Left: layer panel (collapsible)
+
+Right: context panel (tabs)
+
+Events
+
+Sector Heatmap
+
+Selected (drilldown)
+
+Actions
+
+4. Core FE Modules
+
+4.1 GlobeRenderer
+
+Responsibilities:
+
+initialize Cesium viewer
+
+manage camera + zoom context
+
+render primitives per layer
+
+handle feature picking (click/hover)
+
+Key behaviors:
+
+enforce LOD rules
+
+cluster at low zoom
+
+simplify paths/polygons by zoom
+
+4.2 LayerManager
+
+Responsibilities:
+
+load layer registry (/layers)
+
+maintain active layer set
+
+manage per-layer filters
+
+apply style rules + legends
+
+4.3 TileClient
+
+Responsibilities:
+
+fetch features by tile {z,x,y} per active layers
+
+cache results (in-memory + optional persisted)
+
+manage aborts on pan/zoom
+
+4.4 RealtimeClient
+
+Responsibilities:
+
+connect to WS/SSE
+
+subscribe by tenant + active layers + viewport
+
+apply deltas to client cache
+
+track last update times + staleness
+
+4.5 SectorHeatmapPanel
+
+Responsibilities:
+
+display treemap
+
+allow metric selection (health score, returns, margin, risk)
+
+click tile → request brief + context focus
+
+4.6 DrilldownPanel
+
+Responsibilities:
+
+render payload documents (entity/event/flow/sector/risk)
+
+show evidence bundle + staleness
+
+show linked entities + map focus controls
+
+4.7 ActionPanel
+
+Responsibilities:
+
+display ranked action candidates
+
+show gate requirements
+
+submit actions (create CWP tasks / GGE packets)
+
+show execution status and trace completeness
+
+5. State Model (FE)
+
+5.1 Global Stores
+
+sessionStore: tenant scope, auth token, roles
+
+layerStore: registry + active layers + filters
+
+viewportStore: camera position, zoom context, visible tiles
+
+tileStore: cached tile payloads + timestamps
+
+selectionStore: selected feature/sector/context
+
+briefStore: briefs + action candidates + scenario bundles
+
+realtimeStore: connection state, subscriptions, last-delta times
+
+5.2 Derived State
+
+active tiles = viewport × zoom × active layers
+
+render set = tiles filtered by LOD and density rules
+
+staleness badges = max(source staleness) per layer/payload
+
+6. Rendering Pipeline
+
+6.1 Frame Loop
+
+camera changes → update zoom context
+
+compute required tiles
+
+tile fetch + cache hydrate
+
+apply deltas from realtime
+
+render features
+
+6.2 Density Controls
+
+max pins per tile per zoom
+
+clustering rules
+
+hide labels below zoom threshold
+
+6.3 Visual Encoding Rules
+
+severity drives color/opacity (from style rules)
+
+path thickness reflects volume / risk
+
+heat intensity reflects metric value
+
+pulsing/animation reserved for:
+
+new/critical signals
+
+exceptions (shipment delays)
+
+7. Interaction Model
+
+7.1 Selecting Features
+
+click pin/path/polygon → highlight + open Drilldown
+
+hover → tooltip summary
+
+selection sets ContextSelection
+
+7.2 Sector Heatmap Interaction
+
+click sector tile:
+
+focus globe on impacted geos (if known)
+
+request brief
+
+open Actions tab
+
+7.3 Plan Slider
+
+slider change updates plan_mode
+
+triggers scenario request
+
+reorders actions and updates projections
+
+7.4 “Execute Plan”
+
+user selects actions
+
+FE shows:
+
+required gates
+
+estimated exposure
+
+rollback notes
+
+submit → action links appear + gate/task status streaming
+
+8. API Contract Expectations (FE)
+
+Minimum endpoints FE expects:
+
+GET /api/v1/layers
+
+GET /api/v1/geo/tiles/{z}/{x}/{y}?layers=...&filters=...
+
+GET /api/v1/payloads/{payload_ref_id}
+
+GET /api/v1/sectors/treemap?metric=...
+
+POST /api/v1/briefs/generate (context + plan_mode)
+
+POST /api/v1/actions/submit (selected actions)
+
+GET /api/v1/actions/status?ids=...
+
+WS /realtime (deltas)
+
+9. UX Requirements (Non-Negotiables)
+
+globe must remain smooth during heavy updates
+
+layer toggles must be instant (no full reload)
+
+staleness must be visible (never silently stale)
+
+every drilldown must surface “next actions”
+
+every gated action must show gate state clearly
+
+10. Accessibility & Usability
+
+keyboard navigation for panels
+
+high-contrast mode support (optional)
+
+minimize motion mode (reduce animations)
+
+clear legends for every layer
+
+11. Frontend Definition of Done (v0)
+
+FE is “done” when:
+
+globe renders and supports zoom + focus,
+
+layer manager loads registry and toggles layers,
+
+tiles load for viewport and cache properly,
+
+sector heatmap works and opens briefs/actions,
+
+realtime deltas apply without breaking UX,
+
+action submission routes into CWP/GGE and statuses are visible.
+

@@ -1,0 +1,170 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the canonical API map for the Content Distribution Engine (CDE).
+It maps:
+  CDE Operator UI screens (NS-CDE-010)
+  upstream content registration (PIE/DRE)
+  governance gating (GGP)
+  channel execution (MUX)
+  feedback forwarding (SIG)
+The goal is to ensure fast operational visibility and safe, governed controls.
+2. API Design Principles
+ Read-Optimized — operators frequently query plans and execution state
+ Write-Guarded — plan submission, reruns, and reconciliation are controlled
+ Idempotency Everywhere — all writes accept idempotency keys
+ Evidence First — success requires proof, not assumptions
+ Correlation-Ready — correlation_id is present in all responses
+3. API Surface Groups
+ Content Artifacts
+ Plans
+ Governance & Approval
+ Intents
+ Attempts
+ Proofs & Reconciliation
+ Feedback
+ DLQ / Failure Queue
+ Events & Decisions
+ Export
+4. FE Screen → API Mapping
+4.1 Dashboard
+  GET /dashboard/summary Returns:
+  plan_counts_by_status
+  attempt_failure_rate_by_destination
+  retry_backlog
+  dlq_count
+4.2 Content Artifact Browser
+  GET /content Filters:
+  content_type
+  source_engine
+  created_after
+  GET /content/{content_id}
+  GET /content/{content_id}/versions (optional)
+4.3 Plan Builder
+  POST /plans (create draft)
+  PUT /plans/{plan_id} (update draft)
+  POST /plans/{plan_id}/validate
+4.4 Plan Detail
+  GET /plans Filters:
+  status
+  created_after
+  actor_id
+  GET /plans/{plan_id}
+  GET /plans/{plan_id}/items
+Actions:
+  POST /plans/{plan_id}/clone (creates new draft version)
+  POST /plans/{plan_id}/cancel (guarded; if scheduled)
+4.5 Approval Timeline
+  GET /plans/{plan_id}/approval
+Submit for approval (guarded):
+  POST /plans/{plan_id}/submit Body:
+  actor_id
+  reason
+  idempotency_key
+4.6 Execution Monitor (Intents + Attempts)
+  GET /plans/{plan_id}/intents
+  GET /intents/{intent_id}
+  GET /intents/{intent_id}/attempts
+4.7 Attempt Detail
+  GET /attempts/{attempt_id}
+  GET /attempts/{attempt_id}/events
+  GET /attempts/{attempt_id}/decisions
+  GET /attempts/{attempt_id}/proofs
+Guarded actions:
+  POST /attempts/{attempt_id}/rerun Body:
+  actor_id
+  reason
+  idempotency_key
+  POST /attempts/{attempt_id}/escalate
+4.8 Proof & Reconciliation
+  GET /proofs?plan\_id=&intent\_id=&attempt_id=
+Attach/reconcile proof (guarded):
+  POST /attempts/{attempt_id}/proofs/attach Body:
+  proof_type
+  proof_value
+  actor_id
+  reason
+  idempotency_key
+Mark proof insufficient (guarded):
+  POST /attempts/{attempt_id}/proofs/insufficient
+4.9 Feedback Viewer
+  GET /feedback Filters:
+  content_id
+  destination_id
+  signal_type
+  observed_after
+  GET /feedback/{feedback_id}
+4.10 DLQ / Failure Queue
+  GET /dlq Filters:
+  destination_id
+  failure_type
+  since
+  GET /dlq/{dlq\_item\_id}
+Actions (guarded):
+  POST /dlq/{dlq\_item\_id}/reopen
+  POST /dlq/{dlq\_item\_id}/close
+4.11 Audit Pack Export
+  POST /export/audit-pack Body:
+  scope_type (plan / intent / destination)
+  scope_id
+  format (json/pdf)
+5. Upstream / Downstream Integration Endpoints
+5.1 Content Registration (PIE/DRE)
+  POST /content/register Body:
+  content_type
+  source_engine
+  content_version
+  metadata
+  actor_id (service)
+  idempotency_key
+5.2 Governance Check (GGP)
+CDE internal call pattern:
+  POST /ggp/evaluate-release (service-to-service)
+CDE stores:
+  approval state
+  governance_ref
+  rationale summary
+5.3 Execution via MUX
+CDE internal call pattern:
+  POST /mux/dispatch
+Request includes:
+  destination_id
+  adapter_name/version
+  content_ref
+  idempotency_key
+5.4 Feedback Forwarding to SIG
+  POST /sig/ingest Body:
+  content_id
+  destination_id
+  signal_type
+  value
+  observed_at
+6. Canonical Response Envelope
+All endpoints return:
+  success
+  data
+  error_code (nullable)
+  message (nullable)
+  correlation_id
+7. Security & Controls
+  RBAC per endpoint group
+  governed endpoints require actor_id + reason
+  idempotency_key required for writes
+  cancellation/rerun/reconciliation require elevated role
+8. Document Position in CDE Corpus
+This APIMAP is informed by:
+  NS-CDE-009 — IMPL
+  NS-CDE-010 — FE
+  NS-CDE-007 — DATAMODEL
+It informs:
+  NS-CDE-012 — STATE
+  NS-CDE-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE API Mapping
+Parent / HoldCo Manager
+Status: Draft

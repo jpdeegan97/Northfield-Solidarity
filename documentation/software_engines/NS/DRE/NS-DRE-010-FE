@@ -1,0 +1,171 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the optional frontend (FE) / operator UI for the Deep Research Engine (DRE).
+The DRE Operator UI exists to:
+  register sources and configure monitoring
+  ingest and review evidence
+  create and curate themes and hypotheses
+  manage confidence updates and reviewer notes
+  draft and accept research narratives
+  submit governed promotion requests to downstream engines
+  export research briefs and evidence packs
+DRE FE is a research workbench: capture → synthesize → promote.
+2. FE Design Principles
+ Evidence First — evidence capture and citation are primary
+ Human-in-the-Loop — suggestions are explicit; acceptance is deliberate
+ Version Transparency — artifact versions and changes are visible
+ Provenance Clarity — every claim shows its evidence chain
+ Governed Promotion — promotion actions are guarded
+3. Primary Personas
+  Research Operator — collects evidence, curates themes/hypotheses
+  Reviewer — validates narratives and confidence updates
+  Governance Reviewer — approves promotion (via GGP workflow)
+  Downstream Consumer — reads briefs and pulls artifacts (PIE/SIM/DAT)
+4. Canonical Screens (MVP)
+4.1 Research Dashboard
+Purpose: global view of research state.
+Widgets:
+  active themes
+  hypotheses by state (open/supported/contradicted)
+  recently captured evidence
+  pending reviews
+  promotion requests (submitted/approved/rejected)
+4.2 Source Registry
+Features:
+  add/edit sources
+  source type and credibility notes
+  monitoring cadence
+  last_seen / last_ingested
+Actions:
+  enable/disable monitoring
+  run ingest now (guarded)
+4.3 Evidence Inbox
+Purpose: triage new evidence.
+Features:
+  evidence list with filters (source, date, tags)
+  diff view for changed pages (optional)
+  dedupe indicator (fingerprint match)
+Actions:
+  tag evidence
+  link evidence to theme/hypothesis (creates citation)
+  mark as irrelevant / park in backlog
+4.4 Evidence Detail
+Displays:
+  captured payload
+  source metadata
+  fingerprint
+  citations referencing this evidence
+Actions:
+  add citation context notes
+  request reviewer attention
+4.5 Theme Explorer
+Features:
+  browse themes/subthemes
+  theme timelines
+  linked hypotheses
+  linked narratives
+Actions:
+  create theme
+  edit theme (new version)
+4.6 Hypothesis Workbench
+Features:
+  hypothesis list with confidence + state
+  version history view (diff)
+  supporting vs counter evidence panels
+Actions:
+  create hypothesis
+  propose confidence update (creates decision draft)
+  accept update (creates new version)
+4.7 Narrative Builder
+Features:
+  narrative editor with citation insertion
+  coverage checklist (claims must cite evidence)
+  narrative version history
+Actions:
+  submit narrative for review
+  accept narrative (locks version)
+4.8 Review Queue
+Purpose: structured review workflow.
+Items:
+  narratives pending acceptance
+  confidence update proposals
+  contradiction alerts
+Actions:
+  approve / request changes
+  attach reviewer notes (append-only)
+4.9 Promotion Center
+Purpose: prepare and submit promotion requests.
+Features:
+  select artifact + version
+  select target engine (PIE/SIM/DAT)
+  attach rationale
+  preview “promotion snapshot”
+Actions:
+  submit promotion request (guarded)
+  view governance status (approved/rejected)
+4.10 Briefs & Evidence Packs
+Purpose: exportable research outputs.
+Exports:
+  theme brief
+  hypothesis evidence pack
+  promotion snapshot pack
+Formats:
+  JSON bundle
+  PDF brief
+5. Component Inventory (Suggested)
+  SourceTable
+  SourceMonitorControls
+  EvidenceTable
+  EvidenceDetailPane
+  TagEditor
+  CitationLinker
+  ThemeTree
+  HypothesisList
+  HypothesisVersionDiff
+  EvidenceSupportCounterPanel
+  ConfidenceUpdateModal
+  NarrativeEditor
+  CitationPicker
+  ReviewQueue
+  PromotionRequestWizard
+  BriefExporter
+6. Data Requirements (API Needs)
+Read:
+  sources list/detail
+  evidence list/detail
+  citations by artifact/evidence
+  themes list/detail
+  hypotheses list/detail + version history
+  narratives list/detail + version history
+  promotion requests + governance state
+Write (guarded):
+  register/update sources
+  ingest evidence (manual)
+  create citations
+  create hypothesis / update confidence (new version)
+  create narrative / accept narrative version
+  submit promotion request
+7. Non-Functional Requirements
+  strong search/filter across sources and evidence
+  fast citation navigation (artifact ↔ evidence)
+  clear version and diff visualization
+  role-based access controls on promotions and acceptance
+8. Document Position in DRE Corpus
+This FE document is informed by:
+  NS-DRE-003 — ARCHITECTURE
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-007 — DATAMODEL
+  NS-DRE-009 — IMPL
+It complements:
+  NS-DRE-011 — APIMAP
+  NS-DRE-012 — STATE
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Operator UI Spec
+Parent / HoldCo Manager
+Status: Draft

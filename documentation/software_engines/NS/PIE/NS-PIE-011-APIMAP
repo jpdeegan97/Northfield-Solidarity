@@ -1,0 +1,156 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the canonical mapping between PIE backend API surfaces and PIE frontend / consumer needs.
+It ensures that:
+FE screens defined in NS-PIE-010 have complete data access
+Downstream engines (SIM, DAT, GGP) have stable query surfaces
+APIs remain read-first and non-executional
+This document describes logical endpoints and contract intent; implementation details are covered in NS-PIE-009.
+2. API Design Principles
+Read-First by Default
+PIE is primarily a read model for humans and engines.
+Versioned Access
+Clients can request specific insight versions.
+Explainability Included
+Evidence, scoring breakdown, and narrative are accessible.
+Governed Controls Only
+Any mutating endpoints (controls/replay) are gated by GGP.
+Stable Identifiers
+All APIs use stable IDs (insight_id, version).
+3. API Surface Groups
+PIE APIs are grouped into four surfaces:
+Insights (Read) — listings and detail
+Versions & History (Read) — evolution and transitions
+Evidence & Explainability (Read) — evidence, scoring, narrative
+Controls (Write, Governed) — model activation, replay, publishing
+4. FE Screen → API Mapping
+4.1 Screen: Insight Feed (Ranked List)
+Primary Data Needs:
+ranked list of current insights
+filters/sorts
+Endpoints:
+GET /insights
+Query params:status (optional)type (optional)sort (confidence | freshness | risk)time_window (optional)limit, offset
+Response includes:
+insight_id
+current_version
+opportunity_statement
+confidence_score
+risk_band
+status
+relevance_window_end
+updated_at
+4.2 Screen: Insight Detail (Explainability View)
+Primary Data Needs:
+full versioned insight
+evidence bundle
+scoring breakdown
+risk profile
+decay model
+narrative
+governance linkage
+Endpoints:
+GET /insights/{insight_id}
+Returns current version by default.
+GET /insights/{insight_id}?version={n}
+Returns explicit version.
+GET /insights/{insight_id}/detail?version={n}
+Returns expanded detail:evidence bundle itemsscoring resultsriskdecaynarrativegovernance refs
+4.3 Screen: Version History
+Primary Data Needs:
+version list
+transition history
+change reasons / deltas
+Endpoints:
+GET /insights/{insight_id}/versions
+Returns list of versions with timestamps.
+GET /insights/{insight_id}/transitions
+Returns state transition ledger.
+GET /insights/{insight_id}/compare?from={a}&to={b}
+Returns a structured diff (statement, confidence, risk, evidence changes).
+4.4 Screen: Evidence Source Explorer (Optional)
+If PIE hosts source inspection views:
+Endpoints:
+GET /sources
+GET /sources/{source_id}/signals?window={t}
+(Prefer to defer to SIG for this surface if available.)
+5. Engine Consumer → API Mapping
+5.1 SIM Consumers
+Use cases:
+pull approved insights for scenario evaluation
+Endpoints:
+GET /insights?status=approved&limit={n}
+GET /insights/{insight_id}/detail?version={n}
+5.2 DAT Consumers
+Use cases:
+pull approved insights for planning and execution preparation
+Endpoints:
+GET /insights?status=approved&type={x}
+GET /insights/{insight_id}/detail?version={n}
+5.3 GGP Consumers
+Use cases:
+retrieve decision packages and evidence bundles
+Endpoints:
+GET /insights/{insight_id}/detail?version={n}
+GET /insights/{insight_id}/decision-context?version={n}
+5.4 PTE Consumers
+Use cases:
+link performance trajectories to specific insight versions
+Endpoints:
+GET /insights/{insight_id}/versions
+6. Explainability Sub-Resources
+To support thin clients, PIE may expose sub-resources:
+GET /insights/{id}/evidence?version={n}
+GET /insights/{id}/scores?version={n}
+GET /insights/{id}/risk?version={n}
+GET /insights/{id}/decay?version={n}
+GET /insights/{id}/narrative?version={n}
+These are optional if /detail exists.
+7. Governed Control APIs (Write)
+These endpoints are restricted to governance-authorized actors.
+POST /controls/scoring-model/activate
+Body:scoring_model_idscoring_model_version
+POST /controls/publication/pause
+POST /controls/publication/resume
+POST /controls/replay/read-models
+POST /controls/replay/rescore
+POST /controls/replay/redecide
+All control APIs:
+Require GGP authorization
+Emit auditable control-change events
+8. Error Model (Canonical)
+All endpoints should return a consistent error envelope:
+correlation_id
+error_code
+message
+details (optional)
+PIE never returns partial success without explicit indicators.
+9. Document Position in PIE Corpus
+This APIMAP document is informed by:
+NS-PIE-009 — IMPL
+NS-PIE-010 — FE
+NS-PIE-007 — DATAMODEL
+It complements:
+NS-PIE-012 — STATE
+NS-PIE-013 — RUNBOOK
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE API Mapping
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,120 @@
+
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the versioning model for the Simulation & Scenario Engine (SIM).
+SIM versioning ensures that:
+simulations are deterministic and reproducible
+historical scenario results remain interpretable
+model and assumption evolution never mutates past results
+downstream engines can reason about scenario provenance safely
+2. Versioning Principles
+Results Are Immutable
+Once a scenario run is persisted, it is never modified or deleted.
+Logic Evolves, Not History
+Models, assumptions, and constraints evolve via versioned artifacts.
+Explicit Version Binding
+Every scenario run records the exact versions of all inputs and logic used.
+Replay Over Rewrite
+Changes are applied by re-execution, never by mutation.
+Forward Interpretability
+Historical scenarios must remain readable and explainable.
+3. Versioned Components in SIM
+The following SIM components are versioned:
+Component
+Versioned?
+Notes
+Scenario definition
+Yes
+Scenario metadata and structure
+Assumption sets
+Yes
+Explicit hypotheses
+Constraint sets
+Yes
+Hard boundaries
+Simulation models
+Yes
+Equations, rules, logic
+Execution engine
+Yes
+Runtime behavior
+Random seeds
+Yes
+Deterministic stochasticity
+Outcome classification logic
+Yes
+Risk and result labeling
+Sensitivity analysis logic
+Yes
+Driver attribution
+4. Versioning Scheme
+SIM components follow semantic versioning:
+MAJOR — breaking semantic change (interpretation changes)
+MINOR — additive or tuning change
+PATCH — bug fix with no semantic change
+All versions are immutable once published.
+5. Scenario-to-Version Binding
+Each scenario run records:
+scenario_definition_version
+assumption_set_version(s)
+constraint_set_version(s)
+model_version(s)
+execution_engine_version
+random_seed
+This guarantees full reproducibility.
+6. Decision Artifact Version Binding
+All SIM decisions (see NS-SIM-005) record:
+ruleset_name
+ruleset_version
+rationale
+This allows auditors to reconstruct why a scenario behaved as it did.
+7. Model Evolution & Re-Execution
+When models evolve:
+existing scenario runs remain untouched
+new executions reference updated versions
+comparisons are made across runs, not within them
+No scenario run is ever retroactively updated.
+8. Replay Semantics
+SIM supports two replay modes:
+8.1 Deterministic Replay
+Same inputs
+Same versions
+Same random seed
+Identical outputs expected
+8.2 Comparative Re-Execution
+Same inputs
+Different model or assumption versions
+Used to evaluate impact of changes
+9. Schema Evolution Rules
+New optional fields may be added
+Existing fields may not change meaning
+Fields may be deprecated but not removed
+Historical scenario artifacts must remain readable.
+10. Cross-Engine Compatibility
+Downstream engines rely on SIM to expose:
+scenario_run identifiers
+version metadata
+confidence and uncertainty annotations
+SIM guarantees version metadata is always present and queryable.
+11. Failure & Rollback Strategy
+Faulty versions are disabled, not deleted
+Failed executions are preserved with status
+Rollback is achieved by selecting prior versions
+12. Document Position in SIM Corpus
+This versioning document builds upon:
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+It informs:
+NS-SIM-007 — DATAMODEL
+NS-SIM-013 — RUNBOOK
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Versioning Model
+Parent / HoldCo Manager
+Status: Draft

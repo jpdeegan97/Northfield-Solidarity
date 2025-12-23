@@ -1,0 +1,149 @@
+NS-FIRMAMENT-000 — CHARTER
+
+Project: Firmament (3D Operations Globe)
+Program: Northfield Solidarity (NS)
+Governance Authority: GGE (Governance Graph Engine)
+Status: Draft v0.1
+
+⸻
+
+1. Purpose
+
+Firmament is a real-time, zoomable 3D visualization of Earth that projects Northfield Solidarity’s operations, entities, opportunities, risks, and planned moves as layered, filterable operational truth.
+
+Its purpose is to transform “business complexity” into a spatial, actionable cockpit:
+	•	See what’s happening now
+	•	See what’s likely to happen next
+	•	See what you should do about it
+	•	Execute via governed actions (through GGE + CWP)
+
+⸻
+
+2. Mission Statement
+
+Make operations and strategy legible at a glance by rendering the business as a living globe with on/off layers for:
+	•	entities and logistics
+	•	events and timelines
+	•	sector health and heatmaps
+	•	risks, blockers, and mitigations
+	•	scenarios and “plan modes” (risk ↔ ambition)
+
+⸻
+
+3. Scope
+
+In Scope
+
+A) 3D Earth Visualization Core
+	•	Earth globe rendering (zoomable, rotateable, focusable)
+	•	Layer manager (toggle, filter, search)
+	•	Pins / paths / regions (points, lines, polygons)
+
+B) Entity + Logistics Mapping
+	•	Map all business entities (NS, SL, subsidiaries, vendors, sites)
+	•	Map logistics flows (supplier → 3PL → customer, etc.)
+	•	Show relationship links + operational state
+
+C) Events + Location Projection
+	•	Upcoming events list linked to geo locations
+	•	Event → drilldown: context, checklist, linked stakeholders, readiness state
+
+D) Sector Heatmap Layer (Enhanced)
+	•	A sector treemap/heatmap view (weight + performance)
+	•	Selecting a sector reveals:
+	•	what’s going well / failing
+	•	root causes across ops/finance/supply/market
+	•	actionable mitigation and growth steps
+	•	plan slider variants (risk/ambition) that change recommended actions
+
+E) Actionability
+	•	Every insight must map to:
+	•	a task (CWP) and/or
+	•	a governed decision gate (GGE) and/or
+	•	a simulation scenario (SIM)
+
+Out of Scope (for initial releases)
+	•	Full ERP replacement
+	•	Full accounting system (FLO remains authoritative for ledgers)
+	•	Autonomous execution without governance gates
+	•	Real-time tracking that requires specialized hardware integrations unless explicitly added later
+
+⸻
+
+4. Key Users
+	•	Owner/Operator (You): global situational awareness + rapid planning
+	•	CWP Operators: tasking, accountability, readiness tracking
+	•	Governance Reviewers (GGE): decision traceability, approvals, constraints
+	•	Analysts (PIE/DRE/SIG consumers): signals → structured moves
+
+⸻
+
+5. Core Principles
+	1.	Spatial truth beats dashboards: geography and flow make complexity comprehensible.
+	2.	Layers, not screens: everything is a filterable overlay.
+	3.	Click-to-cause, click-to-action: every visualization drills down to root cause and produces next steps.
+	4.	Governed execution: no “important moves” without GGE traceability and gates.
+	5.	Scenario-native: the risk/ambition slider is first-class, not an afterthought.
+	6.	Render-ready projections: Firmament stores view models; engines remain sources of truth.
+
+⸻
+
+6. Primary Capabilities (MVP)
+	1.	Globe + Layer System
+	2.	Entity & Logistics Layer
+	3.	Events Layer (list + map sync)
+	4.	Sector Heatmap + Sector Operating Brief
+	5.	Action Items + Owners + Status
+	6.	Plan Slider (Conservative ↔ Aggressive) feeding scenario outputs
+
+⸻
+
+7. Integrations (Authoritative Sources)
+	•	IDN: entity graph, identities, relationships
+	•	MUX: external system integrations + data ingress
+	•	SIG: alerts/signals that trigger overlays
+	•	FLO: financial overlays (budget, cost, margin, exposure)
+	•	SIM: scenario engine powering slider outcomes
+	•	CWP: ownership, tasks, operational accountability
+	•	GGE: governance gates, approvals, audit trail of decisions
+
+⸻
+
+8. Success Metrics
+	•	Time-to-understand a situation (minutes → seconds)
+	•	Time-to-action from signal to assigned mitigations
+	•	Decision trace completeness (every major move has a GGE path)
+	•	Operational coverage (% of entities/events/flows mapped)
+	•	Scenario usefulness (slider outputs consistently change actions in meaningful ways)
+
+⸻
+
+9. Risks & Constraints
+	•	Data completeness risk: visualization quality depends on structured ingestion.
+	•	Over-complexity risk: must enforce “layer discipline” and avoid clutter.
+	•	Latency risk: real-time features must degrade gracefully.
+	•	Governance drift risk: Firmament must not become an ungated execution channel.
+
+⸻
+
+10. Deliverables
+	•	NS-FIRMAMENT-000 — Charter (this document)
+	•	NS-FIRMAMENT-001 — Overview
+	•	NS-FIRMAMENT-002 — Taxonomy
+	•	NS-FIRMAMENT-003 — Architecture
+	•	NS-FIRMAMENT-004 — Lifecycle
+	•	NS-FIRMAMENT-007 — Data Model
+	•	NS-FIRMAMENT-008 — End-to-End Example
+	•	NS-FIRMAMENT-013 — Runbook
+	•	NS-FIRMAMENT-014 — Data Definitions
+
+⸻
+
+11. Definition of Done (v0)
+
+Firmament v0 is “done” when:
+	•	you can open the globe and toggle layers,
+	•	see mapped entities + logistics + events,
+	•	click a sector heatmap tile to get an operating brief + action list,
+	•	adjust the risk/ambition slider and see the recommended actions change,
+	•	and key actions route into CWP ownership and GGE governance.

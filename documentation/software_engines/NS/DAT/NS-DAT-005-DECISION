@@ -1,0 +1,157 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the decision semantics used by the Digital Arbitrage Tooling (DAT) engine to:
+Determine whether an execution plan is ready for governance submission
+Gate execution at runtime via admission control
+Decide when to retry, rollback, pause, or abort execution
+DAT decisioning is operational, bounded, and non-authoritative. Strategic intent comes from PIE, and final approval authority resides with GGP.
+2. Decision Boundary Principles
+DAT decision logic is constrained by the following boundaries:
+DAT may decide operationally — how execution proceeds safely and correctly
+DAT may not decide strategically — whether an opportunity should be pursued
+DAT may not approve execution — GGP is the sole approval authority
+All decisions must be explainable — every decision must be attributable to explicit inputs
+DAT answers:
+Is this plan complete enough to submit to governance?
+Is it safe to execute this plan right now?
+How should execution respond to failure or constraint violation?
+3. Decision Objects
+3.1 Plan Readiness Decision
+Definition
+A structured assessment indicating whether a draft Execution Plan is complete and internally consistent for governance submission.
+Outputs
+ready_for_approval (true / false)
+readiness_reasons (structured, machine-readable)
+3.2 Execution Admission Decision
+Definition
+A runtime decision made immediately prior to execution start.
+Outputs
+admission_allowed (true / false)
+violations (list of failed checks)
+3.3 Step Continuation Decision
+Definition
+A per-step decision evaluated after each step finishes.
+Possible Outcomes
+continue
+retry
+rollback
+abort
+3.4 Rollback Activation Decision
+Definition
+A decision to initiate rollback policies due to failure, constraint violation, or manual intervention.
+Rollback activation must always be explicit and logged.
+4. Decision Inputs
+DAT decision logic may consider:
+Plan structure validity (steps, actions, ordering)
+Constraint definitions (hard vs soft)
+Budget availability and burn rate
+Connector health and circuit breaker state
+External system responses
+Governance approval state (from GGP)
+Time window and scheduling constraints
+Kill-switch state
+All inputs must be explicit, versioned, and logged.
+5. Decision Rules
+5.1 Plan Readiness Rules (Pre-Governance)
+A plan is ready for governance submission only if all conditions are met:
+Insight PinningPlan references (insight_id, insight_version)
+Complete Step GraphSteps are orderedNo missing stepsEach step contains exactly one Action
+Constraint CompletenessBudget constraint presentTime window constraint present (if applicable)Risk constraints defined where required
+Rollback CoverageEvery step has a rollback or compensating action
+Connector EligibilityAll referenced connectors exist and are enabled
+If any rule fails:
+ready_for_approval = false
+Failure reasons returned
+5.2 Execution Admission Rules (Pre-Execution)
+Execution admission is allowed only if:
+Plan state = approved AND staged
+All hard constraints pass
+Budget is available
+Required connectors are healthy
+Global kill switch is not active
+If admission fails:
+Execution does not start
+Plan remains in staged state
+Violation events are emitted
+5.3 Runtime Constraint Violation Rules
+If a hard constraint is violated during execution:
+Pause execution immediately
+Initiate rollback
+Abort plan if rollback completes or is impossible
+If a soft constraint is violated:
+Continue execution
+Emit warning events
+Flag for operator/governance review
+5.4 Retry Rules (Per Step)
+Retries are allowed only if:
+Step is idempotent or
+Connector supports idempotency keys
+Retry count < configured maximum
+Constraints still pass
+Retry behavior:
+Must reuse idempotency keys
+Must emit retry events
+Must be bounded
+5.5 Abort Rules
+Abort may be triggered by:
+Manual kill switch
+Unrecoverable connector failure
+Persistent hard constraint violations
+Budget exhaustion
+Abort behavior:
+Emit abort event
+Transition plan to aborted
+Invoke rollback policies if configured
+6. Decision Outputs & Artifacts
+DAT decisioning produces append-only artifacts:
+plan_readiness_report
+execution_admission_record
+step_decision_record
+rollback_activation_record
+These artifacts are required for audit, replay, and governance review.
+7. Governance Handoff Semantics
+When submitting to GGP, DAT provides:
+Plan version
+Constraint snapshot
+Budget snapshot
+Rollback coverage report
+Plan readiness report
+GGP returns:
+Approval or rejection
+Constraint/budget modifications (if required)
+DAT stores governance decision references and never executes outside approved scope.
+8. Invariants & Safety Constraints
+No execution without GGP approval
+Admission control cannot be bypassed
+All retries are bounded and idempotent
+Hard constraint violations trigger rollback or abort
+Every decision is logged and explainable
+9. Document Position in DAT Corpus
+This document builds upon:
+NS-DAT-002 — TAXONOMY
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+It informs:
+NS-DAT-007 — DATAMODEL
+NS-DAT-008 — EEE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Decision Semantics Definition
+
+Parent / HoldCo Manager
+Status: Draft

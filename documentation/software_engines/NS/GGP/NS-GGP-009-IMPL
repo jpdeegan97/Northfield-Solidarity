@@ -1,0 +1,139 @@
+GGE MVP Implementation Plan v0.1
+Overview
+Document Title: Governance Graph Engine – MVP Implementation Plan 
+Document ID: NS-GGP-009-IMPL
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+This document provides a detailed implementation plan for the Governance Graph Engine (GGE) MVP. It translates the architecture, specifications, and data models into modular components, backend systems, and frontend screens ready for development.
+Objectives:
+  Define MVP scope and features
+  Map backend Python modules and responsibilities
+  Define frontend read models and screens
+  Specify APIs and integration points
+  Outline database schema implementation
+  Highlight deployment and initial test strategy
+2. MVP Scope
+Backend Features:
+ Component Taxonomy CRUD & versioning
+ Update Decision Prompt (UDP) execution
+ Version Semantics & Propagation Rules
+ Dependency graph resolution
+ Audit trail recording
+ SOP version compilation
+Frontend Features:
+ GGE Execution Audit Trail
+ SOP Version History Viewer
+ Role-based access control (read-only MVP)
+Exclusions for MVP:
+  Automatic SOP publication
+  Full notifications & email workflow
+  Complex visualization of dependency graphs (optional enhancement)
+  AI/ML enhancements beyond the UDP
+3. System Architecture Overview
+Backend (Python Modules):
+Module
+Responsibility
+components
+CRUD for governance components, version tracking, ownership metadata
+dependency_graph
+Graph logic, traversal, and impact analysis
+udp_engine
+Implements Update Decision Prompt logic, input/output handling
+versioning
+Semantic version management, propagation rules, version bump decisions
+audit
+Execution logging, component change history, SOP version history
+sop_manager
+SOP compilation, storage of published SOPs, metadata management
+api
+REST API endpoints for frontend, CRUD and read-only data retrieval
+auth
+Role-based access control, authentication for MVP
+Database Schema:
+  components, component_changes, sop_versions, executions, dependencies
+  Relational (Postgres) or NoSQL (MongoDB) for flexible querying
+  Indexed for execution_id, sop_id, component_id for performance
+Frontend (React or React Native for cross-platform MVP):
+  ExecutionAuditScreen → Shows execution details + component changes + SOP updates
+  SOPVersionHistoryScreen → Lists SOP versions, change type, approval status, published date
+  Role-aware rendering (read-only for most users)
+API Contracts:
+  GET /api/executions/{execution_id} → returns execution_audit_view
+  GET /api/sops/{sop_id}/versions → returns sop_history_view
+  POST /api/components/{component_id}/update → triggers UDP evaluation (internal)
+4. Data Flow
+ Component Update Trigger → udp_engine receives structured delta
+ UDP Reasoning → Evaluates impact, recommends SOP version changes, flags risk
+ Dependency Graph Resolution → Determines propagation order
+ Versioning Module → Applies semantic versioning rules
+ Audit Module → Records all execution details and changes
+ SOP Manager → Compiles new SOP versions, stores metadata
+ API Layer → Serves frontend read models
+ Frontend → Renders audit trail and SOP version history screens
+5. Python Module Structure
+gge_mvp/
+├── components/
+│   ├── __init__.py
+│   ├── models.py        # Component ORM/data models
+│   ├── service.py       # CRUD + version management
+├── dependency_graph/
+│   ├── __init__.py
+│   ├── graph.py         # DAG traversal, impact resolution
+├── udp_engine/
+│   ├── __init__.py
+│   ├── engine.py        # Prompt execution & reasoning logic
+├── versioning/
+│   ├── __init__.py
+│   ├── manager.py       # Semantic version rules
+├── audit/
+│   ├── __init__.py
+│   ├── logger.py        # Execution and SOP change logging
+├── sop_manager/
+│   ├── __init__.py
+│   ├── compiler.py      # SOP generation and storage
+├── api/
+│   ├── __init__.py
+│   ├── routes.py        # FastAPI / Flask endpoints
+├── auth/
+│   ├── __init__.py
+│   ├── security.py      # Role-based access control
+├── config/
+│   ├── settings.py
+└── main.py
+6. Frontend Screen Layouts (MVP)
+6.1 Execution Audit Trail
+  Header: Execution ID, Trigger Type, Executor, Timestamp
+  Table/List: Component changes with old/new versions, change type, materiality, rationale
+  Table/List: SOP versions updated, new version, change type, approval status, published_at
+6.2 SOP Version History Viewer
+  Dropdown or search: SOP selection
+  Table/List: Version history, change type, approval status, publication date
+  Optional link: View published SOP PDF/HTML
+  Optional: Cross-SOP dependency graph snippet
+7. Deployment & Environment
+  Python 3.11+
+  PostgreSQL / MongoDB (backend DB)
+  FastAPI / Flask for API MVP
+  React / React Native for FE MVP
+  Docker containerized for easy deployment
+  Initial single environment (Dev), extend to staging/prod later
+8. Testing Strategy
+  Unit tests for each Python module
+  Integration tests for full execution flow
+  Mock UDP inputs for deterministic outputs
+  FE rendering tests using sample data from API
+  Ensure audit records match execution trace
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial MVP Implementation Plan
+Parent / HoldCo Manager
+End of Document

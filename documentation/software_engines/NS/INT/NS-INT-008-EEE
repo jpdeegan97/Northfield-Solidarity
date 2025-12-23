@@ -1,0 +1,389 @@
+
+NS-INT-008 — EEE (End-to-End Example)
+
+1. Purpose
+
+This document provides an end-to-end example of Intervention (quickscope) in action, showing:
+
+a cross-engine workflow thread
+
+canonical events with correlation/causation
+
+a protected transition gated by GGP
+
+projections updating read models
+
+deltas streamed to edges
+
+Firmament consuming snapshot + deltas to render the living system
+
+2. Scenario: “Capital Move” Workflow Across NS
+
+A representative NS workflow thread:
+
+CWP initiates a “Capital Move” request on behalf of an operator
+
+GGP evaluates policy and requires approval (protected transition)
+
+FLO posts a ledger intent and later the final settlement
+
+MUX performs an external payment/integration call
+
+Intervention records the full timeline, maintains current state, and streams deltas to:
+
+other engines (via edges)
+
+Firmament (visualization)
+
+This example uses:
+
+entity_id: capmove_7f31
+
+workflow_id: wf_capmove_0042
+
+correlation_id: corr_2025_12_22_9XKQ
+
+3. Actors
+
+Human Operator: human:jd (initiator)
+
+CWP Agent: agent:cwp_runner_12
+
+System Services: system:ggp, system:flo, system:mux, system:int
+
+4. Step-by-Step Flow
+
+4.1 Step 0 — Firmament Boots
+
+Firmament Edge performs:
+
+GET /v1/state/snapshot?scope=global (global view)
+
+GET /v1/state/snapshot?workflow_id=wf_capmove_0042 (if navigating to the workflow)
+
+Subscribes to:
+
+stream:global
+
+stream:correlation:corr_2025_12_22_9XKQ
+
+Result: Firmament has an initial state baseline.
+
+4.2 Step 1 — Request Created (CWP → Intervention)
+
+CWP creates the request and emits a canonical event via its Intervention Edge.
+
+Event: capital_move_requested
+
+{
+  "event_id": "evt_001",
+  "event_type": "capital_move_requested",
+  "engine_id": "CWP",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:15:03-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": null,
+  "actor": {
+    "actor_type": "Human",
+    "actor_id": "human:jd",
+    "actor_role": "operator"
+  },
+  "policy_context_ref": null,
+  "payload": {
+    "amount": 25000,
+    "currency": "USD",
+    "from_account": "treasury:primary",
+    "to_account": "ops:clearing",
+    "reason": "fund_ops_runway"
+  }
+}
+
+Intervention Core:
+
+validates schema
+
+appends to event log
+
+triggers projections
+
+Projected state updates:
+
+EntityState(capmove_7f31).status = requested
+
+WorkflowState(wf_capmove_0042).status = running
+
+Delta emitted: delta_entity_requested, delta_workflow_running
+
+Firmament renders a new node and a pulse at creation.
+
+4.3 Step 2 — Policy Check (GGP Gate)
+
+Because capital_move_requested is a protected transition class (by config), Intervention calls GGP.
+
+GGP decision event: policy_checked
+
+{
+  "event_id": "evt_002",
+  "event_type": "policy_checked",
+  "engine_id": "GGP",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:15:05-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": "evt_001",
+  "actor": {
+    "actor_type": "System",
+    "actor_id": "system:ggp"
+  },
+  "policy_context_ref": "ggp_policyset:capital_v3",
+  "decision_ref": "ggp_decision:7a9c",
+  "payload": {
+    "outcome": "allow_with_conditions",
+    "conditions": [
+      {"type": "approval_required", "role": "treasury_approver"}
+    ]
+  }
+}
+
+Projected state updates:
+
+GateState(policy).status = passed
+
+GateState(approval).status = pending
+
+WorkflowState.status = waiting_approval
+
+Delta emitted: workflow transitions to waiting_approval.
+
+Firmament renders the workflow as blocked at an approval gate.
+
+4.4 Step 3 — Approval Granted (Human → GGP → Intervention)
+
+A treasury approver approves the request.
+
+Event: approval_granted
+
+{
+  "event_id": "evt_003",
+  "event_type": "approval_granted",
+  "engine_id": "GGP",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:17:40-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": "evt_002",
+  "actor": {
+    "actor_type": "Human",
+    "actor_id": "human:treasury_approver_1",
+    "actor_role": "treasury_approver"
+  },
+  "policy_context_ref": "ggp_policyset:capital_v3",
+  "decision_ref": "ggp_decision:7a9c",
+  "approval_ref": "ggp_approval:91bb",
+  "payload": {
+    "approved": true,
+    "notes": "Approved for ops runway"
+  }
+}
+
+Projected state updates:
+
+GateState(approval).status = passed
+
+WorkflowState.status = running
+
+EntityState.status = approved
+
+Firmament renders the gate as passed and the workflow resumes.
+
+4.5 Step 4 — Ledger Intent Posted (FLO)
+
+FLO records an intent to move funds (pre-settlement).
+
+Event: ledger_intent_posted
+
+{
+  "event_id": "evt_004",
+  "event_type": "ledger_intent_posted",
+  "engine_id": "FLO",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:18:02-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": "evt_003",
+  "actor": {
+    "actor_type": "System",
+    "actor_id": "system:flo"
+  },
+  "payload": {
+    "ledger_tx_id": "flo_tx:5541",
+    "status": "intent",
+    "amount": 25000,
+    "currency": "USD"
+  }
+}
+
+State updates:
+
+EntityState.status = executing
+
+ThreadState.milestones += ledger_intent_posted
+
+Firmament shows a pulse from FLO to the thread.
+
+4.6 Step 5 — External Transfer Executed (MUX)
+
+MUX performs the external transfer.
+
+Event: external_transfer_executed
+
+{
+  "event_id": "evt_005",
+  "event_type": "external_transfer_executed",
+  "engine_id": "MUX",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:19:11-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": "evt_004",
+  "actor": {
+    "actor_type": "System",
+    "actor_id": "system:mux"
+  },
+  "payload": {
+    "provider": "bank_api",
+    "provider_ref": "bank_ref:8831",
+    "status": "success"
+  }
+}
+
+State updates:
+
+WorkflowState.current_step = settlement
+
+ThreadState.milestones += transfer_executed
+
+Firmament renders a pulse indicating external execution.
+
+4.7 Step 6 — Settlement Posted (FLO)
+
+FLO posts the final ledger settlement.
+
+Event: ledger_settlement_posted
+
+{
+  "event_id": "evt_006",
+  "event_type": "ledger_settlement_posted",
+  "engine_id": "FLO",
+  "envelope_version": "1.0",
+  "schema_version": "1.0",
+  "entity_id": "capmove_7f31",
+  "workflow_id": "wf_capmove_0042",
+  "occurred_at": "2025-12-22T20:20:03-05:00",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "causation_id": "evt_005",
+  "actor": {
+    "actor_type": "System",
+    "actor_id": "system:flo"
+  },
+  "payload": {
+    "ledger_tx_id": "flo_tx:5541",
+    "status": "settled"
+  }
+}
+
+State updates:
+
+EntityState.status = completed
+
+WorkflowState.status = completed
+
+ThreadState.status = completed
+
+Firmament shows the thread closing and the workflow node going green (conceptually).
+
+5. What Projections Look Like (Resulting Read Models)
+
+5.1 EntityState (capmove_7f31)
+
+{
+  "entity_id": "capmove_7f31",
+  "status": "completed",
+  "version": 6,
+  "owner_engine_id": "CWP",
+  "workflow_id": "wf_capmove_0042",
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "last_event_id": "evt_006",
+  "last_updated_at": "2025-12-22T20:20:03-05:00"
+}
+
+5.2 WorkflowState (wf_capmove_0042)
+
+{
+  "workflow_id": "wf_capmove_0042",
+  "status": "completed",
+  "version": 6,
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "last_event_id": "evt_006"
+}
+
+5.3 ThreadState (corr_2025_12_22_9XKQ)
+
+{
+  "correlation_id": "corr_2025_12_22_9XKQ",
+  "status": "completed",
+  "engine_participants": ["CWP", "GGP", "FLO", "MUX"],
+  "last_event_id": "evt_006",
+  "milestones": [
+    "capital_move_requested",
+    "policy_checked",
+    "approval_granted",
+    "ledger_intent_posted",
+    "external_transfer_executed",
+    "ledger_settlement_posted"
+  ]
+}
+
+6. Edge Behavior (Sync and Recovery)
+
+6.1 Normal Operation
+
+Edges track last_cursor / last_event_id
+
+Apply deltas in ordered-per-key fashion
+
+6.2 Reconnect Example
+
+If Firmament disconnects at evt_004:
+
+It reconnects with cursor=cursor_at_evt_004
+
+Intervention replays deltas for evt_005 and evt_006
+
+Firmament catches up without reloading the world
+
+7. Key Takeaways
+
+Intervention creates a single coherent story across engines via correlation/causation
+
+Protected transitions remain governed by GGP
+
+Projections produce an authoritative “now” and real-time deltas
+
+Edges provide local, fast state context
+
+Firmament becomes a true real-time view of NS
+
+This is the reference “quickscope” thread.
+

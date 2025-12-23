@@ -1,0 +1,155 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Digital Arbitrage Tooling (DAT) MVP.
+It translates DAT’s conceptual architecture, lifecycle, decision rules, and data model into:
+Runnable services
+Clear module boundaries
+Persistence and messaging choices
+An incremental MVP-to-production path
+This document is implementation-oriented but non-code-specific.
+2. Implementation Scope (MVP)
+The DAT MVP must support:
+Execution Plan creation and versioning
+Governance submission and approval binding
+Constraint and budget enforcement
+Step-by-step execution orchestration
+Rollback on failure
+Telemetry and financial event emission
+Audit-safe persistence and replay
+Out of scope for MVP:
+Advanced scheduling optimization
+Multi-plan concurrency orchestration
+Complex ML-based execution tuning
+3. Service Decomposition (MVP)
+3.1 dat-api (Control Plane)
+Responsibilities:
+Create and version execution plans
+Submit plans to GGP
+Expose read-only plan and execution views
+Key Interfaces:
+REST / async APIs
+Emits domain events
+3.2 dat-orchestrator (Execution Plane)
+Responsibilities:
+Admission control
+Step sequencing
+Retry and rollback execution
+Characteristics:
+Stateful execution engine
+Idempotency enforced per step
+3.3 dat-constraint-engine
+Responsibilities:
+Pre-execution admission checks
+Runtime constraint enforcement
+Can be embedded in orchestrator for MVP.
+3.4 dat-connector-layer
+Responsibilities:
+External system integrations
+Idempotent API wrapping
+Circuit breaker enforcement
+Each connector is a pluggable module.
+3.5 dat-telemetry-emitter
+Responsibilities:
+Emit execution events
+Emit financial events to FLO
+May be implemented as a shared library.
+4. Technology Stack (Recommended)
+4.1 Runtime
+Language: Python 3.12+
+Framework: FastAPI (control plane)
+Async Execution: asyncio / Celery (later)
+4.2 Persistence
+PostgreSQL: Authoritative plan and execution data
+MongoDB: Optional derived execution views
+4.3 Messaging
+Kafka:Execution eventsFinancial eventsGovernance submission events
+4.4 Infrastructure
+Docker / Docker Compose
+Shared logging and metrics
+5. Module Layout (Suggested)
+dat/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── dependencies/
+├── core/
+│   ├── plan_builder.py
+│   ├── versioning.py
+│   ├── decision_logic.py
+│   └── lifecycle.py
+├── orchestrator/
+│   ├── executor.py
+│   ├── admission.py
+│   ├── rollback.py
+│   └── retry.py
+├── constraints/
+├── connectors/
+├── telemetry/
+├── persistence/
+│   ├── models.py
+│   └── repositories.py
+└── config/
+6. Execution Flow (Implementation)
+API receives approved insight reference
+Plan Builder creates draft plan
+Plan persisted (append-only)
+Governance adapter submits to GGP
+Orchestrator polls or receives approval
+Admission checks performed
+Steps executed sequentially
+Telemetry emitted at each boundary
+Rollback invoked on failure
+Execution archived
+7. Persistence Semantics
+All plan versions immutable
+Execution events append-only
+Decisions persisted separately
+No in-place updates allowed on authoritative tables.
+8. Replay & Recovery
+Replay strategy:
+Rehydrate plan from plan_version
+Re-run orchestrator in replay mode
+Compare emitted events to history
+Recovery strategy:
+Resume from last successful step if safe
+Otherwise rollback and abort
+9. Security & Controls
+All execution endpoints gated
+Kill switch enforced at orchestrator level
+Connector secrets managed externally
+All actions traced via correlation_id
+10. MVP Rollout Plan
+Single-node execution
+Single-plan-at-a-time
+Manual approval integration
+Limited connector set
+Scale after correctness proven.
+11. Document Position in DAT Corpus
+This implementation plan builds upon:
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-006 — VERSION
+NS-DAT-007 — DATAMODEL
+NS-DAT-008 — EEE
+12. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT MVP Implementation Plan
+
+Parent / HoldCo Manager
+Status: Draft

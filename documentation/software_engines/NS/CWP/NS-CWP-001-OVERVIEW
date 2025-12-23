@@ -1,0 +1,111 @@
+NS-CWP-001 — OVERVIEW
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document provides the authoritative overview of the Cognitive Work Plane (CWP).
+CWP is the agentic HR, operations, and management plane for Northfield Solidarity. It is responsible for structuring, assigning, supervising, and auditing work performed by human agents, AI agents, and hybrid teams across the entire engine ecosystem.
+CWP exists to answer one core question:
+Who (or what) is doing what work, why, under which constraints, and with what accountability?
+2. What CWP Is
+CWP is the operational cognition layer of the system.
+It:
+  defines work as explicit, versioned artifacts
+  assigns work to agents (human, AI, or hybrid)
+  enforces cadence, SLAs, and review loops
+  tracks execution, outcomes, and escalation
+  provides auditable visibility into how decisions and knowledge are produced
+CWP translates intent into coordinated action.
+3. What CWP Is Not
+To preserve architectural clarity, CWP is explicitly not:
+  a governance authority (that is GGP)
+  a financial execution or ledger system (FLO)
+  a signal ingestion or intelligence engine (SIG, PIE, DRE)
+  a direct execution engine (DAT, CDE)
+CWP orchestrates work; it does not decide policy, move money, or execute actions.
+4. Role Within the Northfield Solidarity Ecosystem
+CWP sits horizontally across the system, interfacing with nearly every engine.
+It acts as the coordination and supervision plane for:
+  research (DRE)
+  insight synthesis (PIE)
+  simulation work (SIM)
+  execution preparation (DAT)
+  content distribution (CDE)
+  portfolio tracking and observability (PTE)
+CWP never bypasses governance; it works within GGP constraints.
+5. Core Responsibilities
+At a high level, CWP is responsible for:
+ Agent Management
+  define agent types, capabilities, and roles
+  manage human, AI, and hybrid workers
+ Work Definition
+  formalize tasks, missions, and programs
+  define success criteria and constraints
+ Assignment & Scheduling
+  assign work to appropriate agents
+  enforce cadence and prioritization
+ Supervision & Review
+  require checkpoints and reviews
+  route outputs for validation
+ Escalation & Exception Handling
+  detect stalled or failing work
+  escalate to humans or governance when needed
+ Audit & Traceability
+  maintain a full trail of who did what, when, and why
+6. CWP and Agentic Systems
+CWP provides the safety rails for agentic operation.
+Rather than allowing free-running agents, CWP:
+  constrains agent behavior via explicit tasks
+  binds work to versioned inputs and outputs
+  enforces review gates
+  records all actions as auditable events
+This allows Northfield Solidarity to leverage agentic systems without sacrificing control or accountability.
+7. Interaction With Other Engines
+Engine
+CWP Interaction
+DRE
+Assigns and supervises research missions
+PIE
+Coordinates insight generation tasks
+SIM
+Schedules scenario exploration work
+DAT
+Manages execution planning workflows
+CDE
+Oversees content distribution plans
+PTE
+Feeds execution outcomes for performance tracking
+GGP
+Receives constraints and escalation pathways
+IDN
+Resolves agent identities and roles
+8. Operational Posture
+CWP is:
+  write-heavy for task and state changes
+  event-driven for supervision and escalation
+  replayable for audit and forensic analysis
+  human-visible by design
+CWP prioritizes clarity of work over speed of execution.
+9. Expected Outcomes
+When CWP is functioning correctly:
+  agentic work is bounded and explainable
+  humans know where attention is required
+  research and execution pipelines stay healthy
+  failures escalate early, not silently
+  audit and compliance are natural byproducts
+CWP makes complex systems operable.
+10. Document Position in CWP Corpus
+This overview document is complemented by:
+  NS-CWP-000 — CHARTER
+  NS-CWP-002 — TAXONOMY
+  NS-CWP-003 — ARCHITECTURE
+  NS-CWP-004 — LIFECYCLE
+  NS-CWP-005 — DECISION
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CWP Overview
+Parent / HoldCo Manager
+Status: Draft

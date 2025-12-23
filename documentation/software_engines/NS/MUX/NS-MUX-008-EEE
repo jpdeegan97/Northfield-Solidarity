@@ -1,0 +1,163 @@
+
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document provides a concrete End-to-End Example (EEE) illustrating how the Market Integration Layer (MUX) ingests, validates, normalizes, and publishes external truth.
+The goal is to:
+Validate MUX lifecycle correctness
+Demonstrate connector isolation and trust handling
+Show deduplication and replay behavior
+Prove cross-engine traceability (DAT, FLO, SIG, GGP)
+2. Scenario Overview
+Scenario:A product is advertised on an external ad platform, generates clicks and a sale, settles payment, and later appears on a monthly statement.
+External Systems:
+Ad Platform (click + charge events)
+Marketplace (order + fulfillment)
+Payment Processor (settlement)
+Bank (monthly statement)
+3. Connector Setup
+Configured connectors:
+ad_platform_connector
+marketplace_connector
+payment_processor_connector
+bank_statement_connector
+Each connector:
+has isolated credentials
+its own rate limits
+independent retry/backoff policies
+4. Stage-by-Stage Walkthrough
+5. Stage 1 — Webhook Event Capture (Ad Click)
+Ad platform sends webhook: click_event
+Ingress Gateway validates signature
+Raw payload stored as raw_capture_record
+Integrity hash computed
+Outcome:
+Payload accepted
+No downstream interpretation yet
+6. Stage 2 — Normalization
+Normalization ruleset ad_platform_v2 applies:
+Maps payload → platform_event_artifact
+Normalizes timestamps
+Preserves raw payload reference
+Canonical artifact created:
+artifact_type: platform_event
+7. Stage 3 — Deduplication
+Deduplication engine evaluates:
+(source_system, external_event_id)
+payload hash
+Outcome:
+dedupe.accept_new
+Artifact stored and published.
+8. Stage 4 — Transaction Event (Ad Charge)
+Later, the ad platform emits a charge event:
+transaction_artifact created
+gross_amount = -$25.00
+currency = USD
+Artifact published to Kafka.
+Consumed by:
+FLO (for ledger classification)
+DAT (for execution verification)
+9. Stage 5 — Marketplace Order & Fulfillment
+Marketplace connector ingests:
+order placed
+fulfillment shipped
+Artifacts created:
+platform_event (order)
+fulfillment_artifact (shipped)
+Consumed by:
+DAT (execution confirmation)
+SIG (signal enrichment)
+10. Stage 6 — Settlement & Payout
+Payment processor connector ingests:
+settlement confirmation
+payout initiation
+Artifacts created:
+transaction_artifact (settlement)
+Published to FLO for reconciliation.
+11. Stage 7 — Monthly Bank Statement
+Bank connector imports statement:
+snapshot artifact created
+statement_line_items persisted
+snapshot_hash computed
+Artifact published to FLO.
+12. Stage 8 — Deduplication via Statement
+Statement line references a known transaction:
+Deduplication outcome:
+dedupe.link_existing
+Canonical artifact remains unchanged; reference added.
+13. Stage 9 — Replay Scenario
+Later, FLO requests replay due to downstream rebuild:
+MUX re-emits canonical artifacts
+No mutation of stored artifacts
+Correlation hints preserved
+14. Failure Scenario Example
+Ad platform schema changes unexpectedly:
+Normalization fails
+Payload quarantined
+Connector state → degraded
+Alert emitted
+After ruleset update:
+Raw capture reprocessed
+New canonical artifact emitted
+15. Cross-Engine Traceability
+
+
+
+Engine
+
+Artifact Consumed
+
+
+SIG
+
+platform_event_artifact
+
+
+DAT
+
+fulfillment_artifact, transaction_artifact
+
+
+FLO
+
+transaction_artifact, statement_artifact
+
+
+GGP
+
+decision_artifact
+All linked via artifact_id and correlation hints.
+16. Validation Outcomes
+This EEE validates:
+External truth is preserved immutably
+Deduplication is non-destructive
+Replay is safe and deterministic
+Connector failures are isolated
+Downstream engines receive consistent truth
+17. Document Position in MUX Corpus
+This EEE builds upon:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+NS-MUX-006 — VERSION
+NS-MUX-007 — DATAMODEL
+18. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX End-to-End Example
+
+Parent / HoldCo Manager
+Status: Draft

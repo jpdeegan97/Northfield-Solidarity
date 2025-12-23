@@ -1,0 +1,181 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the optional frontend (FE) / operator UI for the Content Distribution Engine (CDE).
+The CDE Operator UI exists to:
+  draft and submit distribution plans
+  view approval status and governance references
+  monitor execution fan-out, retries, and failures
+  inspect delivery proofs and reconcile issues
+  review feedback signals and route anomalies
+  export audit packs
+CDE FE is an execution visibility + control surface with governed controls.
+2. FE Design Principles
+ Plan First — operators primarily create and manage plans
+ Governance-Aware — approval state is visible everywhere
+ Execution Transparency — fan-out attempts are inspectable
+ Idempotency Clarity — retries and dedupe are explicit
+ Proof Over Assumption — success requires proof artifacts
+3. Primary Personas
+  Operator — creates plans, monitors execution, resolves failures
+  Governance Reviewer — verifies approvals and policy compliance
+  Auditor — exports proofs and timelines
+  Ops Engineer — investigates incidents and performance
+4. Canonical Screens (MVP)
+4.1 Dashboard
+Purpose: at-a-glance state.
+Widgets:
+  recent plans (draft/approved/executing)
+  failure rate by destination
+  retry backlog
+  DLQ queue size
+4.2 Content Artifact Browser
+Purpose: select content for distribution.
+Features:
+  search by content_id, type, source_engine
+  content version history (reference)
+  preview metadata and attachments (if available)
+4.3 Plan Builder
+Purpose: create and edit plan drafts.
+Sections:
+  content selection
+  destination selection (channel + destination)
+  schedule (immediate/deferred/recurring)
+  constraints and policy notes
+  actor + reason
+Actions:
+  save draft
+  validate draft
+  submit for approval
+4.4 Plan Detail
+Purpose: view plan lifecycle.
+Displays:
+  plan_id, plan_version
+  status (draft/approved/rejected/archived)
+  governance_ref (if approved)
+  plan items (content × destinations)
+  schedule window
+Actions:
+  clone plan (new version)
+  cancel scheduled execution (guarded)
+4.5 Approval Timeline
+Purpose: governance visibility.
+Displays:
+  submission metadata
+  approval/rejection rationale
+  governance reference
+4.6 Execution Monitor (Intent + Fan-Out)
+Purpose: see intents and attempts.
+Views:
+  intent list for plan
+  attempt grid by destination
+Attempt fields:
+  status
+  retry_count
+  last error
+  adapter version
+  correlation_id
+Actions:
+  re-run attempt (idempotent, guarded)
+  pause plan execution (if supported)
+4.7 Attempt Detail
+Purpose: deep drill-down.
+Displays:
+  request envelope
+  adapter response
+  decision artifacts (retry classification)
+  proof status
+Actions:
+  manual reconcile (attach proof)
+  escalate to incident
+4.8 Proof & Reconciliation
+Purpose: verify delivery.
+Displays:
+  proofs by attempt
+  mismatches (success without proof blocked)
+  reconciliation status
+Actions:
+  mark proof insufficient (forces review)
+4.9 Feedback Viewer
+Purpose: monitor post-distribution outcomes.
+Displays:
+  impressions/clicks/conversions
+  rejection notices
+  anomaly flags
+Actions:
+  forward flagged issues to operator queue
+  export as SIG-ready signal bundle
+4.10 DLQ / Failure Queue
+Purpose: manage exhausted retries.
+Displays:
+  failed attempts with reason
+  retry history
+  last adapter response
+Actions:
+  reopen attempt (guarded)
+  open merge with governance review (if policy issue)
+  mark non-actionable
+4.11 Audit Pack Export
+Purpose: generate evidence bundles.
+Export options:
+  plan-level audit pack
+  destination-level audit pack
+Includes:
+  plan + approval
+  all intents/attempts
+  proofs
+  decision artifacts
+  correlation IDs
+5. Component Inventory (Suggested)
+  ContentSearchBar
+  ContentArtifactTable
+  PlanBuilderWizard
+  DestinationPicker
+  SchedulePicker
+  ConstraintsEditor
+  GovernedActionModal (actor + reason + governance_ref when needed)
+  PlanStatusBadge
+  AttemptGrid
+  AttemptDetailPanel
+  ProofList
+  FeedbackChartPanel
+  DLQQueueTable
+  AuditPackExporter
+6. Data Requirements (API Needs)
+Read:
+  list/search content artifacts
+  list plans, get plan detail
+  approval status and rationale
+  list intents, list attempts
+  attempt detail (errors, decisions, proofs)
+  feedback signals
+  DLQ queue
+Write (guarded):
+  create/update plan drafts
+  submit plan for approval
+  clone plan (new version)
+  trigger rerun attempt (idempotent)
+  attach proof / reconcile
+7. Non-Functional Requirements
+  strong filtering/search for plans and attempts
+  near-real-time execution status updates (polling or websocket)
+  strict RBAC on governed actions
+  exportable audit packs
+8. Document Position in CDE Corpus
+This FE document is informed by:
+  NS-CDE-003 — ARCHITECTURE
+  NS-CDE-004 — LIFECYCLE
+  NS-CDE-007 — DATAMODEL
+  NS-CDE-009 — IMPL
+It complements:
+  NS-CDE-011 — APIMAP
+  NS-CDE-012 — STATE
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Operator UI Spec
+Parent / HoldCo Manager
+Status: Draft

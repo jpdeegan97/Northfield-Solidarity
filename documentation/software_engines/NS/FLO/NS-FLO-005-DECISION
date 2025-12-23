@@ -1,0 +1,179 @@
+
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the decision framework used by the Financial Ledger Orchestrator (FLO).
+FLO decisions do not approve strategy or execution. Instead, they:
+Determine financial classification correctness
+Enforce budget and allocation constraints
+Resolve reconciliation outcomes
+Gate manual overrides and adjustments
+All FLO decisions are deterministic, auditable, and versioned.
+2. Decision Design Principles
+Ledger Supremacy — once written, ledger entries are never changed
+Separation of Authority — FLO enforces, GGP approves
+Explainability — every decision produces structured rationale
+Fail Closed on Risk — ambiguity blocks mutation, not truth
+Human-in-the-Loop for Exceptions — overrides are governed
+3. Decision Categories
+FLO makes decisions in five primary categories:
+Ingestion & Deduplication Decisions
+Classification Decisions
+Ledger Write Admission Decisions
+Budget & Allocation Enforcement Decisions
+Reconciliation Outcome Decisions
+Each category emits a Decision Artifact.
+4. Ingestion & Deduplication Decisions
+4.1 Deduplication Decision
+Question: Is this financial event already represented?
+Inputs:
+source_system
+external_event_id
+correlation_id
+Outcomes:
+dedupe.accept
+dedupe.reject_duplicate
+Notes:
+Rejected duplicates are logged, not discarded
+5. Classification Decisions
+5.1 Transaction Classification Decision
+Question: How should this normalized event be represented financially?
+Inputs:
+normalized_financial_event
+classification_ruleset_version
+Outputs:
+transaction_type
+debit_account
+credit_account
+entity attribution
+budget/allocation reference (if applicable)
+Failure Mode:
+classification.blocked (ambiguous mapping)
+6. Ledger Write Admission Decisions
+6.1 Ledger Admission Decision
+Question: Can this transaction candidate be written to the ledger?
+Inputs:
+transaction_candidate
+dedupe status
+classification completeness
+Outcomes:
+ledger.write_allowed
+ledger.write_blocked
+Block Reasons:
+Missing account attribution
+Invalid entity reference
+Broken transaction balance
+Blocked candidates are queued for review.
+7. Budget & Allocation Enforcement Decisions
+7.1 Budget Evaluation Decision
+Question: Does this ledger entry violate an approved budget?
+Inputs:
+ledger_entry
+budget_snapshot
+Outcomes:
+budget.ok
+budget.near_limit
+budget.exhausted
+Actions:
+Emit budget state change event
+Surface violation to DAT and GGP
+7.2 Allocation Enforcement Decision
+Question: Does this spend exceed an allocation cap?
+Outcomes:
+allocation.ok
+allocation.exceeded
+Allocation violations are treated as hard stops unless otherwise approved.
+8. Reconciliation Outcome Decisions
+8.1 Ledger ↔ Statement Match Decision
+Question: Does this external statement item match internal ledger truth?
+Outcomes:
+recon.matched
+recon.missing
+recon.excess
+recon.disputed
+Notes:
+No reconciliation decision mutates ledger entries
+9. Manual Override & Adjustment Decisions
+9.1 Manual Adjustment Admission
+Question: Is a manual adjustment allowed?
+Requirements:
+Governance approval (GGP reference)
+Explicit reason
+Operator identity
+Outcomes:
+manual.adjustment_allowed
+manual.adjustment_blocked
+Manual adjustments create new ledger entries.
+10. Decision Artifacts
+Every FLO decision produces a persisted artifact:
+Decision Artifact Fields:
+decision_id
+decision_type
+inputs (hash or reference)
+outcome
+rationale (structured)
+ruleset_version
+actor_type (system / operator / governance)
+evaluated_at
+correlation_id
+Decision artifacts are immutable and replayable.
+11. Determinism & Replay
+Given the same inputs and ruleset version, decisions must be deterministic
+Replays may produce different outcomes only when ruleset versions change
+All rule changes are versioned and auditable
+12. Cross-Engine Decision Boundaries
+
+
+
+Engine
+
+Responsibility
+
+
+FLO
+
+Financial correctness & enforcement
+
+
+GGP
+
+Policy approval & governance
+
+
+DAT
+
+Execution decisions
+
+
+MUX
+
+External truth sourcing
+FLO never approves policy; it enforces approved policy.
+13. Document Position in FLO Corpus
+This decision document builds upon:
+NS-FLO-002 — TAXONOMY
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+It informs:
+NS-FLO-006 — VERSION
+NS-FLO-007 — DATAMODEL
+14. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Decision Framework
+
+Parent / HoldCo Manager
+Status: Draft

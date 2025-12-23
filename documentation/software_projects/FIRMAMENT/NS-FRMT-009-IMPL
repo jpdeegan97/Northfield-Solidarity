@@ -1,0 +1,351 @@
+NS-FIRMAMENT-009 — IMPL
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the implementation approach for Firmament, including:
+
+service decomposition,
+
+recommended tech choices,
+
+repository layout,
+
+build/deploy strategy,
+
+phased delivery plan (v0 → v1),
+
+and hard requirements for performance, traceability, and governance integration.
+
+2. Implementation Principles
+
+Projection-first: engines remain sources of truth; Firmament stores render-ready models.
+
+Layer discipline: every layer has a registry definition, filter schema, and drilldown contract.
+
+Zoom-aware rendering: LOD rules + tiling drive performance.
+
+Realtime with graceful fallback: WS/SSE preferred; polling fallback always works.
+
+Governed actions: CWP tasks + GGE gates are mandatory for meaningful moves.
+
+3. Recommended Tech Stack (Aligned to NS)
+
+3.1 Frontend
+
+React + Vite
+
+CesiumJS for the globe (preferred)
+
+State: Zustand (lightweight) or Redux Toolkit
+
+Data fetch: TanStack Query optional
+
+Realtime: native WebSocket client
+
+3.2 Backend
+
+Java Spring Boot services (consistent with your environment)
+
+API: REST for queries + WS/SSE for deltas
+
+AuthN/AuthZ: NS standard tokens + role-based enforcement
+
+3.3 Storage
+
+Postgres + PostGIS (primary)
+
+Redis (optional) for hot tiles/treemap
+
+Object store (optional) for precomputed tiles / snapshot chunks
+
+3.4 Eventing (optional, phase-in)
+
+Kafka (later) for high-frequency signals and projection rebuild triggers
+
+v0 can be pull + scheduled refresh
+
+4. Service Decomposition (v0)
+
+4.1 firmament-api
+
+Responsibilities
+
+auth, routing, aggregation
+
+layer catalog endpoints
+
+drilldown endpoints
+
+brief generation endpoints
+
+action submission endpoints
+
+4.2 firmament-geo
+
+Responsibilities
+
+spatial queries against PostGIS
+
+tile building: {z,x,y} vector payloads
+
+clustering + simplification
+
+zoom LOD enforcement
+
+4.3 firmament-sector
+
+Responsibilities
+
+compute sector metrics + health scores
+
+generate treemap layouts
+
+serve treemap payloads
+
+4.4 firmament-brief
+
+Responsibilities
+
+assemble operating briefs
+
+rank action candidates
+
+build decision packets (GGE)
+
+4.5 firmament-realtime
+
+Responsibilities
+
+WS/SSE gateway
+
+subscription by tenant + layer + viewport
+
+delta publish
+
+4.6 firmament-projection-worker
+
+Responsibilities
+
+ingest from engines via MUX
+
+normalize/enrich
+
+materialize firm_feature_current and snapshot tables
+
+produce delta events to realtime
+
+Note: You can collapse these into 1–2 services for early MVP, as long as boundaries remain clear.
+
+5. Repo Layout (Suggested)
+
+ns-firmament/
+  frontend/
+    firmament-ui/
+  backend/
+    firmament-api/
+    firmament-geo/
+    firmament-sector/
+    firmament-brief/
+    firmament-realtime/
+    firmament-projection-worker/
+  infra/
+    k8s/
+    helm/
+    terraform/ (optional)
+  docs/
+    NS-FIRMAMENT-000..014/
+
+6. Core Implementation Workstreams
+
+6.1 Globe Rendering + Layer System (Frontend)
+
+Deliverables:
+
+globe viewport + camera
+
+layer toggles + filters + search
+
+feature rendering (pins/paths/polygons)
+
+hover/select + drilldown panel
+
+Implementation notes:
+
+enforce maximum feature density per zoom
+
+prefer tile fetch (/geo/tiles/...) over raw viewport dumps
+
+6.2 Geo Tiling + Spatial Queries (Backend)
+
+Deliverables:
+
+tile endpoints
+
+spatial indexes + query plans
+
+optional caching
+
+Implementation notes:
+
+PostGIS GIST indexes on geometry
+
+simplify geometries by zoom
+
+cluster pins at low zoom
+
+6.3 Sector Heatmap/Treemap
+
+Deliverables:
+
+sector definitions
+
+metric computation pipeline
+
+treemap layout output
+
+sector click → brief generation
+
+Implementation notes:
+
+treat treemap as a layer with its own registry + versioning
+
+6.4 Brief + Recommendation Engine (v0)
+
+Deliverables:
+
+brief templates
+
+rule-based root-cause attribution (initial)
+
+action generation + scoring
+
+“Decision Packet” composer
+
+Implementation notes:
+
+start deterministic + explainable
+
+later: agentic/ML augmentation
+
+6.5 Action Routing (CWP + GGE)
+
+Deliverables:
+
+submit actions → create CWP tasks
+
+gated actions → create GGE packets
+
+status sync back into Firmament
+
+Implementation notes:
+
+Firmament stores linkage only
+
+always show gate/task state in drilldowns
+
+6.6 Projection Builder
+
+Deliverables:
+
+ingest adapters (via MUX)
+
+projection transforms per domain
+
+snapshot + current tables
+
+staleness tagging
+
+Implementation notes:
+
+idempotent builds
+
+append-only snapshots
+
+backfill support
+
+7. Phased Delivery Plan
+
+Phase 0 — Skeleton (2–3 deliverables)
+
+UI globe loads
+
+layer registry loads
+
+static demo layers render
+
+Phase 1 — Useful v0
+
+entity + logistics layer
+
+events layer
+
+sector treemap + sector brief
+
+action routing into CWP + GGE
+
+Phase 2 — Realtime Improvements
+
+WS/SSE deltas
+
+signal overlays + hotspot behaviors
+
+better staleness handling
+
+Phase 3 — Scenario Slider (SIM-backed)
+
+plan slider integrated
+
+action reprioritization + scenario outcomes
+
+Phase 4 — Hardening
+
+caching
+
+audit completeness scoring
+
+playback from snapshots
+
+8. Performance Requirements (Non-Negotiables)
+
+Globe interaction must remain smooth (no blocking UI)
+
+Tile requests must be bounded and cacheable
+
+Drilldowns must be fast (≤ 1–2 seconds target in normal conditions)
+
+Feature density controls must prevent overload
+
+9. Security Implementation
+
+enforce tenant scoping on every query
+
+role-based layer visibility
+
+action submission permission checks
+
+decision packets must include evidence bundle and trace links
+
+10. Observability
+
+structured logs with correlation IDs
+
+metrics: tile latency, WS message rates, projection lag
+
+alerts: staleness budgets exceeded, projection failures
+
+11. Definition of Done (IMPL v0)
+
+Implementation plan is “done” when:
+
+repos/services are defined,
+
+phase plan is sequenced,
+
+core endpoints and data stores are specified,
+
+performance and security requirements are explicit,
+
+and integration boundaries with engines are unambiguous.
+

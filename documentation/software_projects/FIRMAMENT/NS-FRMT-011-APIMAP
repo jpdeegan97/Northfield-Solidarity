@@ -1,0 +1,497 @@
+NS-FIRMAMENT-011 — APIMAP
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the API map for Firmament, including:
+
+public (UI-facing) endpoints,
+
+internal service-to-service interfaces,
+
+realtime delta streams,
+
+core request/response contracts,
+
+and integration touchpoints to NS engines (MUX/IDN/FLO/SIG/SIM/CWP/GGE).
+
+Firmament APIs are designed for tile-based rendering, fast drilldowns, and governed action routing.
+
+2. API Surface Overview
+
+Firmament exposes four primary API surfaces:
+
+Registry APIs — layers, styles, filters, visibility rules
+
+Geo APIs — vector tiles / viewport features / focus helpers
+
+Insight APIs — sector treemap, briefs, drilldowns
+
+Action APIs — submit actions, track gating + execution
+
+Plus:
+
+Realtime APIs — WS/SSE deltas
+
+Admin APIs (optional v0) — layer publishing, cache controls
+
+All endpoints are versioned under /api/v1 unless otherwise specified.
+
+3. Authentication & Authorization
+
+3.1 AuthN
+
+Bearer token required: Authorization: Bearer <token>
+
+3.2 AuthZ
+
+Enforced on every request by:
+
+tenant_id scope (NS vs SL)
+
+role permissions
+
+layer visibility rules
+
+action submission permissions
+
+3.3 Required Headers
+
+X-NS-Tenant: <tenant_id>
+
+X-NS-Env: dev|staging|prod (optional if derived)
+
+X-Correlation-Id: <uuid> (recommended)
+
+4. Common Data Contracts
+
+4.1 IntegrationRef
+
+{
+  "ref_engine": "IDN",
+  "ref_type": "Entity",
+  "ref_id": "idn_ent_12345",
+  "label": "Supplier: ACME Components",
+  "as_of_time": "2025-12-22T21:35:00Z"
+}
+
+4.2 ContextSelection
+
+{
+  "geo_scope": {"type": "Viewport", "bbox": [-74.3, 40.5, -73.6, 41.0]},
+  "time_window": {"mode": "Next14Days"},
+  "sector_scope": {"sector_id": "SEC_TECH"},
+  "entities_in_scope": [/* IntegrationRef[] */],
+  "signals_in_scope": [/* IntegrationRef[] */],
+  "plan_mode": "balanced"
+}
+
+4.3 Staleness
+
+{
+  "freshness_budget_seconds": 300,
+  "max_age_seconds": 120,
+  "sources": [
+    {"ref_engine": "SIG", "as_of_time": "2025-12-22T21:33:00Z"}
+  ]
+}
+
+4.4 Error Envelope
+
+{
+  "error": {
+    "code": "FIRM_FORBIDDEN",
+    "message": "Layer not visible for role.",
+    "details": {"layer_id": "signals"}
+  },
+  "correlation_id": "..."
+}
+
+5. Registry APIs
+
+5.1 List Layers
+
+GET /api/v1/layers
+
+Query Params
+
+activeOnly=true|false (default true)
+
+Response
+
+{
+  "layers": [
+    {
+      "layer_id": "signals",
+      "layer_version": "0.1",
+      "name": "Signals",
+      "layer_type": "heat",
+      "visibility_rules": {/*...*/},
+      "filters_schema": {/*...*/},
+      "drilldown_schema": {/*...*/},
+      "style": {"style_version": "0.1", "legend": {/*...*/}, "style_rules": {/*...*/}}
+    }
+  ]
+}
+
+5.2 Get Layer Definition
+
+GET /api/v1/layers/{layer_id}
+
+5.3 Get Layer Style
+
+GET /api/v1/layers/{layer_id}/style
+
+6. Geo APIs (Tiles + Viewport)
+
+6.1 Vector Tile Fetch (Primary)
+
+GET /api/v1/geo/tiles/{z}/{x}/{y}
+
+Query Params
+
+layers=entities,flows,signals (required)
+
+layerVersions=entities:0.1,flows:0.1 (optional)
+
+filters=<base64url(json)> (optional)
+
+include=payloadRefs|none (optional; default payloadRefs)
+
+Response (Vector Payload, JSON for v0)
+
+{
+  "tile": {"z": 6, "x": 18, "y": 24},
+  "features": [
+    {
+      "feature_id": "firm_feat_9f2d",
+      "layer_id": "signals",
+      "feature_type": "heat_cell",
+      "geom": {"type": "Polygon", "coordinates": [/*...*/]},
+      "properties": {"value": 0.82},
+      "severity": "atrisk",
+      "payload_ref_id": "firm_payload_ab12",
+      "staleness": {/*...*/}
+    }
+  ]
+}
+
+v1+ can introduce binary MVT. v0 can ship JSON payloads for simplicity.
+
+6.2 Viewport Query (Optional Debug/Tools)
+
+POST /api/v1/geo/viewport/query
+
+Body
+
+{
+  "bbox": [-74.3, 40.5, -73.6, 41.0],
+  "zoom": 9,
+  "layers": ["entities","events"],
+  "filters": {/* optional */}
+}
+
+6.3 Focus Helper
+
+Returns suggested camera targets for a payload/sector/event.
+
+GET /api/v1/geo/focus
+
+Query Params
+
+payload_ref_id=firm_payload_ab12 (optional)
+
+sector_id=SEC_TECH (optional)
+
+entity_ref=<base64url(IntegrationRef)> (optional)
+
+Response
+
+{"focus": {"type": "BBox", "bbox": [-74.3, 40.5, -73.6, 41.0]}}
+
+7. Sector APIs (Heatmap/Treemap)
+
+7.1 List Sector Metrics
+
+GET /api/v1/sectors/metrics
+
+Response
+
+{"metrics": [{"metric_id": "health_score"},{"metric_id": "returns_1d"}]}
+
+7.2 Treemap
+
+GET /api/v1/sectors/treemap
+
+Query Params
+
+metric=health_score (required)
+
+asOf=now|<iso> (optional)
+
+plan_mode=balanced (optional)
+
+Response
+
+{
+  "metric": "health_score",
+  "as_of_time": "2025-12-22T21:40:00Z",
+  "layout": [
+    {"sector_id": "SEC_TECH", "rect": [0,0,320,180], "value": 74, "weight": 0.18}
+  ],
+  "staleness": {/*...*/}
+}
+
+7.3 Sector Summary
+
+GET /api/v1/sectors/{sector_id}/summary?metric=health_score
+
+8. Drilldown APIs (Payloads)
+
+8.1 Get Payload
+
+GET /api/v1/payloads/{payload_ref_id}
+
+Response
+
+{
+  "payload_ref_id": "firm_payload_ab12",
+  "payload_type": "event_card",
+  "payload_version": "0.1",
+  "document": {/* structured */},
+  "source_refs": [/* IntegrationRef[] */],
+  "staleness": {/*...*/}
+}
+
+8.2 Bulk Payload Fetch (Performance)
+
+POST /api/v1/payloads/bulk
+
+Body
+
+{"payload_ref_ids": ["firm_payload_ab12","firm_payload_cd34"]}
+
+9. Brief & Recommendation APIs
+
+9.1 Generate Brief
+
+POST /api/v1/briefs/generate
+
+Body
+
+{
+  "brief_type": "sector",
+  "subject": {"sector_id": "SEC_TECH"},
+  "context": {/* ContextSelection */}
+}
+
+Response
+
+{
+  "brief_id": "firm_brief_7712",
+  "brief_type": "sector",
+  "plan_mode": "balanced",
+  "scenario": null,
+  "brief_document": {/* what’s good/bad, root causes, constraints */},
+  "actions": [
+    {
+      "action_id": "firm_action_01",
+      "title": "Increase safety stock at WH-07 by 15%",
+      "impact_score": 0.74,
+      "urgency_score": 0.62,
+      "recommended_owner_role": "LogisticsOperator",
+      "recommended_gate_type": "BudgetApproval"
+    }
+  ],
+  "inputs": {/* evidence bundle */},
+  "staleness": {/*...*/}
+}
+
+9.2 Scenario Bundle for Plan Mode
+
+POST /api/v1/scenarios/evaluate
+
+Body
+
+{
+  "context": {/* ContextSelection */},
+  "plan_mode": "aggressive",
+  "requested_metrics": ["fulfillment_ontime","margin"],
+  "horizon": "14d"
+}
+
+Response
+
+{
+  "scenario_ref": {"ref_engine": "SIM", "ref_type": "Scenario", "ref_id": "sim_scn_88"},
+  "assumptions": {/*...*/},
+  "projected_metrics": {"fulfillment_ontime": 0.95, "margin": 0.205},
+  "confidence_band": {"low": 0.9, "high": 0.98}
+}
+
+10. Action APIs (CWP + GGE)
+
+10.1 Submit Actions
+
+Creates CWP tasks and/or GGE decision packets.
+
+POST /api/v1/actions/submit
+
+Body
+
+{
+  "brief_id": "firm_brief_7712",
+  "selected_action_ids": ["firm_action_01","firm_action_02"],
+  "execution_mode": "create_tasks_and_packets",
+  "override_owner": null,
+  "notes": "Proceed under aggressive posture."
+}
+
+Response
+
+{
+  "submitted": [
+    {
+      "action_id": "firm_action_01",
+      "cwp_task_ref": {"ref_engine": "CWP", "ref_type": "Task", "ref_id": "cwp_task_991"},
+      "gge_decision_ref": {"ref_engine": "GGE", "ref_type": "Decision", "ref_id": "gge_dec_441"},
+      "gate_state": "submitted",
+      "execution_state": "not_started"
+    }
+  ]
+}
+
+10.2 Action Status
+
+GET /api/v1/actions/status?ids=firm_action_01,firm_action_02
+
+10.3 Action Detail
+
+GET /api/v1/actions/{action_id}
+
+11. Realtime APIs
+
+11.1 WebSocket
+
+WS /realtime
+
+Client → Server (Subscribe)
+
+{
+  "type": "subscribe",
+  "tenant_id": "NS",
+  "layers": ["signals","flows"],
+  "viewport": {"bbox": [-74.3,40.5,-73.6,41.0], "zoom": 9}
+}
+
+Server → Client (Delta)
+
+{
+  "type": "delta",
+  "layer_id": "signals",
+  "changes": [
+    {"change_type": "upsert", "feature": {/* firm_feature_current-like */}},
+    {"change_type": "delete", "feature_id": "firm_feat_old"}
+  ],
+  "as_of_time": "2025-12-22T21:41:00Z"
+}
+
+11.2 SSE (Fallback)
+
+GET /api/v1/realtime/sse?layers=signals,flows
+
+12. Admin APIs (Optional v0)
+
+12.1 Publish Layer Version
+
+POST /api/v1/admin/layers/publish
+
+12.2 Invalidate Tile Cache
+
+POST /api/v1/admin/cache/invalidate
+
+12.3 Projection Rebuild Trigger
+
+POST /api/v1/admin/projection/rebuild
+
+13. Internal Service APIs (Illustrative)
+
+13.1 Projection Worker → Geo/Sector
+
+Upsert current features
+
+Append snapshot rows
+
+Emit delta events
+
+13.2 Brief Service → Engines
+
+SIG: evidence bundle fetch
+
+IDN: entity relationship expansion
+
+FLO: exposure lookup
+
+SIM: scenario evaluation
+
+CWP: task create/update
+
+GGE: decision packet create/update
+
+These are typically implemented as:
+
+internal REST calls, and/or
+
+engine SDK clients via MUX.
+
+14. Status Codes and Error Codes
+
+14.1 HTTP Status
+
+200/201 success
+
+400 invalid request
+
+401 unauthenticated
+
+403 forbidden (scope/role/layer)
+
+404 not found
+
+409 conflict (version mismatch)
+
+429 rate limited
+
+500/503 server/service unavailable
+
+14.2 Firmament Error Codes (Examples)
+
+FIRM_UNAUTHENTICATED
+
+FIRM_FORBIDDEN
+
+FIRM_LAYER_NOT_FOUND
+
+FIRM_PAYLOAD_NOT_FOUND
+
+FIRM_VERSION_CONFLICT
+
+FIRM_PROJECTION_LAGGING
+
+FIRM_SIM_UNAVAILABLE
+
+15. Definition of Done (APIMAP v0)
+
+APIMAP is “done” when:
+
+all UI-critical endpoints are defined,
+
+realtime subscription and delta format are specified,
+
+action submission and status tracking are specified,
+
+core contracts (ContextSelection, IntegrationRef, Staleness, Error Envelope) are standardized,
+
+and integration touchpoints to NS engines are explicit.
+

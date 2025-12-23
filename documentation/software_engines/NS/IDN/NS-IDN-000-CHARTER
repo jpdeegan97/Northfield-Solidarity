@@ -1,0 +1,123 @@
+NSDC Engine Charter — IDN (Identity & Entity Nexus)
+1. Engine Identity
+Engine Name: Identity & Entity Nexus
+Acronym: IDN
+Engine Type: Identity / Entity Management / Canonical Reference
+2. Mission Statement (One Sentence)
+This engine exists to maintain canonical identity, entity, and relationship records across NSDC, providing a single source of truth for all actors, assets, and organizational structures.
+3. Core Responsibilities (Allowed Actions)
+  Maintain canonical records of entities, users, accounts, and organizational structures
+  Track relationships and ownership hierarchies between entities and assets
+  Provide unique identifiers and references for NSDC engines
+  Serve as a reference point for governance, execution, and analytics engines
+  Maintain historical snapshots of entity state for auditability
+  Ensure consistency of identity data across all NSDC systems
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Execute trades or arbitrage (DAT)
+  Govern capital or compliance (GGP)
+  Generate product or market intelligence (PIE)
+  Publish content or manage engagement (CDE)
+  Maintain financial ledgers (FLO)
+IDN provides canonical identity; it does not perform operations.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Entity data
+Admin / NSDC engines
+Users, accounts, legal entities, sub-entities
+☑
+Relationship mappings
+Admin / GGP
+Ownership, role, permission, hierarchy
+☑
+Historical changes
+IDN archives
+Snapshots of past entity states
+☐
+Governance constraints
+GGP
+Limits on entity creation or modification
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Canonical entity IDs
+All engines
+Unique identifiers for entities and assets
+Continuous
+Relationship maps
+GGP, FLO, DAT, PIE
+Ownership and role hierarchies
+On change
+Historical snapshots
+Admin / Audit
+Entity state for auditability
+Scheduled / event-driven
+Reference data API
+All engines
+Real-time lookup of entities and relationships
+Continuous
+7. Authority & Decision Rights
+IDN May Decide Autonomously:
+  Assign and maintain unique identifiers
+  Track and enforce entity hierarchies
+  Validate consistency of identity data across engines
+IDN Must Not Decide:
+  Execution of trades or capital deployment
+  Governance or policy enforcement outside reference
+  Product, content, or market strategy decisions
+IDN is the canonical reference system, not a decision-making engine.
+8. Governance & Constraints
+  All entity modifications must comply with GGP rules
+  Historical state must be versioned and immutable
+  Referential integrity must be maintained across NSDC engines
+  Access controls and permissions must be enforced for entity modifications
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Duplicate or conflicting identifiers
+  Relationship hierarchy inconsistencies
+  Delays in entity propagation
+Worst-Case Failure:
+  Downstream engines receive inconsistent identity data, leading to operational errors
+  Potential audit or compliance issues
+Blast Radius:
+  Primarily impacts governance (GGP), execution (DAT), and financial tracking (FLO)
+  Does not directly cause financial loss
+Containment strategy:
+  Validation and reconciliation of entity IDs
+  Versioned snapshots and rollback
+  Alerts for inconsistencies
+10. Time Horizon & Optimization Target
+  Optimizes for: Accuracy, uniqueness, and consistency of identity data
+  Time Horizon: Continuous real-time reference with historical state available for audits
+11. Interfaces & Shared Primitives
+  Unique entity IDs
+  Canonical asset and account references
+  Relationship and hierarchy schemas
+  Historical snapshot records
+  Governance flags and permissions (GGP)
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Creation and maintenance of unique entity identifiers
+  Tracking entity relationships and ownership hierarchies
+  Historical snapshots for auditing
+  Real-time reference API for NSDC engines
+MVP Excludes:
+  Execution, capital deployment, or trading
+  Product or market intelligence generation
+  Content distribution
+13. Evolution Path (Conceptual Only)
+  Phase 1: Core entity creation, hierarchy mapping, and reference API
+  Phase 2: Integration with all NSDC engines and audit-ready versioning
+  Phase 3: Advanced relationship modeling and dynamic entity analytics
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

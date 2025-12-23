@@ -1,0 +1,189 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the end-to-end lifecycle of an Insight within the Product InsightIQ Engine (PIE).
+The lifecycle formalizes:
+How insights are created
+How they evolve over time
+How they interact with governance, simulation, and execution engines
+How they decay, expire, or are rejected
+The objective is to ensure predictability, auditability, and governance alignment from insight inception to retirement.
+2. Lifecycle Design Principles
+PIE lifecycle design adheres to the following principles:
+Explicit State Transitions — No implicit promotion or decay
+Governance First — All promotions cross GGP
+Time Awareness — Relevance is always bounded
+Replayability — Historical lifecycle paths can be reconstructed
+Non-Executional — PIE never triggers action directly
+3. High-Level Lifecycle Flow
+At a high level, an Insight flows through the following phases:
+Signal & Research Intake
+Context Assembly
+Insight Proposal
+Scoring & Risk Annotation
+Governance Review
+Downstream Consumption (SIM / DAT)
+Performance Feedback
+Decay, Expiry, or Rejection
+Each phase emits auditable events and persists state transitions.
+4. Insight States
+4.1 Proposed
+Entry Condition:
+Evidence Bundle assembled
+Opportunity Statement generated
+Characteristics:
+Not visible for execution
+May be visible for internal review
+Permitted Transitions:
+→ Under Review
+→ Rejected
+4.2 Under Review
+Entry Condition:
+Insight submitted for governance evaluation
+Actors Involved:
+GGP (decision authority)
+Human reviewers (optional)
+Permitted Transitions:
+→ Approved
+→ Rejected
+→ Proposed (revision)
+4.3 Approved
+Entry Condition:
+Governance approval granted by GGP
+Characteristics:
+Eligible for downstream consumption
+Still non-executing
+Downstream Visibility:
+SIM (scenario analysis)
+DAT (execution planning)
+Permitted Transitions:
+→ Expired
+→ Rejected (post-approval revocation)
+4.4 Rejected
+Entry Condition:
+Governance or human rejection
+Characteristics:
+Retained for audit and learning
+Not eligible for downstream use
+Permitted Transitions:
+None (terminal)
+4.5 Expired
+Entry Condition:
+Relevance window exceeded
+Decay threshold crossed
+Characteristics:
+Insight becomes historical context only
+Permitted Transitions:
+None (terminal)
+5. Lifecycle Phase Detail
+5.1 Intake Phase
+Signals ingested from SIG
+Research artifacts ingested from DRE
+Intake events recorded
+No insights are created at this stage.
+5.2 Context Assembly Phase
+Signals and research grouped into Evidence Bundles
+Context snapshots persisted
+This phase is deterministic and replayable.
+5.3 Insight Proposal Phase
+Opportunity Statement generated
+Insight created with status = Proposed
+Initial decay and relevance windows assigned
+5.4 Scoring & Risk Phase
+Scoring models applied
+Confidence Score computed
+Risk Profile attached
+Scoring does not change insight state.
+5.5 Governance Review Phase
+Insight submitted to GGP
+Review outcomes recorded
+PIE cannot override governance decisions.
+5.6 Downstream Consumption Phase
+Approved insights consumed by:SIM for scenario analysisDAT for execution planning
+PIE observes but does not control outcomes.
+5.7 Feedback & Observation Phase
+Execution and performance signals return via PTE / FLO
+Feedback linked to originating Insight
+Feedback does not mutate original Insight content.
+5.8 Decay & Expiry Phase
+Relevance evaluated continuously
+Ranking prominence reduced over time
+Expiry event emitted when thresholds crossed
+6. Event Emissions
+Each lifecycle transition emits an immutable event, including:
+pie.insight.proposed
+pie.insight.reviewed
+pie.insight.approved
+pie.insight.rejected
+pie.insight.expired
+Events include:
+Insight ID
+Version
+Timestamp
+Actor (system / governance)
+7. Invariants & Constraints
+The following constraints must always hold:
+An Insight cannot be approved without governance
+An expired Insight cannot be reactivated
+State transitions are append-only
+Decay never deletes historical records
+8. Cross-Engine Responsibilities
+
+
+
+Engine
+
+Responsibility
+
+
+PIE
+
+Proposal, scoring, decay
+
+
+GGP
+
+Approval, rejection
+
+
+SIM
+
+Scenario evaluation
+
+
+DAT
+
+Execution planning
+
+
+PTE
+
+Performance observation
+9. Document Position in PIE Corpus
+This lifecycle document builds upon:
+NS-PIE-001 — OVERVIEW
+NS-PIE-002 — TAXONOMY
+NS-PIE-003 — ARCHITECTURE
+It informs:
+NS-PIE-005 — DECISION
+NS-PIE-007 — DATAMODEL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial Lifecycle Definition
+
+Parent / HoldCo Manager
+Status: Draft

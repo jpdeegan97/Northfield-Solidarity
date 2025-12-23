@@ -1,0 +1,122 @@
+NSDC Engine Charter — FLO (Financial Ledger Orchestration)
+1. Engine Identity
+Engine Name: Financial Ledger Orchestration
+Acronym: FLO
+Engine Type: Ledger / Accounting / Execution Support
+2. Mission Statement (One Sentence)
+This engine exists to record, consolidate, and reconcile all financial transactions within the NSDC ecosystem, providing a canonical source of truth for capital flow, performance tracking, and audit compliance.
+3. Core Responsibilities (Allowed Actions)
+  Maintain a unified, canonical ledger of all financial transactions
+  Reconcile capital movements between engines and marketplaces
+  Provide accurate reporting for P&L, balance sheets, and cash flows
+  Integrate with execution engines (DAT) for transaction validation
+  Feed financial summaries and insights to PIE, CDE, and administrative systems
+  Ensure audit readiness and maintain immutable transaction logs
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Make capital allocation or trading decisions (DAT)
+  Generate product or market intelligence (PIE)
+  Publish content or manage engagement (CDE)
+  Define governance rules (GGP)
+  Directly manage external marketplace integrations (MUX)
+FLO is strictly the ledger and reporting engine.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Executed trade data
+DAT
+Orders, trades, settlements
+☑
+Capital flows
+External / Bank API
+Deposits, withdrawals, transfers
+☑
+Governance approvals
+GGP
+Authorized actions for capital movement
+☑
+Accounting reference data
+IDN / PIE
+Entity relationships, product IDs
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Consolidated ledger entries
+All engines
+Canonical financial record
+Continuous / real-time
+P&L reports
+Admin / PIE / DAT
+Profit and loss summaries
+Scheduled / event-driven
+Audit logs
+Admin / GGP
+Immutable financial audit trail
+Continuous
+Cashflow statements
+Admin / PIE
+Liquidity and capital availability reports
+Periodic
+7. Authority & Decision Rights
+FLO May Decide Autonomously:
+  Validate transaction integrity
+  Reconcile ledger balances
+  Generate reports from ledger data
+FLO Must Not Decide:
+  Capital allocation or execution strategy
+  Governance policy enforcement
+  Product or market opportunity selection
+FLO is a canonical financial observer and recorder, not an executor.
+8. Governance & Constraints
+  All ledger entries must comply with GGP-defined policies
+  Must maintain immutable, auditable records
+  Ensure reconciliations and validation procedures are enforced
+  Integration with external APIs must comply with security and compliance standards
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Delayed reconciliation
+  Minor ledger inconsistencies due to timing
+Worst-Case Failure:
+  Inaccurate financial reporting
+  Compromised audit readiness
+Blast Radius:
+  Impacts all engines relying on canonical financial data
+  No direct market execution impact if DAT operates independently, but may misreport P&L
+Containment strategy:
+  Reconciliation alerts
+  Manual overrides with logging
+  Immutable historical snapshots
+10. Time Horizon & Optimization Target
+  Optimizes for: Accuracy, completeness, and auditability
+  Time Horizon: Continuous recording with periodic reconciliations
+11. Interfaces & Shared Primitives
+  Canonical entity IDs (IDN)
+  Product and transaction IDs (PIE / DAT)
+  Governance flags and approvals (GGP)
+  Order and execution objects (DAT)
+  Ledger and audit schemas
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Transaction logging and ledger maintenance
+  Integration with DAT for executed trades
+  P&L and cashflow reporting
+  Audit log creation
+MVP Excludes:
+  Predictive finance modeling
+  Integration with external accounting systems beyond MVP
+  Automated capital allocation or trading
+13. Evolution Path (Conceptual Only)
+  Phase 1: Canonical ledger + basic reporting
+  Phase 2: Real-time reconciliation and dashboards
+  Phase 3: Predictive analytics and integrated financial modeling
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

@@ -1,0 +1,1181 @@
+
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the canonical data definitions for the Digital Arbitrage Tooling (DAT) engine.
+It provides:
+Field-level definitions for authoritative DAT entities
+Explicit meaning, constraints, and invariants
+Cross-engine contract clarity for GGP, PIE, FLO, PTE, and external connectors
+This document is the single source of truth for DAT data semantics.
+2. Data Definition Principles
+Append-Only Truth — historical execution truth is never overwritten
+Version-Pinned Execution — all runtime records reference (execution_plan_id, plan_version)
+Immutable Context — execution context is snapshotted at run start
+Idempotency by Design — step execution uses idempotency keys
+Reference, Don’t Duplicate — external engine artifacts are referenced only
+3. Identifier Conventions
+execution_plan_id: Stable UUID identifying a plan across versions
+plan_version: Monotonic integer identifying semantic versions
+run_id: Stable UUID identifying a single run of a plan_version
+step_id: Stable UUID identifying a plan step
+action_id: Stable UUID identifying an action definition
+correlation_id: UUID for tracing across services and events
+4. Canonical Entity Definitions (Authoritative)
+4.1 Execution Plan
+Entity: execution_plan
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Stable plan identifier
+
+
+plan_version
+
+Integer
+
+Yes
+
+Semantic version
+
+
+linked_insight_id
+
+UUID/String
+
+Yes
+
+PIE insight reference
+
+
+linked_insight_version
+
+Integer
+
+Yes
+
+PIE insight version
+
+
+status
+
+Enum
+
+Yes
+
+draft / submitted_for_approval / approved / staged / executing / completed / aborted / archived
+
+
+ggp_decision_id
+
+UUID/String
+
+No
+
+Governance decision reference
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Version creation time
+
+
+updated_at
+
+Timestamp
+
+Yes
+
+Last update time
+Constraints:
+(execution_plan_id, plan_version) is unique
+4.2 Plan Step
+Entity: execution_step
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+step_id
+
+UUID
+
+Yes
+
+Step identifier
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Parent plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Parent version
+
+
+step_order
+
+Integer
+
+Yes
+
+1..N strict order
+
+
+action_id
+
+UUID
+
+Yes
+
+Action reference
+
+
+step_status
+
+Enum
+
+Yes
+
+pending / running / completed / failed / rolled_back
+Constraints:
+step_order is unique within (execution_plan_id, plan_version)
+4.3 Action
+Entity: action
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+action_id
+
+UUID
+
+Yes
+
+Action identifier
+
+
+action_type
+
+String
+
+Yes
+
+Operation type (domain-defined)
+
+
+target_system
+
+String
+
+Yes
+
+Connector/system name
+
+
+parameters
+
+JSON
+
+Yes
+
+Action configuration
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Creation time
+Notes:
+Actions are definitions; they do not record runtime outcomes.
+4.4 Constraint Snapshot
+Entity: constraint_snapshot
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+constraint_id
+
+UUID
+
+Yes
+
+Constraint identifier
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Parent plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Parent version
+
+
+constraint_type
+
+Enum
+
+Yes
+
+budget / time / risk / quantity
+
+
+enforcement_level
+
+Enum
+
+Yes
+
+hard / soft
+
+
+constraint_params
+
+JSON
+
+Yes
+
+Parameters (caps, windows, thresholds)
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Snapshot time
+4.5 Budget Snapshot
+Entity: budget_snapshot
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+budget_id
+
+UUID
+
+Yes
+
+Budget identifier
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Parent plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Parent version
+
+
+currency
+
+String
+
+Yes
+
+ISO currency code
+
+
+max_amount
+
+Decimal
+
+Yes
+
+Max spend allowed
+
+
+spent_amount
+
+Decimal
+
+Yes
+
+Current spend (derived / reconciled)
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Snapshot time
+Notes:
+Authoritative spend comes from financial events; spent_amount is a roll-up.
+4.6 Rollback Policy
+Entity: rollback_policy
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+rollback_policy_id
+
+UUID
+
+Yes
+
+Policy identifier
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Parent plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Parent version
+
+
+step_id
+
+UUID
+
+No
+
+Optional: per-step policy
+
+
+rollback_type
+
+Enum
+
+Yes
+
+automatic / manual / compensating
+
+
+rollback_steps
+
+JSON
+
+Yes
+
+Compensating actions (ordered)
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Policy creation time
+4.7 Execution Run
+Entity: execution_run
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+run_id
+
+UUID
+
+Yes
+
+Run identifier
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Version
+
+
+run_status
+
+Enum
+
+Yes
+
+requested / admission_denied / running / paused / completed / aborted / failed
+
+
+execution_mode
+
+Enum
+
+Yes
+
+live / dry
+
+
+requested_by
+
+String
+
+Yes
+
+Operator/system
+
+
+started_at
+
+Timestamp
+
+No
+
+Start time
+
+
+ended_at
+
+Timestamp
+
+No
+
+End time
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+4.8 Execution Context
+Entity: execution_context
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+context_id
+
+UUID
+
+Yes
+
+Context identifier
+
+
+run_id
+
+UUID
+
+Yes
+
+Run
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Version
+
+
+constraint_snapshot_hash
+
+String
+
+Yes
+
+Hash of constraints snapshot
+
+
+budget_snapshot_hash
+
+String
+
+Yes
+
+Hash of budget snapshot
+
+
+connector_snapshot
+
+JSON
+
+No
+
+Optional connector state snapshot
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Context creation
+4.9 Step Attempt
+Entity: step_attempt
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+attempt_id
+
+UUID
+
+Yes
+
+Attempt identifier
+
+
+run_id
+
+UUID
+
+Yes
+
+Run
+
+
+step_id
+
+UUID
+
+Yes
+
+Step
+
+
+attempt_number
+
+Integer
+
+Yes
+
+1..N
+
+
+idempotency_key
+
+String
+
+Yes
+
+Stable per step per run
+
+
+attempt_status
+
+Enum
+
+Yes
+
+started / completed / failed
+
+
+started_at
+
+Timestamp
+
+Yes
+
+Attempt start
+
+
+ended_at
+
+Timestamp
+
+No
+
+Attempt end
+
+
+error_class
+
+String
+
+No
+
+Failure classification
+
+
+error_detail
+
+Text
+
+No
+
+Redacted detail
+4.10 Execution Event
+Entity: execution_event
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+event_id
+
+UUID
+
+Yes
+
+Event identifier
+
+
+run_id
+
+UUID
+
+Yes
+
+Run
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Version
+
+
+step_id
+
+UUID
+
+No
+
+Step (optional)
+
+
+event_type
+
+String
+
+Yes
+
+dat.plan.* / dat.step.* / dat.control.*
+
+
+payload
+
+JSON
+
+No
+
+Optional structured payload
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+
+
+actor_type
+
+Enum
+
+Yes
+
+system / operator / governance
+
+
+actor_id
+
+String
+
+No
+
+Actor identifier
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+Event time
+4.11 Decision Artifact
+Entity: decision_artifact
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+decision_id
+
+UUID
+
+Yes
+
+Decision record
+
+
+execution_plan_id
+
+UUID
+
+Yes
+
+Plan
+
+
+plan_version
+
+Integer
+
+Yes
+
+Version
+
+
+run_id
+
+UUID
+
+No
+
+Optional run binding
+
+
+decision_type
+
+Enum
+
+Yes
+
+readiness / admission / step / rollback
+
+
+decision_payload
+
+JSON
+
+Yes
+
+Structured decision output
+
+
+evaluated_at
+
+Timestamp
+
+Yes
+
+Decision time
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+4.12 Control Action
+Entity: control_action
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+control_id
+
+UUID
+
+Yes
+
+Control record
+
+
+control_type
+
+Enum
+
+Yes
+
+pause / resume / abort_run / disable_connector / enable_connector
+
+
+target
+
+String
+
+Yes
+
+run_id / connector_name / execution_plane
+
+
+reason
+
+Text
+
+Yes
+
+Operator reason
+
+
+requested_by
+
+String
+
+Yes
+
+Operator
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+Action time
+5. Derived Read Model Definitions (Non-Authoritative)
+5.1 Plan Registry View
+Entity: plan_registry_view
+
+
+
+Field
+
+Type
+
+Description
+
+
+execution_plan_id
+
+UUID
+
+Plan
+
+
+latest_plan_version
+
+Integer
+
+Latest version
+
+
+status
+
+String
+
+Current status
+
+
+budget_cap
+
+Decimal
+
+Cap
+
+
+spent_amount
+
+Decimal
+
+Spend roll-up
+
+
+last_outcome
+
+String
+
+Last run outcome
+
+
+updated_at
+
+Timestamp
+
+Updated
+5.2 Run Summary View
+Entity: run_summary_view
+
+
+
+Field
+
+Type
+
+Description
+
+
+run_id
+
+UUID
+
+Run
+
+
+execution_plan_id
+
+UUID
+
+Plan
+
+
+plan_version
+
+Integer
+
+Version
+
+
+run_status
+
+String
+
+Status
+
+
+current_step_order
+
+Integer
+
+Current step
+
+
+completed_steps
+
+Integer
+
+Count
+
+
+failed_steps
+
+Integer
+
+Count
+
+
+total_spend
+
+Decimal
+
+Roll-up
+Derived views may be dropped and rebuilt.
+6. Cross-Engine Reference Contracts (IDs Only)
+DAT references external engines by ID only:
+PIE: linked_insight_id, linked_insight_version
+GGP: ggp_decision_id
+FLO: flo_financial_event_id (if stored locally as reference)
+PTE: pte_execution_metric_id (reference)
+DAT does not duplicate external authoritative truth.
+7. Invariants & Validation Rules
+No run may start without an approved plan version
+A run creates exactly one execution_context
+step_order must be contiguous (1..N)
+idempotency_key must be stable per step per run
+Hard constraint violations must produce a terminal run outcome (aborted/failed)
+All timestamps are UTC
+8. Document Position in DAT Corpus
+This DATADEF document completes the DAT documentation set.
+It is informed by:
+NS-DAT-007 — DATAMODEL
+NS-DAT-011 — APIMAP
+NS-DAT-012 — STATE
+NS-DAT-013 — RUNBOOK
+9. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Canonical Data Definitions
+
+Parent / HoldCo Manager
+Status: Draft

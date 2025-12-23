@@ -1,0 +1,134 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the versioning rules and semantics for PIE artifacts, ensuring that:
+Insight evolution is historically traceable
+Replay and auditability are preserved
+Downstream engines can reason about change impact
+Versioning applies to:
+Insights (primary)
+Evidence Bundles
+Scoring Models and Score Outputs
+Risk Profiles
+Narratives
+Decision Contexts
+This document complements the canonical data model in NS-PIE-007.
+2. Versioning Principles
+PIE versioning follows these principles:
+Semantic Changes Create New VersionsIf meaning changes, a new version is created.
+Non-Semantic Updates Do Not Rewrite HistoryAll updates are append-only. Non-semantic updates create new records but may not require a new insight_version.
+Explicit CausalityEach version links to what caused it (evidence change, model change, governance change).
+Downstream StabilityDownstream consumers should be able to pin to a specific version.
+3. Canonical Versioned Identifiers
+3.1 insight_id vs insight_version
+insight_id is stable across the life of the Insight.
+insight_version increments when the Insight’s semantic content changes.
+All authoritative PIE records are keyed by:
+(insight_id, insight_version)
+4. What Triggers a New Insight Version
+A new insight_version MUST be created when any of the following changes:
+Opportunity Statement Meaning Changes
+The core “what/why” of the insight changes
+Insight Type Changes
+Reclassification that alters interpretation or handling
+Evidence Composition Changes (Semantic)
+Evidence Bundle changes that materially alter support
+Risk Profile Changes (Material)
+Risk band changes
+Material risk flags added/removed
+Relevance Window Meaning Changes
+Time horizon materially shifted
+Narrative Meaning Changes
+Explanation changes in a way that alters the implied claim
+5. What Does NOT Trigger a New Insight Version
+The following changes do not require a new insight_version, but still produce new append-only records:
+Derived Read Model Rebuilds
+Rankings and caches
+New Scoring Model Applied (Re-score)
+Scores can be recomputed under a new model version
+Store as a new scoring_result record
+Decision Context Re-evaluation
+New decision_context records appended
+Minor Narrative Formatting
+Styling, whitespace, non-meaningful edits
+Decay State Updates
+Time-based decay progression
+6. Sub-Artifact Versioning
+6.1 Scoring Models
+Scoring Models are versioned independently:
+scoring_model_id (stable)
+scoring_model_version (monotonic)
+A new scoring_model_version is required when:
+scoring formula changes
+feature set changes
+weighting changes
+6.2 Scoring Results
+Scoring Results are immutable snapshots:
+Reference (insight_id, insight_version)
+Reference scoring_model_version
+New scoring_result records are created whenever:
+a new scoring model version is applied
+new scores are computed
+6.3 Evidence Bundles
+Evidence Bundles are bound to an Insight version.
+Rule:
+If evidence changes materially → new insight_version
+If evidence changes non-materially → new bundle record may be attached under same insight_version (rare; requires GGP-governed rule)
+Default: evidence bundle changes imply semantic change.
+6.4 Risk Profiles
+Risk Profiles are versioned by append-only records.
+Rule:
+Material risk change → new insight_version
+Non-material note updates → append risk_profile record without new insight_version
+6.5 Narratives
+Narratives are versioned snapshots.
+Rule:
+Meaning change → new insight_version
+Formatting-only change → new narrative record without new insight_version
+6.6 Decision Contexts
+Decision contexts are immutable snapshots.
+Rule:
+Re-evaluations append new decision_context records
+They never overwrite prior contexts
+7. Governance & Version Control
+PIE versioning rules must be:
+Explicit
+Enforced consistently
+Governed by GGP
+PIE may propose a new insight_version, but downstream promotion decisions remain governed.
+8. Compatibility & Downstream Impact
+Downstream engines should treat Insight versions as:
+Pin-able: can reference a specific version for reproducibility
+Comparable: can detect whether a new version invalidates prior assumptions
+Recommended downstream behavior:
+SIM re-evaluates scenarios when insight_version changes
+DAT pauses execution planning if pinned version is superseded
+PTE tracks performance aligned to the version that drove action
+9. Document Position in PIE Corpus
+This versioning document builds upon:
+NS-PIE-002 — TAXONOMY
+NS-PIE-004 — LIFECYCLE
+NS-PIE-007 — DATAMODEL
+It informs:
+NS-PIE-008 — EEE
+NS-PIE-009 — IMPL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE Versioning Semantics
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,338 @@
+NS-AEGIS-009 — IMPL
+
+Project: Aegis (Dependency Management Product)
+
+1) Implementation Objective
+
+Deliver Aegis as a production-grade dependency registry + graph + governed workflows that remains continuously correct via CWP loops and policy-governed via GGE.
+
+This is an implementation blueprint (what to build, how to sequence it), not low-level code.
+
+2) MVP Implementation Slice (Hard Boundary)
+
+MVP ships when all five are true:
+
+Registry supports Dependency + DU CRUD (governed)
+
+Graph supports edges + impact query (downstream blast radius) in prod scope
+
+Workflows support add_dependency + update_version CRs routed through GGE
+
+Evidence supports upload + verification states + expiry
+
+Loops: one scheduled Freshness Loop + one signal-triggered Incident Loop (CWP)
+
+3) Concrete Build Plan (Phased)
+
+Phase 0 — Foundations (Day 1 correctness)
+
+Define canonical IDs and aliases (IDN contract)
+
+Define CR contract + policy decision record contract (GGE contract)
+
+Define event contract(s) for observations/signals (SIG/MUX/CWP)
+
+Stand up minimal datastore(s):
+
+Registry DB
+
+Graph store
+
+Evidence object store
+
+Deliverable: running skeleton with empty registry + health endpoints.
+
+Phase 1 — Registry + Evidence
+
+Implement dependency + dependency_unit entities and invariants
+
+Implement Evidence service:
+
+upload/store
+
+hash
+
+verification state
+
+expiry
+
+Implement basic search over registry (name/id/class/owner)
+
+Deliverable: Operators can register dependencies and attach evidence (no governance yet).
+
+Phase 2 — Governance (CR + GGE)
+
+Implement Change Request lifecycle
+
+Implement GGE integration:
+
+policy evaluation call
+
+approval routing state ingestion
+
+audit references
+
+Enforce: no material change without CR
+
+Deliverable: governed onboarding for add_dependency and governed version change.
+
+Phase 3 — Graph + Impact Queries
+
+Implement edge ingestion (declared edges via CR)
+
+Implement graph traversal queries:
+
+downstream_impact(dependency_id, env=prod)
+
+upstream_dependencies(service_or_boundary, env=prod) (optional MVP)
+
+Add confidence qualifiers: declared vs observed
+
+Deliverable: “if X breaks/is vulnerable, what is affected?” works.
+
+Phase 4 — Signals + Loops (CWP)
+
+Implement SIG ingestion path for one signal family (choose one):
+
+vendor_incident OR cve
+
+Implement incident mapping and incident case creation
+
+Implement CWP playbooks:
+
+Freshness loop (scheduled)
+
+Incident loop (event-driven)
+
+Deliverable: posture stays fresh + incident workflow is operational.
+
+Phase 5 — Snapshot + Audit Replay (MVP+)
+
+Snapshot at CR commit and incident closure
+
+Snapshot diff support (optional)
+
+Deliverable: “as-of” posture and audit replay baseline.
+
+4) Service Decomposition (Minimal)
+
+Aegis can ship MVP as a single service with clear internal modules, then split later.
+
+4.1 MVP: Single Service (recommended)
+
+registry module
+
+graph module
+
+workflow module
+
+evidence module
+
+signal module
+
+snapshot module
+
+4.2 V1+: Split Services (only when needed)
+
+aegis-registry-svc
+
+aegis-graph-svc
+
+aegis-workflow-svc
+
+aegis-evidence-svc
+
+aegis-ingestion-svc (events)
+
+5) Repository Layout (Suggested)
+
+ns-aegis/
+  /docs/                    # 000–014 canonical docs
+  /api/                     # OpenAPI specs (v1)
+  /service/                 # core service
+    /registry/
+    /graph/
+    /workflow/
+    /evidence/
+    /signals/
+    /snapshots/
+  /connectors/              # MUX-aligned emitters (optional co-located)
+  /ops/                     # helm/kustomize/terraform, runbooks
+  /tests/                   # contract tests + fixtures
+
+6) Data Stores (Implementation Choices)
+
+6.1 Registry DB
+
+SQL store recommended for integrity and migrations.
+
+6.2 Graph Store
+
+Graph DB preferred for traversal performance; keep traversal semantics versioned.
+
+MVP can start with:
+
+graph DB, OR
+
+adjacency tables in SQL (if speed of delivery beats traversal needs)
+
+6.3 Evidence Store
+
+Object store (S3-compatible) + metadata in registry DB.
+
+6.4 Event Bus
+
+Required once you introduce connectors/CWP loops.
+
+MVP can use a lightweight bus; V1 standardizes.
+
+7) Integration Contracts
+
+7.1 GGE Contract (Governance)
+
+Aegis must support:
+
+evaluate_policy(context) -> {risk_tier, required_evidence, approval_chain, constraints}
+
+approval_events fed back into Aegis CR state
+
+audit_ref stored on approval records
+
+7.2 CWP Contract (Loops)
+
+Aegis emits:
+
+evidence_required
+
+freshness_check_requested
+
+incident_assessment_requested
+
+CWP returns:
+
+evidence_collected
+
+enrichment_proposed (edges/aliases/metadata)
+
+remediation_plan_proposed
+
+7.3 SIG Contract (Signals)
+
+Aegis ingests:
+
+normalized signals with severity/confidence and subject hints
+
+7.4 IDN Contract (Identity)
+
+Aegis requests:
+
+canonical ID resolution
+
+alias management
+
+8) Implementation Workflows (How to Build Each Feature)
+
+8.1 Add Dependency (MVP Path)
+
+Operator creates CR add_dependency
+
+Aegis resolves canonical ID (IDN)
+
+Aegis requests policy evaluation (GGE)
+
+Evidence required → attach evidence
+
+Approvals captured → commit registry + DU
+
+Optional: add declared edges (service calls vendor)
+
+8.2 Update Version (MVP Path)
+
+Operator creates CR update_version
+
+Policy evaluation returns required evidence/approvals
+
+Upon approval: update registry version fields + create snapshot
+
+8.3 Incident (Signal → Impact)
+
+Signal ingested (SIG)
+
+Mapped to dependency/DU
+
+Graph query computes blast radius
+
+Incident case opened + routed
+
+CWP produces remediation plan
+
+Close incident + snapshot
+
+9) Contract Testing Strategy (Non-negotiable)
+
+Policy contract tests: given inputs → deterministic GGE outputs recorded
+
+Event contract tests: observation/signal payload schemas
+
+Graph query golden tests: fixtures + expected blast radius answers
+
+CR lifecycle tests: state transitions + invariants
+
+10) MVP Backlog (Cut List)
+
+Must-Have
+
+Dependency + DU registry
+
+Evidence upload + verification + expiry
+
+CR engine for add/update
+
+GGE integration (policy eval + approvals)
+
+Graph edges + downstream impact query
+
+One signal path (vendor incident OR CVE)
+
+CWP freshness + incident loop
+
+Snapshot on CR commit and incident closure
+
+Nice-to-Have
+
+Edge discovery connector (runtime observed edges)
+
+Drift auto-CR thresholds
+
+Snapshot diffs
+
+UI impact visualization
+
+11) Evolution Notes (Post-MVP Hardening)
+
+Introduce multiple connectors (repos, registries, cloud inventory)
+
+Expand evidence verification automation
+
+Add exception automation and enforcement gates
+
+Add standardization recommendations (“preferred dependency sets”)
+
+Add portfolio migration planning and progress tracking
+
+12) Implementation Diagram (MVP Runtime)
+
+flowchart LR
+  U[Operator UI/API] --> A[Aegis Service]
+  A --> R[(Registry DB)]
+  A --> G[(Graph Store)]
+  A --> O[(Evidence Object Store)]
+
+  A <--> IDN[IDN]
+  A <--> GGE[GGE]
+  A <--> SIG[SIG]
+
+  A --> BUS[(Event Bus)]
+  BUS <--> CWP[CWP Agents]
+  BUS <--> MUX[MUX Connectors]
+

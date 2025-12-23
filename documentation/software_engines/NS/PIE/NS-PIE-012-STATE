@@ -1,0 +1,203 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the state model and state management semantics for PIE.
+It formalizes:
+Authoritative Insight state transitions
+Sub-state semantics (decay, readiness, governance linkage)
+Derived read model state
+Consistency and late-arriving data handling
+This state spec is designed to keep PIE deterministic, replayable, and governance-compatible.
+2. State Model Overview
+PIE maintains two broad categories of state:
+Authoritative State (System of Record)Insight version recordsStatus transitionsImmutable decision contexts
+Derived State (Read Models)RankingsSearch indexesSummary dashboards
+Authoritative state is append-only. Derived state is rebuildable.
+3. Authoritative Insight Status State Machine
+3.1 Canonical Status Values
+PIE defines the following canonical Insight status values:
+Proposed
+Under Review
+Approved
+Rejected
+Expired
+These states align with NS-PIE-004 — LIFECYCLE.
+3.2 Allowed Transitions
+
+
+
+From
+
+To
+
+Who Initiates
+
+Notes
+
+
+Proposed
+
+Under Review
+
+PIE (submit)
+
+Submits package to GGP
+
+
+Proposed
+
+Rejected
+
+GGP / Human
+
+Terminal
+
+
+Under Review
+
+Approved
+
+GGP
+
+Terminal-to-downstream (still decays)
+
+
+Under Review
+
+Rejected
+
+GGP
+
+Terminal
+
+
+Approved
+
+Expired
+
+PIE (decay)
+
+Terminal
+
+
+Proposed
+
+Expired
+
+PIE (decay)
+
+Terminal
+Forbidden transitions:
+Expired → any
+Rejected → any
+Approved → Under Review (unless modeled as a new insight_version submitted)
+4. Sub-States (Orthogonal State)
+In addition to the primary status, PIE maintains orthogonal sub-states that influence ranking, visibility, and governance handoff.
+4.1 Promotion Readiness State
+Promotion readiness is not a primary status. It is an evaluative sub-state:
+promotion_ready = true | false
+Rules:
+Computed by Decision Evaluation Service
+Stored as an immutable Decision Context
+May be re-evaluated without changing insight_version
+4.2 Decay State
+Decay is a time-aware sub-state that influences ranking and expiry.
+Recommended fields:
+decay_score (0..1)
+decay_state (fresh | aging | stale)
+Rules:
+Decay progression never deletes history
+Expiry occurs when decay crosses threshold or relevance window ends
+4.3 Governance Linkage State
+Governance linkage indicates whether an Insight is associated with an external governance decision:
+ggp_decision_id (nullable)
+ggp_decision_state (nullable)
+Rules:
+PIE does not author governance state; it stores references
+4.4 Ranking Visibility State
+Derived read models may apply visibility rules:
+visible_in_feed = true | false
+Rules:
+Expired and rejected insights may default to hidden in main feed but remain queryable
+5. Versioned State Semantics
+State is always evaluated in the context of an Insight version:
+State transitions belong to insight_id
+Content and sub-state records bind to (insight_id, insight_version)
+Rules:
+New insight_version can restart review (Proposed) while preserving older versions
+Pinned downstream references must specify (insight_id, version)
+6. Consistency Model
+PIE uses an eventually consistent model between authoritative and derived state.
+6.1 Authoritative Guarantees
+Append-only persistence
+Deterministic evaluation
+Ordered state transitions per insight_id
+6.2 Derived Guarantees
+Rankings and search indexes may lag
+Derived models can be rebuilt from authoritative records
+7. Late-Arriving Data Handling
+Signals or artifacts may arrive late.
+Rules:
+Late Evidence on Proposed/Under Review Insight
+May produce a new Evidence Bundle
+If semantic meaning changes → new insight_version
+Otherwise append supporting evidence references (rare; governed)
+Late Evidence on Approved Insight
+Does not retroactively change the approved version
+May trigger creation of a new insight_version for re-review
+Late Evidence on Expired/Rejected Insight
+Does not change terminal states
+May spawn a new insight_id or new version depending on similarity rules
+8. Derived Read Model State Semantics
+8.1 Rankings
+Rankings are computed as a function of:
+confidence_score
+risk_band
+decay_score
+freshness
+Ranking computation must:
+record computed_at
+be reproducible given stored inputs
+8.2 Search Index
+Search documents include:
+Opportunity Statement
+Narrative summary
+tags
+Search documents are derived and rebuildable.
+9. State Change Events
+All state changes must emit immutable events with correlation_id:
+pie.insight.proposed
+pie.insight.submitted_for_review
+pie.insight.approved
+pie.insight.rejected
+pie.insight.expired
+pie.readmodel.rebuilt
+10. Document Position in PIE Corpus
+This state document builds upon:
+NS-PIE-004 — LIFECYCLE
+NS-PIE-006 — VERSION
+NS-PIE-007 — DATAMODEL
+NS-PIE-011 — APIMAP
+It informs:
+NS-PIE-013 — RUNBOOK
+NS-PIE-014 — DATADEF
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE State Semantics Specification
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,250 @@
+
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the canonical data contracts and field-level definitions for the Signal Aggregation Engine (SIG).
+It complements NS-SIG-007 — DATAMODEL by:
+providing semantic definitions for every field
+specifying invariants and constraints
+clarifying cross-engine expectations
+acting as the definitive reference for consumers (PIE, SIM, DAT, FLO, DRE, GGP)
+2. Data Definition Principles
+Semantic Stability — field meanings never change
+Immutability by Default — authoritative records are append-only
+Explainability — scores and decisions must be interpretable
+Minimalism — only essential data is exposed downstream
+ID-First Contracts — cross-engine references use IDs, not payload copying
+3. Canonical Signal Contract
+3.1 signal
+Represents an atomic observation.
+Field
+Type
+Definition
+signal_id
+UUID
+Globally unique identifier for the signal
+signal_type
+String
+Canonical signal name (taxonomy-defined)
+signal_class
+Enum
+market, demand, supply, execution, financial, system
+source_system
+String
+Originating system identifier
+observed_at
+Timestamp (UTC)
+When the observation occurred externally
+received_at
+Timestamp (UTC)
+When SIG ingested the signal
+value
+JSON
+Normalized observation payload
+unit
+String
+Unit of measure (if applicable)
+trust_score
+Decimal (0–1)
+Reliability of the source and integrity
+confidence_score
+Decimal (0–1)
+Completeness and measurement quality
+decay_model
+String
+Name of decay function
+decay_params
+JSON
+Parameters (half-life, TTL)
+normalization_ruleset
+String
+Normalization ruleset name
+normalization_version
+String
+Normalization ruleset version
+scoring_ruleset
+String
+Scoring ruleset name
+scoring_version
+String
+Scoring ruleset version
+dedupe_ruleset
+String
+Deduplication ruleset name
+dedupe_version
+String
+Deduplication ruleset version
+correlation_hints
+JSON
+Optional correlation metadata
+created_at
+Timestamp (UTC)
+Persistence time
+Invariants:
+signal_id is immutable
+value meaning never changes
+scores are explicit, never inferred
+4. Raw Capture Contract
+4.1 signal_raw_capture
+Preserves raw inputs for replay and audit.
+Field
+Type
+Definition
+capture_id
+UUID
+Raw capture identifier
+source_system
+String
+Source name
+raw_ref
+String
+Upstream artifact or event ID
+payload_hash
+String
+Hash of raw payload
+received_at
+Timestamp
+Ingestion time
+5. Provenance Contract
+5.1 signal_provenance
+Links signals to upstream sources.
+Field
+Type
+Definition
+signal_id
+UUID
+Canonical signal
+source_type
+Enum
+mux, telemetry, vendor
+source_ref
+String
+artifact_id or event_id
+6. Deduplication Contract
+6.1 signal_dedupe_ref
+Represents duplicate linkage.
+Field
+Type
+Definition
+dedupe_id
+UUID
+Deduplication reference
+signal_id
+UUID
+Canonical signal
+dedupe_key
+String
+Stable dedupe key
+linked_at
+Timestamp
+Link time
+7. Decision Artifact Contract
+7.1 signal_decision
+Captures all SIG decisions.
+Field
+Type
+Definition
+decision_id
+UUID
+Decision identifier
+decision_type
+String
+admit, normalize, score, dedupe, control
+subject_ref
+String
+signal_id, source, or job
+outcome
+String
+Decision result
+rationale
+JSON
+Structured explanation
+ruleset_name
+String
+Ruleset applied
+ruleset_version
+String
+Ruleset version
+evaluated_at
+Timestamp
+Decision time
+correlation_id
+UUID
+Traceability ID
+8. Derived Data Contracts (Non-Authoritative)
+8.1 signal_aggregate
+Field
+Type
+Definition
+aggregate_id
+UUID
+Aggregate identifier
+aggregate_type
+String
+windowed, weighted
+signal_type
+String
+Input signal type
+window
+String
+Time window
+value
+JSON
+Aggregate value
+aggregation_version
+String
+Logic version
+8.2 signal_correlation_group
+Field
+Type
+Definition
+group_id
+UUID
+Correlation group ID
+correlation_key
+String
+Shared grouping key
+signal_ids
+Array<UUID>
+Member signals
+correlation_version
+String
+Logic version
+9. Cross-Engine Contract Expectations
+Engine
+Usage Constraints
+PIE
+Must respect trust/confidence; no re-scoring
+SIM
+May recompute scenarios but not signals
+DAT
+Emits execution telemetry only
+FLO
+Financial signals are non-authoritative
+DRE
+Exploratory reads only
+GGP
+Audit and governance only
+10. Field-Level Constraints & Validation
+All timestamps UTC
+Scores bounded [0,1]
+JSON payloads schema-validated
+IDs globally unique
+11. Backward Compatibility Rules
+Fields may be added, not removed
+Field meaning must never change
+Deprecated fields remain readable
+12. Document Position in SIG Corpus
+This DATADEF complements:
+NS-SIG-007 — DATAMODEL
+NS-SIG-006 — VERSION
+It completes the SIG documentation set.
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Canonical Data Definitions
+Parent / HoldCo Manager
+Status: Draft

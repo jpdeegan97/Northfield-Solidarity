@@ -1,0 +1,410 @@
+NS-INT-004 — LIFECYCLE
+
+1. Purpose
+
+This document defines the lifecycle model for Intervention (quickscope) across:
+
+engine development and evolution
+
+event and schema evolution
+
+runtime processing (ingest → log → project → stream)
+
+edge cache sync states
+
+incident and recovery flows
+
+Intervention’s lifecycle is designed for replayability, resilience, and safe evolution.
+
+2. Lifecycle Layers
+
+Intervention has four intertwined lifecycles:
+
+Engine Lifecycle (build, deploy, operate)
+
+Event Lifecycle (create, gate, persist, project, distribute)
+
+Projection Lifecycle (define, deploy, rebuild, deprecate)
+
+Edge Sync Lifecycle (bootstrap, sync, drift, recover)
+
+3. Engine Lifecycle (Intervention as a Product)
+
+3.1 Phases
+
+Phase 0 — Charter & Contract
+
+Canonical envelope finalized
+
+Initial taxonomy agreed
+
+Schema registry approach chosen
+
+Phase 1 — Spine Live (Memory + Ingest)
+
+Ingest gateway operational
+
+Immutable event log operational
+
+Basic query for raw events
+
+Idempotency and partitioning rules enforced
+
+Phase 2 — Projections Live (Present State)
+
+Projection runtime deployed
+
+Canonical state views available (EntityState, WorkflowState)
+
+Snapshot API available
+
+Phase 3 — Real-Time Streams (Nervous System)
+
+Stream gateway operational
+
+Resumable subscriptions supported
+
+Firmament integration consuming snapshot + deltas
+
+Phase 4 — Correlation & Forensics (Explainability)
+
+Correlation/thread index built
+
+Causal chain queries stable
+
+Time-travel and replay APIs stable
+
+Phase 5 — Advanced quickscope Extensions
+
+Replay-to-sandbox pipelines
+
+Comparative timelines (expected vs actual)
+
+Predictive hints and anomaly surfacing (optional)
+
+3.2 Engine Versioning & Compatibility
+
+Core APIs versioned (e.g., /v1/...)
+
+Envelope changes are backward compatible by default
+
+Breaking changes require:
+
+schema major bump
+
+dual-publish or translation period
+
+deprecation window
+
+4. Event Lifecycle
+
+4.1 Authoring (Producer)
+
+Producer (engine/UI) creates event using canonical envelope
+
+Assigns:
+
+event_id
+
+event_type
+
+entity_id/workflow_id
+
+occurred_at
+
+correlation_id and causation_id
+
+actor
+
+schema_version
+
+payload
+
+4.2 Edge Handling (Optional but Standard)
+
+Event is sent to Intervention Edge
+
+Edge may:
+
+validate structurally
+
+enrich with local context
+
+buffer if offline (write-behind mode)
+
+4.3 Ingest & Validation (Core)
+
+Ingest gateway validates:
+
+required fields
+
+schema version compatibility
+
+authz (producer permitted to emit this event type)
+
+Idempotency check:
+
+duplicate event_id is ignored or acknowledged without duplication
+
+4.4 GGP Gating (Protected Transitions)
+
+If event_type is protected:
+
+Intervention calls GGP gate adapter
+
+Receives outcome: allow | deny | allow_with_conditions | escalate
+
+4.5 Persistence (Immutable Memory)
+
+Accepted events are appended to Event Log
+
+Event status becomes:
+
+Accepted (stored)
+
+Authoritative (eligible for projection)
+
+Quarantined (stored but not projected until resolution)
+
+Rejected (not stored, or stored separately with reason)
+
+4.6 Projection (Present)
+
+Projection runtime consumes events
+
+Updates materialized state stores
+
+Produces deterministic deltas
+
+4.7 Distribution (Nervous System)
+
+Stream gateway emits deltas to subscribers
+
+Subscribers acknowledge via cursor / last_event_id
+
+4.8 Replay (Forensics)
+
+Any consumer can request replay:
+
+from a cursor
+
+from a timestamp
+
+by key (entity/workflow/correlation)
+
+5. Projection Lifecycle
+
+5.1 Projection Definition
+
+A projection is defined by:
+
+Projection ID
+
+Input stream(s) (event types / keys)
+
+State schema (read model schema)
+
+Projector code/version
+
+Backfill strategy
+
+5.2 Deployment States
+
+draft
+
+staged
+
+active
+
+deprecated
+
+retired
+
+5.3 Rebuild/Backfill Lifecycle
+
+Trigger conditions
+
+new projection introduced
+
+projector bug fixed
+
+schema evolution requires rebuild
+
+drift detected
+
+Rebuild modes
+
+Full rebuild: replay from origin
+
+Windowed rebuild: replay recent N days
+
+Selective rebuild: replay by key set
+
+Rebuild safeguards
+
+rebuild in shadow store
+
+validate outputs
+
+cut over atomically
+
+5.4 Deprecation Lifecycle
+
+announce deprecation
+
+dual-run old and new
+
+migrate consumers
+
+retire old projection
+
+6. Edge Sync Lifecycle
+
+6.1 Edge States
+
+cold_start: no local cache
+
+bootstrapping: snapshot fetch in progress
+
+subscribing: stream subscription established
+
+in_sync: applying deltas continuously
+
+degraded: lag beyond threshold, partial coverage
+
+stale: disconnected, cannot advance cursor
+
+reconciling: replay/resync in progress
+
+rebootstrapping: discard local cache and restart
+
+6.2 Bootstrap Sequence (Reference)
+
+Edge requests snapshot for relevant keys
+
+Edge stores snapshot locally
+
+Edge subscribes to delta stream starting at:
+
+snapshot cursor, or
+
+last known cursor
+
+Edge applies deltas and transitions to in_sync
+
+6.3 Drift Detection
+
+Edge declares drift when:
+
+version regressions detected
+
+missing deltas (cursor gaps)
+
+local invariant checks fail
+
+6.4 Recovery Sequence
+
+request replay from last good cursor
+
+if replay fails, request fresh snapshot
+
+rejoin stream, resume normal operation
+
+7. Governance & Approval Lifecycle (Protected Transitions)
+
+7.1 Protected Event Handling
+
+Protected events may enter:
+
+Quarantined (awaiting approval)
+
+Escalated (requires additional review)
+
+7.2 Resolution Paths
+
+Allowed → becomes authoritative, projected, streamed
+
+Denied → rejected or stored as denied with reason; state unchanged
+
+Allowed with conditions → authoritative only after conditions satisfied
+
+7.3 Condition Satisfaction
+
+Conditions may be satisfied by:
+
+follow-up events
+
+approvals
+
+evidence submissions
+
+timer/time gate
+
+8. Incident Lifecycle (Operational)
+
+8.1 Incident States (Intervention Ops)
+
+detected
+
+triaged
+
+mitigating
+
+monitoring
+
+resolved
+
+postmortem
+
+8.2 Typical Incidents
+
+ingest failures / auth issues
+
+projection lag / projector crash
+
+stream fanout overload
+
+partition hot-spotting
+
+schema incompatibility
+
+8.3 Recovery Patterns
+
+failover ingest nodes
+
+pause streams / apply backpressure
+
+rebuild projections
+
+replay from event log
+
+re-bootstrap edges
+
+9. Lifecycle Guarantees
+
+Intervention guarantees:
+
+accepted events are durable (once appended)
+
+projections are rebuildable (replayable)
+
+consumers can recover via snapshot + replay
+
+state converges (eventual consistency) with ordered-per-key semantics
+
+10. Summary
+
+Intervention’s lifecycle model ensures that:
+
+events become durable memory
+
+memory becomes present state
+
+present state becomes real-time deltas
+
+edges remain fast and recoverable
+
+protected transitions remain governed via GGP
+
+This lifecycle is the foundation for a coherent, explainable NS.
+

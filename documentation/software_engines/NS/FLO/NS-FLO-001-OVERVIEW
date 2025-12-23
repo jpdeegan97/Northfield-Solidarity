@@ -1,0 +1,133 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose
+The Financial Ledger Orchestrator (FLO) is responsible for producing canonical, auditable, and reconcilable financial truth across the Northfield Solidarity ecosystem.
+FLO exists to answer:
+What money moved, why did it move, who/what authorized it, and where is the evidence?
+FLO is the system layer that turns distributed engine activity into:
+a coherent ledger
+a traceable accounting narrative
+an enforcement surface for budgets and financial controls
+2. Role Within Northfield Solidarity
+FLO sits in the financial truth and controls layer.
+Upstream producers (examples):
+DAT — spend, refunds, fees, payouts, COGS commitments
+MUX — payment processor events, marketplace payouts, bank transfers
+SIM — projected financial scenarios (non-authoritative)
+PECA / IDN — entity + account identity references
+Downstream consumers:
+GGP — governance approval for budgets, allocations, and thresholds
+PTE — portfolio performance attribution
+Humans — finance ops, tax prep, reconciliation workflows
+FLO does not execute market actions; it records, validates, reconciles, and reports the financial outcomes of actions.
+3. What FLO Produces
+FLO produces Ledger Artifacts, including:
+Ledger Entries (debits/credits or canonical cash-flow records)
+Account Balances (derived from ledger)
+Reconciliation Reports (internal vs external)
+Budget / Allocation States (authoritative spend tracking)
+Evidence Links (receipts, invoices, processor IDs)
+All FLO outputs are:
+versioned
+append-only
+explainable
+replayable
+4. What FLO Does Not Do
+To preserve system clarity and controls, FLO does not:
+Approve governance policy (GGP)
+Decide whether opportunities are good (PIE)
+Execute actions in external systems (DAT/MUX)
+Manage identities or permissions (IDN)
+FLO records financial truth and enforces financial constraints as configured and approved.
+5. Core Capabilities
+Event-to-Ledger Ingestion
+Consume financial-impacting events from engines and external systems.
+Normalization & Classification
+Map raw events to canonical transaction types, accounts, categories, and entities.
+Budget Tracking & Enforcement
+Maintain authoritative budget state and detect overruns.
+Reconciliation
+Reconcile ledger entries against external statements (processor, bank, marketplace).
+Evidence & Audit Trail
+Persist immutable evidence references and traceability links.
+Reporting Surfaces
+Provide read models for portfolio tracking, tax prep, and governance review.
+6. Interaction With Other Engines
+
+
+
+Engine
+
+Relationship to FLO
+
+
+DAT
+
+Emits spend/fee/refund events; references budgets
+
+
+MUX
+
+Provides payment and payout events; external truth sources
+
+
+GGP
+
+Governs budget creation, thresholds, approvals
+
+
+PTE
+
+Consumes ledger-derived performance metrics
+
+
+PECA / IDN
+
+Provides entity/account identity references
+
+
+SIM
+
+Provides projections (non-authoritative)
+FLO is the canonical financial truth layer; other engines should reference FLO outputs rather than maintain independent ledgers.
+7. Operational Posture
+FLO is:
+Write-controlled (append-only ledger)
+Audit-grade (strong traceability requirements)
+Replayable (event and statement reprocessing)
+Reconciliation-driven (external truth comparison)
+FLO favors correctness and explainability over speed.
+8. Expected Outcomes
+When FLO is operating correctly:
+Every spend and payout is attributable to a governed plan/version
+Budgets are continuously tracked and overruns are surfaced early
+Financial reconciliation is routine and automatable
+Performance reporting is consistent and trusted
+FLO makes finances governable.
+9. Document Position in FLO Corpus
+This document provides the conceptual overview of FLO.
+It is complemented by:
+NS-FLO-000 — CHARTER
+NS-FLO-002 — TAXONOMY
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Overview
+
+Parent / HoldCo Manager
+Status: Draft

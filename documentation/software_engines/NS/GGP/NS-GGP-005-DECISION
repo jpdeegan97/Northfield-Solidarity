@@ -1,0 +1,141 @@
+GGE Update Decision Prompt Specification v0.1
+Overview
+Document Title: Governance Graph Engine – Update Decision Prompt Specification 
+Document ID: NS-GGP-005-DECISION
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+This document defines the Update Decision Prompt (UDP) used by the Governance Graph Engine (GGE) to reason about governance changes.
+The UDP is the strategic reasoning layer that:
+  Interprets component deltas
+  Evaluates dependency impact
+  Recommends SOP update scope and order
+  Proposes version increments
+  Flags risk, compliance, or authority concerns
+The UDP is advisory only. All decisions remain subject to deterministic rules and human approval.
+2. Design Principles
+The Update Decision Prompt must:
+  Be deterministic-first
+  Be explainable and auditable
+  Never auto-approve changes
+  Produce structured, machine-readable output
+  Operate idempotently given identical inputs
+3. Inputs to the Update Decision Prompt
+Each UDP invocation receives a structured input package.
+3.1 Execution Context
+  GGE Execution ID
+  Trigger Type (Component Change, Scheduled Review, Risk Event, Manual)
+  Executor Role
+  Timestamp
+3.2 Component Delta Set
+For each changed component:
+  Component ID
+  Component Type
+  Previous Version
+  Proposed Version
+  Nature of Change (Add / Modify / Deprecate)
+  Materiality Classification
+3.3 Dependency Impact Map
+  Directly impacted components
+  Indirectly impacted components
+  Affected SOPs
+  Dependency depth
+3.4 Governance Constraints
+  Authority Matrix snapshot
+  Materiality thresholds
+  Compliance rules
+  Risk tolerance levels
+4. Reasoning Tasks
+The UDP must perform the following reasoning tasks:
+ Impact Classification
+  Substantive vs non-substantive change
+  Governance-critical vs informational
+ Version Recommendation
+  Major / Minor / Patch per SOP
+  Justification for each recommendation
+ Update Sequencing
+  Determine correct SOP update order
+  Identify prerequisite updates
+ Risk & Compliance Flagging
+  Identify elevated risk areas
+  Flag compliance or tax implications
+ Approval Routing Suggestions
+  Recommend approval roles
+  Identify escalation triggers
+5. Output Schema
+The UDP must return a structured output object.
+5.1 Summary
+  Execution ID
+  High-level change narrative
+  Overall risk level
+5.2 SOP Update Recommendations
+For each SOP:
+  SOP ID
+  Current Version
+  Recommended New Version
+  Change Type (Major / Minor / Patch)
+  Rationale
+5.3 Update Order
+  Ordered list of SOP IDs
+  Dependency justification
+5.4 Risk & Compliance Flags
+  Flag Type
+  Severity
+  Affected Components/SOPs
+  Recommended Mitigation
+5.5 Approval Suggestions
+  Required approver roles
+  Optional reviewers
+  Escalation notes
+5.6 Confidence & Limitations
+  Areas of uncertainty
+  Assumptions made
+6. Prompt Structure (Logical)
+The Update Decision Prompt is structured logically as:
+ System Context
+ Governance Principles
+ Component Delta Description
+ Dependency Impact Map
+ Explicit Reasoning Tasks
+ Output Schema Enforcement
+7. Example Prompt Skeleton (Abstracted)
+SYSTEM:
+You are an advisory governance reasoning engine for GGE.
+
+INPUT:
+[Execution Context]
+[Component Delta Set]
+[Dependency Map]
+[Governance Constraints]
+
+TASKS:
+1. Classify impact
+2. Recommend SOP version changes
+3. Determine update order
+4. Flag risks and compliance issues
+5. Suggest approval routing
+
+OUTPUT:
+Return JSON matching the defined output schema.
+8. Determinism & Audit Controls
+  UDP outputs are stored with execution records
+  Prompt version is recorded
+  Model version is recorded
+  No free-text-only outputs permitted
+9. Non-Goals
+  Final decision authority
+  Automatic SOP modification
+  Regulatory interpretation
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial Update Decision Prompt Specification
+Parent / HoldCo Manager
+End of Document

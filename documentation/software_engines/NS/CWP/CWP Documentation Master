@@ -1,0 +1,157 @@
+Cognitive Work Plane (CWP)
+Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for the Cognitive Work Plane (CWP), strictly aligned to the existing NS-GGP document structure (000–014).
+CWP is the agentic HR, operations, and management plane for Northfield Solidarity. It is responsible for representing, coordinating, and supervising agentic workers (human, AI, and hybrid), operational tasks, roles, responsibilities, and performance — while remaining fully governed by GGP.
+CWP is not:
+A governance authority (GGP)
+A financial system (FLO)
+A pure execution engine (DAT)
+CWP is the operational cognition layer that translates intent into coordinated work.
+
+CWP Documentation Index (Canonical)
+
+NS-CWP-000 — CHARTER
+Purpose: Define why CWP exists
+Scope:
+Mission of CWP
+Why agentic work coordination must be centralized
+CWP’s role as the operational nervous system
+Explicit non-goals (policy governance, accounting, market execution)
+Mirrors: NS-GGP-000
+
+NS-CWP-001 — OVERVIEW
+Purpose: High-level conceptual framing
+Scope:
+What CWP manages (agents, roles, tasks, workflows)
+Relationship to human operators and AI agents
+Interaction with core engines (GGP, DAT, PTE)
+Mirrors: NS-GGP-001
+
+NS-CWP-002 — TAXONOMY
+Purpose: Define CWP’s atomic work concepts
+Scope:
+Agent (human / AI / hybrid)
+Role
+Capability
+Task
+Workflow
+Performance Signal
+Mirrors: NS-GGP-002
+
+NS-CWP-003 — ARCHITECTURE
+Purpose: Logical work orchestration architecture
+Scope:
+Agent registry
+Task routing
+Capability matching
+Feedback loops
+Escalation paths
+Logical design only (not infra).
+Mirrors: NS-GGP-003
+
+NS-CWP-004 — LIFECYCLE
+Purpose: End-to-end work lifecycle
+Scope:
+Task creation
+Assignment
+Execution
+Review
+Completion or escalation
+Mirrors: NS-GGP-004
+
+NS-CWP-005 — DECISION
+Purpose: Work assignment and escalation semantics
+Scope:
+Automated vs manual task assignment
+Performance-based reassignment
+Escalation to humans or governance
+CWP decides how work flows; GGP decides what is allowed.
+Mirrors: NS-GGP-005
+
+NS-CWP-006 — VERSION
+Purpose: Role, workflow, and capability versioning
+Scope:
+Role definition changes
+Workflow evolution
+Backward compatibility for agents
+Mirrors: NS-GGP-006
+
+NS-CWP-007 — DATAMODEL
+Purpose: Work persistence and contracts
+Scope:
+Agent records
+Task state
+Performance metrics
+Replay assumptions
+Mirrors: NS-GGP-007
+
+NS-CWP-008 — EEE (End-to-End Example)
+Purpose: Validate agentic work flow
+Scope:
+Strategic intent issued
+Tasks decomposed and assigned
+Agents execute
+Results reviewed and audited
+Mirrors: NS-GGP-008
+
+NS-CWP-009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+MVP agent coordinator
+Task queueing
+Feedback capture
+Mirrors: NS-GGP-009
+
+NS-CWP-010 — FE / VISUALIZATION
+Purpose: Work and agent observability UX
+Scope:
+Agent dashboards
+Task queues
+Performance views
+Mirrors: NS-GGP-010
+
+NS-CWP-011 — APIMAP
+Purpose: API → work surface mapping
+Scope:
+Task submission APIs
+Agent management APIs
+Status and telemetry endpoints
+Mirrors: NS-GGP-011
+
+NS-CWP-012 — STATE
+Purpose: Work state semantics
+Scope:
+In-flight tasks
+Retry and failure states
+Consistency guarantees
+Mirrors: NS-GGP-012
+
+NS-CWP-013 — RUNBOOK
+Purpose: Operational work controls
+Scope:
+Agent onboarding/offboarding
+Emergency stop
+Load shedding
+Mirrors: NS-GGP-013
+
+NS-CWP-014 — DATADEF
+Purpose: Canonical work data definitions
+Scope:
+Agent schema
+Task schema
+Performance schema
+Mirrors: NS-GGP-014
+
+Cross-Engine Dependencies
+CWP integrates with but does not own:
+GGP — governance and authorization
+IDN — identity and trust
+DAT — execution tasks
+PTE — performance and portfolio visibility
+SIG — operational signals
+
+Completion Criteria
+CWP documentation is complete when:
+NS-CWP-000 → NS-CWP-014 exist
+Agentic work is observable, auditable, and governable
+Humans remain in control of escalation and override

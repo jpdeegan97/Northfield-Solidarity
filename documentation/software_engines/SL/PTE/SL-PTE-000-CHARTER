@@ -1,0 +1,54 @@
+ Portfolio Tracker Engine (PTE)
+1. Engine Identity
+Engine Name: Portfolio Tracker Engine
+Acronym: PTE
+Engine Type: Asset / Portfolio Management
+2. Mission Statement
+Maintain awareness of all real estate assets under each entity, including valuation, cash flow, occupancy, and ownership metrics.
+3. Core Responsibilities
+  Track all property assets across SL entities
+  Consolidate financial and operational data per asset
+  Generate dashboards, alerts, and summary reports for portfolio management
+  Maintain historical performance of assets
+4. Non-Responsibilities
+  Create legal entities (PECA)
+  Govern compliance beyond asset tracking
+  Make investment or financing decisions
+5. Inputs
+Input
+Source Engine
+Description
+Entity references
+IDN
+SL property-owning entities
+Financial data
+FLO
+Asset cash flows, valuations
+Market data
+External APIs
+Comparative market analysis
+6. Outputs
+Output
+Target
+Description
+Portfolio dashboards
+Admin / SL management
+Consolidated asset view
+Asset summaries
+Admin
+Detailed per-property reports
+Alerts
+Admin
+Notifications on vacancies, maintenance, or financial thresholds
+7. Authority & Decision Rights
+  Autonomously track and report asset status
+  Cannot allocate capital or make investment decisions
+8. Governance & Constraints
+  Must comply with GGP-defined reporting standards
+  Maintain historical and immutable records
+  Ensure consistency of asset data across entities
+9. MVP Scope
+  Core property tracking per entity
+  Basic valuation and occupancy metrics
+  Dashboard and alert functionality
+

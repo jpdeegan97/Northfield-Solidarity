@@ -1,0 +1,149 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the canonical API map for the Simulation & Scenario Engine (SIM).
+It maps:
+SIM Operator UI screens (NS-SIM-010)
+downstream engine consumption (GGP, DAT, FLO, PIE, PTE)
+governed controls (run, replay, re-execute)
+The APIMAP ensures consistent read surfaces, safe controls, and auditability.
+2. API Design Principles
+Read-Heavy, Write-Guarded — most endpoints are query surfaces
+Immutability Respect — no endpoint mutates historical runs
+Governed Controls — control endpoints require identity + reason
+Explainability First — assumptions, constraints, and versions are queryable
+Idempotent Jobs — run/replay/re-execute endpoints support idempotency keys
+3. API Surface Groups
+Scenario Definitions
+Scenario Requests & Runs
+Input Snapshots
+Outcomes, Uncertainty, Sensitivity
+Comparison & Reporting
+Operational Jobs (Run / Replay / Re-Execute)
+4. FE Screen → API Mapping
+4.1 Scenario Dashboard
+GET /scenarios
+Filters:
+scenario_type
+created_by
+date range
+GET /runs
+Filters:
+status
+scenario_id
+date range
+4.2 Scenario Builder (Guided)
+POST /scenarios
+Body:
+scenario_type
+description
+pie_insight_refs[]
+horizon
+timestep
+assumption_sets[]
+constraint_sets[]
+model_package_version
+actor_id
+Returns:
+scenario_id
+4.3 Run Queue & Job Monitor
+GET /jobs
+GET /jobs/{job_id}
+4.4 Scenario Run Detail
+GET /scenarios/{scenario_id}
+GET /runs/{run_id}
+GET /runs/{run_id}/snapshot
+GET /runs/{run_id}/outcomes
+GET /runs/{run_id}/uncertainty
+GET /runs/{run_id}/sensitivity
+GET /runs/{run_id}/decisions
+4.5 Comparison View
+POST /compare
+Body:
+run_ids[]
+metrics[]
+checkpoints[]
+Returns:
+comparison_report
+4.6 Sensitivity & Driver View
+GET /runs/{run_id}/sensitivity
+4.7 Replay & Re-Execution Console (Governed)
+POST /jobs/run
+Body:
+scenario_id
+snapshot_id (optional)
+reason
+actor_id
+governance_ref (optional/required)
+idempotency_key
+POST /jobs/replay
+Body:
+run_id
+reason
+actor_id
+governance_ref
+idempotency_key
+POST /jobs/reexecute
+Body:
+run_id
+new_model_package_version
+reason
+actor_id
+governance_ref
+idempotency_key
+4.8 Export & Audit Pack Generator
+POST /export/audit-pack
+Body:
+scenario_id or run_id
+format (json/pdf)
+Returns:
+export artifact reference
+5. Downstream Engine Consumption Surfaces
+5.1 GGP (Governance Context)
+GET /scenarios/{scenario_id}
+GET /runs/{run_id}
+GET /runs/{run_id}/summary
+GET /runs/{run_id}/decisions
+Optional push:
+Kafka event: sim.run.completed
+5.2 DAT (Planning Refinement)
+GET /runs/{run_id}/summary
+GET /runs/{run_id}/breakpoints
+GET /runs/{run_id}/sensitivity
+5.3 FLO (Financial Outcome Review)
+GET /runs/{run_id}/outcomes?metric=cashflow
+5.4 PIE (Learning Loop)
+GET /runs/{run_id}/summary
+GET /runs/{run_id}/assumptions
+5.5 PTE (Actual vs Simulated)
+GET /runs/{run_id}/outcomes
+GET /runs/{run_id}/snapshot
+6. Canonical Response Envelope
+All endpoints return:
+success
+data
+error_code (nullable)
+message (nullable)
+correlation_id
+7. Error & Security Semantics
+RBAC by endpoint group
+Governed endpoints require actor_id + reason
+Export endpoints restricted
+Validation errors never mutate state
+8. Document Position in SIM Corpus
+This APIMAP is informed by:
+NS-SIM-009 — IMPL
+NS-SIM-010 — FE
+NS-SIM-007 — DATAMODEL
+It informs:
+NS-SIM-012 — STATE
+NS-SIM-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM API Mapping
+Parent / HoldCo Manager
+Status: Draft

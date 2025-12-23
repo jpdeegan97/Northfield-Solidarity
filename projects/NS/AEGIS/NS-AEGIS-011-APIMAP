@@ -1,0 +1,340 @@
+NS-AEGIS-011 — APIMAP
+
+Project: Aegis (Dependency Management Product)
+
+1) APIMAP Purpose
+
+This document defines the API surfaces of Aegis and how they map to:
+
+Registry (truth)
+
+Graph (impact)
+
+Workflows (control plane)
+
+Evidence (trust)
+
+Signals/Incidents (operations)
+
+Snapshots (audit replay)
+
+Aegis integrates with NS engines:
+
+GGE (policy/approvals/audit)
+
+CWP (agent loops)
+
+SIG (signals)
+
+IDN (identity)
+
+MUX (connectors)
+
+2) API Surfaces
+
+2.1 Public / Product API
+
+Used by:
+
+Operator UI
+
+Internal consumers
+
+External consumers (future)
+
+Namespace:
+
+/api/v1/...
+
+2.2 Internal Event API
+
+Used by:
+
+CWP agents
+
+MUX connectors
+
+SIG signal ingestion
+
+Namespace (conceptual):
+
+event bus topics + ingestion endpoints
+
+3) Authn/Authz Model (API)
+
+Aegis expects NS-standard auth, and enforces:
+
+RBAC roles: operator, approver, security, viewer
+
+ABAC attributes: environment, system_boundary, risk_tier, data_sensitivity
+
+Every response should include enough context for clients:
+
+request_id
+
+policy_context (when relevant)
+
+4) Resource Map
+
+Core Resources
+
+Dependency
+
+DependencyUnit
+
+Edge
+
+ChangeRequest
+
+EvidenceArtifact
+
+Signal
+
+IncidentCase
+
+Snapshot
+
+Supporting Resources
+
+Principal
+
+PolicyDecision (read-only)
+
+ConnectorStatus (read-only)
+
+5) REST Endpoints (v1)
+
+5.1 Dependencies
+
+GET /api/v1/dependencies
+
+filters: q, class, status, risk_tier, owner, evidence_state
+
+GET /api/v1/dependencies/{dependency_id}
+
+POST /api/v1/dependencies:cr
+
+creates a CR for add/update/deprecate/replace (preferred mutation path)
+
+Notes
+
+Direct mutation endpoints are intentionally avoided to enforce CR governance.
+
+5.2 Dependency Units (Scope)
+
+GET /api/v1/dependencies/{dependency_id}/dus
+
+GET /api/v1/dus/{du_id}
+
+POST /api/v1/dus:cr
+
+create CR for scope change / constraints
+
+5.3 Graph
+
+POST /api/v1/graph/impact
+
+input: {subject, environment, boundary, confidence, hop_limit}
+
+output: affected nodes + edge paths summary
+
+POST /api/v1/graph/explore
+
+expand from node with filters
+
+GET /api/v1/graph/node/{node_id}
+
+5.4 Edges
+
+POST /api/v1/edges:cr
+
+declare or modify edges via CR
+
+GET /api/v1/edges
+
+filters: from, to, edge_type, environment, confidence, last_seen_window
+
+5.5 Change Requests
+
+GET /api/v1/crs
+
+filters: status, type, risk_tier, requested_by, subject
+
+GET /api/v1/crs/{cr_id}
+
+POST /api/v1/crs
+
+create CR (generic)
+
+POST /api/v1/crs/{cr_id}/submit
+
+POST /api/v1/crs/{cr_id}/withdraw
+
+State transitions
+
+Aegis controls transitions; GGE approvals arrive as events.
+
+5.6 Evidence
+
+GET /api/v1/evidence
+
+filters: subject, type, status, expires_before
+
+POST /api/v1/evidence
+
+upload/attach evidence
+
+GET /api/v1/evidence/{evidence_id}
+
+POST /api/v1/evidence/{evidence_id}/verify
+
+manual verification action (if allowed)
+
+5.7 Signals
+
+GET /api/v1/signals
+
+filters: type, severity, status, subject
+
+GET /api/v1/signals/{signal_id}
+
+5.8 Incidents
+
+GET /api/v1/incidents
+
+filters: status, severity, owner, subject
+
+GET /api/v1/incidents/{incident_id}
+
+POST /api/v1/incidents/{incident_id}/plan
+
+attach/update remediation plan (CWP or human)
+
+POST /api/v1/incidents/{incident_id}/close
+
+5.9 Snapshots
+
+GET /api/v1/snapshots
+
+filters: trigger, after, before
+
+GET /api/v1/snapshots/{snapshot_id}
+
+POST /api/v1/snapshots:export
+
+export registry/graph snapshot bundle
+
+5.10 Read-only Support
+
+GET /api/v1/policies/current
+
+pulled from GGE; display-only
+
+GET /api/v1/connectors/status
+
+MUX connector health + last seen
+
+6) Event Map (Internal)
+
+Aegis participates in event-driven workflows.
+
+6.1 Events Emitted by Aegis
+
+aegis.cr.created
+
+aegis.cr.submitted
+
+aegis.cr.policy_evaluated
+
+aegis.cr.committed
+
+aegis.evidence.required
+
+aegis.evidence.attached
+
+aegis.signal.mapped
+
+aegis.incident.opened
+
+aegis.snapshot.created
+
+6.2 Events Consumed by Aegis
+
+From GGE
+
+gge.policy.evaluated
+
+gge.approval.recorded
+
+From SIG
+
+sig.signal.emitted
+
+From MUX
+
+mux.observation.emitted
+
+From CWP
+
+cwp.evidence.collected
+
+cwp.enrichment.proposed
+
+cwp.remediation.plan.proposed
+
+7) External Engine API Touchpoints
+
+7.1 GGE Touchpoints
+
+Request: policy evaluation
+
+Receive: approval decisions + audit references
+
+7.2 CWP Touchpoints
+
+Emit: loop triggers (freshness, incident)
+
+Receive: enrichment, evidence collection, remediation plans
+
+7.3 SIG Touchpoints
+
+Receive: normalized signals
+
+7.4 IDN Touchpoints
+
+Resolve: canonical identity and aliases
+
+7.5 MUX Touchpoints
+
+Receive: observations (dependencies, edges, evidence, renewals, drift)
+
+8) API Evolution Rules
+
+All endpoints remain under /api/v1 until a breaking change requires /api/v2.
+
+Additive changes are preferred.
+
+CR-first mutation semantics are stable and should not be broken.
+
+Event payloads carry contract_version and support N-1 compatibility.
+
+9) MVP API Cut
+
+MVP requires:
+
+Dependencies list/detail
+
+DU list/detail
+
+CR create/submit + CR detail
+
+Evidence upload/list
+
+Graph impact query
+
+Signals list/detail (for one signal family)
+
+Incidents list/detail + plan + close
+
+Snapshots list/detail (commit + incident close)
+

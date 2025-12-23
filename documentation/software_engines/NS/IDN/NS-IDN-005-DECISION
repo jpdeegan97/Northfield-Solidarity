@@ -1,0 +1,157 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the decision framework for the Identity & Entity Nexus (IDN).
+IDN decisions are narrowly scoped, deterministic, and non-executing. They exist to:
+determine how identities and entities are created, resolved, and related
+evaluate identifier conflicts and ambiguity
+govern merge and split operations
+preserve explainability and auditability
+IDN decisions never authorize business actions or workflows.
+2. Decision Design Principles
+Bounded Authority — IDN decides identity truth, not behavior
+Determinism — identical inputs yield identical decisions
+Explainability — every decision emits a rationale artifact
+Immutability — decisions are recorded, never overwritten
+Governance Awareness — certain decisions require explicit approval
+3. Decision Classes
+IDN defines six primary classes of decisions:
+Canonical Creation Decisions
+Identifier Linking Decisions
+Conflict Detection Decisions
+Relationship Validation Decisions
+Merge Decisions
+Split Decisions
+Each decision produces a decision artifact.
+4. Canonical Creation Decisions
+Question Answered:
+Should a new actor or entity be created?
+Inputs:
+initiation request
+initial identifiers
+provenance
+Outcomes:
+create canonical
+reject (invalid or duplicate)
+defer (await clarification)
+5. Identifier Linking Decisions
+Question Answered:
+Can this identifier be safely linked to a canonical identity?
+Inputs:
+identifier type and value
+issuing system
+confidence score
+existing links
+Outcomes:
+link
+quarantine (ambiguous)
+reject (conflict)
+No identifier is silently reassigned.
+6. Conflict Detection Decisions
+Question Answered:
+Does this operation introduce ambiguity or inconsistency?
+Triggers:
+identifier collision
+relationship loops
+duplicate entity suspicion
+Outcomes:
+allow
+flag ambiguity
+require merge/split evaluation
+7. Relationship Validation Decisions
+Question Answered:
+Is this relationship valid and allowable?
+Inputs:
+relationship type
+source and target types
+temporal window
+Outcomes:
+allow
+reject
+Relationships are never inferred.
+8. Merge Decisions
+Question Answered:
+Should two canonicals be merged?
+Inputs:
+evidence set
+overlapping identifiers
+relationship overlap
+governance reference (if required)
+Outcomes:
+approve merge
+reject merge
+defer (await governance)
+Merge decisions produce redirect and alias artifacts.
+9. Split Decisions
+Question Answered:
+Should a canonical be split into multiple identities?
+Inputs:
+ambiguity evidence
+proposed split plan
+Outcomes:
+approve split
+reject split
+defer
+Splits reassign identifiers and relationships explicitly.
+10. Decision Artifact Schema (Logical)
+Each IDN decision emits an immutable artifact containing:
+decision_id (UUID)
+decision_type
+subject_ref (actor/entity/relationship)
+outcome
+rationale (structured)
+ruleset_name
+ruleset_version
+evaluated_at
+correlation_id
+11. Governance Interaction
+Certain decisions:
+merges
+splits
+high-impact relationship changes
+may require:
+GGP reference
+explicit approval
+IDN never bypasses governance gates.
+12. Failure Modes & Safeguards
+Invalid input → reject without mutation
+Ambiguity → quarantine and flag
+Governance denial → preserve request and rationale
+Identity truth is never partially applied.
+13. Cross-Engine Interaction
+Engine
+Interaction
+GGP
+governance approvals and audit
+SIG
+identity attribution
+PIE
+entity grouping
+SIM
+scenario binding
+DAT
+execution attribution
+FLO
+financial accounting by entity
+PECA
+entity creation
+CWP
+actor provisioning
+14. Document Position in IDN Corpus
+This decision document builds upon:
+NS-IDN-001 — OVERVIEW
+NS-IDN-002 — TAXONOMY
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+It informs:
+NS-IDN-006 — VERSION
+NS-IDN-007 — DATAMODEL
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Decision Framework
+Parent / HoldCo Manager
+Status: Draft

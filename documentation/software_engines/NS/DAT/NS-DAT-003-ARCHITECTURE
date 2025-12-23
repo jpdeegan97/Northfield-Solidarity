@@ -1,0 +1,184 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the logical architecture of the Digital Arbitrage Tooling (DAT) engine.
+DAT’s architecture is designed to:
+Convert approved opportunities into execution plans
+Enforce governance, budget, and risk constraints
+Execute actions safely with checkpoints and rollback
+Emit canonical telemetry and financial events
+Preserve determinism, auditability, and replay
+This document describes components and interfaces, not deployment topology.
+2. Architectural Overview
+DAT is organized into two planes:
+Control Plane (Planning & Governance)Creates and versions Execution PlansPackages plan artifacts for GGP approvalManages model/config versions and controls
+Execution Plane (Orchestration & Action)Executes approved plans step-by-stepEnforces constraints at runtimeEmits telemetry and financial events
+This separation ensures governance and configuration changes cannot directly trigger execution.
+3. Core Components
+3.1 Plan Builder Service
+Responsibility:
+Translate approved PIE insight versions into draft Execution Plans
+Attach Steps, Actions, Constraints, Budgets, and Rollback Policies
+Maintain plan versioning semantics
+Inputs:
+PIE Insight (id, version)
+Optional SIM scenario bounds
+Governance constraints templates
+Outputs:
+ExecutionPlan (draft)
+3.2 Plan Registry (Authoritative)
+Responsibility:
+Persist authoritative plan versions (append-only)
+Provide immutable plan retrieval by (plan_id, plan_version)
+Notes:
+Plan Registry is the system of record for execution plans
+3.3 Governance Handoff Adapter (DAT → GGP)
+Responsibility:
+Package plan artifacts for GGP review
+Submit plan for approval and record decision references
+Key Output:
+dat.plan.submitted_for_approval
+3.4 Constraint Engine
+Responsibility:
+Evaluate constraints pre-execution (admission control)
+Enforce constraints during execution (runtime guards)
+Constraint Types:
+Budget caps
+Time windows
+Quantity limits
+Risk thresholds
+Outputs:
+Allow / deny decisions
+Constraint violation events
+3.5 Budget Tracker
+Responsibility:
+Track spend commitments and actual spend
+Prevent budget overruns
+Emit financial events to FLO
+Notes:
+Budget Tracker produces authoritative spend events (FLO consumes)
+3.6 Execution Orchestrator
+Responsibility:
+Drive step-by-step execution of approved plans
+Maintain execution checkpoints
+Manage retries with idempotency
+Key Requirements:
+Exactly-once semantics are approximated with idempotency keys
+Execution always references a specific (plan_id, plan_version)
+3.7 Connector Layer (External Adapters)
+Responsibility:
+Integrate with external systems (marketplaces, ads, vendors)
+Provide consistent API contracts and error handling
+Design Rules:
+Each connector must be idempotent or provide compensating actions
+Connector calls must be correlation_id traced
+3.8 Rollback Coordinator
+Responsibility:
+Execute rollback policies on failure conditions
+Manage compensating steps
+Emit rollback telemetry
+Rollback is a first-class runtime capability, not a manual afterthought.
+3.9 Telemetry & Audit Emitter
+Responsibility:
+Emit immutable execution events
+Persist execution event history
+Provide audit surfaces
+Outputs:
+step.started / completed / failed / rolled_back
+plan.started / completed / aborted
+3.10 Read Model Builder (Optional MVP)
+Responsibility:
+Build derived views for dashboards:execution progressfailure ratesbudget burn
+This can be deferred if observability is handled elsewhere.
+4. Data & Event Flow (Logical)
+4.1 Planning Flow
+PIE Insight Approved → Plan Builder creates draft plan
+Plan Registry stores plan vN
+Governance Adapter submits to GGP
+GGP approves → plan becomes executable
+4.2 Execution Flow
+Orchestrator fetches approved plan vN
+Constraint Engine performs admission checks
+Step execution begins via Connector Layer
+Telemetry emitted per step
+Budget Tracker emits spend events to FLO
+On failure → Rollback Coordinator invoked
+5. Persistence & Replay Architecture
+DAT requires two categories of persistence:
+Authoritative Plan Artifacts
+Plan versions
+Step/action definitions
+Constraint snapshots
+Authoritative Execution History
+Execution events
+Budget events
+Rollback events
+Derived read models may be rebuilt from these authoritative sources.
+Replay Goals:
+Reconstruct execution timelines
+Recompute performance metrics
+Audit constraint enforcement
+6. Interfaces & Integrations
+6.1 DAT ↔ PIE
+DAT consumes only approved insights
+DAT pins to (insight_id, insight_version)
+6.2 DAT ↔ SIM
+DAT consumes scenario bounds where available
+SIM does not trigger execution
+6.3 DAT ↔ GGP
+GGP approves plans, budgets, constraints
+DAT stores governance decision references
+6.4 DAT ↔ FLO
+DAT emits financial-impacting events
+FLO is system of record for accounting
+6.5 DAT ↔ PTE
+DAT emits performance telemetry for portfolio tracking
+6.6 DAT ↔ MUX
+External connectors may route through MUX
+7. Control Surfaces
+DAT exposes governance-compatible controls:
+Plan submission and approval workflow
+Execution kill switch (pause/abort)
+Connector disablement (circuit breakers)
+Replay / backfill controls
+All control actions are auditable and GGP-governed.
+8. Observability Requirements
+DAT must be observable at all levels:
+Plan throughput (draft → approved)
+Execution throughput (steps/sec)
+Failure rates by connector
+Constraint violation counts
+Budget burn rates
+Rollback frequency
+All metrics must be attributable to:
+plan_id + plan_version
+correlation_id
+connector name
+9. Document Position in DAT Corpus
+This architecture document is based on:
+NS-DAT-001 — OVERVIEW
+NS-DAT-002 — TAXONOMY
+It is complemented by:
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-007 — DATAMODEL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Logical Architecture
+
+Parent / HoldCo Manager
+Status: Draft

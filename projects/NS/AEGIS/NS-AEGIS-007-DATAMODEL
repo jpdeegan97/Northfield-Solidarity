@@ -1,0 +1,563 @@
+NS-AEGIS-007 — DATA MODEL
+
+Project: Aegis (Dependency Management Product)
+
+1) Data Model Intent
+
+Aegis maintains two complementary models:
+
+Registry Model (facts): canonical records, ownership, lifecycle, evidence, change requests
+
+Graph Model (impact): nodes + edges + qualifiers optimized for traversals and blast radius
+
+This document defines the authoritative entity set, required fields, relationships, and invariants.
+
+2) Data Model Overview
+
+2.1 Core Entities
+
+Dependency (canonical thing)
+
+Dependency Unit (DU) (scoped instance: env/region/boundary)
+
+Edge (relationship between nodes)
+
+Change Request (CR) (governed mutation)
+
+Policy Decision Record (GGE evaluation and outputs)
+
+Approval Record (who approved what and when)
+
+Evidence Artifact (versioned evidence + verification)
+
+Signal (normalized observation)
+
+Incident Case (signal → impact → remediation tracking)
+
+Snapshot (immutable posture “as-of” record)
+
+Observation (connector-emitted facts/edges/evidence sightings)
+
+2.2 Identity
+
+Aegis IDs must be stable and IDN-aligned.
+
+Canonical dependency ID: aegis:<class>:<namespace>:<name>
+
+Every entity also has a UUID-style internal ID for storage efficiency.
+
+3) Registry Model (Relational / Document)
+
+3.1 Dependency
+
+Represents a real-world dependency across software/vendor/infra/data.
+
+Table: dependency
+
+dependency_pk (UUID, PK)
+
+dependency_id (string, unique, canonical; IDN-aligned)
+
+class (enum: software | vendor | infra | data | process)
+
+subclass (string; e.g., npm_library, saas_payments, k8s_cluster)
+
+display_name (string)
+
+description (text)
+
+status (enum: proposed | approved | active | constrained | deprecated | removed)
+
+risk_tier (enum: tier_0 | tier_1 | tier_2 | tier_3)
+
+criticality (enum: low | med | high | mission)
+
+data_sensitivity (enum: none | internal | confidential | regulated)
+
+trust_tier (enum: unknown | limited | verified | strategic) (optional but useful)
+
+owner_ref (FK → principal)
+
+steward_ref (FK → principal, nullable)
+
+policy_profile_ref (FK → policy_profile, nullable)
+
+lifecycle_reason (string, nullable; driver tag)
+
+created_at, updated_at
+
+last_verified_at (timestamp, nullable)
+
+notes (text, nullable)
+
+Invariants
+
+dependency_id is immutable once created.
+
+status=removed implies no active DUs and no “observed” edges in enforced environments.
+
+3.2 Dependency Unit (DU)
+
+Scoped instance used for environment-accurate posture.
+
+Table: dependency_unit
+
+du_pk (UUID, PK)
+
+dependency_pk (FK → dependency)
+
+du_key (string, unique within dependency; e.g., prod/us-east-1/core)
+
+environment (enum: dev | uat | prod | other)
+
+region (string, nullable)
+
+system_boundary (string; e.g., engine/project/service boundary)
+
+scope_tags (json array; e.g., ["pci", "customer-facing"])
+
+status (inherits same enum as dependency; default aligns with dependency)
+
+risk_tier_override (nullable)
+
+criticality_override (nullable)
+
+constraints (json; e.g., allowed_endpoints, data_sent, rate_limits)
+
+created_at, updated_at
+
+last_observed_at (timestamp, nullable)
+
+Invariants
+
+DU is the unit of enforcement for environment-scoped policy.
+
+DU may be Active while the dependency is Active/Constrained/Deprecated (but never if dependency is Removed).
+
+3.3 Principal (Owner/Steward)
+
+Represents a human, team, or agent identity.
+
+Table: principal
+
+principal_pk (UUID, PK)
+
+principal_type (enum: human | team | agent | service)
+
+idn_ref (string; stable IDN identity ref)
+
+display_name
+
+contact (json; email/slack/oncall)
+
+3.4 Policy Profile
+
+Defines policy bundles applied to dependencies/DUs.
+
+Table: policy_profile
+
+policy_profile_pk (UUID, PK)
+
+name (string)
+
+description (text)
+
+default_risk_tier (enum, nullable)
+
+control_set_refs (json array; references to GGE control sets)
+
+created_at, updated_at
+
+3.5 Evidence Artifact
+
+Versioned evidence with verification lifecycle.
+
+Table: evidence_artifact
+
+evidence_pk (UUID, PK)
+
+evidence_id (string, unique)
+
+evidence_type (enum; see TAXONOMY §7)
+
+subject_type (enum: dependency | du | edge | incident | cr)
+
+subject_pk (UUID)
+
+revision (int; monotonic per evidence_id)
+
+storage_uri (string; object store pointer)
+
+hash (string; content hash)
+
+source (enum: uploaded | fetched | attested)
+
+freshness_window_days (int, nullable)
+
+verified_status (enum: pending | verified | expired | failed)
+
+verified_by (FK → principal, nullable)
+
+verified_at (timestamp, nullable)
+
+expires_at (timestamp, nullable)
+
+metadata (json; scanner/vendor info)
+
+created_at
+
+Invariants
+
+expires_at computed from verified_at + freshness_window unless explicitly set.
+
+Evidence is immutable; new changes create a new revision.
+
+3.6 Change Request (CR)
+
+Governs any material change.
+
+Table: change_request
+
+cr_pk (UUID, PK)
+
+cr_id (string, unique; human-friendly)
+
+cr_type (enum; see TAXONOMY §6)
+
+status (enum: draft | submitted | policy_evaluated | evidence_pending | approvals_pending | approved | rejected | committed | operationalized | closed)
+
+subject_type (enum: dependency | du | edge | policy_profile)
+
+subject_pk (UUID, nullable for new)
+
+requested_by (FK → principal)
+
+justification (text)
+
+diff (json; before/after)
+
+risk_tier (enum; derived)
+
+environment_scope (json; list of envs/regions)
+
+required_evidence (json array)
+
+approval_chain (json array)
+
+rollout_plan (text/json, nullable)
+
+rollback_plan (text/json, nullable)
+
+expiry_at (timestamp, nullable; for exceptions)
+
+policy_decision_pk (FK → policy_decision, nullable)
+
+created_at, updated_at
+
+3.7 Policy Decision (GGE Record)
+
+Stores the exact policy inputs/outputs used to decide.
+
+Table: policy_decision
+
+policy_decision_pk (UUID, PK)
+
+gge_policy_set_id (string)
+
+gge_policy_set_version (string/int)
+
+inputs (json)
+
+outputs (json)
+
+evaluated_at (timestamp)
+
+evaluation_hash (string)
+
+3.8 Approval Record
+
+Captures approvals/denials.
+
+Table: approval_record
+
+approval_pk (UUID, PK)
+
+cr_pk (FK → change_request)
+
+approver (FK → principal)
+
+decision (enum: approved | rejected)
+
+decision_reason (text, nullable)
+
+decided_at (timestamp)
+
+gge_audit_ref (string; pointer to GGE audit trail)
+
+3.9 Signal
+
+Normalized observation from SIG/MUX.
+
+Table: signal
+
+signal_pk (UUID, PK)
+
+signal_type (enum; see TAXONOMY §8)
+
+severity (enum: info | low | med | high | critical)
+
+confidence (enum: confirmed | likely | rumor)
+
+scope (enum: dependency | du | edge)
+
+subject_hint (json; identifiers from SIG)
+
+mapped_subject_pk (UUID, nullable)
+
+status (enum: received | mapped | assessed | remediating | closed)
+
+payload (json)
+
+received_at, updated_at
+
+3.10 Incident Case
+
+Tracks response for a high-impact signal.
+
+Table: incident_case
+
+incident_pk (UUID, PK)
+
+signal_pk (FK → signal)
+
+title (string)
+
+status (enum: open | triage | planned | executing | verified | closed)
+
+owner_ref (FK → principal)
+
+impact_summary (text/json)
+
+affected_assets (json array; references to services/projects/DUs)
+
+remediation_plan (text/json)
+
+closed_at (timestamp, nullable)
+
+snapshot_pk (FK → snapshot, nullable)
+
+3.11 Snapshot
+
+Immutable posture record.
+
+Table: snapshot
+
+snapshot_pk (UUID, PK)
+
+snapshot_id (string, unique)
+
+trigger (enum: cr_commit | incident_close | scheduled)
+
+trigger_ref (FK to CR or Incident; stored as json)
+
+registry_schema_version (string/int)
+
+graph_semantics_version (string/int)
+
+policy_set_id (string, nullable)
+
+policy_set_version (string/int, nullable)
+
+graph_export_uri (string, nullable)
+
+registry_export_uri (string, nullable)
+
+created_at
+
+3.12 Observation (Connector Emissions)
+
+Raw facts emitted by connectors (MUX).
+
+Table: observation
+
+observation_pk (UUID, PK)
+
+connector_name (string)
+
+connector_version (string)
+
+contract_version (string/int)
+
+observation_type (enum: dependency_observed | edge_observed | evidence_observed | renewal_window | drift_observed)
+
+scope (json; env/region/boundary)
+
+payload (json)
+
+confidence (enum: observed | inferred)
+
+received_at
+
+4) Graph Model (Nodes + Edges)
+
+The Graph Model is optimized for answering:
+
+“What depends on X (direct + transitive) in prod?”
+
+“What is the blast radius if X is vulnerable?”
+
+4.1 Node Types
+
+DependencyNode (maps to dependency)
+
+DependencyUnitNode (maps to dependency_unit)
+
+(Optional later) ServiceNode, ProjectNode, DatasetNode for richer cross-system impact maps
+
+4.2 Edge Types
+
+Edge taxonomy is defined in NS-AEGIS-002.
+
+Core edge fields (graph)
+
+from_node_id
+
+to_node_id
+
+edge_type (e.g., depends_on, calls, runtime_depends_on)
+
+environment (dev/uat/prod)
+
+region (nullable)
+
+system_boundary (string)
+
+confidence (declared | observed | inferred)
+
+transitive_depth (int, nullable)
+
+first_seen_at, last_seen_at
+
+metadata (json)
+
+Invariants
+
+If an edge is observed, it must have last_seen_at updated by connector observations.
+
+Edge semantics must be snapshot-versioned when traversal meaning changes.
+
+5) Entity Relationship Diagram (Registry)
+
+erDiagram
+  DEPENDENCY ||--o{ DEPENDENCY_UNIT : scopes
+  DEPENDENCY ||--o{ EVIDENCE_ARTIFACT : has
+  DEPENDENCY_UNIT ||--o{ EVIDENCE_ARTIFACT : has
+
+  PRINCIPAL ||--o{ DEPENDENCY : owns
+  PRINCIPAL ||--o{ DEPENDENCY_UNIT : stewards
+
+  CHANGE_REQUEST }o--|| PRINCIPAL : requested_by
+  CHANGE_REQUEST }o--|| POLICY_DECISION : decided_by
+  CHANGE_REQUEST ||--o{ APPROVAL_RECORD : has
+
+  SIGNAL ||--o{ INCIDENT_CASE : spawns
+  SNAPSHOT }o--|| CHANGE_REQUEST : can_reference
+  SNAPSHOT }o--|| INCIDENT_CASE : can_reference
+
+  OBSERVATION }o--|| DEPENDENCY : may_map
+  OBSERVATION }o--|| DEPENDENCY_UNIT : may_map
+
+6) Minimal JSON Shapes (API-Friendly)
+
+6.1 Dependency (API shape)
+
+{
+  "dependency_id": "aegis:vendor:saas:stripe",
+  "class": "vendor",
+  "subclass": "saas_payments",
+  "display_name": "Stripe",
+  "status": "active",
+  "risk_tier": "tier_2",
+  "criticality": "high",
+  "owner": {"idn_ref": "idn:team:payments"},
+  "last_verified_at": "2025-12-23T00:00:00Z"
+}
+
+6.2 Dependency Unit (API shape)
+
+{
+  "dependency_id": "aegis:vendor:saas:stripe",
+  "du_key": "prod/us-east-1/payments",
+  "environment": "prod",
+  "system_boundary": "FLO",
+  "status": "active",
+  "constraints": {"data_sent": ["card_token"], "rate_limits": "standard"}
+}
+
+6.3 Edge (API shape)
+
+{
+  "from": "service:flo-api",
+  "to": "aegis:vendor:saas:stripe",
+  "edge_type": "calls",
+  "environment": "prod",
+  "confidence": "observed",
+  "last_seen_at": "2025-12-23T00:00:00Z"
+}
+
+7) Indexing & Query Keys
+
+7.1 Registry DB
+
+Unique index: dependency.dependency_id
+
+Composite index: dependency_unit(dependency_pk, environment, system_boundary)
+
+Index: change_request(status, cr_type, updated_at)
+
+Index: signal(signal_type, severity, status, received_at)
+
+Index: evidence_artifact(subject_type, subject_pk, verified_status, expires_at)
+
+7.2 Graph
+
+Primary lookup: node_id
+
+Traversal filters: environment, system_boundary, confidence
+
+Time window filters: last_seen_at
+
+8) Data Quality & Confidence Rules
+
+Aegis differentiates truths:
+
+Declared: human/CR asserted
+
+Observed: connector-proven
+
+Inferred: derived by analysis
+
+Rules:
+
+Observed facts can override declared facts only when policy permits and conflicts are surfaced.
+
+Inferred edges must carry provenance and are excluded by default from high-stakes impact queries unless explicitly requested.
+
+9) MVP Data Model Cut
+
+MVP requires only:
+
+Dependency + DU
+
+Edge (graph)
+
+CR + policy decision reference + approvals
+
+Evidence artifacts (basic verification states)
+
+Signal ingestion (one signal family)
+
+Snapshot on CR commit and incident closure
+
+Everything else can be introduced additively without breaking contracts.
+

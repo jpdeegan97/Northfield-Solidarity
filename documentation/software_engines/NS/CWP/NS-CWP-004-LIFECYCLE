@@ -1,0 +1,109 @@
+Cognitive Work Plane (CWP)
+Purpose
+Defines the end-to-end lifecycle of work in CWP: definition → assignment → execution → supervision → review → escalation → closure → analysis.
+Lifecycle Stages
+ Work Definition — create Task/Mission/Program with constraints, success criteria, SLA
+ Assignment & Scheduling — resolve eligible agents, bind schedule
+ Execution — agents act only within assigned scope
+ Supervision — monitor progress, SLA, anomalies
+ Review & Acceptance — explicit checkpoint-based review
+ Escalation — routed to human/program owner/GGP as needed
+ Completion & Closure — close only after acceptance
+ Post-Execution Analysis — metrics to PTE
+Invariants
+  No execution without assignment
+  No completion without review
+  No silent failure; escalation is mandatory
+Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Reissued lifecycle
+Parent / HoldCo Manager
+NS-CWP-005 — DECISION (Reissued)
+Cognitive Work Plane (CWP)
+Purpose
+Defines operational decision-making in CWP (assignment, scheduling, supervision, escalation, closure) with explainability and human override.
+Decision Classes
+  Work Creation
+  Assignment
+  Scheduling
+  Supervision
+  Escalation
+  Closure
+Decision Artifact (Logical)
+  decision_id, decision_type, work_ref
+  inputs_summary, outcome
+  ruleset_version, decided_at, actor_id
+Automation vs Human Control
+Decision
+Automated
+Human
+Assignment
+Conditional
+Override
+Scheduling
+Yes
+Override
+Supervision
+Yes
+—
+Escalation
+Triggered
+Resolution
+Closure
+—
+Yes
+Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Reissued decision framework
+Parent / HoldCo Manager
+NS-CWP-006 — VERSION (Reissued)
+Cognitive Work Plane (CWP)
+Purpose
+Defines append-only versioning for work artifacts, agent capabilities, SLAs, and decision rulesets to ensure replayability and audit.
+Versioned Artifacts
+  Task/Mission/Program definitions
+  Agent capability profiles
+  SLA definitions
+  Decision rulesets
+  Escalation policies
+Compatibility & Replay
+Change
+Backward Compatible
+Replay
+New task version
+Yes
+No
+Mission composition
+No
+No
+SLA threshold
+Yes
+No
+Decision ruleset
+Yes
+Yes
+Escalation policy
+Yes
+Yes
+Cross-Engine Alignment
+DRE (artifact versions), PIE (insight versions), SIM (scenario versions), DAT (plan versions), GGP (constraints), PTE (outcomes by version).
+Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Reissued versioning spec
+Parent / HoldCo Manager
+Status: Draft

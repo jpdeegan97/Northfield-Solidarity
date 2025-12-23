@@ -1,0 +1,161 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This runbook defines the production-grade operational procedures for the Market Integration Layer (MUX).
+It covers:
+Safe startup and shutdown
+Normal ingestion operations
+Connector incident handling
+Replay and backfill execution
+Data integrity and security controls
+Disaster recovery and audit readiness
+MUX operations prioritize external truth preservation, isolation, and recoverability.
+2. Operational Invariants
+Operators must never:
+edit raw capture records
+modify canonical artifacts
+delete dedupe or decision artifacts
+All remediation occurs through:
+connector state transitions
+replay/backfill jobs
+reprocessing with new rulesets
+3. Startup Procedure (Cold Start)
+3.1 Preflight Checks
+Secrets available for all enabled connectors
+Database reachable (read/write)
+Kafka reachable (produce)
+Schema migrations complete
+Governance service reachable (if required)
+If any check fails → do not enable connectors.
+3.2 Startup Order
+Start persistence services (DB, object storage)
+Start Kafka + schema registry
+Start mux-artifact-store
+Start mux-integrity-engine
+Start mux-normalizer
+Start mux-dedupe-engine
+Start mux-publisher
+Start mux-ingress
+Start connector workers (disabled by default)
+3.3 Initial State
+All connectors start as disabled
+Operators must explicitly enable connectors
+4. Normal Operations
+4.1 Enabling a Connector
+Validate credentials
+Review scopes and rate limits
+Enable connector via operator UI or API
+Observe ingestion metrics for 15–30 minutes
+4.2 Monitoring Checklist
+Monitor per connector:
+ingestion success rate
+error rate
+backlog depth
+dedupe rate
+publish failures
+Monitor system-wide:
+Kafka publish latency
+DB write latency
+replay job queue depth
+5. Incident Response Playbooks
+5.1 Signature Verification Failures
+Symptoms:
+sudden spike in invalid signature errors
+Actions:
+Pause connector
+Verify secret rotation status
+Confirm webhook source IPs
+Resume after validation
+5.2 Schema Drift / Normalization Failures
+Symptoms:
+increasing quarantine items (schema_unknown)
+Actions:
+Pause connector
+Update normalization ruleset
+Reprocess quarantined captures
+Resume connector
+5.3 Duplicate Floods
+Symptoms:
+dedupe rate > expected baseline
+Actions:
+Inspect external system behavior
+Throttle connector
+Validate dedupe keys
+5.4 Kafka Publish Failures
+Symptoms:
+publish_failed events
+Actions:
+Pause ingress
+Verify Kafka health
+Resume publisher
+Trigger replay if needed
+6. Replay & Backfill Operations
+6.1 Replay Procedure
+Used when downstream consumers need to rebuild state.
+Define replay scope (connector/artifact/time)
+Submit replay job with reason
+Monitor job progress
+Verify downstream consumption
+6.2 Backfill Procedure
+Used when ingestion windows were missed.
+Pause connector
+Execute backfill job
+Validate artifact counts
+Resume connector
+6.3 Reprocessing Raw Captures
+Used after ruleset updates.
+Deploy new ruleset version
+Select captures for reprocess
+Trigger reprocess job
+Verify new artifacts emitted
+7. Security & Compliance
+Secrets rotated regularly
+Raw payload visibility restricted
+Operator actions logged with reason
+Governance references enforced where required
+8. Disaster Recovery
+8.1 Database Failure
+Restore from backup
+Verify raw capture and artifact counts
+Replay Kafka emissions if required
+8.2 Kafka Failure
+Restore Kafka
+Replay artifacts from store
+9. Audit Readiness
+MUX must be able to:
+trace any artifact to its raw capture
+show integrity validation and decisions
+demonstrate connector state history
+replay any artifact deterministically
+10. Change Management
+Connector changes logged
+Ruleset changes versioned
+Replay/backfill actions auditable
+11. Document Position in MUX Corpus
+This runbook is informed by:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-011 — APIMAP
+NS-MUX-012 — STATE
+It complements:
+NS-MUX-014 — DATADEF
+12. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Operational Runbook
+
+Parent / HoldCo Manager
+Status: Draft

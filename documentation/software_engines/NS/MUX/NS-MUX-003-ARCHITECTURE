@@ -1,0 +1,161 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the logical architecture of the Market Integration Layer (MUX).
+MUX is responsible for:
+Secure, isolated integrations with external systems
+Ingestion of external truth (events, statements, snapshots)
+Normalization, deduplication, and integrity validation
+Emitting canonical external artifacts into the internal event fabric
+This document focuses on components, interfaces, and control surfaces, not deployment specifics.
+2. Architectural Overview
+MUX is organized into five logical layers:
+Connector Layer
+Ingress & Capture Layer
+Normalization & Integrity Layer
+Artifact Store & Replay Layer
+Distribution & Query Layer
+MUX must be connector-isolated: failures in one integration must not impact others.
+3. Core Components
+3.1 Connector Manager
+Responsibility:
+Register, configure, enable/disable connectors
+Manage connector credentials and scopes
+Enforce connector isolation policies
+Outputs:
+Connector state events (enabled/disabled/degraded)
+3.2 Connector Workers (Per Integration)
+Responsibility:
+Fetch, receive, or import external data using the connector’s mechanism:webhook receiverpolling API clientfile import agent
+Characteristics:
+Dedicated runtime identity per connector
+Rate limiting and retry policies per connector
+Backoff with circuit breaker semantics
+3.3 Ingress Gateway
+Responsibility:
+Terminate inbound webhook traffic
+Validate signatures and origin
+Normalize basic envelope (timestamps, ids)
+Persist raw capture records
+Ingress Gateway is the edge boundary for untrusted inputs.
+3.4 Capture Store (Raw External Records)
+Responsibility:
+Persist the raw external record (redacted as needed)
+Store integrity hashes
+Track first_seen/last_seen
+Raw records are immutable.
+3.5 Normalization Engine
+Responsibility:
+Convert raw records into canonical artifact types (per NS-MUX-002)
+Apply schema mapping rules
+Normalize:currenciestimestampsidentifiers
+Produces: normalized external artifacts.
+3.6 Integrity & Deduplication Engine
+Responsibility:
+Validate payload integrity (hashes, signatures)
+Deduplicate by:(source_system, external_id)payload hash
+Duplicates are recorded as references, not discarded.
+3.7 Artifact Store (Canonical External Truth)
+Responsibility:
+Persist canonical artifacts:platform eventstransaction artifactsstatements/snapshotsfulfillment artifactsplatform state artifacts
+Artifacts are append-only and versionless.
+3.8 Replay & Backfill Engine
+Responsibility:
+Re-emit canonical artifacts to downstream engines
+Backfill missing windows
+Reprocess raw capture through updated normalization rules (versioned)
+Replay produces new emissions but does not mutate stored artifacts.
+3.9 Event Publisher
+Responsibility:
+Publish canonical artifact events to Kafka
+Attach correlation hints and provenance
+Enforce per-topic routing policies
+3.10 Query API (Read Surface)
+Responsibility:
+Provide query access for:artifact lookups by external idstatements and snapshot retrievalconnector health/statusreplay job status
+Query API is read-heavy.
+4. Data & Event Flows
+4.1 Webhook Event Flow
+External platform sends webhook
+Ingress Gateway validates signature
+Raw record stored in Capture Store
+Normalization Engine converts to canonical artifact
+Integrity/Dedupe Engine validates and dedupes
+Artifact Store persists canonical artifact
+Event Publisher emits to Kafka
+4.2 Polling / Batch Import Flow
+Connector Worker polls API or imports file
+Raw record stored (Capture Store)
+Normalize → Dedupe → Store
+Publish to Kafka
+4.3 Statement Flow (External Truth for FLO)
+Connector Worker imports statements
+Statement artifact stored with snapshot hash
+Statement line items stored
+Published to Kafka topic consumed by FLO
+5. Persistence Strategy
+MUX persistence has two distinct stores:
+Raw Capture Store
+raw records
+signature verification metadata
+integrity hashes
+Canonical Artifact Store
+normalized artifacts by canonical type
+dedupe references
+Derived indices (optional):
+search index for fast lookup
+6. Control Surfaces
+MUX exposes operator/governance controls:
+Enable/disable connector
+Set connector rate limits
+Force connector credential rotation
+Trigger backfill/replay job
+Pause inbound webhooks (Safe Mode)
+All control actions are auditable and reasoned.
+7. Observability Requirements
+MUX must be observable per connector:
+ingestion rate
+success/failure rate
+retry count
+rate limit hits
+payload validation failures
+dedupe rate
+staleness/latency
+System-level metrics:
+Kafka publish failures
+backlog depth
+replay job progress
+8. Security Model
+Connector credentials are isolated and scoped
+Webhooks require signature validation
+Secrets never stored in raw capture
+Payload redaction rules applied before persistence
+Least privilege for connector workers
+9. Document Position in MUX Corpus
+This architecture document builds upon:
+NS-MUX-001 — OVERVIEW
+NS-MUX-002 — TAXONOMY
+It is complemented by:
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+NS-MUX-007 — DATAMODEL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Logical Architecture
+
+Parent / HoldCo Manager
+Status: Draft

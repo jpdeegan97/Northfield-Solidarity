@@ -1,0 +1,196 @@
+NS-INT-001 — OVERVIEW
+
+1. What Intervention Is
+
+Intervention (quickscope) is the system-wide State Fabric and Context Plane for Northfield Solidarity.
+
+It provides:
+
+A single shared truth for “what is happening” across all NS engines
+
+A durable timeline of change (immutable memory)
+
+Real-time deltas for UIs (especially Firmament)
+
+Correlation + causality so multi-engine work becomes one traceable thread
+
+Edge caches so every engine/UI can read state with low latency and high resilience
+
+Intervention is designed to make NS feel like one coherent organism rather than a set of isolated services.
+
+2. What Intervention Is Not
+
+It is not the governance authority (GGP remains the semantic gatekeeper).
+
+It is not a replacement for domain databases (engines still own their OLTP stores).
+
+It is not a data lake or analytics warehouse.
+
+It is not “frontend state management” (though it feeds UI state).
+
+3. Why It Exists
+
+As NS grows, the hard problem becomes coherence:
+
+Engines evolve at different speeds and maintain different state semantics
+
+Cross-engine workflows lose their narrative and become hard to debug
+
+UIs either become stale or must stitch state from many sources
+
+Governance evidence and decision provenance fragment
+
+Intervention solves this by enforcing a shared, replayable, streaming state substrate.
+
+4. Core Concepts
+
+4.1 Event as the Primitive
+
+Intervention treats events as the canonical source of change:
+
+Engines emit events (using a canonical envelope)
+
+Intervention stores events immutably
+
+State is projected/materialized from events
+
+4.2 Materialized Views
+
+Intervention produces queryable “now” views:
+
+Entity-level status (e.g., active, blocked, approved, failed)
+
+Workflow instance state (step, gate, timer, retry, compensation)
+
+Cross-engine threads keyed by correlation_id
+
+4.3 Correlation + Causation
+
+Intervention standardizes:
+
+correlation_id: the thread for a request/process spanning engines
+
+causation_id: what directly triggered this event
+
+This allows Firmament (and operators) to see chains like:
+
+request_created → policy_checked → approval_granted → execution_started → settlement_posted
+
+4.4 Edge State
+
+Intervention assumes most consumers need fast local reads:
+
+An Intervention Edge (sidecar/SDK) subscribes to relevant deltas
+
+Maintains a local cache / local read model
+
+Handles resync and replay when a consumer reconnects
+
+5. High-Level Architecture
+
+5.1 Intervention Core (Cluster Service)
+
+Ingest: accept canonical events from engines
+
+Event Log: immutable store (append-only)
+
+Projectors: build materialized state views
+
+Query API: snapshot, time-travel, correlation queries
+
+Stream Gateway: SSE/WebSocket + topic routing + resumable streams
+
+5.2 Intervention Edge (Per Engine / UI)
+
+Subscribes to topics/deltas
+
+Maintains local state cache
+
+Provides a local query interface to the host engine/UI
+
+Publishes events upstream with idempotency guarantees
+
+6. Relationship to GGP
+
+Intervention and GGP form a paired nucleus:
+
+GGP decides whether a state transition is legitimate (policy, approvals, permissions).
+
+Intervention records, projects, and distributes state transitions; it enforces structural validity and consults GGP for protected transitions.
+
+Protected transitions (configurable event classes) require a GGP gate before becoming authoritative.
+
+7. Primary Use Cases
+
+7.1 Firmament Real-Time Visualization
+
+Firmament loads a global snapshot
+
+Subscribes to delta streams keyed by entity/workflow/correlation
+
+Renders the “living system” state on the 3D globe
+
+7.2 Operator “What’s Happening?” Console
+
+Live feed of state changes
+
+Drill-down into causal chain + evidence pointers
+
+Jump to policy decisions that gated a transition
+
+7.3 Replay and Forensics
+
+Reconstruct state at time T
+
+Replay a workflow to reproduce a failure
+
+Compare “expected vs actual” state progression
+
+7.4 Cross-Engine Workflow State
+
+Represent long-running processes as first-class state objects
+
+Support retries, compensation, approvals, timers, and escalation
+
+8. Implementation Orientation (Non-Prescriptive)
+
+Intervention can be implemented with:
+
+A message backbone (e.g., Kafka) for event transport
+
+Immutable event storage (event store pattern)
+
+Projection services for read models
+
+A subscription gateway for UI/engine consumers
+
+A lightweight Edge cache client library/sidecar
+
+Specific technology choices are deferred to NS-INT-009 (IMPL).
+
+9. Glossary
+
+Event Log: immutable sequence of canonical events
+
+Projection: deterministic function from events → read model
+
+Read Model: query-optimized “current state” representation
+
+Delta Stream: real-time feed of state changes
+
+Edge Cache: local consumer cache built from deltas + snapshots
+
+Correlation ID: end-to-end thread identifier
+
+Causation ID: direct trigger identifier
+
+10. Summary
+
+Intervention (quickscope) is the shared state substrate that makes NS coherent:
+
+One timeline, one present, many consumers
+
+Built for real-time visualization, governance traceability, and operational clarity
+
+Engine-friendly via canonical contracts and edge-local performance
+

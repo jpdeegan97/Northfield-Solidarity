@@ -1,0 +1,125 @@
+NSDC Engine Charter — CDE (Content Distribution Engine)
+1. Engine Identity
+Engine Name: Content Distribution Engine
+Acronym: CDE
+Engine Type: Distribution / Publishing / Engagement
+2. Mission Statement (One Sentence)
+This engine exists to manage, orchestrate, and distribute content across multiple platforms and channels, ensuring consistent messaging, optimized engagement, and alignment with NSDC strategy.
+3. Core Responsibilities (Allowed Actions)
+  Orchestrate and publish content across multiple channels (social, marketplaces, newsletters, etc.)
+  Schedule and optimize distribution based on engagement metrics
+  Track performance, reach, and engagement of content
+  Integrate with intelligence engines (PIE, SIG) for content targeting
+  Maintain historical content archives and distribution logs
+  Provide feedback to planning and governance layers
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Execute trades or arbitrage opportunities (DAT)
+  Govern capital or compliance policies (GGP)
+  Generate canonical product intelligence (PIE)
+  Maintain financial ledgers (FLO)
+  Integrate marketplaces beyond content deployment (MUX)
+  Simulate scenarios or forecast financial performance (SIM)
+CDE is strictly responsible for content distribution and engagement tracking.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Content assets
+Admin / PIE
+Text, media, product descriptions, campaign assets
+☑
+Targeting signals
+SIG / PIE
+Market and audience signals for distribution optimization
+☑
+Distribution policies
+GGP
+Governance rules on timing, compliance, and approval
+☐
+Historical engagement data
+CDE archives
+Past performance for optimization
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Published content
+External channels
+Distributed content to platforms
+Event-driven / scheduled
+Engagement metrics
+Admin / PIE / SIG
+Performance, reach, and impact data
+Continuous / scheduled
+Distribution logs
+Admin / GGP
+Full audit of content actions and approvals
+Continuous
+Historical archives
+All engines
+Historical content and engagement data for analysis
+Continuous
+7. Authority & Decision Rights
+CDE May Decide Autonomously:
+  Scheduling and sequencing of content distribution
+  Optimizing delivery timing based on engagement metrics
+  Selecting platform-specific formatting or presentation
+CDE Must Not Decide:
+  Capital deployment or execution
+  Product intelligence or arbitrage strategy
+  Governance policy enforcement beyond content compliance
+  Simulation or forecasting beyond content metrics
+CDE is a distribution and engagement engine only.
+8. Governance & Constraints
+  All content distribution must comply with GGP rules
+  Approval workflows must be enforced for sensitive content
+  Logs must be maintained for all published actions
+  Engagement and performance tracking must be accurate and verifiable
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Content delivery failures or delays
+  Misformatted or incomplete content
+  Tracking and engagement reporting inconsistencies
+Worst-Case Failure:
+  Missed campaigns, low engagement, or incorrect content delivery
+  Minor reputational impact if errors are external-facing
+Blast Radius:
+  Primarily impacts audience engagement and downstream intelligence (PIE, SIG)
+  No direct financial or capital impact
+Containment strategy:
+  Retry and fallback distribution mechanisms
+  Logging and alerting of failures
+  Versioned content archives for restoration
+10. Time Horizon & Optimization Target
+  Optimizes for: Engagement, reach, and content effectiveness
+  Time Horizon: Real-time for immediate campaigns, near real-time for scheduled distribution
+11. Interfaces & Shared Primitives
+  Content assets and media files
+  Audience and targeting signals (SIG / PIE)
+  Distribution channels and APIs (MUX)
+  Governance flags and approval workflows (GGP)
+  Engagement metrics and reporting schema
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Content orchestration and publishing across 2–3 primary channels
+  Engagement tracking and reporting
+  Historical content archives
+  Integration with PIE and SIG for targeting signals
+MVP Excludes:
+  Predictive content optimization beyond initial metrics
+  Execution of financial or product strategy
+  Integration with all marketplaces beyond content channels
+13. Evolution Path (Conceptual Only)
+  Phase 1: Core content publishing and engagement tracking
+  Phase 2: Multi-channel optimization and audience targeting
+  Phase 3: Predictive content optimization and automated campaign orchestration
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

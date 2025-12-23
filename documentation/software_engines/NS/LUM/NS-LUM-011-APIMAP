@@ -1,0 +1,440 @@
+NS-LUM-011 — APIMAP
+
+0. Overview
+
+This document defines the authoritative API map for LUM (Luminance Engine).
+
+LUM APIs fall into two families:
+
+Data plane — ingest telemetry and events
+
+Control plane — manage schemas, SLOs, alerting, incidents, evidence
+
+Security boundaries:
+
+Producer ingest must be authenticated (service identity).
+
+Evidence access requires IDN identity + GGP authorization (decision_id).
+
+All privileged actions emit audit logs.
+
+1. API Conventions
+
+1.1 Base path and versioning
+
+Base: /api/lum
+
+Version: /v1 (e.g., /api/lum/v1/…)
+
+1.2 Correlation propagation headers (recommended)
+
+x-request-id
+
+x-workflow-id
+
+x-decision-id
+
+x-integration-id
+
+x-entity-id (policy controlled)
+
+W3C tracing: traceparent / tracestate (or equivalent)
+
+1.3 Standard response envelope (recommended)
+
+ok (boolean)
+
+data (object)
+
+error (object: code, message)
+
+meta (paging, timings)
+
+1.4 Idempotency
+
+For ingest and state-changing operations:
+
+optional Idempotency-Key header
+
+2. Data Plane APIs (Ingest)
+
+2.1 Ingest Logs
+
+POST /api/lum/v1/ingest/logs
+
+Accepts structured log batch.
+
+Validates schema and required fields.
+
+Applies redaction policy checks.
+
+Request (conceptual)
+
+schema_id, schema_version
+
+records[]
+
+Response
+
+counts accepted/rejected/quarantined
+
+2.2 Ingest Events
+
+POST /api/lum/v1/ingest/events
+
+Accepts domain events (workflow/decision/integration/job events).
+
+Request
+
+schema_id, schema_version
+
+events[]
+
+2.3 Ingest Metrics
+
+POST /api/lum/v1/ingest/metrics
+
+Accepts metrics samples OR forwards to metrics backend.
+
+Request
+
+series[] (name, labels, samples)
+
+2.4 Ingest Traces (Collector)
+
+Two patterns:
+
+OTel Collector endpoint (preferred)
+
+LUM gateway proxy endpoint
+
+POST /api/lum/v1/ingest/traces
+
+2.5 Ingest Audit Events (append-only)
+
+POST /api/lum/v1/ingest/audit-events
+
+Stores audit events (copy/refs) for correlation and evidence bundling.
+
+Must include decision_id when governed.
+
+2.6 Ingest Evidence Artifacts (metadata)
+
+POST /api/lum/v1/ingest/evidence/artifacts
+
+Registers artifact metadata (hash, storage_ref, classification).
+
+Blob upload occurs out-of-band (object store) unless explicitly supported.
+
+3. Query APIs (Read)
+
+3.1 Query by Correlation
+
+GET /api/lum/v1/query/by-workflow/{workflow_id}
+
+Returns
+
+correlated events
+
+trace summary refs
+
+top errors/logs
+
+linked alerts/incidents
+
+linked evidence bundle (if any)
+
+GET /api/lum/v1/query/by-trace/{trace_id}
+
+Returns
+
+trace + spans
+
+correlated logs/events
+
+GET /api/lum/v1/query/by-decision/{decision_id}
+
+Returns
+
+decision-related events
+
+evidence bundle refs
+
+audit events
+
+GET /api/lum/v1/query/by-integration/{integration_id}
+
+Returns
+
+integration health snapshots
+
+recent failures
+
+related incidents
+
+3.2 Logs Search
+
+GET /api/lum/v1/logs/search
+
+Query params (examples)
+
+service, environment, level, category
+
+from, to
+
+correlation fields
+
+q (free text)
+
+3.3 Events Search
+
+GET /api/lum/v1/events/search
+
+Params
+
+event_type, source_engine, time window
+
+correlation fields
+
+3.4 Metrics Query
+
+GET /api/lum/v1/metrics/query
+
+Params
+
+name, labels, from, to, step
+
+3.5 Traces Search
+
+GET /api/lum/v1/traces/search
+
+Params
+
+service, status, min_duration, time window
+
+correlation fields
+
+4. Control Plane APIs
+
+4.1 Schema Registry
+
+GET /api/lum/v1/schemas
+
+GET /api/lum/v1/schemas/{schema_id}
+
+POST /api/lum/v1/schemas (create new schema version)
+
+POST /api/lum/v1/schemas/{schema_id}/deprecate
+
+Notes
+
+publish requires compatibility checks
+
+some schema changes require GGP gate
+
+4.2 Correlation Standard
+
+GET /api/lum/v1/correlation-standard
+
+POST /api/lum/v1/correlation-standard (publish new version)
+
+4.3 SLIs
+
+GET /api/lum/v1/slis
+
+GET /api/lum/v1/slis/{sli_id}
+
+POST /api/lum/v1/slis (create)
+
+POST /api/lum/v1/slis/{sli_id}/activate
+
+4.4 SLOs
+
+GET /api/lum/v1/slos
+
+GET /api/lum/v1/slos/{slo_id}
+
+POST /api/lum/v1/slos (create)
+
+POST /api/lum/v1/slos/{slo_id}/approve (may be gated)
+
+GET /api/lum/v1/slos/{slo_id}/evaluations
+
+4.5 Alert Policies
+
+GET /api/lum/v1/alert-policies
+
+GET /api/lum/v1/alert-policies/{policy_id}
+
+POST /api/lum/v1/alert-policies (create)
+
+POST /api/lum/v1/alert-policies/{policy_id}/stage
+
+POST /api/lum/v1/alert-policies/{policy_id}/enable
+
+POST /api/lum/v1/alert-policies/{policy_id}/suppress
+
+POST /api/lum/v1/alert-policies/{policy_id}/retire
+
+4.6 Alerts (Instances)
+
+GET /api/lum/v1/alerts/open
+
+GET /api/lum/v1/alerts/{alert_id}
+
+POST /api/lum/v1/alerts/{alert_id}/ack
+
+POST /api/lum/v1/alerts/{alert_id}/unack
+
+POST /api/lum/v1/alerts/{alert_id}/resolve (manual override)
+
+POST /api/lum/v1/alerts/{alert_id}/link-incident/{incident_id}
+
+4.7 Routing & Escalation
+
+GET /api/lum/v1/routing-policies
+
+POST /api/lum/v1/routing-policies (create)
+
+POST /api/lum/v1/routing-policies/{id}/publish
+
+GET /api/lum/v1/escalation-policies
+
+POST /api/lum/v1/escalation-policies (create)
+
+4.8 Incidents
+
+GET /api/lum/v1/incidents/open
+
+GET /api/lum/v1/incidents/{incident_id}
+
+POST /api/lum/v1/incidents (create)
+
+POST /api/lum/v1/incidents/{incident_id}/state (update state)
+
+POST /api/lum/v1/incidents/{incident_id}/timeline (add entry)
+
+POST /api/lum/v1/incidents/{incident_id}/actions (mitigation action)
+
+POST /api/lum/v1/incidents/{incident_id}/close
+
+4.9 Runbooks
+
+GET /api/lum/v1/runbooks
+
+GET /api/lum/v1/runbooks/{runbook_id}
+
+POST /api/lum/v1/runbooks (create/version)
+
+4.10 Postmortems
+
+GET /api/lum/v1/postmortems/{postmortem_id}
+
+POST /api/lum/v1/incidents/{incident_id}/postmortem (create draft)
+
+POST /api/lum/v1/postmortems/{postmortem_id}/publish
+
+4.11 Evidence Bundles
+
+GET /api/lum/v1/evidence/bundles/{bundle_id}
+
+POST /api/lum/v1/evidence/bundles (open)
+
+POST /api/lum/v1/evidence/bundles/{bundle_id}/attach-artifact
+
+POST /api/lum/v1/evidence/bundles/{bundle_id}/attach-audit-event
+
+POST /api/lum/v1/evidence/bundles/{bundle_id}/ready-to-seal
+
+POST /api/lum/v1/evidence/bundles/{bundle_id}/seal
+
+GET /api/lum/v1/evidence/bundles/{bundle_id}/access-logs
+
+4.12 Evidence Access (GGP-authorized)
+
+Two patterns:
+
+Indirect: caller obtains decision_id from GGP and includes it.
+
+Direct: LUM calls GGP to validate access request (requires integration).
+
+POST /api/lum/v1/evidence/access/request
+
+creates an access request that is routed to GGP (decision workflow)
+
+POST /api/lum/v1/evidence/access/grant
+
+requires decision_id indicating GGP approval
+
+4.13 Integration Profiles & Health
+
+GET /api/lum/v1/integrations
+
+GET /api/lum/v1/integrations/{integration_id}
+
+GET /api/lum/v1/integrations/{integration_id}/snapshots
+
+POST /api/lum/v1/integrations/{integration_id}/snapshot (capture)
+
+4.14 Decisions (LUM decisions)
+
+GET /api/lum/v1/decisions/{lum_decision_id}
+
+GET /api/lum/v1/decisions/search
+
+5. Webhooks / Push Interfaces
+
+5.1 Alert delivery webhooks
+
+POST /api/lum/v1/webhooks/alert-delivery-status
+
+used by notification systems to confirm delivery
+
+5.2 Incident comms hooks
+
+POST /api/lum/v1/webhooks/incident-notes
+
+optional inbound notes from chatops
+
+6. Error Codes (Starter)
+
+ERR_SCHEMA_INVALID
+
+ERR_REDACTION_REQUIRED
+
+ERR_AUTH_REQUIRED
+
+ERR_FORBIDDEN
+
+ERR_GGP_AUTHZ_REQUIRED
+
+ERR_NOT_FOUND
+
+ERR_RATE_LIMITED
+
+7. Observability of the Observability APIs
+
+All LUM endpoints must emit:
+
+request logs (structured)
+
+latency metrics
+
+error metrics
+
+traces for cross-service operations
+
+8. GGP Interlock Notes
+
+The following endpoints/actions typically require a GGP gate or policy reference:
+
+publishing schemas that affect audit/evidence
+
+changing retention classes for sensitive signals
+
+enabling paging for new alert policies
+
+evidence access grants
+
+LUM should record the authorizing decision_id where applicable.
+

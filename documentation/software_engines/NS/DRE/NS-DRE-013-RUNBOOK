@@ -1,0 +1,160 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This runbook defines production-grade operational procedures for bringing up, validating, operating, and troubleshooting the Deep Research Engine (DRE).
+DRE operations prioritize:
+  evidence immutability
+  provenance and attribution
+  versioned research evolution
+  governance-gated promotion
+2. Operational Invariants (Never Violate)
+Operators must never:
+  overwrite or delete evidence items
+  “edit” historical hypothesis or narrative versions
+  backdate captured evidence timestamps
+  promote research downstream without governance approval
+  modify promotion snapshots after approval
+All corrections happen via new evidence, new versions, and new decisions.
+3. Startup Procedure
+3.1 Preflight Checks
+ PostgreSQL reachable (read/write)
+ DB migrations applied
+ Object storage (if used) reachable
+ Kafka (if used) reachable
+ GGP reachable (promotion approvals)
+ Downstream targets reachable (PIE/SIM/DAT) OR queued mode enabled
+ Observability stack reachable (logs/metrics)
+ Secrets present (worker identities, credentials)
+If GGP is down → run DRE in research-only mode (no promotions).
+3.2 Startup Order
+ PostgreSQL
+ dre-api
+ dre-ingest-worker
+ dre-synth-worker (optional in MVP)
+ dre-promotion
+ dre-projector (optional)
+4. Normal Operations
+4.1 Source Registry Operations
+Checklist when registering a source:
+  source type and expected cadence
+  credibility and bias notes
+  allowed capture methods
+Common actions:
+  pause noisy or unstable sources
+  retire deprecated sources
+4.2 Evidence Ingestion Operations
+Manual ingestion checklist:
+  correct source_id
+  capture_method recorded
+  fingerprint produced
+  captured_at uses UTC
+Worker ingestion checklist:
+  rate limits respected
+  backoff on failures
+  dedupe enforced by fingerprint
+Rule: evidence items are immutable.
+4.3 Evidence Triage & Linking
+Evidence Inbox flow:
+ tag evidence
+ link to themes/hypotheses (create citations)
+ park irrelevant evidence (do not delete)
+If evidence is sensitive:
+  ensure access tiering policies apply
+4.4 Hypothesis Operations
+When updating hypotheses:
+  confirm new evidence is cited
+  create a new hypothesis_version
+  record change summary
+  create a decision artifact referencing ruleset_version
+If contradictory evidence appears:
+  route to reviewer queue
+4.5 Narrative Operations
+Narrative acceptance checklist:
+  coverage check: major claims have citations
+  scope matches referenced hypotheses
+  reviewer notes recorded
+Accepted narratives:
+  are immutable
+  may be superseded by new accepted versions
+5. Promotion Operations (Governed)
+5.1 Promotion Preparation
+Before submitting promotion:
+  specify artifact_id + artifact_version
+  confirm narrative acceptance (if required)
+  attach rationale
+5.2 Promotion Submission
+  submit promotion request
+  request sent to GGP
+  DRE waits for approval outcome
+5.3 Approval Outcomes
+  approved → create promotion snapshot and publish
+  rejected → keep internal; revise and resubmit
+If downstream is unavailable:
+  publish to an outbox/queue
+  retry until delivered
+6. Projection & Reporting Operations
+If dashboards are stale:
+ verify event ledger ingestion
+ rebuild projections
+ validate counts:
+  evidence captured/day
+  hypotheses by state
+  promotions by status
+Projections are derived; never hand-edit.
+7. Incident Response Playbooks
+7.1 Evidence Ingestion Backlog Growing
+Actions:
+ inspect worker health
+ check source rate limits
+ scale ingest workers
+ pause non-critical sources
+7.2 Duplicate Evidence Flood
+Actions:
+ verify fingerprinting correctness
+ confirm source changes are detected as new evidence (if desired)
+ adjust normalization rules
+7.3 Promotion Pipeline Blocked
+Actions:
+ check GGP availability
+ verify actor permissions
+ inspect rejected rationale
+ queue promotions for later if governance outage
+7.4 Contradictory Evidence Spike
+Actions:
+ route hypotheses to reviewer queue
+ temporarily suspend promotions for affected themes
+ publish caution note to downstream consumers
+8. Backup & Disaster Recovery
+8.1 PostgreSQL Restore
+Steps:
+  restore DB
+  validate FK integrity
+  rebuild projections
+8.2 Evidence Payload Restore
+If object storage used:
+  restore referenced blobs
+  verify evidence_id → object links
+8.3 Replay
+  rebuild state from event ledger
+  verify hypothesis version timelines
+9. Change Management
+  schema changes are additive
+  decision ruleset changes are versioned
+  synthesis logic changes should be replay-tested
+  promotion contracts must remain backward compatible
+10. Document Position in DRE Corpus
+This runbook is informed by:
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-005 — DECISION
+  NS-DRE-012 — STATE
+It complements:
+  NS-DRE-014 — DATADEF
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Operational Runbook
+Parent / HoldCo Manager
+Status: Draft

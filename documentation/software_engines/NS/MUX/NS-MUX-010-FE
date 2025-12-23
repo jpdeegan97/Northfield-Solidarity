@@ -1,0 +1,194 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the frontend (FE) / operator UI specification for the Market Integration Layer (MUX).
+MUX is the boundary system that captures and normalizes external truth.
+The operator UI must prioritize:
+connector health and isolation
+ingestion visibility (webhooks/polling/batch)
+integrity failures and quarantine workflows
+replay and backfill controls
+traceability for downstream consumers
+This is a canonical UI and interaction spec, independent of any UI framework.
+2. FE Design Principles
+Connector Isolation Is Visible
+Each connector has its own status and backlog
+Truth Is Immutable
+Operators may not edit raw capture or canonical artifacts
+Failures Are First-Class
+Signature failures, schema drift, and publish failures must be surfaced
+Replays Are Governed
+Replay/backfill actions require identity, reason, and governance ref where required
+Evidence & Provenance Everywhere
+Show source, ids, hashes, and capture lineage
+3. User Personas
+Integration Operator — manage connectors and ingestion
+Reliability / Ops — monitor platform stability and outages
+Data Steward — resolve mapping drift and quarantine review
+Auditor — inspect provenance and control actions
+4. Canonical Screens (MVP)
+4.1 Connector Dashboard
+Goal: Monitor and manage connector fleet.
+Core Elements:
+Connector cards list:connector_idsource_systemingestion_methodstate (enabled/degraded/disabled)last_successerror_ratebacklog (lag)rate limit hits
+Key Actions (Governed as configured):
+Enable / Disable connector
+Pause / Resume connector
+Trigger credential rotation workflow
+4.2 Connector Detail
+Goal: Deep visibility into a single connector.
+Sections:
+Config summary (version, scopes, endpoints)
+Health and metrics
+Recent ingestion events
+Error timeline
+Rate limit statistics
+Actions:
+Set rate limit overrides
+Enter Safe Mode for this connector
+4.3 Ingestion Timeline
+Goal: Inspect ingestion flow across connectors.
+Views:
+Timeline of captures
+Filters:source_systemartifact_typeoutcome (accepted/rejected/quarantined)time range
+Drilldown opens Raw Capture Detail.
+4.4 Raw Capture Detail
+Goal: Inspect a raw inbound payload (redacted) and its validation results.
+Sections:
+capture_id
+received_at
+signature_valid result
+integrity_hash
+redaction markers
+linked canonical artifacts (0..n)
+Raw payload is viewable only with strict RBAC.
+4.5 Canonical Artifact Explorer
+Goal: Search and inspect canonical artifacts.
+Filters:
+artifact_type
+source_system
+external_id
+occurred_at range
+integrity_hash
+Results show:
+artifact_id
+type
+source
+external_id
+trust metadata
+linked raw captures
+Drilldown opens Artifact Detail.
+4.6 Artifact Detail (Provenance View)
+Goal: Show full lineage for a canonical artifact.
+Sections:
+canonical artifact fields
+typed payload view (normalized)
+provenance chain:raw capture(s)dedupe refsdecision artifacts
+downstream publication status (topics emitted)
+4.7 Quarantine Inbox
+Goal: Operational queue for suspicious or blocked inputs.
+Queues:
+invalid signature
+schema unknown
+integrity mismatch
+publish failures
+Actions:
+mark reviewed
+reprocess with updated ruleset
+suppress (governed)
+4.8 Replay & Backfill Console (Governed)
+Goal: Trigger and monitor replay/backfill jobs.
+Job Types:
+replay by:connectorartifact typetime windowexternal_id(s)
+backfill by time window
+reprocess raw capture with new ruleset
+Required fields:
+requester identity
+reason
+governance reference (if required)
+Shows:
+job status
+progress
+emitted counts
+failures
+4.9 Publication Status Panel
+Goal: Ensure Kafka publishing is healthy.
+Shows:
+per-topic publish rate
+publish failure count
+retry queue depth
+Drilldown:
+failed publish attempts with artifact_id
+4.10 Platform State Monitor
+Goal: View platform state artifacts (outages/policy changes).
+list platform_state artifacts
+filter by source_system
+link to connector detail
+5. Component Inventory (Suggested)
+ConnectorCard
+ConnectorStateBadge
+ConnectorMetricsMiniPanel
+IngestionTimelineTable
+RawCaptureCard
+CanonicalArtifactTable
+ArtifactProvenanceGraphPanel
+DecisionArtifactList
+QuarantineQueue
+ReplayJobWizard
+ReplayJobTable
+PublishHealthPanel
+GovernedActionModal (confirm + reason + governance ref)
+6. Data Requirements (API Needs)
+6.1 Connector Ops
+list connectors + status
+get connector detail + config versions
+set connector state (governed)
+6.2 Capture & Artifact Query
+list raw captures (filtered)
+get raw capture detail
+list artifacts (filtered)
+get artifact detail + lineage
+6.3 Quarantine Ops
+list quarantine items
+mark reviewed
+reprocess item with ruleset
+6.4 Replay/Backfill
+create replay job (governed)
+list jobs
+get job detail/status
+6.5 Publication Health
+topic health summary
+failed publish attempt list
+7. Non-Functional Requirements
+Security: strict RBAC for raw payload visibility
+Auditability: all operator actions logged with reason
+Performance: fast filtering over artifacts
+Safety: replay/backfill is governed and rate-limited
+8. Document Position in MUX Corpus
+This FE document is informed by:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-007 — DATAMODEL
+It complements:
+NS-MUX-011 — APIMAP
+NS-MUX-012 — STATE
+9. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Operator UI Spec
+
+Parent / HoldCo Manager
+Status: Draft

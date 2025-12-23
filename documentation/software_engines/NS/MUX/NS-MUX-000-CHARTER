@@ -1,0 +1,123 @@
+NSDC Engine Charter — MUX (Market Integration Layer)
+1. Engine Identity
+Engine Name: Market Integration Layer
+Acronym: MUX
+Engine Type: Integration / Connectivity
+2. Mission Statement (One Sentence)
+This engine exists to provide seamless, unified access and connectivity between NSDC engines and external marketplaces, APIs, and platforms, enabling standardized data exchange, order execution, and market intelligence collection.
+3. Core Responsibilities (Allowed Actions)
+  Connect to multiple marketplaces, APIs, and external platforms
+  Standardize and normalize inbound and outbound data
+  Serve as a bridge between execution engines (DAT), intelligence engines (PIE), and content engines (CDE)
+  Handle authentication, API limits, throttling, and error management
+  Log all integration events for audit and troubleshooting
+  Provide a unified interface for other NSDC engines to interact with external markets
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Make decisions on trades, capital allocation, or arbitrage (DAT)
+  Generate product intelligence (PIE)
+  Govern compliance or risk policies (GGP)
+  Publish content or manage engagement (CDE)
+  Perform financial reconciliation (FLO)
+MUX only facilitates connectivity and integration.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Integration configurations
+Admin / GGP
+API credentials, endpoints, rate limits
+☑
+External marketplace data
+Market APIs
+Pricing, inventory, trends
+☑
+Execution requests
+DAT
+Orders to be placed or updated
+☑
+Content distribution requests
+CDE
+Content deployment to platforms
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Market data feeds
+PIE, DAT, CDE
+Standardized external data for intelligence and execution
+Continuous / real-time
+Execution confirmations
+DAT
+Order success/failure, status updates
+Event-driven
+Content deployment feedback
+CDE
+Publication confirmation and errors
+Event-driven
+Integration logs
+Admin / GGP
+Full audit of API interactions and events
+Continuous
+7. Authority & Decision Rights
+MUX May Decide Autonomously:
+  Retry failed API calls
+  Normalize data formats for internal engine consumption
+  Throttle requests to comply with rate limits
+MUX Must Not Decide:
+  Arbitrage or trade strategies
+  Governance or risk policies
+  Content or market strategy decisions
+MUX is purely a connectivity and translation layer.
+8. Governance & Constraints
+  All external interactions must comply with GGP policies
+  Rate limiting, authentication, and security must be enforced
+  Logging must be maintained for all external interactions
+  Data integrity checks must be performed before feeding into NSDC engines
+9. Failure Modes & Blast Radius
+Expected Failures:
+  API downtime or throttling
+  Data normalization errors
+  Authentication or credential errors
+Worst-Case Failure:
+  Execution failures due to connectivity issues
+  Incomplete or corrupted data feeds
+Blast Radius:
+  Downstream engines like DAT, PIE, and CDE may receive incomplete or delayed data
+  Does not directly impact financial correctness (FLO) or governance (GGP)
+Containment strategy:
+  Retry mechanisms and backoff strategies
+  Fallback data pipelines
+  Alerting and monitoring systems
+10. Time Horizon & Optimization Target
+  Optimizes for: Reliable, real-time integration and connectivity
+  Time Horizon: Real-time for execution and content, near real-time for intelligence collection
+11. Interfaces & Shared Primitives
+  API credentials and endpoints
+  Market identifiers and product IDs (PIE)
+  Execution objects and order schemas (DAT)
+  Content objects and channel IDs (CDE)
+  Integration event logs for audit (GGP)
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Integration with 2–3 marketplaces
+  Data normalization and standardization
+  Execution and content deployment handling
+  Logging and monitoring of API interactions
+MVP Excludes:
+  Predictive API failure handling beyond retries
+  Full marketplace coverage beyond MVP targets
+  Governance decision-making or capital allocation
+13. Evolution Path (Conceptual Only)
+  Phase 1: Basic connectivity and data normalization
+  Phase 2: Multi-market scaling with automated error recovery
+  Phase 3: Full integration across all NSDC engines with predictive throttling and optimization
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

@@ -1,0 +1,239 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the state model and state management semantics for the Financial Ledger Orchestrator (FLO).
+Because FLO is a financial system of record, state is treated as:
+derived from immutable ledger truth
+explicit and explainable
+never silently mutated
+This document formalizes:
+Authoritative vs derived state
+State machines for budgets, allocations, and reconciliation
+Operational control states
+Consistency and replay guarantees
+2. State Categories
+FLO maintains three categories of state:
+Authoritative Financial StateImmutable ledger and transaction records
+Derived Financial StateBudget burn, balances, reconciliation outcomes
+Operational Control StateIngestion, reconciliation, and system safety controls
+Only the first category is source-of-truth.
+3. Authoritative State (Immutable)
+3.1 Ledger State
+Ledger entries and transactions:
+Are append-only
+Never change state once written
+Represent final financial truth
+There is no mutable state machine for ledger entries.
+3.2 Decision Artifacts
+Classification, admission, and enforcement decisions:
+Are immutable
+Bound to ruleset versions
+Referenced for audit and replay
+4. Derived State Machines
+Derived state is computed from authoritative truth and may be recomputed.
+4.1 Budget State Machine
+States:
+ok
+near_limit
+exhausted
+Transitions:
+
+
+
+From
+
+To
+
+Trigger
+
+
+ok
+
+near_limit
+
+Spend crosses warning threshold
+
+
+near_limit
+
+exhausted
+
+Spend exceeds cap
+
+
+exhausted
+
+exhausted
+
+Further spend
+Rules:
+Transitions are monotonic per budget version
+State is derived, not stored authoritatively
+4.2 Allocation State Machine
+States:
+ok
+exceeded
+Transitions:
+
+
+
+From
+
+To
+
+Trigger
+
+
+ok
+
+exceeded
+
+Allocation cap exceeded
+Allocations reset only via new allocation version.
+4.3 Reconciliation State Machine
+Reconciliation operates per ledger entry or transaction.
+States:
+pending
+matched
+missing
+excess
+disputed
+Transitions:
+
+
+
+From
+
+To
+
+Trigger
+
+
+pending
+
+matched
+
+Successful match
+
+
+pending
+
+missing
+
+Statement exists, ledger missing
+
+
+pending
+
+excess
+
+Ledger exists, statement missing
+
+
+missing
+
+disputed
+
+Operator marks disputed
+
+
+excess
+
+disputed
+
+Operator marks disputed
+Rules:
+Reconciliation outcomes never mutate ledger truth
+5. Operational Control State
+5.1 Ingestion State
+Controls whether new financial data may be ingested.
+States:
+enabled
+paused
+Pausing ingestion:
+Stops new events
+Does not affect existing ledger truth
+5.2 Reconciliation Engine State
+States:
+running
+paused
+Used during:
+External system outages
+Large backfills
+5.3 Manual Adjustment Gate
+Controls whether governed manual adjustments are allowed.
+States:
+open
+closed
+Closure requires governance approval.
+6. Cross-Entity State Relationships
+Ledger truth → drives budget and allocation state
+Ledger + statements → drive reconciliation state
+Governance decisions → gate operational control states
+No derived state feeds back into ledger mutation.
+7. Versioned State Semantics
+Budget and allocation state is scoped to a specific version
+New budget versions reset state evaluation
+Historical state remains reconstructible
+8. Consistency Model
+FLO operates under:
+Strong consistency for ledger writes
+Eventual consistency for derived read models
+Ordering guarantees:
+Ledger entries ordered by write time
+Derived states recomputed deterministically
+9. Late-Arriving Data Handling
+9.1 Late Financial Events
+Rules:
+Late events create new ledger entries
+Budget impact is evaluated forward
+9.2 Late Statements
+Rules:
+Reconciliation state updated
+No mutation of ledger entries
+10. Replay & Recovery
+Replay scenarios:
+Rebuild derived state from ledger
+Re-run reconciliation with new rulesets
+Audit replay using historical ruleset versions
+All replay paths preserve original ledger truth.
+11. State Change Events
+Derived state changes emit events:
+flo.budget.state_changed
+flo.allocation.state_changed
+flo.reconciliation.state_changed
+flo.ingestion.state_changed
+Events include:
+correlation_id
+source_state
+target_state
+timestamp
+12. Document Position in FLO Corpus
+This state document builds upon:
+NS-FLO-004 — LIFECYCLE
+NS-FLO-005 — DECISION
+NS-FLO-006 — VERSION
+NS-FLO-011 — APIMAP
+It informs:
+NS-FLO-013 — RUNBOOK
+NS-FLO-014 — DATADEF
+13. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO State Model
+
+Parent / HoldCo Manager
+Status: Draft

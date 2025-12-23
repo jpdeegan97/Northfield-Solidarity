@@ -1,0 +1,138 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the state model and state management semantics for the Simulation & Scenario Engine (SIM).
+SIM state is designed to:
+preserve immutable scenario results
+expose operational control state explicitly
+support deterministic replay and re-execution
+avoid hidden mutations
+SIM distinguishes clearly between:
+authoritative run artifacts (immutable)
+operational job and control state (mutable, audited)
+2. State Categories
+SIM maintains three categories of state:
+Scenario Definition State (mostly immutable)
+Scenario Run State (immutable result artifacts, with terminal status)
+Operational Job State (mutable, audited)
+3. Scenario Definition State
+3.1 Scenario Immutability
+Scenario definitions become immutable once a run is executed.
+Allowed after first execution:
+add metadata tags
+add governance references
+Not allowed:
+changing baseline assumptions
+changing constraint sets
+Changes require a new scenario version.
+3.2 Scenario States
+SIM treats scenario definitions as:
+draft
+sealed
+A scenario becomes sealed when:
+first run is queued
+Sealed scenarios cannot be structurally edited.
+4. Scenario Run State Machine
+Scenario runs are immutable artifacts but have explicit lifecycle statuses.
+4.1 Run States
+queued
+running
+completed
+failed
+cancelled
+4.2 Run Transitions
+From
+To
+Trigger
+queued
+running
+worker claims run
+running
+completed
+successful execution
+running
+failed
+runtime error or invalid model
+queued
+cancelled
+operator cancels
+running
+cancelled
+operator cancels
+Terminal states:
+completed
+failed
+cancelled
+5. Artifact State Semantics
+Artifacts produced by runs are immutable:
+input snapshots
+outcome series
+uncertainty artifacts
+sensitivity artifacts
+decision artifacts
+Artifacts are either:
+absent (not produced yet)
+present (persisted)
+They are not updated in-place.
+6. Replay & Re-Execution Job State
+SIM operational jobs are modeled explicitly.
+6.1 Job Types
+run
+replay
+reexecute
+compare
+export
+6.2 Job States
+queued
+running
+completed
+failed
+cancelled
+Jobs are idempotent and auditable.
+7. Governed Control State
+Certain actions require governance context:
+re-execution under new models
+export of audit packs
+Governed actions must include:
+actor_id
+reason
+governance_ref (when required)
+8. Consistency Model
+Strong consistency for scenario definitions, snapshots, and run records
+Eventual consistency for derived views and comparison reports
+At-least-once delivery if publishing to Kafka
+9. Late Input Handling
+If an upstream input changes (e.g., SIG updates aggregates):
+existing snapshots remain unchanged
+new runs must reference new versions
+SIM never “refreshes” a historical run.
+10. Failure & Recovery Semantics
+Failures are handled by:
+preserving failed run artifacts
+recording failure decisions
+allowing retry as a new run or job
+Recovery never mutates historical results.
+11. State Change Events
+SIM may emit operational state events:
+sim.job.state_changed
+sim.run.state_changed
+sim.export.completed
+All include correlation_id and actor_id when applicable.
+12. Document Position in SIM Corpus
+This state document builds upon:
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+NS-SIM-006 — VERSION
+NS-SIM-011 — APIMAP
+It informs:
+NS-SIM-013 — RUNBOOK
+NS-SIM-014 — DATADEF
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM State Model
+Parent / HoldCo Manager
+Status: Draft

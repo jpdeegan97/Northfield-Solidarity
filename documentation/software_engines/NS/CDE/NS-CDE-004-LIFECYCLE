@@ -1,0 +1,131 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the end-to-end lifecycle of content distribution within the Content Distribution Engine (CDE).
+It describes how content moves from:
+upstream surety and approval
+into executable distribution intents
+through channel execution
+into proof, feedback, and audit artifacts
+The lifecycle is designed to be governed, deterministic, observable, and replayable.
+2. Lifecycle Design Principles
+No Distribution Without Approval
+Intent Before Execution
+Execution Is Idempotent
+Failures Are First-Class Outcomes
+All State Transitions Are Recorded
+3. High-Level Lifecycle Phases
+Content Availability
+Distribution Plan Creation
+Governance Review & Approval
+Intent Materialization
+Execution Attempt(s)
+Delivery Proof Capture
+Feedback Ingestion
+Audit & Replay
+4. Phase 1 — Content Availability
+Trigger:
+PIE or DRE produces a content artifact
+External content is registered
+CDE Actions:
+validate content reference
+store metadata pointer
+No distribution occurs at this phase.
+5. Phase 2 — Distribution Plan Creation
+Trigger:
+Operator or upstream engine proposes distribution
+Artifacts Created:
+Distribution Plan (immutable draft)
+Checks:
+valid content references
+valid channels and destinations
+scheduling parameters
+6. Phase 3 — Governance Review & Approval
+Trigger:
+Plan submitted for approval
+Governance (GGP):
+validate authority and scope
+enforce policies (timing, content class, channel)
+Outcomes:
+approved
+rejected
+returned for modification
+Only approved plans advance.
+7. Phase 4 — Intent Materialization
+Trigger:
+approved plan reaches execution time
+Artifacts Created:
+Distribution Intent
+Actions:
+expand plan into per-destination intents
+bind actor and context
+Intents are immutable.
+8. Phase 5 — Execution Attempts
+Trigger:
+intent scheduled for execution
+Actions:
+dispatcher creates execution attempt
+call MUX adapter
+Attempt States:
+pending
+running
+success
+failed
+retried
+Retries respect idempotency.
+9. Phase 6 — Delivery Proof Capture
+Trigger:
+successful execution
+Artifacts:
+delivery proof
+Proofs include:
+external IDs
+URLs
+receipts
+Proofs are immutable.
+10. Phase 7 — Feedback Ingestion
+Trigger:
+platform emits performance or status data
+Actions:
+normalize feedback
+persist signal
+forward to SIG
+Feedback does not mutate proofs.
+11. Phase 8 — Audit & Replay
+Capabilities:
+reconstruct who approved what
+replay execution attempts
+verify idempotency and outcomes
+Replay does not alter historical state.
+12. Failure & Exception Paths
+Governance Failure
+plan blocked
+no intents created
+Execution Failure
+attempt marked failed
+retry scheduled or escalated
+Channel Failure
+adapter error normalized
+surfaced to operator
+13. Lifecycle Invariants
+Plans are immutable after approval
+Intents cannot be edited
+Attempts are append-only
+Proofs cannot be altered
+14. Document Position in CDE Corpus
+This lifecycle document builds upon:
+NS-CDE-002 — TAXONOMY
+NS-CDE-003 — ARCHITECTURE
+It informs:
+NS-CDE-005 — DECISION
+NS-CDE-008 — EEE
+NS-CDE-013 — RUNBOOK
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Lifecycle Definition
+Parent / HoldCo Manager
+Status: Draft

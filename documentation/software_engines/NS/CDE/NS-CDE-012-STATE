@@ -1,0 +1,185 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the state model and state transition semantics for the Content Distribution Engine (CDE).
+CDE state management is designed to:
+  keep plan intent distinct from execution reality
+  enforce governance gating as a hard precondition
+  make retries, backoff, and DLQ behavior explicit
+  preserve immutable proofs and audit trails
+2. State Design Principles
+ Plan–Intent–Attempt Separation — different objects, different states
+ Approval Is a Gate — unapproved plans cannot generate intents
+ Idempotent Execution — attempts are uniquely anchored and safe to rerun
+ Proof Defines Success — success implies a valid proof artifact
+ Append-Only History — state transitions are recorded as events
+3. CDE State Domains
+CDE maintains five primary state domains:
+ Content Artifact State
+ Distribution Plan State
+ Distribution Intent State
+ Execution Attempt State
+ Operational Queue State (DLQ / incidents)
+4. Content Artifact State
+Content artifacts are references; they are not “executed”.
+States:
+  registered
+  deprecated (optional)
+Transitions:
+From
+To
+Trigger
+registered
+deprecated
+upstream deprecates content
+5. Distribution Plan State
+Plans are the governed intent.
+States:
+  draft
+  submitted
+  approved
+  rejected
+  archived
+  cancelled (scheduled plans only)
+Transitions:
+From
+To
+Trigger
+draft
+submitted
+submit for approval
+submitted
+approved
+governance approval
+submitted
+rejected
+governance rejection
+approved
+archived
+retired after completion
+approved
+cancelled
+operator cancel before execution
+rejected
+draft
+operator revises (new version)
+Invariants:
+  approved plans are immutable
+  revisions require a new plan_version
+6. Distribution Intent State
+Intents are immutable anchors created from approved plans.
+States:
+  created
+  expanded (attempts created)
+  completed (all attempts terminal)
+Transitions:
+From
+To
+Trigger
+created
+expanded
+fan-out attempts created
+expanded
+completed
+all attempts terminal
+7. Execution Attempt State
+Attempts represent delivery attempts to a specific destination.
+States:
+  pending
+  running
+  succeeded
+  failed_transient
+  failed_permanent
+  dlq (exhausted retries)
+  cancelled (optional)
+Transitions:
+From
+To
+Trigger
+pending
+running
+dispatcher claims attempt
+running
+succeeded
+adapter success + proof accepted
+running
+failed_transient
+transient error
+running
+failed_permanent
+permanent error
+failed_transient
+pending
+retry scheduled
+failed_transient
+dlq
+retries exhausted
+pending
+cancelled
+plan cancelled
+Invariant:
+  succeeded requires at least one valid delivery_proof
+8. Delivery Proof State
+Proofs are immutable and do not transition.
+Attributes define proof sufficiency:
+  accepted
+  insufficient (requires reconciliation)
+Proof sufficiency is determined by a ruleset.
+9. Feedback State
+Feedback signals are append-only observations.
+States:
+  ingested
+  classified
+  forwarded (to SIG)
+Transitions are logical (often tracked in processing metadata).
+10. DLQ / Failure Queue State
+DLQ items track attempts requiring intervention.
+States:
+  open
+  acknowledged
+  resolved
+  dismissed
+Transitions:
+From
+To
+Trigger
+open
+acknowledged
+operator takes ownership
+acknowledged
+resolved
+action taken (rerun/reconcile)
+acknowledged
+dismissed
+non-actionable
+11. Consistency Model
+  Plans and approvals: strong consistency
+  Attempt execution status: strong consistency
+  Projections/dashboards: eventual consistency
+12. State Change Events
+CDE emits explicit events for each transition:
+  cde.plan.submitted
+  cde.plan.approved
+  cde.intent.created
+  cde.attempt.claimed
+  cde.attempt.succeeded
+  cde.attempt.failed
+  cde.attempt.dlq
+  cde.feedback.forwarded
+13. Document Position in CDE Corpus
+This state document builds upon:
+  NS-CDE-004 — LIFECYCLE
+  NS-CDE-005 — DECISION
+  NS-CDE-011 — APIMAP
+It informs:
+  NS-CDE-013 — RUNBOOK
+  NS-CDE-014 — DATADEF
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE State Model
+Parent / HoldCo Manager
+Status: Draft

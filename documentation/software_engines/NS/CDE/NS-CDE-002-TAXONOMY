@@ -1,0 +1,444 @@
+NS-CDE-002 — TAXONOMY
+
+0. Overview
+
+This document defines the canonical taxonomy for CDE (Content Distribution Engine). The purpose is to standardize language for content packaging, distribution targets, scheduling, delivery events, and measurement—so that all engines (SIG/PIE/DRE/MUX/GGP/LUM) can integrate with CDE consistently.
+
+1. Core Object Taxonomy
+
+1.1 Content Object
+
+A Content Object is the atomic unit of distributable material.
+
+Common subclasses
+
+Post (short-form social)
+
+Article (long-form web/blog)
+
+Email (newsletter or transactional)
+
+Asset (image/video/pdf)
+
+Listing (marketplace listing / product page)
+
+Announcement (press/update)
+
+Core properties
+
+content_id (stable)
+
+content_type (enum)
+
+title / caption
+
+body (rich text)
+
+assets[] (references)
+
+language / locale
+
+tags[]
+
+source_engine (PIE/SIG/DRE/etc.)
+
+created_at / updated_at
+
+1.2 Content Variant
+
+A Content Variant is a transformation of a Content Object tailored for a channel.
+
+Examples
+
+Same product announcement as: LinkedIn post, X thread, email snippet, blog intro.
+
+Core properties
+
+variant_id
+
+parent_content_id
+
+channel_type
+
+format_profile (character limits, media constraints)
+
+rendered_payload (the final channel-specific payload)
+
+1.3 Distribution Channel
+
+A Distribution Channel is a category of destinations with shared constraints.
+
+Examples
+
+Social: X, LinkedIn, Instagram, TikTok
+
+Email: Mailchimp, SendGrid, Gmail (internal)
+
+Web: CMS (WordPress/Webflow), static site deploy
+
+Marketplace: Amazon/eBay/Etsy/Shopify
+
+Messaging: Slack/Google Chat/Discord
+
+Core properties
+
+channel_type (enum)
+
+provider
+
+auth_profile
+
+rate_limits
+
+content_constraints
+
+1.4 Destination
+
+A Destination is a concrete endpoint within a channel.
+
+Examples
+
+A specific LinkedIn company page
+
+A specific email list
+
+A specific site/blog section
+
+A specific marketplace storefront
+
+Core properties
+
+destination_id
+
+channel_type
+
+provider_account_id
+
+destination_locator (page_id, list_id, site_id, storefront_id)
+
+default_policy_set_id
+
+1.5 Audience
+
+An Audience defines who receives or can see distributed content.
+
+Audience forms
+
+Explicit list (email list, user IDs)
+
+Rule-based segment (attributes/behavior)
+
+Public (social/web)
+
+Core properties
+
+audience_id
+
+audience_type (list/segment/public)
+
+definition (rules or references)
+
+1.6 Campaign
+
+A Campaign is an organizing container for related content and deliveries.
+
+Examples
+
+Product launch campaign
+
+Weekly newsletter cycle
+
+Seasonal promo campaign
+
+Core properties
+
+campaign_id
+
+objective (awareness/conversion/retention)
+
+budget (optional)
+
+start_at / end_at
+
+kpis[]
+
+1.7 Distribution Plan
+
+A Distribution Plan maps content (and variants) to destinations, audiences, and schedules.
+
+Core properties
+
+plan_id
+
+campaign_id (optional)
+
+content_id / variant_ids[]
+
+targets[] (destinations + audiences)
+
+schedule
+
+policy_requirements
+
+1.8 Schedule
+
+A Schedule defines timing and recurrence.
+
+Schedule types
+
+One-shot: publish at timestamp
+
+Window: publish within time window
+
+Recurring: cron-like recurrence
+
+Triggered: publish when an event occurs
+
+Core properties
+
+schedule_type
+
+run_at / window_start / window_end
+
+rrule / cron expression (if recurring)
+
+trigger_event_type (if triggered)
+
+1.9 Policy Set (Governance)
+
+A Policy Set is a collection of governance constraints required before distribution.
+
+Examples
+
+Approvals required for public posts
+
+Brand compliance checks
+
+Restricted keywords / regulated claims
+
+Materiality thresholds tied to spend/boosting
+
+Core properties
+
+policy_set_id
+
+constraints[]
+
+required_approvals[]
+
+evidence_requirements[]
+
+GGP remains the authority; CDE only references and enforces the required gates.
+
+2. Execution & Delivery Taxonomy
+
+2.1 Distribution Job
+
+A Distribution Job is the runnable unit created from a plan at execution time.
+
+Core properties
+
+job_id
+
+plan_id
+
+destination_id
+
+variant_id
+
+state
+
+attempt_count
+
+idempotency_key
+
+2.2 Delivery Attempt
+
+A Delivery Attempt is one try to publish/send to a destination.
+
+Core properties
+
+attempt_id
+
+job_id
+
+provider_request_id
+
+status_code / error_code
+
+started_at / ended_at
+
+2.3 Delivery Receipt
+
+A Delivery Receipt is provider-confirmed delivery metadata.
+
+Examples
+
+Post URL / message ID / email campaign ID
+
+Core properties
+
+receipt_id
+
+job_id
+
+provider_object_id
+
+provider_permalink
+
+delivered_at
+
+2.4 States
+
+Plan state
+
+draft → ready → scheduled → executing → completed | cancelled
+
+Job state
+
+queued → running → delivered | failed | blocked
+
+Block reasons (examples)
+
+awaiting_approval
+
+missing_evidence
+
+policy_violation
+
+quota_exceeded
+
+3. Events & Signals
+
+3.1 CDE Event
+
+Canonical event types emitted by CDE.
+
+Planning events
+
+plan.created, plan.updated, plan.scheduled, plan.cancelled
+
+Governance events
+
+job.blocked.awaiting_approval
+
+job.blocked.policy_violation
+
+job.unblocked
+
+Delivery events
+
+job.queued, job.started, job.delivered, job.failed
+
+attempt.started, attempt.failed, attempt.succeeded
+
+Provider callback events
+
+provider.webhook.received
+
+provider.delivery.confirmed
+
+Event envelope (minimum)
+
+event_id, event_type, occurred_at
+
+campaign_id, plan_id, job_id
+
+content_id, variant_id
+
+destination_id, channel_type, provider
+
+entity_id (if tied to IDN entity)
+
+decision_id (if gated by GGP)
+
+trace_id / workflow_id (for LUM correlation)
+
+4. Measurement Taxonomy
+
+4.1 Metrics
+
+Delivery metrics
+
+delivered_count, failed_count, retry_count
+
+time_to_deliver
+
+Engagement metrics (channel dependent)
+
+impressions, reach, clicks, CTR
+
+likes/reactions, comments, shares
+
+opens, unsubscribes (email)
+
+Conversion metrics
+
+conversions, conversion_rate
+
+attributed_revenue (if available)
+
+4.2 Attribution
+
+Attribution models supported (select per campaign)
+
+last-touch
+
+first-touch
+
+multi-touch (weighted)
+
+none/unknown
+
+5. Integration Taxonomy
+
+5.1 Provider Connector
+
+A Provider Connector is an adapter implementing a channel provider.
+
+Common connector capabilities
+
+auth/refresh
+
+create/update/publish
+
+delete/rollback (where allowed)
+
+webhook verification
+
+rate-limit handling
+
+5.2 External Integration ID
+
+Every external provider binding must have a stable Integration ID.
+
+Examples
+
+EXT-LINKEDIN-PUBLISH
+
+EXT-X-PUBLISH
+
+EXT-GOOGLE-SEARCHCONSOLE
+
+6. Security & Compliance Terms
+
+Redaction: removal/masking of sensitive fields before storage/logging.
+
+Least privilege: minimal scopes required per destination/provider.
+
+Evidence: artifacts required by GGP for governed distribution (approvals, brand checks).
+
+Idempotency: guarantee a publish action executes once even under retries.
+
+7. Canonical Enums (Starter)
+
+content_type: post | article | email | asset | listing | announcement
+
+channel_type: social | email | web | marketplace | messaging
+
+schedule_type: one_shot | window | recurring | triggered
+
+job_state: queued | running | delivered | failed | blocked
+
+block_reason: awaiting_approval | missing_evidence | policy_violation | quota_exceeded | auth_failed
+

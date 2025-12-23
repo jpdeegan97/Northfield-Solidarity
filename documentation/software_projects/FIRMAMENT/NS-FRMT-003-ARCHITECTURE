@@ -1,0 +1,317 @@
+NS-FIRMAMENT-003 — ARCHITECTURE
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Architectural Intent
+
+Firmament is the visual cognition plane: it renders the NS business graph into a real-time, zoomable 3D Earth with layered overlays and drilldowns that route into governed action.
+
+Design goals:
+
+Render-first: fast globe + overlays; progressive drilldown
+
+Projection-first: Firmament stores view models; engines remain truth
+
+Realtime-aware: events/signals stream; UI degrades gracefully
+
+Governed execution: actions are created/approved via GGE + owned via CWP
+
+2. System Boundary
+
+Firmament includes:
+
+3D Globe UI (web client)
+
+Firmament API + Realtime gateway
+
+Projection store (render-ready geo + sector models)
+
+Layer registry (definition + filter schema + style rules)
+
+Recommendation builder (sector briefs + action lists)
+
+Scenario adaptor (plan slider → SIM requests → scenario outputs)
+
+Firmament does not replace:
+
+MUX (integration), IDN (entities), FLO (financial truth), CWP (work), GGE (governance), SIG (signals), SIM (simulation)
+
+3. High-Level Component Model
+
+flowchart TB
+  subgraph UI[Client: Firmament Web UI]
+    Globe[3D Globe Renderer\n(CesiumJS recommended)]
+    Layers[Layer Manager\ntoggles + filters + search]
+    Panels[Panels\nEvents | Sector Heatmap | Drilldowns]
+    Slider[Plan Slider\nRisk ↔ Ambition]
+    Cache[Client Cache\ntiles + features]
+  end
+
+  subgraph FIRM[Server: Firmament Services]
+    APIGW[API Gateway\nAuthN/AuthZ + routing]
+    RT[Realtime Gateway\nWS/SSE]
+    REG[Layer Registry\nschemas + style rules]
+    PROJ[Projection Builder\nETL → render models]
+    GEO[Geo Service\ntiling + spatial index]
+    SECTOR[Sector Service\nmetrics + treemap]
+    BRIEF[Brief/Rec Service\nactions + narratives]
+    SCEN[Scenario Adapter\nSIM interface]
+  end
+
+  subgraph DATA[Stores]
+    PDB[(Projection DB\nPostgres + PostGIS)]
+    OBJ[(Object Store\nsnapshots/tiles optional)]
+    BUS[(Event Bus\nKafka optional)]
+    REDIS[(Cache\nRedis optional)]
+  end
+
+  subgraph ENGINES[NS Engines]
+    MUX[MUX Integrations]
+    IDN[IDN Entity Graph]
+    SIG[SIG Signals]
+    FLO[FLO Finance]
+    CWP[CWP Work Plane]
+    GGE[GGE Governance]
+    SIM[SIM Scenarios]
+  end
+
+  Globe <-- tiles/features --> GEO
+  Layers <-- layer defs --> REG
+  Panels <-- drilldowns --> APIGW
+  Slider --> SCEN
+  Cache <---> RT
+
+  APIGW --> REG
+  APIGW --> SECTOR
+  APIGW --> BRIEF
+  APIGW --> GEO
+  RT <--> GEO
+  RT <--> SECTOR
+
+  PROJ --> PDB
+  GEO <--> PDB
+  SECTOR <--> PDB
+
+  PROJ <--> MUX
+  PROJ <--> IDN
+  PROJ <--> FLO
+  PROJ <--> SIG
+
+  BRIEF <--> CWP
+  BRIEF <--> GGE
+  SCEN <--> SIM
+
+  BUS <--> PROJ
+  BUS <--> RT
+  REDIS <--> GEO
+  REDIS <--> SECTOR
+
+4. Data Flow Architecture
+
+4.1 Ingestion → Projection (Build “Render Models”)
+
+Sources (engines/external): IDN, FLO, SIG, CWP, SIM via MUXProcess: Projection Builder normalizes + enriches + geo-tags dataOutput: firmament-native view models stored in Projection DB (PostGIS)
+
+Key pattern: append-only snapshots + current materialized views
+
+snapshots for time playback / audit
+
+materialized “current state” for realtime rendering
+
+4.2 Query → Render
+
+UI requests are optimized around zoom:
+
+GET /layers returns layer registry + filter schemas
+
+GET /geo/tiles/{z}/{x}/{y} returns features for current view
+
+GET /sectors/treemap?metric=... returns heatmap tiles
+
+GET /drilldown/{payload_ref} returns structured panels
+
+WS /realtime pushes deltas for active layers
+
+4.3 Action Routing (Insight → Work → Governance)
+
+Sector briefs and drilldowns emit:
+
+ActionItem → created/updated in CWP
+
+if gated, DecisionPacket → routed into GGE gate workflow
+Firmament stores only the linkage IDs (not authoritative state).
+
+4.4 Scenario Slider (PlanMode)
+
+Slider position:
+
+sent to Scenario Adapter → SIM
+
+returns projected outcomes + altered action ranks
+
+UI rerenders the brief + overlays as plan mode changes
+
+5. Core Services (Responsibilities)
+
+5.1 Layer Registry Service
+
+Stores: layer definitions, filter schemas, legends, style rules
+
+Ensures: every layer has drilldown contracts and “no dead geometry”
+
+5.2 Geo Service (Tiling + Spatial Index)
+
+Provides vector features by viewport/zoom
+
+Supports: clustering, dedup, simplification, LOD
+
+Backed by: PostGIS + optional Redis cache
+
+5.3 Sector Service (Heatmap/Treemap)
+
+Computes sector weights + metrics
+
+Produces treemap tile sets + crosslinks to geo footprints
+
+5.4 Brief/Recommendation Service
+
+Assembles sector operating brief:
+
+what’s good/bad
+
+root causes
+
+actions (immediate + strategic)
+
+governance gates + required approvals
+
+Generates “Decision Packet” objects for GGE
+
+5.5 Scenario Adapter
+
+Standardizes SIM requests:
+
+assumptions based on plan mode
+
+evaluation horizon
+
+constraints from FLO + GGE policy
+
+Returns scenario bundle to the UI
+
+5.6 Projection Builder
+
+Converts engine truths into Firmament render models:
+
+Entities → GeoFeatures
+
+Flows → Paths
+
+Events → Pins + time windows
+
+Signals → overlays + severity
+
+Sector metrics → treemap + choropleths
+
+6. Storage Model
+
+6.1 Projection DB (Postgres + PostGIS)
+
+Stores:
+
+firm_layer_def
+
+firm_feature_current
+
+firm_feature_snapshot
+
+firm_payload (drilldown payload refs)
+
+firm_sector_metric_current
+
+firm_sector_metric_snapshot
+
+6.2 Optional Object Store
+
+precomputed tiles / snapshots for fast cold starts
+
+large geometry sets and historical playback chunks
+
+6.3 Event Bus (Optional, recommended later)
+
+Kafka for high-rate signals and realtime deltas
+
+Not required for v0; can start with polling + WS deltas
+
+7. Security & Governance (Hard Requirements)
+
+AuthN: centralized (NS standard), token-based
+
+AuthZ: layered by:
+
+entity scope (NS vs SL)
+
+layer visibility rules
+
+action permissions (who can create/gate actions)
+
+Audit: every action emission references:
+
+source feature/tile
+
+brief generation inputs
+
+plan mode + scenario id
+
+GGE decision record id (if gated)
+
+8. Realtime Strategy (Pragmatic)
+
+v0: hybrid model
+
+Pull for heavy aggregates (sector treemap refresh every N minutes)
+
+Push for critical deltas (events, alerts, shipment exceptions)
+
+v1+: event-driven
+
+BUS → Projection Builder → Realtime Gateway
+
+UI subscribed by active layers + viewport
+
+9. Failure Modes & Degradation
+
+If realtime is down: UI falls back to polling “current state”
+
+If SIM is down: slider still changes policy weighting, but shows “scenario unavailable”
+
+If a source engine is unavailable: Firmament displays last-known snapshot + staleness badge
+
+If projection build fails: layer is auto-disabled with explainable error
+
+10. Recommended Technology Choices (Aligned to your stack)
+
+Frontend: React + Vite
+
+3D Earth: CesiumJS (preferred for Earth LOD + imagery + camera controls)
+
+Backend: Java Spring (fits your environment) or Node (if desired); keep APIs stable
+
+DB: Postgres + PostGIS for spatial + snapshots
+
+Cache: Redis optional
+
+Bus: Kafka optional (phase-in)
+
+11. MVP Deployment Topology
+
+1× Firmament API (stateless, scale out)
+
+1× Realtime Gateway (stateful connections, scale out with sticky sessions if needed)
+
+1× Projection Builder worker (scale by partitions)
+
+1× Postgres/PostGIS (HA later)
+
+Optional Redis
+

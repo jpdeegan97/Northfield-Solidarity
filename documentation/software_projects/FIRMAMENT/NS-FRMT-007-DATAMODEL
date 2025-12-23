@@ -1,0 +1,488 @@
+NS-FIRMAMENT-007 — DATAMODEL
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the Firmament data model that enables:
+
+fast 3D globe rendering (zoomable, tile-friendly),
+
+layer toggles + filtering,
+
+sector heatmap/treemap generation,
+
+drilldowns (briefs, entity/event/flow cards),
+
+action routing into CWP, and gating via GGE,
+
+historical snapshots + audit-friendly traceability.
+
+Key constraint: Firmament stores render-ready projections and linkage references. Engines remain authoritative for their domains.
+
+2. Data Model Layers
+
+Firmament uses four model layers:
+
+Registry Layer — defines what exists (layers, filters, style rules)
+
+Projection Layer — render-ready geo + sector artifacts (current + snapshots)
+
+Interaction Layer — drilldowns, briefs, action candidates, traces
+
+Integration Link Layer — stable IDs that link to IDN/FLO/SIG/SIM/CWP/GGE records
+
+3. Canonical IDs and References
+
+All objects are scoped by:
+
+tenant_id (NS entity scope: NS, SL, etc.)
+
+environment (dev/staging/prod)
+
+Cross-engine links are stored as typed references:
+
+ref_engine (IDN | FLO | SIG | SIM | CWP | GGE | MUX)
+
+ref_type (Entity | Task | Decision | Metric | Signal | Scenario | Flow | Event)
+
+ref_id (engine-native identifier)
+
+4. Logical Model (Entity Inventory)
+
+4.1 Registry (Definitions)
+
+firm_layer_def — layer metadata, visibility rules, filter schema
+
+firm_layer_style — style rules + legends (versioned)
+
+firm_layer_acl — authorization rules by role/scope
+
+4.2 Projection (Render Models)
+
+firm_feature_current — current features (pins/paths/polygons/heat cells)
+
+firm_feature_snapshot — historical feature snapshots
+
+firm_tile_cache (optional) — precomputed tile payloads for cold-start
+
+4.3 Sector (Heatmap/Treemap)
+
+firm_sector_def — canonical sector list (internal mapping)
+
+firm_sector_metric_current — current sector metrics
+
+firm_sector_metric_snapshot — historical sector metrics
+
+firm_treemap_view_current — treemap layout outputs for current view
+
+4.4 Interaction (Drilldowns, Briefs, Decisions)
+
+firm_payload — drilldown payload documents (structured)
+
+firm_brief — generated briefs (sector/risk/event)
+
+firm_action_candidate — ranked recommended actions
+
+firm_action_link — linkage to CWP tasks + GGE decision packets
+
+firm_decision_trace — complete trace object for audit completeness
+
+4.5 Event + Readiness (Optional v0 tables)
+
+firm_event_projection_current — geo-linked event projection
+
+firm_event_snapshot — history
+
+5. Core Tables (v0)
+
+Notes:
+
+Postgres + PostGIS assumed (geometry types).
+
+JSONB used for flexible schemas and future evolution.
+
+“Current” tables are optimized for UI reads; “Snapshot” tables for history/audit.
+
+5.1 firm_layer_def
+
+Defines a layer and how it behaves.
+
+tenant_id (PK part)
+
+layer_id (PK part)
+
+layer_version (PK part)
+
+name
+
+layer_type (pins|paths|regions|heat|treemap|timeline)
+
+visibility_rules (JSONB) — zoom thresholds, plan-mode visibility, etc.
+
+filters_schema (JSONB) — supported filter fields + types
+
+drilldown_schema (JSONB) — what payload types can be opened
+
+is_active (bool)
+
+created_at, updated_at
+
+5.2 firm_layer_style
+
+tenant_id
+
+layer_id
+
+layer_version
+
+style_version
+
+legend (JSONB)
+
+style_rules (JSONB) — metric → visual encoding
+
+created_at
+
+5.3 firm_feature_current
+
+Current render features for all map layers.
+
+tenant_id (PK part)
+
+feature_id (PK part)
+
+layer_id
+
+layer_version
+
+feature_type (pin|path|polygon|heat_cell|treemap_tile)
+
+geom (PostGIS geometry)
+
+bbox (PostGIS geometry or numeric array)
+
+zoom_min, zoom_max
+
+properties (JSONB) — labels, icons, numeric values
+
+style_hint (JSONB) — precomputed styling hints for fast render
+
+severity (green|watch|atrisk|failing|blocked)
+
+payload_ref_id (FK → firm_payload)
+
+source_refs (JSONB) — list of integration refs used to build it
+
+staleness (JSONB) — source timestamps + freshness
+
+updated_at
+
+Indexes:
+
+GIST on geom
+
+B-tree on (tenant_id, layer_id, layer_version)
+
+B-tree on updated_at
+
+5.4 firm_feature_snapshot
+
+Historical record of features.
+
+same fields as current plus:
+
+snapshot_time (PK part)
+
+change_type (upsert|delete)
+
+5.5 firm_payload
+
+Backs drilldowns; stores structured “detail” documents.
+
+tenant_id (PK part)
+
+payload_ref_id (PK part)
+
+payload_type (entity_card|event_card|flow_card|sector_brief|risk_brief|opportunity_brief)
+
+payload_version
+
+document (JSONB)
+
+source_refs (JSONB)
+
+generated_at
+
+5.6 firm_sector_def
+
+Canonical list of sectors used by treemap/heatmap.
+
+tenant_id (PK part)
+
+sector_id (PK part)
+
+name
+
+taxonomy_path (e.g., "Markets/Equities/Technology")
+
+external_mappings (JSONB) — optional mappings to standards
+
+5.7 firm_sector_metric_current
+
+Stores computed sector metrics and health scores.
+
+tenant_id (PK part)
+
+sector_id (PK part)
+
+metric_id (PK part) — e.g., returns_1d, health_score, margin
+
+metric_value (numeric)
+
+metric_unit (text)
+
+as_of_time
+
+confidence (numeric 0..1)
+
+inputs (JSONB) — KPI inputs, weights, sources
+
+staleness (JSONB)
+
+5.8 firm_sector_metric_snapshot
+
+same fields as current plus snapshot_time
+
+5.9 firm_treemap_view_current
+
+Stores treemap layout so UI doesn’t recompute.
+
+tenant_id (PK part)
+
+treemap_id (PK part)
+
+metric_id (e.g., returns_1d)
+
+layout (JSONB) — rectangles per sector
+
+as_of_time
+
+5.10 firm_brief
+
+Generated briefs for drilldowns (sector/risk/event).
+
+tenant_id (PK part)
+
+brief_id (PK part)
+
+brief_type (sector|risk|event|region)
+
+subject_ref (JSONB) — sector_id or payload_ref_id, etc.
+
+plan_mode (conservative|balanced|aggressive or 0..100)
+
+scenario_ref (JSONB, optional)
+
+brief_document (JSONB)
+
+generated_at
+
+inputs (JSONB) — source refs, KPIs, signals
+
+5.11 firm_action_candidate
+
+Recommended actions produced from a brief.
+
+tenant_id (PK part)
+
+action_id (PK part)
+
+brief_id (FK)
+
+title
+
+description
+
+impact_score (numeric)
+
+urgency_score (numeric)
+
+effort_score (numeric)
+
+risk_score (numeric)
+
+recommended_owner_role (text)
+
+recommended_gate_type (text, optional)
+
+dependencies (JSONB)
+
+status (proposed|approved|inprogress|blocked|done|abandoned)
+
+created_at, updated_at
+
+5.12 firm_action_link
+
+Links actions to CWP + GGE.
+
+tenant_id (PK part)
+
+action_id (PK part)
+
+cwp_task_ref (JSONB, nullable)
+
+gge_decision_ref (JSONB, nullable)
+
+gate_state (draft|submitted|underreview|approved|rejected|expired)
+
+execution_state (not_started|in_progress|blocked|complete)
+
+updated_at
+
+5.13 firm_decision_trace
+
+End-to-end trace record for audit and completeness scoring.
+
+tenant_id (PK part)
+
+trace_id (PK part)
+
+source_feature_id (nullable)
+
+sector_id (nullable)
+
+inputs (JSONB) — signals, KPIs, events, flows
+
+brief_id (nullable)
+
+plan_mode
+
+scenario_ref (JSONB, nullable)
+
+action_ids (JSONB)
+
+cwp_task_refs (JSONB)
+
+gge_decision_refs (JSONB)
+
+outcome_metrics (JSONB)
+
+trace_completeness_score (numeric)
+
+created_at, updated_at
+
+6. Integration Reference (Standard Structure)
+
+Firmament uses a uniform structure for cross-engine links.
+
+{
+  "ref_engine": "IDN",
+  "ref_type": "Entity",
+  "ref_id": "idn_ent_12345",
+  "label": "Supplier: ACME Components",
+  "as_of_time": "2025-12-22T21:35:00Z"
+}
+
+7. Example: Feature → Payload → Brief → Actions
+
+7.1 A GeoFeature pin (current)
+
+{
+  "feature_id": "firm_feat_9f2d",
+  "layer_id": "events",
+  "feature_type": "pin",
+  "properties": {"title": "Site Visit", "time": "2026-01-05"},
+  "payload_ref_id": "firm_payload_ab12",
+  "severity": "watch"
+}
+
+7.2 Drilldown payload
+
+{
+  "payload_ref_id": "firm_payload_ab12",
+  "payload_type": "event_card",
+  "document": {
+    "title": "Site Visit — Newark",
+    "geo": {"lat": 40.7357, "lon": -74.1724},
+    "linked_entities": [{"ref_engine": "IDN", "ref_type": "Entity", "ref_id": "idn_site_77"}],
+    "readiness": "AtRisk",
+    "checklist": ["Confirm access", "Print docs", "Pre-brief"]
+  }
+}
+
+7.3 Brief + action candidates
+
+{
+  "brief_type": "event",
+  "plan_mode": "balanced",
+  "brief_document": {"whats_failing": ["Checklist incomplete"], "root_causes": ["Owner not assigned"]}
+}
+
+8. ER Diagram (Logical)
+
+erDiagram
+  firm_layer_def ||--o{ firm_layer_style : styles
+  firm_layer_def ||--o{ firm_feature_current : renders
+  firm_feature_current }o--|| firm_payload : drilldown
+
+  firm_sector_def ||--o{ firm_sector_metric_current : metrics
+  firm_sector_def ||--o{ firm_sector_metric_snapshot : history
+  firm_sector_def ||--o{ firm_treemap_view_current : treemap
+
+  firm_payload ||--o{ firm_brief : generates
+  firm_brief ||--o{ firm_action_candidate : proposes
+  firm_action_candidate ||--|| firm_action_link : links
+
+  firm_decision_trace }o--o{ firm_action_candidate : tracks
+
+9. Performance and Query Patterns
+
+9.1 Primary UI Queries
+
+layers list: firm_layer_def + firm_layer_style
+
+viewport fetch: spatial query on firm_feature_current.geom
+
+drilldown fetch: firm_payload by payload_ref_id
+
+sector heatmap: firm_sector_metric_current + firm_treemap_view_current
+
+9.2 Partitioning Strategy (When Needed)
+
+partition snapshots by month (snapshot_time)
+
+partition features by tenant + layer
+
+9.3 Caching
+
+tile cache (optional): store encoded tile payloads by (z,x,y,layer,version)
+
+Redis as L2 for hot tiles + hot treemap outputs
+
+10. Data Quality and Staleness
+
+Every projection artifact must include:
+
+source timestamps
+
+freshness budget
+
+staleness indicator
+
+Firmament must never silently display stale data.
+
+11. Definition of Done (Datamodel v0)
+
+Datamodel is “done” when:
+
+layers are registry-defined and versioned,
+
+all globe overlays are backed by firm_feature_current and drilldowns by firm_payload,
+
+sector heatmap is driven by firm_sector_metric_current + treemap view,
+
+action candidates can be linked to CWP + gated via GGE,
+
+and historical snapshots support audit and playback.
+

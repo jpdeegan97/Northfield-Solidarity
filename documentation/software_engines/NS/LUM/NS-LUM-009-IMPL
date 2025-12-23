@@ -1,0 +1,426 @@
+NS-LUM-009 — IMPL (Implementation Guidance)
+
+0. Overview
+
+This document provides implementation guidance for LUM (Luminance Engine) without prescribing a single vendor stack. It defines service boundaries, interfaces, core patterns (schemas, correlation, redaction), and practical implementation steps.
+
+LUM is a platform engine that:
+
+collects and correlates telemetry
+
+drives alerting/incident workflows
+
+supports evidence capture and access logging (under GGP policy)
+
+1. Implementation Goals (Non-Negotiables)
+
+Correlation: every signal must be joinable by workflow_id, trace_id, decision_id, and integration_id where applicable.
+
+Structured logs and events: JSON with schema IDs and versions.
+
+Redaction: secrets/PII never land in LUM unredacted.
+
+Explainability: every alert/incident has “why” and references to signals.
+
+Tiered retention: hot/warm/evidence separation.
+
+Policy interlock: any access to sensitive evidence must be authorized by GGP and identity-validated by IDN.
+
+2. Service Boundaries (Reference)
+
+Implement LUM as a set of composable services.
+
+2.1 Ingest Gateway
+
+Responsibility
+
+accept signals (logs/events/traces/metrics)
+
+authenticate producers
+
+apply backpressure
+
+Patterns
+
+separate endpoints per signal type or content-type
+
+producer auth via mTLS/service auth or signed tokens
+
+2.2 Normalization Service
+
+Responsibility
+
+validate schema and required fields
+
+apply redaction rules
+
+enrich correlation metadata
+
+route to downstream pipelines
+
+Patterns
+
+schema registry lookup
+
+strict “reject or quarantine” for malformed signals
+
+2.3 Schema Registry
+
+Responsibility
+
+store schema definitions + versions
+
+enforce compatibility rules
+
+Patterns
+
+schemas identified by schema_id + semver
+
+compatibility checks on publish
+
+2.4 Query API
+
+Responsibility
+
+query signals by time, service, and correlation IDs
+
+provide prebuilt views (incident timeline, integration health)
+
+Patterns
+
+“find everything about workflow_id X” as a first-class endpoint
+
+2.5 Alert Engine
+
+Responsibility
+
+evaluate conditions (threshold/anomaly/SLO burn/quota)
+
+dedupe, route, escalate
+
+produce AlertInstance + DecisionRecord
+
+2.6 Incident Manager
+
+Responsibility
+
+create/link incidents
+
+maintain timeline
+
+attach runbooks
+
+generate postmortem packet scaffolds
+
+2.7 Evidence Service (Support)
+
+Responsibility
+
+maintain EvidenceBundle metadata
+
+accept artifact references
+
+compute integrity hashes
+
+seal bundles
+
+enforce access logs
+
+Boundary
+
+GGP decides access; Evidence Service enforces and logs.
+
+2.8 UI Surfaces (optional)
+
+dashboards
+
+trace explorer
+
+incident console
+
+evidence viewer
+
+3. Implementation Patterns (Core)
+
+3.1 Correlation propagation
+
+Requirement
+
+propagate correlation context across internal RPC/HTTP calls.
+
+Minimum context header set (example)
+
+x-request-id
+
+x-workflow-id
+
+x-trace-id / traceparent (if W3C)
+
+x-decision-id
+
+x-integration-id
+
+x-entity-id
+
+Rule
+
+create context at edge (ingress/webhook)
+
+never drop context in downstream calls
+
+3.2 Structured logging standard
+
+Log event must include
+
+timestamp
+
+service/component
+
+log level
+
+category
+
+message
+
+correlation object
+
+schema_id + schema_version
+
+Redaction
+
+secrets are removed at producer AND validated at normalization.
+
+3.3 Event emission standard
+
+Events are used to create semantic narratives across engines.
+
+Event envelope
+
+event_id, event_type, occurred_at
+
+source_engine/service
+
+correlation
+
+payload_ref or payload_redacted
+
+3.4 Evidence bundle design
+
+When to open a bundle
+
+governed actions (payments, permission changes, public distribution)
+
+How to attach artifacts
+
+attach references rather than duplicating blobs unless required
+
+store hash/integrity metadata
+
+Sealing
+
+transition ready_to_seal → sealed
+
+record integrity hash + timestamp
+
+3.5 Explainability
+
+Every alert/incident should record:
+
+the rule/policy ID and version
+
+inputs (signals) that triggered it
+
+rationale text (human readable)
+
+3.6 Idempotency + replay
+
+For any ingest endpoint:
+
+accept idempotency key (recommended)
+
+allow safe replay
+
+quarantine duplicates if they indicate upstream bug
+
+3.7 Multi-environment hygiene
+
+separate stores/indices by environment
+
+never mix prod evidence with dev
+
+make environment required field
+
+4. Storage Implementation (Reference Mapping)
+
+4.1 Telemetry stores
+
+logs: searchable store optimized for time-series text/JSON
+
+traces: span store optimized for graphs
+
+metrics: TSDB
+
+4.2 Control-plane stores
+
+schema registry
+
+alert policies
+
+SLO definitions
+
+incidents/postmortems
+
+decision records
+
+4.3 Evidence store
+
+append-only event stream (audit/event records)
+
+object store for artifacts
+
+metadata store for bundles + access logs
+
+5. Interfaces (Implementation Targets)
+
+5.1 Ingest endpoints (examples)
+
+/ingest/logs
+
+/ingest/events
+
+/ingest/traces
+
+/ingest/metrics
+
+5.2 Query endpoints (examples)
+
+/query/by-workflow/{workflow_id}
+
+/query/by-trace/{trace_id}
+
+/query/by-decision/{decision_id}
+
+/query/by-integration/{integration_id}
+
+/incidents/{incident_id}
+
+/alerts/open
+
+/evidence/bundles/{bundle_id}
+
+6. Build Plan (Pragmatic Implementation Sequence)
+
+Phase 1 — MVP Observability Spine
+
+choose correlation header format
+
+implement LUM SDK wrappers (logging + event emitter)
+
+ingest structured logs + events
+
+build correlation query (workflow_id)
+
+create integration health dashboard for:
+
+Coinbase Commerce
+
+Google Maps Platform
+
+Phase 2 — Alerts + Incident Console
+
+implement alert engine (threshold + basic dedupe)
+
+create incident objects and timeline linking
+
+implement runbook registry + attach to incidents
+
+Phase 3 — Traces + SLOs
+
+add OpenTelemetry traces end-to-end
+
+implement SLI/SLO definitions + evaluation
+
+implement burn rate alerts
+
+Phase 4 — Evidence Support
+
+evidence bundle service
+
+artifact hashing + sealing
+
+GGP authorization integration for evidence access
+
+access logs + export controls
+
+7. Testing Strategy
+
+7.1 Schema tests
+
+validate every sample payload against schema
+
+compatibility regression on schema publish
+
+7.2 Correlation tests
+
+integration test: end-to-end workflow preserves workflow_id/trace_id/decision_id
+
+7.3 Alert tests
+
+replay known incident telemetry and verify alerts
+
+ensure dedupe and suppression behavior
+
+7.4 Incident tests
+
+ensure auto-incident triggers only for thresholds
+
+verify timeline auto-assembly
+
+7.5 Evidence tests
+
+verify sealing prevents mutation
+
+verify access requires GGP decision_id
+
+verify access logs are written
+
+8. Operational Concerns
+
+8.1 Alert fatigue controls
+
+paging only for SEV0/SEV1 by default
+
+require ownership for new paging alerts
+
+periodic alert review
+
+8.2 Cost controls
+
+sampling for traces
+
+tiered retention
+
+cap high-cardinality labels
+
+8.3 Privacy controls
+
+strict redaction
+
+encrypt evidence artifacts
+
+audit access to evidence
+
+9. Implementation Guardrails (GGP Interlock)
+
+Any change that impacts:
+
+evidence retention/access
+
+required audit fields
+
+paging destinations
+
+correlation required fields
+
+must be gated by GGP and recorded via decision_id in LUM.
+

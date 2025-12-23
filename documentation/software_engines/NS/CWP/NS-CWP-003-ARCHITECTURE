@@ -1,0 +1,121 @@
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document defines the architecture of the Cognitive Work Plane (CWP).
+It describes:
+  core services and components
+  how work is created, assigned, supervised, and escalated
+  interaction patterns with other Northfield Solidarity engines
+  architectural safeguards that make agentic work safe, auditable, and governable
+2. Architectural Principles
+ Work Is a First-Class Artifact — tasks, missions, and programs are persisted entities
+ Separation of Orchestration from Execution — CWP coordinates; engines execute
+ Human Authority Is Explicit — review and escalation are modeled, not implied
+ Event-Sourced Supervision — all state transitions emit events
+ Governance Alignment — GGP constraints are enforced, not bypassed
+3. High-Level Architecture Overview
+CWP is composed of six logical layers:
+ Work Definition Layer
+ Assignment & Scheduling Layer
+ Execution Supervision Layer
+ Review & Escalation Layer
+ Event & Audit Layer
+ Query & Visualization Layer
+CWP is horizontally integrated across all engines.
+4. Core Components
+4.1 Work Registry
+Responsibilities:
+  persist tasks, missions, and programs
+  manage work state transitions
+  maintain relationships between work artifacts
+This is the canonical source of truth for “what work exists.”
+4.2 Agent Registry
+Responsibilities:
+  register agents (human, AI, hybrid)
+  maintain capability and trust metadata
+  resolve agent availability and assignment eligibility
+Agent identity is resolved via IDN.
+4.3 Assignment & Scheduler
+Responsibilities:
+  assign work to agents based on capability and availability
+  enforce SLAs and cadence
+  trigger work start conditions (time, event, manual)
+Schedulers never execute work directly.
+4.4 Supervision Engine
+Responsibilities:
+  monitor task progress
+  detect stalls, failures, or SLA breaches
+  advance work state based on reported outcomes
+The supervision engine is reactive and event-driven.
+4.5 Review & Escalation Engine
+Responsibilities:
+  enforce checkpoints
+  route work outputs for human or role-based review
+  trigger escalations on failure or risk
+Escalations may route to:
+  humans
+  governance workflows (GGP)
+  program owners
+4.6 Event & Audit Ledger
+Responsibilities:
+  capture all work-related events
+  maintain immutable history
+  support replay and forensic analysis
+This ledger underpins compliance and observability.
+4.7 Query & Visualization Layer
+Responsibilities:
+  provide real-time visibility into work status
+  support dashboards and operator UIs
+  expose APIs for downstream analytics (e.g., PTE)
+This layer is read-only.
+5. Interaction With Other Engines
+5.1 DRE (Deep Research Engine)
+  CWP creates research missions linked to themes/hypotheses
+  DRE performs research; CWP supervises progress
+  outputs flow back as work completion events
+5.2 PIE / SIM / DAT
+  CWP coordinates insight generation, simulation runs, and execution planning
+  domain engines retain ownership of outputs
+5.3 GGP (Governance Graph Processor)
+  CWP enforces governance constraints
+  escalates exceptions or gated actions
+  never authorizes decisions independently
+5.4 IDN (Identity & Entity Nexus)
+  resolves agent identities and roles
+  provides authentication and attribution
+5.5 PTE (Portfolio Tracking Engine)
+  consumes work outcomes and metrics
+  tracks performance of programs and missions
+6. Deployment Topology (Logical)
+  cwp-api (work registry, assignment)
+  cwp-supervisor (state monitoring)
+  cwp-review (checkpoints, escalation)
+  cwp-scheduler (cadence, triggers)
+  cwp-projector (read models)
+Components may be scaled independently.
+7. Failure & Degraded Modes
+  agent unavailable → reassignment
+  engine unavailable → work paused
+  governance unavailable → escalation queued
+CWP prioritizes visibility over silent failure.
+8. Security & Access Control
+  role-based access to work actions
+  write actions require actor attribution
+  escalation and closure require elevated roles
+All actions are logged.
+9. Document Position in CWP Corpus
+This architecture document builds upon:
+  NS-CWP-002 — TAXONOMY
+It informs:
+  NS-CWP-004 — LIFECYCLE
+  NS-CWP-005 — DECISION
+  NS-CWP-013 — RUNBOOK
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CWP Architecture
+Parent / HoldCo Manager
+Status: Draft

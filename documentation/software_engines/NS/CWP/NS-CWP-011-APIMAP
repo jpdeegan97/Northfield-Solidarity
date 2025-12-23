@@ -1,0 +1,468 @@
+NS-CWP-011 — APIMAP
+
+0. Overview
+
+This document defines the authoritative API map for CWP (Cognitive Work Plane).
+
+CWP APIs fall into:
+
+Work plane (tasks/queues/assignments)
+
+Playbooks (SOP runtime)
+
+Approvals
+
+Evidence attachments
+
+Worker registry (humans/agents)
+
+SLA and escalation
+
+Search & correlation
+
+Security boundaries:
+
+Identity via IDN.
+
+Governance gating via GGP (approval and policy decisions recorded as decision_id).
+
+Observability events emitted to LUM.
+
+1. API Conventions
+
+1.1 Base path and versioning
+
+Base: /api/cwp
+
+Version: /v1 (e.g., /api/cwp/v1/…)
+
+1.2 Correlation propagation headers (recommended)
+
+x-request-id
+
+x-workflow-id
+
+x-decision-id (if governed)
+
+x-integration-id (if integration-driven)
+
+x-entity-id (policy controlled)
+
+W3C tracing: traceparent / tracestate
+
+1.3 Standard response envelope (recommended)
+
+ok (boolean)
+
+data (object)
+
+error (object: code, message)
+
+meta (paging)
+
+1.4 Idempotency
+
+For create and state-changing endpoints:
+
+accept Idempotency-Key header
+
+2. Work Plane APIs (Tasks)
+
+2.1 Create task
+
+POST /api/cwp/v1/tasks
+
+Inputs (conceptual)
+
+title, description
+
+task_type, priority
+
+queue_id
+
+workflow_id (optional; generated if absent)
+
+correlation refs: decision_id, integration_id, entity_id
+
+2.2 Get task
+
+GET /api/cwp/v1/tasks/{task_id}
+
+2.3 Update task fields
+
+PATCH /api/cwp/v1/tasks/{task_id}
+
+Allowed updates
+
+priority
+
+due date
+
+metadata/context fields
+
+2.4 Transition task state
+
+POST /api/cwp/v1/tasks/{task_id}/transition
+
+Inputs
+
+to_state
+
+reason (optional)
+
+Rules
+
+validated by task state machine
+
+emits cwp.task.state_changed to LUM
+
+2.5 List tasks
+
+GET /api/cwp/v1/tasks
+
+Query params
+
+state, priority, queue_id, owner_actor_id
+
+sla_status (on_track|due_soon|breached)
+
+correlation: workflow_id, decision_id, integration_id, entity_id (if allowed)
+
+time window: created_from, created_to
+
+2.6 Task comments & notes
+
+POST /api/cwp/v1/tasks/{task_id}/comments
+
+GET /api/cwp/v1/tasks/{task_id}/comments
+
+2.7 Subtasks
+
+POST /api/cwp/v1/tasks/{task_id}/subtasks
+
+GET /api/cwp/v1/tasks/{task_id}/subtasks
+
+3. Queue & Assignment APIs
+
+3.1 List queues
+
+GET /api/cwp/v1/queues
+
+3.2 Create queue
+
+POST /api/cwp/v1/queues
+
+3.3 Queue view
+
+GET /api/cwp/v1/queues/{queue_id}/tasks
+
+3.4 Claim task (self-assign)
+
+POST /api/cwp/v1/tasks/{task_id}/claim
+
+3.5 Assign / reassign
+
+POST /api/cwp/v1/tasks/{task_id}/assign
+
+Inputs
+
+assignee_actor_id
+
+reason
+
+3.6 Unassign
+
+POST /api/cwp/v1/tasks/{task_id}/unassign
+
+3.7 Routing rules (optional)
+
+GET /api/cwp/v1/routing-rules
+
+POST /api/cwp/v1/routing-rules
+
+4. Playbooks (SOP Runtime)
+
+4.1 List playbooks
+
+GET /api/cwp/v1/playbooks
+
+4.2 Get playbook
+
+GET /api/cwp/v1/playbooks/{playbook_id}
+
+4.3 Create new playbook version
+
+POST /api/cwp/v1/playbooks
+
+Inputs
+
+name
+
+version
+
+steps[]
+
+required_evidence[]
+
+gating_rules_refs[] (GGP)
+
+4.4 Instantiate playbook on a task
+
+POST /api/cwp/v1/tasks/{task_id}/playbooks/{playbook_id}/run
+
+Outputs
+
+step_execution_ids[]
+
+4.5 Step execution controls
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/start
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/complete
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/block
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/fail
+
+4.6 Step retry (optional)
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/retry
+
+5. Approvals APIs
+
+Approvals are a CWP workflow that typically results in a GGP decision.
+
+5.1 Request approval
+
+POST /api/cwp/v1/approvals
+
+Inputs
+
+task_id
+
+approval_type (spend|policy_override|access|other)
+
+requested_by (actor_id)
+
+context (summary)
+
+gating_policy_ref (GGP policy reference)
+
+Output
+
+approval_id
+
+5.2 Get approval
+
+GET /api/cwp/v1/approvals/{approval_id}
+
+5.3 List approvals
+
+GET /api/cwp/v1/approvals
+
+Params
+
+assignee_actor_id (approver)
+
+state (pending|approved|denied|expired)
+
+task_id
+
+5.4 Approve / deny
+
+POST /api/cwp/v1/approvals/{approval_id}/approve
+
+POST /api/cwp/v1/approvals/{approval_id}/deny
+
+Requirements
+
+response must be linked to a decision_id (new or existing) from GGP
+
+5.5 Request changes
+
+POST /api/cwp/v1/approvals/{approval_id}/request-changes
+
+6. Evidence Attachment APIs
+
+Evidence in CWP is typically stored as references (URL/hash) and linked to LUM evidence bundles where required.
+
+6.1 Attach evidence to task
+
+POST /api/cwp/v1/tasks/{task_id}/evidence
+
+Inputs
+
+artifact_type
+
+storage_ref (URL/path)
+
+hash (optional)
+
+notes
+
+classification
+
+bundle_id (optional)
+
+6.2 List evidence for task
+
+GET /api/cwp/v1/tasks/{task_id}/evidence
+
+6.3 Attach evidence to step
+
+POST /api/cwp/v1/tasks/{task_id}/steps/{step_id}/evidence
+
+7. SLA & Escalation APIs
+
+7.1 SLA policies
+
+GET /api/cwp/v1/sla-policies
+
+POST /api/cwp/v1/sla-policies
+
+7.2 SLA evaluation
+
+GET /api/cwp/v1/tasks/{task_id}/sla
+
+7.3 Escalate task
+
+POST /api/cwp/v1/tasks/{task_id}/escalate
+
+Inputs
+
+reason
+
+to_queue_id or to_actor_id
+
+7.4 Breach events (system)
+
+POST /api/cwp/v1/system/sla/breach
+
+8. Worker Registry APIs
+
+8.1 List workers
+
+GET /api/cwp/v1/workers
+
+8.2 Get worker
+
+GET /api/cwp/v1/workers/{actor_id}
+
+8.3 Update worker profile (admin)
+
+PATCH /api/cwp/v1/workers/{actor_id}
+
+Fields
+
+capability tags
+
+availability flags
+
+assignment limits
+
+8.4 Enable/disable agent worker
+
+POST /api/cwp/v1/workers/{actor_id}/enable
+
+POST /api/cwp/v1/workers/{actor_id}/disable
+
+9. Search & Correlation APIs
+
+9.1 Global search
+
+GET /api/cwp/v1/search
+
+Params
+
+q (task_id, workflow_id, decision_id, etc.)
+
+9.2 Workflow view
+
+GET /api/cwp/v1/workflows/{workflow_id}
+
+Returns
+
+root task
+
+subtasks
+
+steps
+
+approvals
+
+evidence refs
+
+9.3 Link related tasks
+
+POST /api/cwp/v1/tasks/{task_id}/links
+
+10. Notifications (Via MUX)
+
+CWP triggers notifications through MUX.
+
+10.1 Send notification
+
+POST /api/cwp/v1/notifications/send
+
+Inputs
+
+channel (email/chat)
+
+recipients
+
+message template
+
+correlation context
+
+11. System Events (to LUM)
+
+CWP emits events (not strictly an API surface, but part of the map):
+
+cwp.task.created
+
+cwp.task.assigned
+
+cwp.task.state_changed
+
+cwp.step.started
+
+cwp.step.completed
+
+cwp.approval.requested
+
+cwp.approval.granted|denied
+
+cwp.sla.breached
+
+12. Error Codes (Starter)
+
+ERR_AUTH_REQUIRED
+
+ERR_FORBIDDEN
+
+ERR_NOT_FOUND
+
+ERR_INVALID_TRANSITION
+
+ERR_VALIDATION_FAILED
+
+ERR_GGP_DECISION_REQUIRED
+
+ERR_IDN_ELIGIBILITY_FAILED 
+
+ERR_IDEMPOTENCY_CONFLICT
+
+13. GGP Interlock Notes
+
+Actions that typically require a GGP gate or decision reference:
+
+approvals (spend/policy override/access)
+
+sensitive playbook steps
+
+evidence access classification changes
+
+break-glass overrides
+
+CWP should store and propagate decision_id for such actions.
+

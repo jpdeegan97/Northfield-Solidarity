@@ -1,0 +1,134 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the logical and operational architecture of the Identity & Entity Nexus (IDN).
+IDN architecture is designed to:
+provide authoritative canonical identities and entities
+support deterministic identity resolution (merge/split/alias)
+maintain a temporal, typed relationship graph
+expose fast read surfaces for all engines
+enforce write-controls and auditability for identity mutations
+2. Architectural Principles
+Canonical Authority — IDN is the system-of-record for identity and entity truth
+Write-Guarded — merges/splits are governed, not ad-hoc
+Append-Only History — identity changes are recorded as events
+Temporal Graph — relationships are effective-dated
+Read-Optimized — downstream engines query IDN constantly
+Explainability — every resolution has a rationale artifact
+3. High-Level Architecture
+IDN is composed of seven logical layers:
+Ingress & Validation Layer
+Canonical Registry Layer
+Identifier Resolution Layer
+Relationship Graph Layer
+Event Ledger & Audit Layer
+Projection & Read Model Layer
+Distribution & Query Layer
+4. Ingress & Validation Layer
+Responsibilities:
+accept identity/entity create requests
+validate schemas and constraints
+enforce basic invariants (required fields, uniqueness)
+Ingress supports:
+API requests (operators, system services)
+event-driven ingestion (optional, from PECA/CWP)
+5. Canonical Registry Layer
+Responsibilities:
+store canonical Actors and Entities
+assign stable IDs
+maintain lifecycle status
+Canonical records are stable; identity changes occur via events.
+6. Identifier Resolution Layer
+Responsibilities:
+link external identifiers to canonical IDs
+maintain confidence and issuing system metadata
+evaluate conflicts and ambiguity
+Key features:
+deterministic resolution rules
+conflict detection
+governed merge/split workflows
+Resolution outputs:
+alias links
+resolution decision artifacts
+7. Relationship Graph Layer
+Responsibilities:
+maintain typed edges between nodes (actors/entities)
+enforce edge constraints
+support effective-dated queries
+Edges include:
+owns
+controls
+manages
+employed_by
+Relationships are temporal and versioned.
+8. Event Ledger & Audit Layer
+Responsibilities:
+persist append-only identity events
+record resolution decisions
+ensure replay and traceability
+Events include:
+IdentityCreated
+IdentifierLinked
+IdentityMerged
+IdentitySplit
+RelationshipAdded
+Audit must support “why” as well as “what”.
+9. Projection & Read Model Layer
+Responsibilities:
+build read-optimized projections
+maintain fast lookups
+support common query patterns
+Examples:
+identifier → canonical_id map
+entity relationship adjacency index
+Projections are rebuildable from the event ledger.
+10. Distribution & Query Layer
+Responsibilities:
+expose read-only APIs for downstream engines
+provide governed write APIs for controlled changes
+publish identity events to Kafka (optional)
+Downstream consumers:
+GGP, SIG, PIE, SIM, DAT, FLO, CWP, PECA
+11. Storage Strategy
+Authoritative stores:
+PostgreSQL for canonical registry and event ledger
+Graph options:
+PostgreSQL adjacency tables (MVP)
+Optional graph DB later (if required)
+Read cache (optional):
+Redis for hot identifier lookups
+12. Determinism & Replay
+IDN supports:
+replaying identity state from events
+rebuilding projections deterministically
+No historical identity is overwritten.
+13. Security & Governance Boundaries
+Read endpoints broadly available internally
+Write endpoints restricted and audited
+Merge/split requires governance reference when applicable
+IDN does not implement authentication; it consumes verified actor identity.
+14. Observability Requirements
+Metrics:
+identifier resolution latency
+conflict rate
+merge/split frequency
+Logs:
+correlation IDs
+resolution rationale artifacts
+15. Document Position in IDN Corpus
+This architecture builds upon:
+NS-IDN-001 — OVERVIEW
+NS-IDN-002 — TAXONOMY
+It informs:
+NS-IDN-004 — LIFECYCLE
+NS-IDN-005 — DECISION
+NS-IDN-007 — DATAMODEL
+16. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Architecture
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,137 @@
+Market Integration Layer (MUX)
+1. Purpose
+The Market Integration Layer (MUX) is responsible for ingesting, normalizing, validating, and exposing external market and platform truth to the Northfield Solidarity ecosystem.
+MUX answers a single core question:
+What actually happened in the external world — according to the source of record?
+MUX does not decide strategy, execute actions, or govern outcomes. It exists to provide authoritative external facts, with provenance and confidence, to internal engines.
+2. Role Within Northfield Solidarity
+MUX sits at the boundary between Northfield Solidarity and the outside world.
+It is the system responsible for interfacing with:
+Marketplaces
+Ad platforms
+Payment processors
+Banks
+Logistics providers
+Data vendors
+MUX supplies external truth to:
+FLO — financial reconciliation and payouts
+DAT — execution verification and settlement
+PIE — market signals and validation
+SIG — raw signal ingestion
+PTE — performance attribution
+GGP — audit and governance review
+MUX is the only engine allowed to assert external system truth.
+3. What MUX Produces
+MUX produces External Artifacts, which are structured, versioned representations of external reality:
+Transaction confirmations
+Settlement and payout records
+Statements and invoices
+Delivery and fulfillment events
+Platform status and availability signals
+All artifacts include:
+Source system
+External identifiers
+Timestamping
+Integrity checks (hashes)
+Confidence and completeness metadata
+MUX outputs are non-authoritative internally until interpreted by downstream engines.
+4. What MUX Does Not Do
+MUX explicitly does not:
+Decide how to act on external data (DAT)
+Classify financial meaning (FLO)
+Score or rank opportunities (PIE)
+Govern policy or approvals (GGP)
+Maintain internal identity or entity ownership (IDN / PECA)
+MUX observes and reports.
+5. Core Capabilities
+Connector ManagementSecure, isolated integrations with external systems.
+Normalization & ValidationConvert external schemas into canonical internal representations.
+Integrity & DeduplicationPrevent duplicate or tampered data from entering the system.
+Statement & Snapshot IngestionPeriodic ingestion of authoritative external snapshots.
+Event EmissionEmit normalized external events to Kafka for internal consumption.
+6. Trust & Provenance Model
+MUX tracks trust metadata for every artifact:
+Source system reliability
+Transport integrity (hash verification)
+Completeness (partial vs full snapshot)
+Latency and staleness
+Trust metadata allows downstream engines to reason about uncertainty without guessing.
+7. Interaction With Other Engines
+
+
+
+Engine
+
+Relationship to MUX
+
+
+FLO
+
+Consumes statements, payouts, invoices
+
+
+DAT
+
+Verifies execution and settlement
+
+
+PIE
+
+Validates market reality
+
+
+SIG
+
+Receives raw signals
+
+
+PTE
+
+Consumes attribution inputs
+
+
+GGP
+
+Audits external truth lineage
+MUX never bypasses governance.
+8. Operational Posture
+MUX is:
+Write-heavy (ingestion)
+Append-only for external truth
+Connector-isolated (failures contained)
+Replayable and auditable
+External instability must not corrupt internal truth.
+9. Expected Outcomes
+When MUX is operating correctly:
+External truth is clear and traceable
+Financial reconciliation is reliable
+Execution verification is grounded in reality
+Audit reviews are straightforward
+MUX reduces ambiguity at system boundaries.
+10. Document Position in MUX Corpus
+This overview document is complemented by:
+NS-MUX-000 — CHARTER
+NS-MUX-002 — TAXONOMY
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Overview
+
+Parent / HoldCo Manager
+Status: Draft

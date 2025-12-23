@@ -1,0 +1,122 @@
+NSDC Engine Charter — DAT (Digital Arbitrage Tooling)
+1. Engine Identity
+Engine Name: Digital Arbitrage Tooling
+Acronym: DAT
+Engine Type: Execution / Arbitrage / Intelligence Application
+2. Mission Statement (One Sentence)
+This engine exists to identify arbitrage opportunities across multiple marketplaces, analyze profitability, and execute trades or actions in alignment with insights gathered from PIE and other NSDC engines.
+3. Core Responsibilities (Allowed Actions)
+  Analyze multiple marketplaces for arbitrage opportunities
+  Integrate and validate insights from PIE (Product InsightIQ Engine)
+  Execute trades or purchase/sell operations across marketplaces
+  Track and report executed actions and outcomes
+  Log performance and maintain audit-ready execution history
+  Interface with MUX for marketplace connectivity and API handling
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Govern compliance or risk policies (GGP)
+  Maintain financial ledgers or accounting beyond execution tracking (FLO)
+  Generate product canonical data (PIE)
+  Publish content or manage engagement (CDE)
+DAT is focused on arbitrage execution and monitoring only.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Market intelligence
+PIE
+Product data, pricing, trends
+☑
+Execution signals
+SIG
+Signals from market or system insights
+☑
+Connectivity interfaces
+MUX
+API endpoints, credentials, throttling info
+☑
+Governance rules
+GGP
+Compliance constraints, limits
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Executed orders
+MUX / Marketplaces
+Trades, purchases, or sales performed
+Event-driven
+Performance logs
+Admin / GGP
+Tracking of success/failure and execution metrics
+Continuous
+Profitability reports
+Admin / FLO
+ROI and efficiency of executed arbitrage actions
+Scheduled
+Alerts & notifications
+Admin
+Exceptions, errors, or arbitrage opportunities
+Event-driven
+7. Authority & Decision Rights
+DAT May Decide Autonomously:
+  Which opportunities to execute based on predefined thresholds
+  Retry or cancel executions in response to errors or market changes
+  Logging and reporting formats
+DAT Must Not Decide:
+  Governance policy enforcement (GGP)
+  Financial ledger maintenance beyond execution tracking (FLO)
+  Product canonicalization (PIE)
+  Content publication or engagement (CDE)
+8. Governance & Constraints
+  Must comply with GGP-defined policies and limits
+  All executions must be logged for audit and reporting
+  Must use MUX interfaces for marketplace connectivity
+  Execution thresholds must be predefined and auditable
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Market data discrepancies
+  Execution errors due to connectivity or throttling
+  Miscalculation of arbitrage profit
+Worst-Case Failure:
+  Losses due to failed execution or delayed action
+  Missed arbitrage opportunities impacting ROI
+Blast Radius:
+  Primarily affects financial performance (FLO) and market operations
+  Governance and audit (GGP) may be impacted if logs are incomplete
+Containment strategy:
+  Retry mechanisms and backoff strategies
+  Alerts for failures
+  Performance logging for post-incident review
+10. Time Horizon & Optimization Target
+  Optimizes for: Maximizing arbitrage profit while respecting governance constraints
+  Time Horizon: Near real-time to real-time execution depending on market conditions
+11. Interfaces & Shared Primitives
+  Marketplace APIs and credentials (MUX)
+  Product and pricing data (PIE)
+  Execution signals (SIG)
+  Governance flags and thresholds (GGP)
+  Historical execution logs for analysis
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Identification of arbitrage opportunities
+  Execution of trades across at least 2 marketplaces
+  Logging and reporting of executed actions
+  Integration with PIE and MUX for data and connectivity
+MVP Excludes:
+  Predictive execution beyond defined thresholds
+  Full marketplace coverage beyond MVP scope
+  Governance or financial ledger creation beyond logging
+13. Evolution Path (Conceptual Only)
+  Phase 1: Basic identification and execution on limited marketplaces
+  Phase 2: Expanded coverage, automated retries, performance logging
+  Phase 3: Predictive, AI-assisted arbitrage and optimization across multiple markets
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

@@ -1,0 +1,124 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the versioning and evolution model for the Identity & Entity Nexus (IDN).
+IDN versioning ensures that:
+identity truth is stable and interpretable over time
+historical identity states are never rewritten
+merges, splits, and relationship changes are explainable
+downstream engines can safely reason about identity provenance
+2. Versioning Principles
+Identity History Is Immutable
+Once an identity state or event is recorded, it is never altered or deleted.
+Evolution via Events
+Changes occur through versioned events, not record mutation.
+Temporal Truth
+Identity meaning is time-aware; "current" is a projection, not a rewrite.
+Deterministic Replay
+Replaying the same events yields the same identity graph.
+Forward Interpretability
+Historical identity states remain readable as schemas evolve.
+3. Versioned Components in IDN
+The following components are versioned:
+Component
+Versioned
+Notes
+Canonical actor records
+Yes
+Via creation + lifecycle events
+Canonical entity records
+Yes
+Via creation + lifecycle events
+Identifier links
+Yes
+Link/unlink events
+Relationships
+Yes
+Effective-dated edges
+Resolution logic
+Yes
+Ruleset versions
+Decision logic
+Yes
+Decision rulesets
+Projections
+Yes
+Rebuildable views
+4. Event Versioning Model
+IDN uses event-sourced versioning.
+Each identity event records:
+event_id
+event_type
+subject_ref
+payload
+ruleset_name
+ruleset_version
+occurred_at
+Events are append-only and ordered.
+5. Canonical Identity Versioning
+Canonical identities do not change directly.
+Instead:
+lifecycle changes are recorded as events
+identifiers are linked/unlinked via events
+relationships evolve via effective-dated edges
+A "version" of an identity is defined as the state resulting from replaying events up to a given time.
+6. Merge & Split Version Semantics
+6.1 Merge
+Merge creates a new resolution event
+One canonical becomes the survivor
+Others become aliases with redirect metadata
+Historical references remain valid
+6.2 Split
+Split creates new canonicals
+Identifiers and relationships are reassigned via events
+Original canonical remains in history
+No merge or split erases history.
+7. Relationship Versioning
+Relationships are versioned by time:
+effective_from
+effective_to
+Changes:
+close existing edge
+open new edge
+This preserves full relationship evolution.
+8. Schema Evolution Rules
+New optional fields may be added
+Existing fields may not change meaning
+Deprecated fields remain readable
+Schema migrations must preserve historical readability.
+9. Downstream Compatibility Guarantees
+IDN guarantees that:
+canonical IDs remain stable
+alias resolution remains queryable
+event history remains accessible
+Downstream engines should:
+store ID references, not identity snapshots
+10. Replay & Rebuild Semantics
+IDN supports:
+Replay
+rebuild identity graph from events
+validate determinism
+Rebuild
+regenerate projections and indexes
+Replay never mutates historical records.
+11. Failure & Rollback Strategy
+Faulty ruleset versions are disabled
+Incorrect events are compensated with new events
+No hard deletes or rewrites
+12. Document Position in IDN Corpus
+This versioning document builds upon:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-005 — DECISION
+It informs:
+NS-IDN-007 — DATAMODEL
+NS-IDN-013 — RUNBOOK
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Versioning Model
+Parent / HoldCo Manager
+Status: Draft

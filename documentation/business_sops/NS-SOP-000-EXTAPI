@@ -1,0 +1,218 @@
+NS-EXTAPI-000 — External API Integrations
+
+0. Overview
+
+This document is the authoritative starting point for documenting external API integrations across Northfield Solidarity. It defines a standard registry format, minimum governance/security controls, and a curated shortlist of high-value Google APIs (from the Google APIs directory / APIs Explorer) that are likely to be useful.
+
+Known near-term integrations
+
+Coinbase Commerce API (payments)
+
+Google Maps Platform APIs (geocoding, places, routing)
+
+1. Integration Registry Standard (Required Fields)
+
+Create one registry entry per external API integration.
+
+1.1 Identity
+
+Provider / API Name
+
+Integration ID (stable identifier, e.g., EXT-COINBASE-COMMERCE)
+
+Owner Engine(s) (e.g., FLO, IDN, CWP, GGP, MUX, SIG)
+
+Primary Use Cases
+
+1.2 Authentication & Authorization
+
+Auth Model (API key / OAuth 2.0 / Service Account / JWT / HMAC)
+
+Scopes / Permissions
+
+Credential Storage (Secret Manager / Vault / KMS policy)
+
+Key Rotation Policy (cadence + break-glass)
+
+IP/Referrer/App Restrictions (where supported)
+
+1.3 Environments
+
+Dev / UAT / Prod project mapping
+
+Credentials per environment (never shared)
+
+Sandbox support (if available)
+
+1.4 Usage & Limits
+
+Rate limits / quotas
+
+Pricing model (unit costs + budget alarms)
+
+Backoff + retry policy
+
+Idempotency strategy (required if writes/charges occur)
+
+1.5 Data & Risk
+
+Data classification (PII / financial / confidential / public)
+
+Data minimization (only store what’s needed)
+
+Retention policy (raw payloads vs derived records)
+
+Compliance notes (PCI-like concerns, privacy policy implications)
+
+1.6 Operational Model
+
+Primary endpoints used
+
+Webhooks / events (verification, replay strategy)
+
+Failure modes
+
+Provider outage
+
+Quota exceeded
+
+Auth revoked / expired
+
+Schema changes
+
+Monitoring & alerting (SLIs/SLOs for the integration)
+
+Runbook (what to do when it breaks)
+
+1.7 Governance (GGP)
+
+Approval gates for:
+
+enabling production credentials
+
+expanding scopes
+
+increasing budgets/quotas
+
+adding webhook actions that move money or write records
+
+Audit trail requirements
+
+request/response metadata
+
+who/what initiated a call
+
+decision logs for sensitive actions
+
+2. Initial Registry Entries (Draft Stubs)
+
+2.1 Coinbase Commerce (Payments)
+
+Purpose
+
+Accept crypto payments, create checkouts/charges, confirm payment completion via webhook.
+
+Notes to capture in final entry
+
+Checkout/charge creation flow
+
+Webhook verification + replay protection
+
+Idempotency keys for fulfillment
+
+Mapping payment events into FLO ledger + GGP audit log
+
+Refund/cancel policy handling
+
+2.2 Google Maps Platform
+
+Purpose
+
+Address intelligence, place enrichment, routing/ETAs for logistics and field operations.
+
+Candidate capabilities
+
+Geocoding (address ↔ lat/lng)
+
+Places (autocomplete/search/details)
+
+Routing / route matrix for ETA + distance
+
+Notes to capture in final entry
+
+Billable event model + budgets/alerts
+
+Key restriction strategy (HTTP referrer / IP / app signing)
+
+Caching rules (what can be cached, for how long)
+
+3. Google APIs Explorer Directory — Suggested Functionality (Curated)
+
+The Google APIs directory is large. The shortlist below groups likely-useful APIs by capability family; the intent is to validate endpoints and scopes in the APIs Explorer as you select them.
+
+3.1 Workspace automation (Ops / CWP workflows)
+
+Calendar API — scheduling, work orders, runbook events, on-call, coordination.
+
+Gmail API — inbound triage, operational notifications, routing/labeling.
+
+Drive API — store/retrieve artifacts (contracts, receipts, SOP PDFs), attach to events.
+
+Sheets API — lightweight operational tables/config, human-in-the-loop review.
+
+Docs API — programmatic document creation (SOPs, reports, checklists).
+
+3.2 Identity & org control (IDN + GGP enforcement)
+
+Admin SDK (Directory API) — manage users/groups/devices; access reviews and provisioning.
+
+Identity Platform / Identity Toolkit — application auth flows, user identity management.
+
+API Keys / credential controls — key restriction standards and lifecycle management.
+
+3.3 Eventing + automation backbone (SIG/MUX/DRE plumbing)
+
+Pub/Sub — asynchronous events between engines; ingestion triggers; notifications.
+
+Cloud Tasks — rate-controlled background jobs; webhook retries.
+
+Cloud Scheduler — periodic syncs, audits, housekeeping.
+
+3.4 Storage + secrets
+
+Cloud Storage — large blobs, exports, receipts, evidence, build artifacts.
+
+Secret Manager — secure storage of API keys/webhook secrets; rotation workflows.
+
+3.5 Observability (GGP-grade auditability)
+
+Cloud Logging / Monitoring — integration health, quotas, errors, latency metrics, alerting.
+
+3.6 Growth + web intelligence (PIE/SIG)
+
+Search Console API — indexing status, query/click data, sitemap monitoring.
+
+Google Analytics Data API (GA4) — reports, funnels, instrumentation-driven dashboards.
+
+4. Recommended Approach to “Walking the Directory”
+
+Instead of manually browsing hundreds of APIs, use Google’s Discovery Service to list APIs and pull discovery documents (methods, schemas, OAuth scopes). Maintain a short “approved integration list” in the Integration Registry.
+
+Discovery (reference pattern)
+
+List APIs: GET https://www.googleapis.com/discovery/v1/apis
+
+Filter by name: GET https://www.googleapis.com/discovery/v1/apis?name=calendar
+
+5. Next Iteration Checklist
+
+Add a formal Integration Registry Table (one page overview)
+
+Complete the Coinbase Commerce entry with exact endpoints, webhook flow, and idempotency rules
+
+Complete the Google Maps entry with exact APIs selected, quota/budget guardrails, caching policy
+
+Decide which Google Workspace APIs are first-class (Calendar/Gmail/Drive/Sheets/Docs)
+
+Define a standard integration SDK wrapper pattern (auth, retries, logging, tracing, redaction)
+

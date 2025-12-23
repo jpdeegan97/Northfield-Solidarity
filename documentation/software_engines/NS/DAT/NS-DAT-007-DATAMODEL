@@ -1,0 +1,200 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the canonical data model for the Digital Arbitrage Tooling (DAT) engine.
+It specifies:
+Authoritative entities and their relationships
+Append-only and versioned persistence rules
+Execution, constraint, and rollback data contracts
+Replay, audit, and downstream attribution requirements
+This document is aligned with:
+NS-DAT-002 — TAXONOMY
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-006 — VERSION
+2. Data Model Principles
+Authoritative vs Derived Separation
+Execution truth is authoritative; dashboards are derived.
+Append-Only History
+No execution record is overwritten or deleted.
+Version-Pinned Execution
+All runtime data references (execution_plan_id, plan_version).
+Deterministic Replay
+Execution can be reconstructed from stored artifacts + events.
+Downstream Attribution
+Financial and performance records pin to plan versions.
+3. Persistence Strategy
+3.1 Authoritative Stores
+Holds:
+Execution plan versions
+Steps, actions, constraints, budgets, rollback policies
+Execution events and state transitions
+Decision artifacts (readiness, admission, step decisions)
+Properties:
+Append-only
+Replayable
+Audit-safe
+3.2 Derived Read Models
+Holds:
+Execution dashboards
+Progress views
+Aggregated performance summaries
+Properties:
+Rebuildable
+Optimized for reads
+4. Canonical Authoritative Entities
+4.1 execution_plan
+Description: Versioned execution plan artifact.
+Key Fields:
+execution_plan_id (UUID, stable)
+plan_version (Integer, monotonic)
+linked_insight_id (UUID)
+linked_insight_version (Integer)
+status (draft / submitted_for_approval / approved / staged / executing / completed / aborted / archived)
+created_at (Timestamp)
+updated_at (Timestamp)
+4.2 execution_step
+Description: Ordered step within an execution plan.
+Key Fields:
+step_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+step_order (Integer)
+action_id (UUID)
+step_status (pending / running / completed / failed / rolled_back)
+4.3 action
+Description: Atomic executable operation definition.
+Key Fields:
+action_id (UUID)
+action_type (String)
+target_system (String)
+parameters (JSON)
+4.4 constraint_snapshot
+Description: Versioned constraint definitions bound to a plan version.
+Key Fields:
+constraint_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+constraint_type (budget / time / risk / quantity)
+constraint_params (JSON)
+enforcement_level (hard / soft)
+4.5 budget_snapshot
+Description: Budget definition and tracking snapshot.
+Key Fields:
+budget_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+currency (String)
+max_amount (Decimal)
+spent_amount (Decimal)
+4.6 rollback_policy
+Description: Rollback or compensation definition.
+Key Fields:
+rollback_policy_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+rollback_type (automatic / manual / compensating)
+rollback_steps (JSON)
+4.7 execution_context
+Description: Immutable snapshot of runtime context at execution start.
+Key Fields:
+context_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+constraint_snapshot_hash (String)
+budget_snapshot_hash (String)
+created_at (Timestamp)
+4.8 execution_event
+Description: Immutable execution telemetry event.
+Key Fields:
+event_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+step_id (UUID, nullable)
+event_type (String)
+correlation_id (UUID)
+occurred_at (Timestamp)
+4.9 decision_artifact
+Description: Persisted decision outputs.
+Key Fields:
+decision_id (UUID)
+execution_plan_id (UUID)
+plan_version (Integer)
+decision_type (readiness / admission / step / rollback)
+decision_payload (JSON)
+evaluated_at (Timestamp)
+5. Derived Read Model Entities (Non-Authoritative)
+5.1 execution_progress_view
+Fields:
+execution_plan_id
+plan_version
+current_step
+completion_percentage
+status
+5.2 execution_summary_view
+Fields:
+execution_plan_id
+plan_version
+total_steps
+completed_steps
+failed_steps
+total_spend
+6. Relationship Diagram (Logical)
+execution_plan (1) → (many) execution_step
+execution_plan (1) → (many) constraint_snapshot
+execution_plan (1) → (1) budget_snapshot
+execution_plan (1) → (many) rollback_policy
+execution_plan (1) → (many) execution_event
+execution_plan (1) → (many) decision_artifact
+execution_plan (1) → (1) execution_context
+All authoritative relationships bind to (execution_plan_id, plan_version).
+7. Replay & Audit Semantics
+DAT must support:
+Plan Reconstruction
+Rebuild steps, actions, constraints from snapshots
+Execution Replay
+Reconstruct timelines from execution_event stream
+Decision Replay
+Re-evaluate readiness and admission decisions (append-only)
+Replay never mutates historical records.
+8. Cross-Engine References (IDs Only)
+DAT stores only references to external systems:
+PIE: insight_id, insight_version
+GGP: governance_decision_id
+FLO: financial_event_id
+PTE: performance_record_id
+DAT does not duplicate external authoritative data.
+9. Invariants & Validation Rules
+No execution_event without a valid execution_context
+No step executes outside an approved plan_version
+Budget and constraint enforcement reference snapshots only
+Derived views can be dropped and rebuilt at any time
+10. Document Position in DAT Corpus
+This data model document builds upon:
+NS-DAT-002 — TAXONOMY
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-006 — VERSION
+It informs:
+NS-DAT-008 — EEE
+NS-DAT-013 — RUNBOOK
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Canonical Data Model
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,384 @@
+NS-LUM-008 — EEE (End-to-End Example)
+
+0. Overview
+
+This End-to-End Example (EEE) demonstrates how LUM (Luminance Engine) provides visibility, reliability control, and audit-evidence support across a real workflow involving:
+
+an external payment provider (Coinbase Commerce)
+
+internal engines (MUX, FLO, GGP, IDN, CWP)
+
+LUM’s telemetry + incident + evidence capabilities
+
+Scenario theme:
+
+A customer completes a Coinbase Commerce payment. A webhook arrives. NS must verify it, record it in FLO, provision the customer entitlement via CWP, and remain fully auditable under GGP—while LUM provides end-to-end observability.
+
+1. Actors & Systems
+
+1.1 Engines
+
+MUX — external integrations gateway (receives webhooks / calls providers)
+
+FLO — financial ledger orchestrator (records payment events)
+
+GGP — governance graph processor (approval/policy gates + evidence requirements)
+
+IDN — identity/entity nexus (who is this customer / which entity?)
+
+CWP — cognitive work plane (tasks + human/agent work + entitlements)
+
+LUM — observability, correlation, incident, evidence-support
+
+1.2 External provider
+
+Coinbase Commerce — sends charge:confirmed webhook
+
+2. Canonical IDs for the Scenario
+
+These IDs will be attached to all relevant signals.
+
+integration_id = EXT-COINBASE-COMMERCE
+
+workflow_id = WF-2025-12-22-00017 (webhook → settlement → entitlement)
+
+request_id = REQ-9ad2… (per inbound request)
+
+trace_id = TR-2f31… (distributed tracing)
+
+decision_id = GGP-D-8813… (governance evaluation)
+
+entity_id = IDN-E-4491… (customer entity)
+
+actor_id = SVC-mux-webhook (service principal)
+
+bundle_id = EVD-B-2204… (evidence bundle)
+
+incident_id = INC-1129… (only if something goes wrong)
+
+3. Step-by-Step Flow (Happy Path)
+
+Step 0 — Precondition: telemetry standards exist
+
+All services use LUM SDK wrappers.
+
+Correlation context propagation is required.
+
+Evidence retention rules are defined in GGP.
+
+LUM artifacts in play
+
+Schemas (logs/events)
+
+Alert policies (webhook failure, signature invalid, quota/rate-limit)
+
+Integration profile baseline SLIs/SLOs
+
+Step 1 — Coinbase sends webhook
+
+Coinbase sends a charge:confirmed webhook to an NS endpoint.
+
+MUX receives webhook at /webhooks/coinbase.
+
+Telemetry emitted
+
+Domain event: integration.webhook.received
+
+Log: category=integration, level=info (contains provider event type, redacted payload ref)
+
+Trace root span starts in MUX
+
+Correlation
+
+MUX generates request_id and trace_id.
+
+MUX assigns/creates workflow_id for the end-to-end settlement.
+
+MUX sets integration_id = EXT-COINBASE-COMMERCE.
+
+LUM view
+
+Integration dashboard shows a new webhook received event.
+
+Trace explorer shows root trace beginning.
+
+Step 2 — Webhook authenticity verification
+
+MUX verifies signature/HMAC (provider-specific verification).
+
+Telemetry emitted
+
+Domain event: integration.webhook.verified (fields: verified=true)
+
+Log: category=security, level=info (no secrets stored)
+
+Metric: coinbase_webhook_verify_success_total++
+
+Failure handling note
+
+If verification fails, LUM triggers a security-flavored alert; see Section 4.
+
+Step 3 — Identity resolution (IDN)
+
+MUX calls IDN to map webhook payload → customer entity.
+
+Telemetry emitted
+
+Trace span: idn.resolve_entity
+
+Event: idn.entity.resolved
+
+Outcome
+
+IDN returns entity_id.
+
+LUM view
+
+Trace shows call out to IDN.
+
+Correlation links now include entity_id.
+
+Step 4 — Governance evaluation (GGP)
+
+MUX calls GGP to evaluate policies for:
+
+accepting and recording the payment
+
+evidence requirements (store payload hash, verification record, ledger refs)
+
+whether entitlement provisioning can be fully automated
+
+Telemetry emitted
+
+Event: decision.requested
+
+Event: decision.evaluated
+
+Outcome
+
+GGP returns decision_id and a decision outcome:
+
+allow ledger record
+
+allow entitlement provisioning
+
+require evidence bundle with specified artifacts
+
+LUM view
+
+A governance slice in the workflow shows:
+
+decision_id
+
+decision outcome summary
+
+linked evidence requirements
+
+Step 5 — Evidence bundle opened
+
+Based on GGP output, LUM (or the calling engine) opens an Evidence Bundle reference.
+
+Evidence artifacts required (example)
+
+webhook payload hash
+
+signature verification record
+
+provider charge id + status
+
+ledger entry reference (once created)
+
+Telemetry emitted
+
+Event: evidence.bundle.opened
+
+DecisionRecord (LUM): decision_type=evidence_completeness, complete=false (initial)
+
+Step 6 — FLO ledger write
+
+MUX (or FLO directly) records the payment in FLO.
+
+Telemetry emitted
+
+Trace span: flo.record_payment
+
+Event: flo.ledger.entry.created
+
+Log: category=audit (includes decision_id, workflow_id, entity_id)
+
+Outcome
+
+FLO returns ledger_entry_id.
+
+Evidence update
+
+Evidence bundle adds artifact: ledger_entry_ref.
+
+Step 7 — Provision entitlement via CWP
+
+CWP is notified to provision entitlement (could be automated or human-in-the-loop).
+
+Telemetry emitted
+
+Event: cwp.task.created (if human confirmation required)
+
+OR cwp.entitlement.provisioned (if automated)
+
+Metrics: task cycle time, success/failure
+
+Logs: category=application
+
+LUM view
+
+Workflow dashboard shows the CWP segment with status.
+
+Step 8 — Evidence bundle completeness check
+
+Once required artifacts are attached, LUM marks bundle ready_to_seal.
+
+Telemetry emitted
+
+DecisionRecord (LUM): evidence_completeness → complete=true
+
+Event: evidence.bundle.ready_to_seal
+
+Then, GGP policy may require a final seal action.
+
+Seal
+
+Event: evidence.bundle.sealed
+
+Bundle stores integrity_hash and sealed_at.
+
+Step 9 — Close-out
+
+Workflow finishes; LUM shows:
+
+end-to-end trace
+
+all domain events
+
+evidence bundle sealed
+
+no incident
+
+Success metrics updated
+
+SLO evaluation updates for webhook success rate and settlement latency.
+
+4. Failure Path Example (Webhook signature invalid)
+
+Failure trigger
+
+Signature verification fails.
+
+Signals
+
+Event: integration.webhook.verified with verified=false
+
+Log: category=security, level=warn
+
+Metric: coinbase_webhook_verify_failure_total++
+
+LUM decisions
+
+Alert Decision: trigger security alert
+
+severity mapping: typically SEV1 or SEV2 depending on volume
+
+Incident Decision (optional): if repeated failures exceed threshold, auto-create incident
+
+Incident workflow
+
+Incident: incident_type=security, state triaging
+
+Timeline auto-populates with:
+
+failed verification event
+
+recent similar events grouped
+
+trace samples
+
+Governance interlock
+
+LUM emits advisory to GGP:
+
+“Possible webhook spoofing; pause automated provisioning for EXT-COINBASE-COMMERCE.”
+
+GGP may enforce:
+
+require human approval for any related ledger updates
+
+require additional evidence capture
+
+Resolution
+
+rotate webhook secret / fix verification bug
+
+incident moves to resolved/closed
+
+postmortem created, action items assigned to CWP
+
+5. What You Can Query in LUM (Post-Scenario)
+
+5.1 By workflow
+
+input: workflow_id = WF-2025-12-22-00017
+
+output: all signals, traces, events, decisions, artifacts
+
+5.2 By decision
+
+input: decision_id = GGP-D-8813…
+
+output: all governed actions + evidence bundle
+
+5.3 By integration
+
+input: integration_id = EXT-COINBASE-COMMERCE
+
+output: provider health, quotas (if available), error codes, webhook failures
+
+5.4 By entity
+
+input: entity_id = IDN-E-4491…
+
+output: all correlated actions for the customer (policy-controlled)
+
+6. Outputs / Artifacts Produced
+
+6.1 Telemetry
+
+logs: integration, audit, application
+
+metrics: webhook success/failure, settlement latency
+
+traces: end-to-end request/workflow trace
+
+events: decision, ledger, task, evidence
+
+6.2 Reliability
+
+alert records (if failures)
+
+SLO evaluations
+
+incident record + timeline (if triggered)
+
+6.3 Evidence
+
+evidence bundle with sealed integrity hash
+
+access logs (if someone views bundle)
+
+7. Key Takeaways
+
+LUM makes cross-engine workflows visible via correlation IDs.
+
+LUM turns raw failures into operational outcomes (alerts/incidents).
+
+LUM supports audit-grade traceability by bundling evidence under GGP-defined requirements.
+
+LUM never becomes governance; it provides the reliability and evidence substrate that governance depends on.
+

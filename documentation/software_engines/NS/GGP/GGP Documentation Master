@@ -1,0 +1,277 @@
+NS-GGP — Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+
+Purpose
+
+This document defines the authoritative documentation master plan for the Governance Graph Processor (GGP), strictly aligned to the canonical NS engine document structure 000–014.
+
+GGP is the governance nucleus of Northfield Solidarity. It defines, evaluates, and enforces governance rules over actions, capital flows, identity/roles, external integrations, and cross-engine workflows. It provides the decision logic, approvals, auditability requirements, and policy constraints that all engines must obey.
+
+GGP is not:
+
+A financial ledger (FLO)
+
+An execution engine (DAT / CWP)
+
+A pure analytics engine (DRE / PIE)
+
+GGP is the policy + decision + enforcement plane that makes everything else compliant, intentional, and auditable.
+
+GGP Documentation Index (Canonical)
+
+NS-GGP-000 — CHARTER
+
+Purpose: Define why GGP exists.
+
+Scope:
+
+Mission of GGP
+
+What GGP governs (actions, capital, data, identities, integrations)
+
+Core principles (least privilege, explicit approvals, auditability-by-design)
+
+Engine boundaries (what GGP does NOT do)
+
+NS-GGP-001 — OVERVIEW
+
+Purpose: Provide an executive overview of how GGP operates.
+
+Scope:
+
+High-level decision lifecycle (request → evaluation → decision → enforcement → audit)
+
+Primary artifacts (policies, decisions, controls, evidence)
+
+Relationship to NS engines (FLO, IDN, CWP, MUX, SIG, LUM)
+
+NS-GGP-002 — TAXONOMY
+
+Purpose: Establish the canonical vocabulary for governance.
+
+Scope:
+
+Governance object taxonomy (Policy, Rule, Control, Constraint, Decision, Evidence)
+
+Approval types (auto, single-approver, multi-sig, quorum)
+
+Risk/materiality levels
+
+Event types (decision events, enforcement events, audit events)
+
+NS-GGP-003 — ARCHITECTURE
+
+Purpose: Define the architecture of GGP and its integration surfaces.
+
+Scope:
+
+Core services/modules (Policy Store, Evaluator, Decision Service, Enforcement Gate)
+
+External interfaces (API, webhook gate, policy evaluation endpoint)
+
+Integrations with IDN (identity), FLO (ledger), LUM (telemetry), MUX/SIG/DRE
+
+Deployment topology (where GGP lives, HA requirements)
+
+NS-GGP-004 — LIFECYCLE
+
+Purpose: Define the full lifecycle of governance artifacts and decisions.
+
+Scope:
+
+Policy lifecycle (draft → review → approval → publish → deprecate)
+
+Decision lifecycle (request → evaluation → approval → enforce → close)
+
+Evidence lifecycle (collect → retain → seal → expire)
+
+Change management triggers and review cycles
+
+NS-GGP-005 — DECISION
+
+Purpose: Specify the formal decision model used by GGP.
+
+Scope:
+
+Decision graph concepts (nodes, edges, conditions)
+
+Deterministic evaluation rules
+
+Multi-signal inputs (risk, identity, limits, context)
+
+Override/break-glass behavior (logged, time-bounded)
+
+Decision outputs (allow/deny/require-approval/require-evidence)
+
+NS-GGP-006 — VERSION
+
+Purpose: Define versioning rules for policies, decision logic, and schema.
+
+Scope:
+
+Policy versioning (semantic or monotonic)
+
+Compatibility rules (backwards/forwards)
+
+Migration strategy for stored decisions
+
+Deprecation policy and sunset windows
+
+NS-GGP-007 — DATAMODEL
+
+Purpose: Define the canonical GGP data model.
+
+Scope:
+
+Entities: Policy, Rule, Control, Decision, Approval, Evidence, Actor, Context
+
+Relationships (graphs) and indexing strategy
+
+Audit event schema requirements
+
+Links to FLO ledger entries and IDN entity records
+
+Storage approach (Postgres/Mongo/graph adjunct, if applicable)
+
+NS-GGP-008 — EEE (End-to-End Example)
+
+Purpose: Provide a full narrative example demonstrating GGP in action.
+
+Scope:
+
+Example: external payment webhook triggers fulfillment
+
+Identity resolution (IDN), policy eval (GGP), ledger write (FLO), telemetry (LUM)
+
+Decision + evidence bundle produced
+
+Failure paths and governance responses
+
+NS-GGP-009 — IMPL
+
+Purpose: Define implementation guidance without locking into a single codebase.
+
+Scope:
+
+Service boundaries and API shapes
+
+Policy language approach (DSL vs JSON rules)
+
+Evaluation engine patterns (deterministic, testable)
+
+Audit logging patterns, idempotency, replay safety
+
+Testing strategy (policy unit tests, decision regression suites)
+
+NS-GGP-010 — FE (Optional Operator UI)
+
+Purpose: Define the optional UI for governance operators and approvers.
+
+Scope:
+
+Policy editor + review workflow
+
+Approval inbox (queues, delegation)
+
+Decision explorer (trace why a decision happened)
+
+Evidence viewer (with access controls)
+
+NS-GGP-011 — APIMAP
+
+Purpose: Provide the authoritative map of GGP APIs.
+
+Scope:
+
+Decision evaluation endpoints
+
+Policy CRUD endpoints
+
+Approval endpoints (request/approve/deny/delegate)
+
+Evidence submission and retrieval endpoints
+
+Webhook-gate / external integration gate patterns
+
+NS-GGP-012 — STATE
+
+Purpose: Define GGP runtime states and state transitions.
+
+Scope:
+
+Decision states (pending, awaiting approval, allowed, denied, expired)
+
+Policy states (draft, in-review, published, deprecated)
+
+Approval states (requested, granted, denied, timed-out)
+
+Evidence states (requested, received, sealed, invalid)
+
+NS-GGP-013 — RUNBOOK
+
+Purpose: Define operations, support, and incident procedures.
+
+Scope:
+
+On-call playbooks and troubleshooting
+
+Common failure modes (auth, policy regression, outage)
+
+Break-glass steps (with required evidence)
+
+Restore procedures and integrity checks
+
+NS-GGP-014 — DATADEF
+
+Purpose: Define canonical field-level definitions and validation constraints.
+
+Scope:
+
+Field definitions for all core objects
+
+Required/optional fields, enums, formats
+
+Redaction rules and sensitive field classification
+
+Cross-engine identifiers (entity_id, workflow_id, decision_id, integration_id)
+
+Recommended Build Order (Practical)
+
+000 CHARTER → 001 OVERVIEW → 002 TAXONOMY
+
+005 DECISION → 012 STATE
+
+007 DATAMODEL → 014 DATADEF
+
+011 APIMAP → 003 ARCHITECTURE
+
+004 LIFECYCLE → 006 VERSION
+
+008 EEE → 009 IMPL
+
+013 RUNBOOK → 010 FE (optional)
+
+Ownership & Governance
+
+GGP docs are authoritative; other engines must conform.
+
+Any change that affects:
+
+approval thresholds
+
+capital/materiality limits
+
+scope expansion for external APIs
+
+evidence retention/access
+requires a policy review and a new version per NS-GGP-006.
+
+Open Items (Fill During Iteration)
+
+Policy language selection (DSL vs JSON)
+
+Evidence store approach (append-only stream + immutability controls)
+
+Formal risk/materiality rubric
+
+Default approval workflows per engine/action type
+

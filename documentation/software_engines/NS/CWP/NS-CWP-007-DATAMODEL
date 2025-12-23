@@ -1,0 +1,397 @@
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document defines the authoritative data model for the Cognitive Work Plane (CWP).
+It specifies:
+  canonical entities and relationships
+  primary identifiers and versioning semantics
+  immutability and append-only guarantees
+  event sourcing and projection strategy
+The model is optimized for agentic supervision, auditability, and replay.
+2. Core Modeling Principles
+ Definitions are Versioned — work definitions evolve via new versions
+ Execution is Event-Sourced — runtime state is derived, never mutated
+ Decisions are Append-Only — every decision is preserved
+ Assignments are Attributed — actor + reason always recorded
+ Cross-Engine References are Immutable — no foreign mutation
+3. Authoritative Stores
+Primary Store (MVP): PostgreSQL
+Supporting Stores (optional):
+  Kafka — work and supervision events
+  Redis — hot projections
+  MongoDB — operator notes and rich annotations
+The event ledger is the source of truth for rebuilds.
+4. Core Identity Tables
+4.1 agent
+Column
+Type
+Notes
+agent_id
+UUID (PK)
+IDN canonical
+agent_type
+TEXT
+human / ai / hybrid
+trust_level
+TEXT
+tiered
+availability_state
+TEXT
+available / busy / offline
+created_at
+TIMESTAMP
+UTC
+4.2 agent\_capability\_version
+Column
+Type
+Notes
+agent_id
+UUID
+FK → agent
+capability_version
+INT
+monotonic
+capabilities
+JSONB
+
+effective_at
+TIMESTAMP
+
+changed_by
+UUID
+
+change_summary
+TEXT
+
+PK: (agent_id, capability_version)
+4.3 role
+Column
+Type
+Notes
+role_id
+UUID (PK)
+
+name
+TEXT
+
+permitted_actions
+JSONB
+
+review_authority
+BOOLEAN
+
+5. Work Definition Tables
+5.1 work_item
+Column
+Type
+Notes
+work_id
+UUID (PK)
+
+work_type
+TEXT
+task / mission / program
+current_version
+INT
+
+created_at
+TIMESTAMP
+
+created_by
+UUID
+
+5.2 work\_definition\_version
+Column
+Type
+Notes
+work_id
+UUID
+FK
+work_version
+INT
+monotonic
+description
+TEXT
+
+input_refs
+JSONB
+cross-engine refs
+expected_output
+JSONB
+
+constraints
+JSONB
+
+success_criteria
+JSONB
+
+sla_id
+UUID
+
+priority
+INT
+
+effective_at
+TIMESTAMP
+
+changed_by
+UUID
+
+change_summary
+TEXT
+
+PK: (work_id, work_version)
+5.3 work_dependency
+Column
+Type
+Notes
+dependency_id
+UUID (PK)
+
+work_id
+UUID
+
+depends_on_work_id
+UUID
+
+dependency_type
+TEXT
+hard / soft
+6. Assignment & Control Tables
+6.1 assignment
+Column
+Type
+Notes
+assignment_id
+UUID (PK)
+
+work_id
+UUID
+
+work_version
+INT
+snapshot
+assigned_agent_id
+UUID
+
+assigned_by
+UUID
+
+assigned_at
+TIMESTAMP
+
+reason
+TEXT
+
+status
+TEXT
+active / released
+Assignments are append-only; releases are events.
+6.2 checkpoint
+Column
+Type
+Notes
+checkpoint_id
+UUID (PK)
+
+work_id
+UUID
+
+work_version
+INT
+
+reviewer_role_id
+UUID
+
+acceptance_criteria
+JSONB
+
+due_at
+TIMESTAMP
+
+6.3 review
+Column
+Type
+Notes
+review_id
+UUID (PK)
+
+checkpoint_id
+UUID
+
+outcome
+TEXT
+
+notes
+TEXT
+
+reviewed_by
+UUID
+
+reviewed_at
+TIMESTAMP
+
+Reviews are immutable.
+6.4 escalation
+Column
+Type
+Notes
+escalation_id
+UUID (PK)
+
+work_id
+UUID
+
+work_version
+INT
+
+severity
+TEXT
+
+trigger_condition
+TEXT
+
+routed_to
+JSONB
+
+resolution_status
+TEXT
+
+created_at
+TIMESTAMP
+
+created_by
+UUID
+
+7. SLA & Policy Tables
+7.1 sla_version
+Column
+Type
+Notes
+sla_id
+UUID
+
+sla_version
+INT
+
+response_time_s
+INT
+
+completion_time_s
+INT
+
+quality_threshold
+NUMERIC
+
+effective_at
+TIMESTAMP
+
+PK: (sla_id, sla_version)
+8. Decision & Event Ledgers
+8.1 cwp_decision
+Column
+Type
+Notes
+decision_id
+UUID (PK)
+
+decision_type
+TEXT
+
+work_ref
+UUID
+
+inputs_summary
+JSONB
+
+outcome
+JSONB
+
+ruleset_version
+TEXT
+
+decided_at
+TIMESTAMP
+
+actor_id
+UUID
+
+8.2 cwp_event
+Column
+Type
+Notes
+event_id
+UUID (PK)
+
+event_type
+TEXT
+
+work_ref
+UUID
+
+actor_id
+UUID
+
+payload
+JSONB
+
+occurred_at
+TIMESTAMP
+
+correlation_id
+UUID
+
+Events are append-only and replayable.
+9. Derived Projections
+9.1 work\_state\_projection
+Derived from cwp_event.
+Column
+Type
+Notes
+work_id
+UUID (PK)
+
+status
+TEXT
+
+assigned_agent_id
+UUID
+
+active_checkpoint_id
+UUID
+
+open_escalation_count
+INT
+
+last_event_at
+TIMESTAMP
+
+Rebuildable at any time.
+10. Cross-Engine Reference Envelope
+{
+  "engine": "DRE",
+  "artifact_type": "hypothesis",
+  "artifact_id": "UUID",
+  "artifact_version": 3
+}
+CWP never mutates referenced artifacts.
+11. Migration & Replay Strategy
+  additive schema changes only
+  events and decisions are immutable
+  projections rebuilt from ledgers
+12. Document Position in CWP Corpus
+Builds on:
+  NS-CWP-002 — TAXONOMY
+  NS-CWP-006 — VERSION
+Informs:
+  NS-CWP-008 — EEE
+  NS-CWP-013 — RUNBOOK
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Reissued CWP Data Model
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,121 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the canonical API mapping for the Market Integration Layer (MUX), linking:
+MUX Operator UI (NS-MUX-010)
+Downstream consumers (FLO, DAT, SIG, PIE, GGP)
+Internal operational controls (replay, backfill, connector state)
+The goal is to ensure:
+Read surfaces are complete and consistent
+Control actions are auditable and, when required, governed
+API semantics support replayability and immutability guarantees
+This is a logical API map, not an implementation spec.
+2. API Design Principles
+Immutable Truth — APIs never “edit” capture or artifact records
+Governed Controls — replay/backfill and connector toggles are guarded
+Traceable Responses — capture_id, artifact_id, decision_id everywhere
+Idempotent Operations — job creation and ingestion endpoints must be idempotent
+Least Privilege — raw payload access is tightly restricted
+3. API Surface Groups
+Connector Management
+Ingestion Visibility (captures)
+Canonical Artifact Query
+Provenance & Decision Inspection
+Quarantine Workflows
+Replay / Backfill / Reprocess Controls
+Publication Health
+Platform State Artifacts
+4. FE Screen → API Mapping
+4.1 Connector Dashboard
+GET /connectorsReturns:connector_idsource_systemingestion_methodstate (enabled/degraded/disabled)last_success_aterror_ratelag/backlograte_limit_hits
+4.2 Connector Detail
+GET /connectors/{connector_id}Returns:config_versionscopes/endpoints (redacted)recent errorshealth metrics
+GET /connectors/{connector_id}/eventsReturns recent ingestion events and outcomes.
+4.3 Connector Controls (Governed as Configured)
+POST /connectors/{connector_id}/stateBody:target_state (enabled/paused/degraded/disabled)reasonactor_idgovernance_ref (optional/required by policy)
+POST /connectors/{connector_id}/rate-limitBody:override policyreason
+4.4 Ingestion Timeline
+GET /capturesQuery:source_systemconnector_idoutcome (accepted/rejected/quarantined)time rangelimit/offset
+4.5 Raw Capture Detail
+GET /captures/{capture_id}Returns:capture metadatasignature_validintegrity_hashlinked artifact_ids
+GET /captures/{capture_id}/payloadRBAC-restricted raw payload view.
+4.6 Canonical Artifact Explorer
+GET /artifactsQuery:artifact_typesource_systemexternal_idoccurred_at rangeintegrity_hashlimit/offset
+4.7 Artifact Detail (Provenance)
+GET /artifacts/{artifact_id}
+GET /artifacts/{artifact_id}/lineageReturns:raw_capture_idsdedupe_refsdecision_idspublish_status
+GET /artifacts/{artifact_id}/typedReturns the typed artifact payload fields.
+4.8 Quarantine Inbox
+GET /quarantine/itemsQuery:reason_code (invalid_signature/schema_unknown/integrity_mismatch/publish_failed)source_systemtime range
+POST /quarantine/items/{item_id}/reviewBody:reviewed_statusnotes
+4.9 Reprocess Quarantine Item
+POST /quarantine/items/{item_id}/reprocessBody:ruleset_nameruleset_versionreasongovernance_ref (optional/required by policy)
+4.10 Replay / Backfill Console (Governed)
+POST /jobs/replayBody:scope (connector/artifact_type/time_window/external_ids)reasonactor_idgovernance_ref (optional/required)
+POST /jobs/backfillBody:connector_idtime_windowreason
+POST /jobs/reprocessBody:capture_ids (or query)ruleset_name/versionreason
+GET /jobs
+GET /jobs/{job_id}
+All job creation endpoints must support idempotency keys.
+4.11 Publication Health
+GET /publishing/healthReturns per-topic publish rates/failures.
+GET /publishing/failuresReturns failed publish attempts with artifact_id.
+4.12 Platform State Monitor
+GET /platform-stateQuery:source_systemstate_typetime range
+5. Downstream Engine API Surfaces
+5.1 FLO Consumption
+FLO consumes via Kafka primarily.
+Optional query endpoints:
+GET /statements?source_system=&period_start=&period_end=
+GET /statements/{statement_artifact_id}/line-items
+5.2 DAT Consumption
+Optional query endpoints:
+GET /fulfillment?external_id=
+GET /transactions?external_id=
+5.3 SIG Consumption
+SIG consumes platform events via Kafka.
+Optional query endpoints:
+GET /events?source_system=&event_type=&time_range=
+5.4 GGP Oversight
+GET /decisions?connector_id=&time_range=
+GET /connectors/{connector_id}/audit-trail
+6. Canonical Response Envelope
+All APIs return:
+success
+data
+error_code (nullable)
+message (nullable)
+correlation_id
+7. Error Handling Semantics
+Validation errors never mutate state
+RBAC failures explicit
+Partial writes forbidden
+Job requests are idempotent
+8. Document Position in MUX Corpus
+This APIMAP is informed by:
+NS-MUX-009 — IMPL
+NS-MUX-010 — FE
+NS-MUX-007 — DATAMODEL
+It informs:
+NS-MUX-012 — STATE
+NS-MUX-013 — RUNBOOK
+9. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX API Mapping
+
+Parent / HoldCo Manager
+Status: Draft

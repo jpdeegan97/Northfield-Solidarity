@@ -1,0 +1,161 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the canonical signal taxonomy for the Signal Aggregation Engine (SIG).
+The taxonomy establishes:
+What constitutes a signal
+How signals are categorized and normalized
+Which attributes are mandatory for trust, provenance, and replay
+This taxonomy prevents downstream engines from inventing incompatible or ambiguous signal semantics.
+2. Taxonomy Principles
+Atomicity
+A signal represents the smallest meaningful observation.
+Non-Interpretive
+Signals describe observations, not conclusions.
+Source-Explicit
+Every signal must identify where it came from.
+Trust-Scored
+Every signal carries explicit confidence and reliability metadata.
+Time-Bound
+Signals decay; relevance is never assumed to be permanent.
+3. Primary Signal Classes
+SIG recognizes six primary classes of signals:
+Market Signals
+Demand Signals
+Supply Signals
+Execution Signals
+Financial Signals
+Meta & System Signals
+Each class contains multiple canonical signal types.
+4. Market Signals
+Meaning:
+Observations about market conditions, pricing, and competition.
+Examples:
+competitor_price_observed
+listing_rank_position
+ad_impression_volume
+keyword_trend_velocity
+Canonical Attributes:
+observed_value
+unit
+market_scope
+5. Demand Signals
+Meaning:
+Observations indicating customer interest or intent.
+Examples:
+search_volume
+click_through_rate
+add_to_cart_rate
+conversion_event
+Canonical Attributes:
+count or rate
+channel
+audience_segment
+6. Supply Signals
+Meaning:
+Observations about availability, inventory, or production capacity.
+Examples:
+inventory_level
+stockout_event
+supplier_lead_time
+fulfillment_capacity
+Canonical Attributes:
+quantity
+location
+constraint_type
+7. Execution Signals
+Meaning:
+Observations about internal or external execution outcomes.
+Examples:
+ad_campaign_started
+fulfillment_completed
+execution_error
+latency_spike
+Canonical Attributes:
+execution_ref
+outcome_status
+latency_ms
+8. Financial Signals
+Meaning:
+Observations related to monetary movement or exposure.
+Examples:
+spend_incurred
+revenue_realized
+refund_issued
+fee_applied
+Canonical Attributes:
+amount
+currency
+direction
+Note: Financial signals are non-authoritative and later reconciled by FLO.
+9. Meta & System Signals
+Meaning:
+Signals about system behavior, trust, or data quality.
+Examples:
+source_reliability_score
+signal_latency
+data_gap_detected
+schema_drift_detected
+Used primarily for governance and model hygiene.
+10. Cross-Cutting Signal Dimensions
+All signals must include:
+signal_id (UUID)
+signal_type (canonical)
+signal_class (one of the six)
+source_system
+observed_at
+received_at
+trust_score (0–1)
+confidence_score (0–1)
+decay_model
+correlation_hints
+raw_refs (links to MUX artifacts or internal telemetry)
+11. Aggregation Primitives
+SIG supports aggregation over signals:
+time-window aggregation
+source-weighted aggregation
+confidence-weighted aggregation
+correlation grouping
+Aggregations produce derived signals, not authoritative facts.
+12. Signal Lifecycle States (Logical)
+Signals are immutable but may be logically classified as:
+fresh
+decaying
+stale
+These are computed, not stored.
+13. Cross-Engine Consumption Mapping
+Signal Class
+Primary Consumers
+Market
+PIE, DRE
+Demand
+PIE, SIM
+Supply
+PIE, DAT
+Execution
+DAT, GGP
+Financial
+FLO, PIE
+Meta/System
+GGP, Ops
+14. What This Taxonomy Enables
+Clean signal synthesis in PIE
+Explainable insight generation
+Replayable model evolution
+Governance-grade auditability
+15. Document Position in SIG Corpus
+This taxonomy builds upon:
+NS-SIG-001 — OVERVIEW
+It informs:
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+NS-SIG-007 — DATAMODEL
+16. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Signal Taxonomy
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,237 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the canonical data definitions (DATADEF) for the Identity & Entity Nexus (IDN).
+It provides:
+semantic meaning of each core field
+invariants and constraints
+cross-engine usage expectations
+authoritative reference for audits and integrations
+This document is the field-level contract complementing NS-IDN-007 — DATAMODEL.
+2. DATADEF Principles
+Semantic Immutability — field meaning never changes
+Canonical IDs Only — cross-engine references use canonical IDs
+Temporal Explicitness — time-bound fields are explicit
+Explainability — every mutation has rationale
+Audit Completeness — no derived-only truth
+3. Actor Data Definitions
+3.1 actor
+Field
+Definition
+Notes
+actor_id
+Canonical actor identifier
+Stable forever
+actor_type
+Classification of actor
+human / agent / service / org
+status
+Current lifecycle state
+active / suspended / retired
+created_at
+Creation timestamp (UTC)
+Immutable
+Invariants:
+actor_id never changes
+status transitions are governed
+4. Entity Data Definitions
+4.1 entity
+Field
+Definition
+Notes
+entity_id
+Canonical entity identifier
+Stable forever
+entity_type
+Entity classification
+legal / property / product / account / concept
+lifecycle_state
+Entity lifecycle
+proposed / active / archived
+created_at
+Creation timestamp (UTC)
+Immutable
+Invariants:
+entity_id never changes
+lifecycle_state changes are explicit
+5. Identifier Data Definitions
+5.1 identifier
+Field
+Definition
+Notes
+identifier_id
+Identifier record ID
+Internal
+identifier_type
+Type of identifier
+email / tax_id / platform_id
+identifier_value
+Normalized identifier value
+Case/format normalized
+issuing_system
+Source system
+Required
+confidence_score
+Confidence in correctness
+Optional
+created_at
+When identifier observed
+UTC
+Invariants:
+identifier_value is immutable
+identifiers are never reassigned silently
+6. Identifier Link Definitions
+6.1 identity_identifier_link
+Field
+Definition
+Notes
+subject_type
+actor or entity
+Required
+subject_id
+Canonical ID
+actor_id or entity_id
+identifier_id
+Linked identifier
+FK
+linked_at
+Link timestamp
+UTC
+unlinked_at
+Unlink timestamp
+Nullable
+Semantics:
+unlinked_at indicates deprecation, not deletion
+7. Relationship Data Definitions
+7.1 relationship
+Field
+Definition
+Notes
+relationship_id
+Relationship identifier
+Internal
+source_type
+actor/entity
+Required
+source_id
+Canonical source ID
+Stable
+target_type
+actor/entity
+Required
+target_id
+Canonical target ID
+Stable
+relationship_type
+Edge meaning
+owns / manages / controls
+effective_from
+Start of validity
+UTC
+effective_to
+End of validity
+Nullable
+Invariants:
+open relationships have effective_to = null
+updates close old edges, create new ones
+8. Identity Event Definitions
+8.1 identity_event
+Field
+Definition
+Notes
+event_id
+Event identifier
+Immutable
+event_type
+Type of identity change
+Created / Linked / Merged / Split
+subject_ref
+Affected canonical
+actor_id / entity_id
+payload
+Event-specific data
+JSON
+ruleset_name
+Logic set used
+Required
+ruleset_version
+Version of logic
+Required
+occurred_at
+When event occurred
+UTC
+correlation_id
+Trace identifier
+Required
+9. Decision Artifact Definitions
+9.1 idn_decision
+Field
+Definition
+Notes
+decision_id
+Decision identifier
+Immutable
+decision_type
+Creation/link/merge/split
+Enumerated
+subject_ref
+Target of decision
+Canonical ID
+outcome
+Approved / Rejected / Deferred
+Explicit
+rationale
+Structured explanation
+JSON
+ruleset_version
+Decision logic version
+Required
+evaluated_at
+Decision time
+UTC
+correlation_id
+Trace identifier
+Required
+10. Cross-Engine Contract Expectations
+Engine
+IDN Contract
+GGP
+Uses identity + decision artifacts for governance
+SIG
+Attributes signals using canonical IDs
+PIE
+Groups insights by entity
+SIM
+Binds scenarios to entities
+DAT
+Executes actions on behalf of entities
+FLO
+Accounts financial state per entity
+PECA
+Creates new legal/property entities
+CWP
+Manages agentic actors
+Downstream engines must not cache identity snapshots.
+11. Validation & Constraints
+All timestamps are UTC
+Canonical IDs are UUIDs
+Identifier uniqueness enforced per (type, value, issuing_system)
+Relationship type must be valid for source/target types
+12. Backward Compatibility Rules
+Fields may be added but never removed
+Field meaning never changes
+Deprecated fields remain readable
+13. Document Position in IDN Corpus
+This DATADEF completes the IDN documentation set.
+It complements:
+NS-IDN-007 — DATAMODEL
+NS-IDN-006 — VERSION
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Canonical Data Definitions
+Parent / HoldCo Manager
+Status: Draft

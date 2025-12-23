@@ -1,0 +1,324 @@
+# NS-MUX — Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+
+## Purpose
+
+This document defines the authoritative **documentation master plan** for **MUX (Market Integration Layer)**, strictly aligned to the **NS-GGP canonical document structure (000–014)**.
+
+**MUX** is Northfield Solidarity’s **external integration layer**. It standardizes how NS connects to third-party APIs and external systems, including:
+
+* payments (e.g., Coinbase Commerce)
+* maps/geo (e.g., Google Maps Platform)
+* messaging/email providers
+* storage/document providers
+* any partner/vendor APIs
+
+MUX is responsible for:
+
+* secure connectivity
+* protocol normalization
+* retries/idempotency
+* rate limit/quota management
+* webhooks ingress
+* secrets handling (never leaking to other engines)
+* emitting canonical integration events to LUM
+
+MUX is **not**:
+
+* a governance authority (GGP)
+* an identity system (IDN)
+* a financial ledger (FLO)
+* an observability engine (LUM)
+
+MUX is the **connective tissue** between NS internal engines and external providers.
+
+---
+
+## MUX Documentation Index (Canonical)
+
+### NS-MUX-000 — CHARTER
+
+**Purpose:** Define why MUX exists.
+
+**Scope**
+
+* Mission and non-goals
+* External integration philosophy (safe-by-default)
+* Engine boundaries vs GGP/IDN/FLO/LUM
+* What “integration” means in NS
+
+**Outputs**
+
+* One-paragraph mission
+* Core responsibilities (allowed actions)
+* Explicit non-responsibilities
+
+---
+
+### NS-MUX-001 — OVERVIEW
+
+**Purpose:** Provide the executive overview of capabilities and operating model.
+
+**Scope**
+
+* Provider categories (payments, maps, comms, etc.)
+* High-level architecture: connectors, gateway, webhook ingress
+* Reliability posture: retries, circuit breakers, backoff
+* Security posture: secrets, signatures, mTLS, key rotation
+
+**Outputs**
+
+* Capability map
+* Provider onboarding lifecycle (summary)
+
+---
+
+### NS-MUX-002 — TAXONOMY
+
+**Purpose:** Define the canonical vocabulary for integrations.
+
+**Scope**
+
+* Provider, IntegrationProfile, Connector, Route, Webhook, Credential, Quota, RetryPolicy
+* Error taxonomy (transient vs terminal vs policy)
+* Request classes (idempotent vs non-idempotent)
+* Data classification (public/internal/confidential/restricted)
+
+**Outputs**
+
+* Terms and definitions
+* Naming conventions (integration_id patterns, connector IDs)
+
+---
+
+### NS-MUX-003 — ARCHITECTURE
+
+**Purpose:** Describe the system architecture and boundaries.
+
+**Scope**
+
+* Integration Gateway
+* Connector runtime (per-provider adapters)
+* Webhook receiver + verification pipeline
+* Policy hooks (GGP), identity hooks (IDN)
+* Event emission to LUM
+* Storage choices (secrets store, request journal, webhook archive)
+
+**Outputs**
+
+* Component diagram
+* Trust boundaries and data flows
+
+---
+
+### NS-MUX-004 — LIFECYCLE
+
+**Purpose:** Define provider onboarding and lifecycle management.
+
+**Scope**
+
+* Integration onboarding (request → approval → build → test → launch)
+* Environments (dev/uat/prod) and key separation
+* Credential rotation and deprecation
+* Connector versioning and rollout strategy
+
+**Outputs**
+
+* Lifecycle state machine
+* “Add new provider” checklist
+
+---
+
+### NS-MUX-005 — DECISION
+
+**Purpose:** Define decision points and governance gates.
+
+**Scope**
+
+* When GGP approval is required (new provider, new scopes, secrets, export)
+* Risk tiers for providers (tier0/tier1/tier2)
+* Break-glass policies and required evidence
+* Data handling decisions (store vs reference)
+
+**Outputs**
+
+* Decision matrix
+* Required evidence per decision class
+
+---
+
+### NS-MUX-006 — VERSION
+
+**Purpose:** Define versioning rules for connectors, schemas, and routes.
+
+**Scope**
+
+* Connector semantic versioning
+* Backward compatibility rules
+* Deprecation windows
+* Configuration versioning (routes, retry policies)
+
+**Outputs**
+
+* Version policy
+* Upgrade playbooks
+
+---
+
+### NS-MUX-007 — DATAMODEL
+
+**Purpose:** Define the canonical data model for MUX.
+
+**Scope**
+
+* IntegrationProfile
+* Connector
+* CredentialRef (never raw secrets)
+* Route / Endpoint
+* WebhookSubscription
+* RequestJournal (idempotency keys, retries)
+* QuotaSnapshot
+* ErrorRecord
+* EvidenceRefs (for governed operations)
+
+**Outputs**
+
+* Entity definitions + required fields
+* Correlation ID requirements (workflow_id, trace_id, decision_id)
+
+---
+
+### NS-MUX-008 — EEE (End-to-End Example)
+
+**Purpose:** Provide a full scenario showing MUX in action.
+
+**Scope (example scenario)**
+
+* Coinbase Commerce webhook → verification → GGP gate → FLO ledger → CWP entitlement
+* Google Maps API request → quota guard → caching → fallbacks
+* LUM correlation across events, traces, errors
+
+**Outputs**
+
+* Sequence diagram
+* Happy path + failure path (rate-limit, signature failure)
+
+---
+
+### NS-MUX-009 — IMPL
+
+**Purpose:** Implementation guidance and reference patterns.
+
+**Scope**
+
+* Connector SDK pattern and adapter design
+* Standard retries/backoff/circuit-breakers
+* Webhook verification patterns
+* Idempotency strategy (provider-specific vs global)
+* Caching strategy (where allowed)
+
+**Outputs**
+
+* Reference connector skeleton
+* Minimal MVP build plan
+
+---
+
+### NS-MUX-010 — FE (Optional Operator UI)
+
+**Purpose:** Optional UI for integration operators.
+
+**Scope**
+
+* Integration health dashboard
+* Webhook inbox + replay controls (guarded)
+* Credential rotation workflows (guarded)
+* Quota/rate-limit monitoring
+* Error triage + correlation links to LUM
+
+**Outputs**
+
+* Page map
+* Role model and access constraints
+
+---
+
+### NS-MUX-011 — APIMAP
+
+**Purpose:** Define MUX’s API surfaces.
+
+**Scope**
+
+* Internal request API (call external provider)
+* Webhook ingress endpoints
+* Admin APIs (profiles, routes, quotas)
+* Replay endpoints (guarded + audited)
+* Events emitted to LUM
+
+**Outputs**
+
+* Endpoint catalog
+* Standard headers (correlation + idempotency)
+
+---
+
+### NS-MUX-012 — STATE
+
+**Purpose:** Define canonical states for MUX objects.
+
+**Scope**
+
+* IntegrationProfile state (draft/approved/active/degraded/retired)
+* Connector state (active/deprecated/retired)
+* Webhook processing state (received/verified/processed/failed/replayed)
+* RequestJournal state (queued/sent/retried/succeeded/failed)
+* Credential rotation state (scheduled/rotated/verified/rolled_back)
+
+**Outputs**
+
+* State machines + invalid transition rules
+
+---
+
+### NS-MUX-013 — RUNBOOK
+
+**Purpose:** Operator runbooks for common failures.
+
+**Scope**
+
+* Provider outage procedures
+* Rate limiting/quota exhaustion
+* Webhook signature failures
+* Retry storms / idempotency collisions
+* Secret rotation incidents
+* Safe replay procedures
+
+**Outputs**
+
+* Playbooks by incident type
+* Escalation guidance and comms templates
+
+---
+
+### NS-MUX-014 — DATADEF
+
+**Purpose:** Field-level definitions, enums, validation, and redaction rules.
+
+**Scope**
+
+* Correlation fields (workflow_id, trace_id, decision_id, integration_id)
+* Provider request/response envelope
+* Error code taxonomy
+* Redaction rules (never store secrets)
+* High-cardinality constraints (metrics/labels)
+
+**Outputs**
+
+* Canonical field dictionary
+* Validation constraints + “never store” list
+
+---
+
+## Notes on Alignment
+
+* All MUX docs must remain compatible with **GGP governance gates**, **IDN identity controls**, **FLO finance boundaries**, and **LUM observability correlation**.
+* Each MUX doc should cross-link to the corresponding GGP/CWP/LUM documents where interlocks exist.

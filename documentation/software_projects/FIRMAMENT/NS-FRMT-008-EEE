@@ -1,0 +1,343 @@
+NS-FIRMAMENT-008 — EEE (End-to-End Example)
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document provides a concrete end-to-end example of Firmament in action, demonstrating:
+
+ingestion → projection → visualization,
+
+sector heatmap drilldown,
+
+operating brief generation,
+
+plan slider scenario shift,
+
+action routing to CWP,
+
+governance gating through GGE,
+
+and verification back into the globe.
+
+2. Scenario Summary
+
+Scenario: A key supplier region begins showing disruption signals, causing fulfillment risk in a sector that matters to your current plan. Firmament detects it, highlights it on the globe, and generates a sector operating brief with actionable mitigation steps that route into governed execution.
+
+Actors:
+
+You (Operator)
+
+Firmament UI + Services
+
+SIG (signals)
+
+IDN (entities)
+
+FLO (financial exposure)
+
+SIM (scenarios)
+
+CWP (tasks)
+
+GGE (gates)
+
+Scope:
+
+Sector: (example) Consumer Discretionary (or your internal equivalent)
+
+Geo: supplier cluster region + downstream fulfillment nodes
+
+Time: next 14 days
+
+3. Stage 0 — Baseline (Normal State)
+
+3.1 Active Layers
+
+Entities & Sites
+
+Logistics Flows
+
+Events
+
+Signals
+
+Sector Heatmap
+
+3.2 Baseline KPIs (Example)
+
+On-time fulfillment: 96%
+
+ETA variance: +0.4 days
+
+Margin: 22%
+
+Sector health score: 78/100
+
+Firmament shows this as a mostly green layer state.
+
+4. Stage 1 — Signal Appears (SIG → Firmament)
+
+4.1 Signal Ingest
+
+SIG emits a disruption signal:
+
+port congestion spike
+
+carrier delays increasing
+
+social/news chatter about constraints
+
+Signal object (example)
+
+{
+  "ref_engine": "SIG",
+  "ref_type": "Signal",
+  "ref_id": "sig_7712",
+  "signal_type": "Disruption",
+  "severity": "High",
+  "confidence": 0.78,
+  "geo_scope": {"type": "Region", "region_id": "REG_SHENZHEN_PORT"},
+  "time_horizon": "7d",
+  "as_of_time": "2025-12-22T16:10:00Z"
+}
+
+4.2 Projection Builder
+
+Firmament Projection Builder:
+
+resolves geo region geometry
+
+links impacted entities from IDN (suppliers, ports, 3PL)
+
+computes impacted flows (routes)
+
+updates severity overlays
+
+Outputs:
+
+new heat overlay cells in the region
+
+increased risk on paths leaving the region
+
+updated staleness/confidence metadata
+
+5. Stage 2 — Globe Updates (Realtime)
+
+UI receives realtime deltas:
+
+a hotspot appears on the globe
+
+affected logistics paths pulse (or thicken)
+
+a banner indicates: “Supply disruption risk increased (High)”
+
+User action: click hotspot.
+
+6. Stage 3 — Drilldown (Context Selection)
+
+Firmament constructs ContextSelection:
+
+{
+  "geo_scope": {"type": "Region", "region_id": "REG_SHENZHEN_PORT"},
+  "time_window": {"mode": "Next14Days"},
+  "sector_scope": {"sector_id": "SEC_CONSUMER_DISC"},
+  "entities_in_scope": ["idn_supplier_11", "idn_3pl_03", "idn_wh_07"],
+  "signals_in_scope": ["sig_7712"],
+  "plan_mode": "balanced"
+}
+
+7. Stage 4 — Operating Brief Generated
+
+Brief/Recommendation Service pulls:
+
+SIG evidence bundle
+
+IDN relationships (supplier → 3PL → warehouses)
+
+FLO exposure (inventory + margin + cash)
+
+current events (deadlines, launches, commitments)
+
+7.1 Brief Output (Example)
+
+Sector Operating Brief — Consumer Discretionary
+
+What’s going well: demand stable; margin holding
+
+What’s failing: upstream delivery reliability falling; ETA variance rising
+
+Root causes: port congestion + carrier capacity constraints
+
+Constraints: budget tolerance moderate; key launch event in 10 days
+
+Confidence: medium-high (0.78); Staleness: fresh (≤ 5 min)
+
+7.2 Recommended Actions (Ranked)
+
+Shift 30% volume to alternate supplier route (impact high, effort medium) — Gate: VendorApproval
+
+Increase safety stock at Warehouse-07 by 15% (impact medium, effort medium) — Gate: BudgetApproval
+
+Expedite priority SKUs via air for 10 days (impact high, effort high) — Gate: BudgetApproval + StrategicApproval
+
+Notify downstream customers of adjusted ETA bands (impact medium, effort low) — No gate
+
+Firmament renders:
+
+affected routes highlighted
+
+warehouse node annotated “risk rising”
+
+sector tile color shifts slightly toward “at-risk”
+
+8. Stage 5 — Plan Slider Shift (Risk ↔ Ambition)
+
+User moves slider from Balanced → Aggressive.
+
+8.1 Scenario Adapter → SIM
+
+SIM request:
+
+higher tolerance for spend
+
+preference for speed + maintaining launch commitments
+
+accept increased operational complexity
+
+SIM response (example)
+
+projected on-time fulfillment returns to 95%
+
+margin drops from 22% → 20.5% (temporary)
+
+risk reduction improves significantly
+
+8.2 Action Re-Ranking
+
+Under Aggressive mode, Firmament ranks:
+
+Air expedite priority SKUs (now #1)
+
+Shift volume to alternate supplier
+
+Increase safety stock
+
+Customer ETA comms
+
+Firmament shows:
+
+action list reordered
+
+brief updates with scenario outcomes
+
+9. Stage 6 — Gate + Assign
+
+User selects top 2 actions and clicks “Execute Plan”.
+
+9.1 Governance Packets (GGE)
+
+Firmament generates two Decision Packets:
+
+Packet A: Air expedite (BudgetApproval + StrategicApproval)
+
+Packet B: Alternate supplier shift (VendorApproval)
+
+Each packet includes:
+
+context selection
+
+evidence bundle
+
+FLO exposure estimate
+
+rollback plan
+
+scenario outcome delta
+
+9.2 Task Routing (CWP)
+
+For each approved action, Firmament creates CWP tasks:
+
+"Book air freight for SKUs A/B/C (10 days)" — owner: Logistics Operator
+
+"Negotiate alternate supplier routing" — owner: Sourcing Operator
+
+dependencies + due dates auto-filled
+
+Firmament stores linkage:
+
+gge_decision_ids
+
+cwp_task_ids
+
+10. Stage 7 — Execution Progress (Realtime Updates)
+
+As CWP tasks progress:
+
+routes on the globe change state
+
+warehouse readiness improves
+
+signal severity begins to drop
+
+Firmament overlays:
+
+“Mitigation in progress” badges
+
+ETA bands narrow
+
+11. Stage 8 — Verification
+
+After 7 days:
+
+on-time fulfillment: 95%
+
+ETA variance: +0.6 days (improving)
+
+margin: 20.7% (temporary dip)
+
+sector health score: 74 → 81
+
+Firmament generates a post-decision outcome card:
+
+what improved
+
+what cost increased
+
+whether assumptions held
+
+recommended next adjustments (step down air, maintain alternate route until signal resolves)
+
+12. What This Example Proves (v0 Acceptance)
+
+EEE is successful when Firmament can:
+
+ingest a signal and project it to the globe,
+
+link it to entities/flows/sectors,
+
+generate a sector operating brief,
+
+change priorities via plan slider (SIM-backed),
+
+route actions into GGE gates and CWP tasks,
+
+show execution progress on the globe,
+
+verify outcomes and close the loop.
+
+13. Minimal API Touchpoints (Illustrative)
+
+GET /layers
+
+GET /geo/tiles/{z}/{x}/{y}?layers=signals,flows,entities
+
+GET /sectors/treemap?metric=health_score
+
+GET /briefs/generate?sector_id=...&plan_mode=...
+
+POST /actions/submit (creates packets/tasks)
+
+WS /realtime (deltas)
+

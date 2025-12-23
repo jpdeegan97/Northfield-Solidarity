@@ -1,0 +1,185 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Identity & Entity Nexus (IDN).
+It translates IDN’s architecture, lifecycle, decisions, versioning, and data model into:
+runnable service components and responsibilities
+module boundaries and interfaces
+persistence and projection strategy
+merge/split governance mechanics
+phased MVP → production rollout plan
+This document is implementation-oriented but technology-agnostic, while remaining compatible with your Python/FastAPI + Docker approach.
+2. Implementation Scope (MVP)
+The IDN MVP must support:
+Canonical actor creation
+Canonical entity creation
+Identifier registration and linking
+Identifier conflict detection (collision quarantine)
+Relationship creation and effective-dated updates
+Governed merge operations (MVP: merge; split can be phase 2)
+Append-only identity event ledger
+Deterministic projection rebuilds
+Read APIs for resolution and relationship lookup
+Out of scope for MVP:
+fully automated merges
+external IAM authentication implementation
+advanced graph database adoption
+3. Service Decomposition
+3.1 idn-api (Read + Governed Write)
+Responsibilities:
+create actors/entities
+link identifiers (guarded)
+create relationships
+request merge/split operations
+expose read endpoints (resolution, entity graph)
+Write operations are guarded and audited.
+3.2 idn-resolver
+Responsibilities:
+validate and normalize identifiers
+resolve identifier → canonical mapping
+detect collisions and ambiguity
+create decision artifacts
+May run inline (MVP) or as a consumer (later).
+3.3 idn-graph
+Responsibilities:
+manage relationship edges
+enforce type constraints
+manage effective windows
+In MVP, implemented using relational adjacency tables.
+3.4 idn-event-ledger
+Responsibilities:
+write append-only identity events
+ensure correlation IDs
+expose replay capability
+Typically embedded as part of repository layer.
+3.5 idn-projector
+Responsibilities:
+build read-optimized projections
+update identifier resolution view
+build adjacency indexes
+MVP options:
+synchronous projection update on write
+async projector consuming identity_event stream
+3.6 idn-admin (Optional)
+Responsibilities:
+enable/disable rulesets
+manage model/ruleset versions
+run projection rebuilds
+4. Suggested Technology Stack
+Aligned with your ecosystem standards:
+Language: Python 3.12+
+API: FastAPI
+Persistence: PostgreSQL
+Eventing (optional but recommended): Kafka
+Cache (optional): Redis for hot identifier lookups
+5. Module Layout (Suggested)
+idn/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── middleware/
+├── registry/
+│   ├── actors.py
+│   └── entities.py
+├── identifiers/
+│   ├── normalizer.py
+│   ├── linker.py
+│   └── conflict.py
+├── relationships/
+│   ├── edge_rules.py
+│   └── graph_store.py
+├── resolution/
+│   ├── decisions.py
+│   └── rulesets/
+├── events/
+│   ├── ledger.py
+│   └── event_types.py
+├── projections/
+│   ├── projector.py
+│   └── views.py
+├── store/
+│   ├── models.py
+│   └── repository.py
+└── config/
+6. End-to-End Flow (Implementation)
+6.1 Create Actor / Entity
+idn-api receives request
+validate schema
+write canonical record
+write identity_event
+update projections
+return canonical ID
+6.2 Link Identifier
+normalize identifier
+check collision against resolution view
+if collision: quarantine + decision artifact
+else: link + event
+update projection map
+6.3 Create Relationship
+validate node existence
+validate edge rule
+close existing edge if updating (effective_to)
+insert new edge
+write events
+update adjacency projection
+6.4 Merge Operation (Governed)
+submit merge request with evidence
+validate merge eligibility
+require governance reference (configurable)
+create decision artifact
+emit merge event
+redirect losing canonical → winning canonical
+rebuild affected projections
+7. Determinism, Idempotency, and Concurrency
+Identifier normalization must be stable
+Resolution view updates must be transactional
+Linking endpoints support idempotency keys
+Collision detection must be race-safe (unique constraints)
+Recommended controls:
+unique constraint on (identifier_type, identifier_value, issuing_system)
+transactional link insert
+8. Security & Governance Controls
+RBAC for write operations
+merge/split operations require:
+actor identity
+reason
+governance reference (optional/required)
+All write requests generate correlation IDs.
+9. Observability
+Metrics:
+identifier resolution latency
+collision/quarantine count
+merge request frequency
+Logs:
+correlation_id
+decision rationale
+10. MVP Rollout Plan
+Implement canonical registry tables + migrations
+Implement identifier normalization + linking
+Implement collision detection + quarantine
+Implement relationship graph tables + effective-dated edges
+Implement event ledger and decision artifacts
+Implement projections (identifier map + adjacency view)
+Implement governed merge flow
+Add optional Kafka publication + async projector
+Harden runbook and audit pack export
+11. Document Position in IDN Corpus
+This implementation plan builds upon:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-005 — DECISION
+NS-IDN-006 — VERSION
+NS-IDN-007 — DATAMODEL
+NS-IDN-008 — EEE
+It informs:
+NS-IDN-011 — APIMAP
+NS-IDN-013 — RUNBOOK
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN MVP Implementation Plan
+Parent / HoldCo Manager
+Status: Draft

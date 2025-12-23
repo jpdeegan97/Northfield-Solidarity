@@ -1,0 +1,145 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the decision framework for the Simulation & Scenario Engine (SIM).
+SIM decisions are bounded, non-authoritative, and deterministic. They exist to:
+determine whether a scenario can be constructed and executed
+select applicable models and rulesets
+enforce constraints during simulation
+classify outcomes and risks
+SIM decisions do not approve actions, allocate capital, or trigger execution.
+2. Decision Design Principles
+Bounded Authority — SIM decides how to simulate, not what to do
+Determinism — identical inputs and versions yield identical decisions
+Explainability — every decision emits a rationale artifact
+Immutability — decisions are recorded, never overwritten
+Governance-Aware — certain decisions require or reference GGP approval
+3. Decision Classes
+SIM defines six primary classes of decisions:
+Scenario Admission Decisions
+Input Resolution Decisions
+Model Selection Decisions
+Constraint Enforcement Decisions
+Execution Control Decisions
+Outcome Classification Decisions
+Each decision produces a decision artifact.
+4. Scenario Admission Decisions
+Question Answered:
+Is this scenario request valid and allowed to run?
+Inputs:
+initiator identity
+scenario intent
+referenced insight(s)
+governance flags
+Outcomes:
+admit
+reject
+defer (await governance)
+Admission never implies approval to act.
+5. Input Resolution Decisions
+Question Answered:
+Are all referenced inputs resolvable and compatible?
+Inputs:
+SIG signal IDs + versions
+PIE insight IDs + versions
+DAT and FLO parameter versions
+Outcomes:
+resolved
+unresolved (missing / incompatible)
+Unresolved inputs block execution.
+6. Model Selection Decisions
+Question Answered:
+Which simulation models and rulesets apply?
+Inputs:
+scenario type
+domain (market, supply, finance)
+model availability
+Outputs:
+model identifiers
+model versions
+Model selection is explicit and recorded.
+7. Constraint Enforcement Decisions
+Question Answered:
+Do constraints permit continuation of simulation paths?
+Inputs:
+constraint sets
+runtime variable states
+Outcomes:
+continue
+halt path
+annotate violation
+Constraints stop simulated paths, not real actions.
+8. Execution Control Decisions
+Question Answered:
+Should simulation execution continue, pause, or abort?
+Triggers:
+runtime errors
+exceeded bounds
+operator intervention
+Outcomes:
+continue
+pause
+abort
+All outcomes are logged.
+9. Outcome Classification Decisions
+Question Answered:
+How should results be classified for downstream use?
+Classification Dimensions:
+success / failure
+risk tier
+sensitivity concentration
+Classifications are descriptive, not prescriptive.
+10. Decision Artifact Schema (Logical)
+Each SIM decision emits an immutable artifact containing:
+decision_id (UUID)
+decision_type
+subject_ref (scenario, input, run)
+outcome
+rationale (structured)
+ruleset_name
+ruleset_version
+evaluated_at
+correlation_id
+11. Governance Interaction
+Some decisions may:
+require GGP reference
+be blocked pending approval
+include governance context metadata
+SIM does not bypass governance gates.
+12. Failure Modes & Safeguards
+Admission failures prevent execution
+Input resolution failures halt construction
+Model failures abort affected paths only
+Partial results are preserved
+Safety favors preservation and explainability.
+13. Cross-Engine Interaction
+Engine
+Interaction
+PIE
+Supplies insight references
+SIG
+Supplies observed data
+DAT
+Supplies execution parameters
+FLO
+Supplies constraints
+GGP
+Governs usage and approvals
+14. Document Position in SIM Corpus
+This decision document builds upon:
+NS-SIM-001 — OVERVIEW
+NS-SIM-002 — TAXONOMY
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+It informs:
+NS-SIM-006 — VERSION
+NS-SIM-007 — DATAMODEL
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Decision Framework
+Parent / HoldCo Manager
+Status: Draft

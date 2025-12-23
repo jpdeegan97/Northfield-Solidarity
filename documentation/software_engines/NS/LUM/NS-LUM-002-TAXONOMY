@@ -1,0 +1,490 @@
+NS-LUM-002 — TAXONOMY
+
+0. Overview
+
+This document defines the canonical taxonomy for LUM (Luminance Engine). The goal is to standardize language and structures for telemetry, reliability, incidents, alerts, evidence support, and cross-engine correlation.
+
+LUM terminology is organized into:
+
+Signals (logs, metrics, traces, events)
+
+Correlation identifiers (how signals stitch together)
+
+Reliability constructs (SLIs/SLOs, error budgets)
+
+Incidents and response (severity, states, runbooks)
+
+Evidence support (audit bundles, chain-of-custody)
+
+1. Core Signal Taxonomy
+
+1.1 Telemetry Signal
+
+A Telemetry Signal is any machine-readable observation emitted by an engine or platform component.
+
+Signal types
+
+Log — discrete records (structured, redacted)
+
+Metric — numerical time series
+
+Trace — distributed span graph (trace/span)
+
+Event — semantic domain event (workflow, integration, decision)
+
+Minimum signal envelope (recommended)
+
+signal_id
+
+signal_type (log|metric|trace|event)
+
+occurred_at
+
+source_engine
+
+service / component
+
+environment (dev|uat|prod)
+
+severity (if applicable)
+
+Correlation IDs (see Section 2)
+
+1.2 Log
+
+A Log is a structured record describing an execution moment.
+
+Log categories
+
+audit (governed actions metadata)
+
+security (auth failures, access violations)
+
+application (business logic)
+
+integration (external API calls)
+
+system (infra/runtime)
+
+Log levels (canonical)
+
+debug | info | warn | error | fatal
+
+1.3 Metric
+
+A Metric is a numeric measurement captured over time.
+
+Metric classes
+
+Counter (monotonic counts, e.g., requests_total)
+
+Gauge (current value, e.g., queue_depth)
+
+Histogram (distribution, e.g., latency_ms)
+
+Summary (approx quantiles)
+
+Metric domains
+
+Traffic (requests, events)
+
+Errors (failures, retries)
+
+Latency (p50/p95/p99)
+
+Saturation (CPU, memory, queue depth)
+
+Correctness (idempotency collisions, schema mismatches)
+
+1.4 Trace
+
+A Trace is a causal graph of Spans representing a single request or workflow across services.
+
+Core trace terms
+
+Trace: end-to-end request boundary
+
+Span: timed operation within a trace
+
+Parent/Child: nesting relationships
+
+Attributes: key/value metadata (redacted)
+
+1.5 Event
+
+An Event is a semantic record describing something that happened in the domain.
+
+Event classes
+
+Workflow events (task created, step completed)
+
+Decision events (policy evaluated, approval granted)
+
+Integration events (webhook received, quota exceeded)
+
+Data events (ingestion started/finished, transform failed)
+
+Event envelope (minimum)
+
+event_id, event_type, occurred_at
+
+source_engine
+
+Correlation IDs (Section 2)
+
+payload_ref (optional pointer to raw payload)
+
+2. Correlation Taxonomy (Canonical Identifiers)
+
+Correlation IDs allow LUM to stitch signals into a coherent narrative.
+
+2.1 Required correlation identifiers (minimum set)
+
+request_id — single request boundary
+
+trace_id — distributed trace boundary
+
+span_id — span boundary
+
+workflow_id — multi-step process boundary (cross-engine)
+
+task_id — CWP work item identifier (if applicable)
+
+job_id — executor job identifier (CDE/DAT/MUX pipelines)
+
+entity_id — IDN entity reference (person/org/account)
+
+actor_id — concrete actor (human/agent/service principal)
+
+integration_id — external integration identifier (e.g., EXT-COINBASE-COMMERCE)
+
+decision_id — governing decision reference (GGP)
+
+2.2 Context tags (recommended)
+
+environment (dev|uat|prod)
+
+region / cluster
+
+tenant_id (if multi-tenant)
+
+customer_id (if applicable)
+
+session_id
+
+3. Reliability Taxonomy
+
+3.1 SLI (Service Level Indicator)
+
+An SLI is a measurable indicator of service health.
+
+Common SLIs
+
+availability (successful requests / total)
+
+latency (p95 response time)
+
+correctness (valid outputs / total)
+
+freshness (data age)
+
+durability (job completion success)
+
+3.2 SLO (Service Level Objective)
+
+An SLO is a target for an SLI over a time window.
+
+Examples
+
+“99.9% successful webhook processing over 30 days”
+
+“p95 latency < 250ms for decision evaluation over 7 days”
+
+3.3 Error Budget
+
+An Error Budget is the allowable failure rate implied by an SLO.
+
+Uses
+
+gating risky releases
+
+controlling automation aggressiveness
+
+prioritizing reliability work when budget is exhausted
+
+3.4 Alert
+
+An Alert is a triggered condition requiring attention.
+
+Alert types
+
+Symptom alerts (SLO burn, error spikes)
+
+Cause alerts (dependency down)
+
+Predictive alerts (quota nearing limit)
+
+Governance alerts (approval timeout, missing evidence)
+
+Alert routing terms
+
+Route: mapping from alert type/severity → destination
+
+Escalation: time-based increase in attention
+
+Deduplication: merge repeated alerts
+
+Suppression: intentional silencing under conditions
+
+3.5 Incident
+
+An Incident is a managed disruption to expected service behavior.
+
+Incident types
+
+availability outage
+
+partial degradation
+
+data correctness issue
+
+security incident
+
+integration disruption (provider error/quota)
+
+Incident severity (canonical)
+
+SEV0 — existential / system-wide outage or severe security breach
+
+SEV1 — major outage or materially harmful malfunction
+
+SEV2 — significant degradation, workaround exists
+
+SEV3 — minor issue, limited blast radius
+
+SEV4 — informational / maintenance
+
+Incident states (canonical)
+
+detected
+
+triaging
+
+mitigating
+
+monitoring
+
+resolved
+
+closed
+
+4. Integration Observability Taxonomy
+
+4.1 External Integration
+
+An External Integration is any provider API/webhook used by NS.
+
+Examples
+
+Coinbase Commerce
+
+Google Maps Platform
+
+Google Workspace APIs
+
+Core terms
+
+Provider: vendor/platform (Coinbase, Google)
+
+Connector: adapter module implementing provider calls
+
+Webhook Receiver: endpoint ingesting provider callbacks
+
+Idempotency Key: token guaranteeing safe retries
+
+4.2 Integration health signals
+
+request success rate
+
+provider error codes distribution
+
+quota consumption and remaining budget
+
+retry rate and backoff behavior
+
+webhook verification failures
+
+delivery/settlement latency
+
+4.3 Integration failure modes (canonical)
+
+auth_failed (expired/revoked creds)
+
+rate_limited (429/quotas)
+
+provider_outage
+
+schema_change
+
+timeout
+
+invalid_signature (webhooks)
+
+idempotency_collision
+
+5. Audit Evidence Support Taxonomy
+
+5.1 Audit Event
+
+An Audit Event is a governed action record required by GGP.
+
+Examples
+
+“payment captured”
+
+“policy updated”
+
+“access granted”
+
+“approval given/denied”
+
+Minimum fields
+
+audit_event_id
+
+action_type
+
+actor_id
+
+entity_id (if applicable)
+
+decision_id (GGP)
+
+occurred_at
+
+inputs_ref / outputs_ref
+
+Correlation IDs
+
+5.2 Evidence Artifact
+
+An Evidence Artifact is an object referenced to prove correctness/compliance.
+
+Examples
+
+receipt, invoice PDF
+
+webhook payload hash + signature verification record
+
+approval screenshot/link
+
+provider delivery receipt (post URL, message ID)
+
+Core properties
+
+artifact_id
+
+artifact_type
+
+storage_ref
+
+hash (integrity)
+
+created_at
+
+access_policy_ref
+
+5.3 Evidence Bundle
+
+An Evidence Bundle groups all artifacts and audit events that support a governed action.
+
+Core properties
+
+bundle_id
+
+bundle_type (payment, publication, permission_change, etc.)
+
+decision_id
+
+workflow_id
+
+artifacts[]
+
+audit_events[]
+
+seal_status (open|sealed)
+
+5.4 Chain of custody
+
+Chain of custody is metadata proving who accessed/modified/transported evidence.
+
+Core terms
+
+Access log: record of reads
+
+Immutability policy: WORM/append-only controls
+
+Sealing: marking a bundle immutable after completion
+
+6. Operational Terms
+
+6.1 Runbook
+
+A Runbook is a prescriptive procedure to diagnose and resolve an alert/incident.
+
+Runbook components
+
+symptoms
+
+impact
+
+checks
+
+mitigations
+
+rollback steps
+
+validation steps
+
+escalation contacts
+
+6.2 Postmortem
+
+A Postmortem is the structured analysis of an incident.
+
+Postmortem sections
+
+summary + impact
+
+timeline
+
+root cause analysis
+
+contributing factors
+
+remediation + prevention
+
+follow-ups (action items)
+
+6.3 Action Item
+
+An Action Item is a tracked remediation task, typically handed to CWP.
+
+States
+
+open → in_progress → blocked → done | dropped
+
+7. Canonical Enums (Starter)
+
+signal_type: log | metric | trace | event
+
+log_level: debug | info | warn | error | fatal
+
+incident_severity: sev0 | sev1 | sev2 | sev3 | sev4
+
+incident_state: detected | triaging | mitigating | monitoring | resolved | closed
+
+integration_failure_mode: auth_failed | rate_limited | provider_outage | schema_change | timeout | invalid_signature | idempotency_collision
+
+bundle_seal_status: open | sealed
+

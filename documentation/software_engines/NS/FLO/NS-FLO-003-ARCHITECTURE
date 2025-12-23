@@ -1,0 +1,173 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the logical architecture of the Financial Ledger Orchestrator (FLO).
+FLO’s architecture is designed to:
+Ingest financial-impacting events from engines and external systems
+Normalize and classify events into canonical financial primitives
+Produce an append-only, auditable ledger as system of record
+Reconcile internal ledger truth with external statements
+Provide governed budget and allocation enforcement surfaces
+Expose read models and reporting for humans and downstream engines
+This document focuses on components and interfaces, not deployment topology.
+2. Architectural Overview
+FLO is organized into four logical layers:
+Ingestion LayerReceives events and statements
+Normalization & Classification LayerConverts raw inputs into canonical transaction candidates
+Ledger Core Layer (System of Record)Writes append-only ledger entries and transaction groupings
+Reconciliation & Reporting LayerMatches ledger to external truth and produces read models
+FLO is the canonical financial truth nucleus for the ecosystem.
+3. Core Components
+3.1 Event Ingestor (Engine Events)
+Responsibility:
+Consume internal financial-impacting events from engines (e.g., DAT)
+Inputs:
+Kafka topics (engine financial events)
+Outputs:
+normalized_event records
+Key requirements:
+Idempotent consumption
+Correlation-id propagation
+3.2 Statement Ingestor (External Truth)
+Responsibility:
+Import external statements from:bankspayment processorsmarketplaces
+Inputs:
+MUX-provided streams, files, or APIs
+Outputs:
+external_statement records
+3.3 Normalizer
+Responsibility:
+Convert raw inputs into canonical, typed normalized events
+Apply mapping rules:currency normalizationtime normalizationcounterparty identification
+Normalizer does not write ledger entries.
+3.4 Classifier
+Responsibility:
+Classify normalized events into:transaction typesaccountscategoriesentity ownershipbudget/allocation ties
+Classifier produces transaction candidates.
+3.5 Ledger Writer (System of Record)
+Responsibility:
+Convert transaction candidates into:ledger entriestransaction groups
+Persist as append-only records
+Ledger Writer enforces invariants:
+immutability
+unique dedupe keys
+balanced transaction rules (if double-entry)
+3.6 Budget & Allocation Engine
+Responsibility:
+Maintain authoritative budget + allocation state derived from ledger
+Evaluate spend against caps
+Emit budget state change events
+Notes:
+Budgets are governed by GGP
+Enforcement is achieved by producing authoritative truth FLO-side (and surfaced back to DAT)
+3.7 Reconciliation Engine
+Responsibility:
+Match ledger entries/transactions to external statements
+Track reconciliation results:matchedmissingexcessdisputed
+Reconciliation never mutates ledger entries; it produces reconciliation records.
+3.8 Evidence & Document Linker
+Responsibility:
+Store references to evidence artifacts:invoicesreceiptsprocessor IDs
+Bind evidence to ledger entries and transactions
+Evidence is linked, not embedded.
+3.9 Read Model Builder
+Responsibility:
+Build optimized query surfaces:balancesP&L viewsbudget burnexecution-attribution reports
+Read models are rebuildable from the ledger.
+3.10 Reporting & Query API
+Responsibility:
+Provide stable APIs for:humansPTEgovernance review
+API is read-heavy and must support strong filtering by:
+entity
+account
+time window
+plan_id/version attribution
+4. Data & Event Flow (Logical)
+4.1 Internal Financial Event Flow
+DAT emits spend.incurred event
+Event Ingestor consumes and normalizes
+Classifier maps to transaction candidate
+Ledger Writer persists entries
+Budget Engine updates derived budget state
+Read Model Builder updates reporting views
+4.2 External Statement Flow
+MUX provides bank/processor statements
+Statement Ingestor stores external statements
+Reconciliation Engine attempts matching
+Reconciliation records produced
+Exceptions surfaced to operators
+5. Persistence & Replay Architecture
+FLO requires two categories of persistence:
+Authoritative Ledger Stores
+ledger entries
+transactions
+normalized events (optional, recommended)
+Reconciliation Stores
+external statements
+reconciliation records
+Derived read models may be rebuilt from authoritative stores.
+Replay goals:
+rebuild read models
+rerun classification rules with new versions
+re-reconcile statements
+6. Interfaces & Integrations
+6.1 FLO ↔ DAT
+DAT emits financial-impacting events
+FLO emits budget state and ledger attribution summaries back (as read APIs/events)
+6.2 FLO ↔ MUX
+MUX supplies external transaction truth and payout streams
+6.3 FLO ↔ GGP
+GGP approves budget definitions and thresholds
+FLO stores governance decision references
+6.4 FLO ↔ PTE
+PTE consumes ledger-derived performance metrics
+6.5 FLO ↔ IDN / PECA
+Entity and account ownership references
+7. Control Surfaces
+FLO exposes governance-compatible controls:
+Budget creation/activation gates (via GGP)
+Manual classification overrides (governed)
+Reconciliation re-run controls
+Read model rebuild controls
+All controls are auditable.
+8. Observability Requirements
+FLO must be observable across:
+ingestion throughput
+classification success rates
+ledger write latency
+reconciliation match rate
+unmatched/missing transactions
+budget near-limit/exhausted counts
+All metrics attributable by:
+entity_id
+account_id
+source_system
+correlation_id
+9. Document Position in FLO Corpus
+This architecture document builds upon:
+NS-FLO-001 — OVERVIEW
+NS-FLO-002 — TAXONOMY
+It is complemented by:
+NS-FLO-004 — LIFECYCLE
+NS-FLO-005 — DECISION
+NS-FLO-007 — DATAMODEL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Logical Architecture
+
+Parent / HoldCo Manager
+Status: Draft

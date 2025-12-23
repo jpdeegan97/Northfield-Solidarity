@@ -1,0 +1,149 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the canonical API mapping between FLO backend services and their consumers, including:
+FLO Finance Operator UI (NS-FLO-010)
+Downstream engines (DAT, PTE, GGP)
+Internal operational tooling (reconciliation, audit, replay)
+The goal is to ensure:
+Read surfaces are complete and consistent
+Write surfaces are strictly governed
+All APIs preserve auditability and replay guarantees
+This is a logical API map, not an implementation spec.
+2. API Design Principles
+Ledger-First Reads — all queries resolve to ledger truth
+Governed Writes Only — no uncontrolled mutation paths
+Version-Transparent — ruleset versions and governance refs are visible
+Idempotent Operations — especially for ingestion and adjustments
+Explainable Responses — every response traceable via IDs
+3. API Surface Groups
+FLO APIs are grouped into:
+Ledger & Transaction Queries
+Budget & Allocation Queries
+Reconciliation Operations
+Manual Adjustments (Governed Writes)
+Reporting & Export
+Administrative / Operational Controls
+4. FE Screen → API Mapping
+4.1 Ledger Explorer
+Endpoints:
+GET /ledger/entriesQuery params:entity_idaccount_idstart_date / end_datetransaction_typesource_systembudget_id / allocation_idcorrelation_idlimit / offset
+Response Fields:
+ledger_entry_id
+transaction_id
+debit_credit
+amount
+currency
+account_id
+category
+occurred_at
+source_system
+evidence_refs
+4.2 Transaction Detail
+Endpoints:
+GET /transactions/{transaction_id}
+Returns:
+transaction metadata
+all ledger entries
+upstream attribution (DAT/MUX)
+ruleset_version
+4.3 Ledger Entry Detail (Audit View)
+Endpoints:
+GET /ledger/entries/{ledger_entry_id}
+GET /ledger/entries/{ledger_entry_id}/decisions
+GET /ledger/entries/{ledger_entry_id}/reconciliation
+4.4 Budget & Allocation Dashboard
+Endpoints:
+GET /budgets
+GET /budgets/{budget_id}
+GET /budgets/{budget_id}/allocations
+GET /budgets/{budget_id}/burn
+4.5 Reconciliation Inbox
+Endpoints:
+GET /reconciliation/work-itemsQuery params:outcome (missing | excess | disputed)source_systemdate_range
+4.6 Reconciliation Work Item
+Endpoints:
+GET /reconciliation/work-items/{reconciliation_id}
+POST /reconciliation/work-items/{reconciliation_id}/resolve
+Governance Required:
+reason
+actor_id
+governance_ref (if applicable)
+4.7 Manual Adjustment Request
+Endpoints (Governed):
+POST /ledger/manual-adjustments
+Request Body:
+adjustment_type
+amount
+currency
+entity_id
+account_id
+reason
+governance_ref
+Returns:
+created ledger_entry_ids
+4.8 Reporting & Export
+Endpoints:
+GET /reports/ledger-export
+GET /reports/budget-burn
+GET /reports/reconciliation-status
+Exports are reproducible from ledger truth.
+5. Downstream Engine API Surfaces
+5.1 DAT → FLO
+Usage: Budget awareness and attribution
+GET /budgets/{budget_id}/state
+GET /ledger/attribution?execution_plan_id=&plan_version=
+5.2 PTE → FLO
+Usage: Portfolio performance attribution
+GET /ledger/attribution?entity_id=&time_window=
+5.3 GGP → FLO
+Usage: Governance review
+GET /budgets/{budget_id}
+GET /ledger/entries?budget_id=
+6. Ingestion & Internal APIs
+6.1 Financial Event Ingestion (Internal)
+POST /internal/ingest/event
+Requirements:
+idempotency_key
+correlation_id
+6.2 External Statement Ingestion (Internal)
+POST /internal/ingest/statement
+7. Canonical Response Envelope
+All APIs return:
+success
+data
+error_code (nullable)
+message (nullable)
+correlation_id
+8. Error Handling Semantics
+Validation errors do not mutate state
+Governance failures return explicit error codes
+Partial writes are forbidden
+9. Document Position in FLO Corpus
+This APIMAP is informed by:
+NS-FLO-009 — IMPL
+NS-FLO-010 — FE
+NS-FLO-007 — DATAMODEL
+It informs:
+NS-FLO-012 — STATE
+NS-FLO-013 — RUNBOOK
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO API Mapping
+
+Parent / HoldCo Manager
+Status: Draft

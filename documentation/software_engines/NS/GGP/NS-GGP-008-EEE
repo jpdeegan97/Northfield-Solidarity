@@ -1,0 +1,109 @@
+
+Overview
+Document Title: Governance Graph Engine – End-to-End Example Execution 
+Document ID: NS-GGP-EEE-008
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+This document provides a step-by-step example of how a governance change flows through the GGE system. It illustrates the interaction of all core components including:
+  Component Taxonomy
+  Update Decision Prompt (UDP)
+  Version Semantics & Propagation Rules
+  Audit Data Model
+  SOP compilation
+  Frontend read models
+The goal is to validate design logic, identify potential gaps, and ensure auditability.
+2. Scenario Overview
+Scenario: Materiality threshold change for a financial component affecting multiple SOPs.
+Trigger: Manual update of the materiality threshold for Capital Flow SOP component.
+Affected SOPs:
+ Capital Flow SOP
+ Intercompany Transactions SOP
+ Finance / Cash Flow SOP
+Goal: Update impacted SOPs, ensure proper version bumps, record audit trail, and visualize results in the frontend.
+3. Step-by-Step Execution
+Step 1: Component Change Event
+  Executor: Finance Manager
+  Component: Capital Flow Materiality Threshold
+  Change Type: Modify
+  Previous Value: $50,000
+  New Value: $100,000
+  Materiality Classification: Medium → High
+GGE Action:
+  Assign Execution ID: EXEC-2025-001
+  Capture execution context
+Step 2: Dependency Graph Resolution
+  Identify SOPs impacted by this component
+  Determine depth of dependencies
+  Classify impact (Major/Minor/Patch)
+Impact Assessment:
+  Capital Flow SOP → Major
+  Intercompany Transactions SOP → Minor
+  Finance / Cash Flow SOP → Minor
+Step 3: Update Decision Prompt (UDP) Execution
+  Input: Component delta + dependency map + governance constraints
+  Reasoning Tasks:
+  Classify impact
+  Recommend SOP version bumps
+  Suggest update order
+  Flag risk/compliance
+  Recommend approval routing
+UDP Output (JSON structured):
+{
+  "execution_id": "EXEC-2025-001",
+  "sop_update_recommendations": [
+    {"sop_id": "CFS-001", "version": "2.0.0", "change_type": "Major"},
+    {"sop_id": "ICT-001", "version": "1.1.0", "change_type": "Minor"},
+    {"sop_id": "FCF-001", "version": "1.1.0", "change_type": "Minor"}
+  ],
+  "update_order": ["CFS-001", "ICT-001", "FCF-001"],
+  "risk_flags": [{"sop_id": "CFS-001", "severity": "High"}],
+  "approval_suggestions": ["Finance Director", "Compliance Officer"]
+}
+Step 4: Approval Workflow
+  Notifications sent to Finance Director and Compliance Officer
+  Collect approvals
+  Update execution state: Pending Approval → Approved
+Step 5: SOP Compilation
+  Apply approved changes
+  Generate new SOP versions:
+  Capital Flow SOP: v2.0.0
+  Intercompany Transactions SOP: v1.1.0
+  Finance / Cash Flow SOP: v1.1.0
+  Update metadata and references
+Step 6: Audit Recording
+  Record all changes in gge_executions, gge\_component\_changes, and gge\_sop\_versions
+  Immutable logs created for each SOP and component change
+  Execution state: Published → Closed
+Step 7: Frontend Visualization
+Execution Audit Trail Screen:
+  Displays execution ID, trigger type, executor, timestamp
+  Component changes with previous and new versions
+  SOP versions with change type and approvals
+SOP Version History Screen:
+  Lists all published SOP versions per SOP
+  Allows click-through to view full SOP PDF/HTML
+  Shows dependencies visually (optional)
+4. Key Observations
+  Version propagation and sequencing works as designed
+  UDP correctly flags risk and recommends approval routing
+  Audit trail is fully populated and immutable
+  Frontend screens can render execution and SOP history with minimal query complexity
+5. Next Steps
+ Validate real-world scenarios across all SOPs
+ Stress test multiple simultaneous component updates
+ Implement FE MVP for audit trail and SOP version screens
+ Integrate automated notifications for approvals
+6. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial End-to-End Example Execution
+Parent / HoldCo Manager
+End of Document

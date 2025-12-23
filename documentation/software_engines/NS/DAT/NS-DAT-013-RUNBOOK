@@ -1,0 +1,174 @@
+
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This runbook defines the production-grade operating procedures, controls, and recovery actions for bringing up and operating DAT safely.
+DAT performs externally visible actions, so operations must prioritize:
+safety
+bounded execution
+auditability
+fast containment of failures
+2. Operational Objectives
+DAT operations must ensure:
+No execution occurs without governance approval
+Kill switch can pause execution immediately
+Connector failures do not cascade
+Budgets and constraints are enforced continuously
+Full execution timelines are reconstructible
+3. Preflight & Readiness Checks
+3.1 Startup Checklist
+Before declaring DAT healthy:
+Plan Registry datastore reachable (read/write)
+Execution event store reachable
+Kafka connectivity confirmed (telemetry + financial topics)
+GGP connectivity confirmed (approval binding)
+Connector health checks pass (marketplace, vendor, ads)
+Secrets available (connector creds) via secret manager
+Global kill switch state = OFF
+If any critical dependency fails, DAT must enter Safe Mode.
+3.2 Safe Mode
+Safe Mode characteristics:
+Planning API remains available (read-only or draft-only)
+Execution start endpoints disabled
+Orchestrator does not start runs
+Operators can view state and repair dependencies
+Safe Mode triggers:
+DB down
+Kafka down
+GGP unreachable
+Connector layer unhealthy
+4. Normal Operations
+4.1 Plan Drafting Operations
+Expected behavior:
+Plan creation is idempotent
+Version creation is append-only
+Operational checks:
+Plan write latency
+Version creation success rate
+4.2 Governance Submission & Approval Binding
+Procedure:
+Confirm plan readiness report exists
+Submit plan to GGP
+Record submission id
+Bind approval decision reference
+Checks:
+No plan enters execution without approved state
+4.3 Staging & Admission Checks
+Staging procedure:
+Validate connector credentials
+Validate required parameters
+Run dry-run if supported
+Admission procedure:
+Evaluate hard constraints
+Verify budget availability
+Confirm kill switch OFF
+Admission failures must not start execution.
+4.4 Execution Operations
+Execution expectations:
+Strict step ordering
+Checkpointing between steps
+Telemetry emitted at boundaries
+Monitoring:
+Active runs
+Step duration
+Retry rates
+5. Controls (Kill Switch & Interventions)
+5.1 Global Pause / Resume
+Use when:
+External system instability
+Unexpected failure spikes
+Operator intervention required
+Procedure:
+Pause execution plane
+Confirm new runs blocked
+Existing runs pause at checkpoints
+Resume only after validation
+All actions require:
+reason
+correlation_id
+governance authorization
+5.2 Abort a Run
+Use when:
+Constraint hard violation
+Unrecoverable connector failure
+Procedure:
+Abort run
+Trigger rollback policy
+Confirm run state aborted
+5.3 Disable Connector (Circuit Breaker)
+Use when:
+Connector error rate exceeds threshold
+Procedure:
+Disable connector
+Confirm admission denies plans targeting connector
+Re-enable after verification
+6. Failure Scenarios & Responses
+6.1 Kafka Unavailable
+Response:
+Enter Safe Mode
+Block execution starts
+Buffer events if possible
+6.2 Plan Registry (DB) Failure
+Response:
+Halt plan mutations
+Block execution
+Preserve in-memory state only for active runs until checkpoint
+6.3 Connector Failure Mid-Run
+Response:
+Retry if idempotent and under limit
+If persistent: rollback and abort
+Emit connector.failure telemetry
+6.4 Budget Exhaustion
+Response:
+Abort run at next checkpoint
+Rollback where applicable
+Emit budget.exhausted event
+6.5 Late External Callback After Rollback
+Response:
+Record anomaly event
+Notify operator
+Reconcile state manually if needed
+7. Replay & Backfill Procedures
+7.1 Rebuild Derived Read Models
+Use when:
+dashboards corrupt
+Procedure:
+Pause execution
+Drop derived views
+Rebuild from authoritative plan + event history
+Emit dat.readmodel.rebuilt
+Resume execution
+7.2 Execution Timeline Replay
+Use when:
+investigating incident
+Procedure:
+Retrieve plan version
+Retrieve run event stream
+Reconstruct step outcomes
+Compare with external system receipts
+7.3 Financial Reconciliation
+Procedure:
+Extract financial events for run
+Cross-check with FLO ledger
+Append reconciliation results
+8. Observability & Alerts
+Key metrics:
+plan submissions (draft→approved)
+admission denial rate
+run success/failure rate
+retry rate
+rollback frequency
+connector error rate
+budget burn rate
+Alerts:
+connector down
+admission spikes
+repeated aborts
+budget anomalies
+missing telemetry events
+9. Security & Access Controls
+Operator controls require governance authorization
+All control actions require reason + correlation_id
+Secrets never appear in logs or UI
+Least-privilege access to connectors
+10. Operational Invariants
+No execution withou

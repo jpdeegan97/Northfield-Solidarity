@@ -1,0 +1,137 @@
+
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the canonical API map for the Signal Aggregation Engine (SIG).
+It maps:
+SIG Operator UI screens (NS-SIG-010)
+Downstream engine consumption (PIE, SIM, DAT, FLO, DRE, GGP)
+Governed operational controls (replay, rebuild, source tuning)
+The APIMAP ensures consistent read surfaces, safe controls, and auditability.
+2. API Design Principles
+Read-Heavy, Write-Guarded — most APIs are read-only
+Immutable Semantics — no endpoint mutates signal facts
+Governed Controls — control endpoints require identity + reason
+Explainability First — provenance and decision artifacts are queryable
+Idempotent Jobs — replay/rebuild operations are idempotent
+3. API Surface Groups
+Signal Query & Exploration
+Aggregate & Correlation Query
+Source Health & Reliability
+Provenance & Decision Inspection
+Operational Jobs (Replay / Rebuild)
+Downstream Consumption Support
+4. FE Screen → API Mapping
+4.1 Signal Health Dashboard
+GET /signals/health
+Returns:
+ingestion_rate by source
+backlog/lag
+normalization_error_rate
+scoring_anomaly_rate
+4.2 Source Detail View
+GET /sources
+GET /sources/{source_system}
+Returns:
+reliability_profile
+recent_signal_stats
+drift_events
+POST /sources/{source_system}/state
+Body:
+target_state (enabled/paused)
+reason
+actor_id
+governance_ref (optional/required)
+4.3 Signal Explorer
+GET /signals
+Query:
+signal_class
+signal_type
+source_system
+trust_score_range
+observed_at range
+limit/offset
+4.4 Signal Detail (Explainability)
+GET /signals/{signal_id}
+GET /signals/{signal_id}/provenance
+GET /signals/{signal_id}/decisions
+4.5 Aggregate Explorer
+GET /aggregates
+Query:
+aggregate_type
+signal_type
+window
+4.6 Correlation Group Viewer
+GET /correlations
+GET /correlations/{group_id}
+4.7 Replay & Rebuild Console (Governed)
+POST /jobs/replay
+Body:
+scope (signal_type/source/time_window)
+reason
+actor_id
+governance_ref
+POST /jobs/rebuild
+Body:
+target (aggregates/correlations)
+scope
+reason
+actor_id
+governance_ref
+GET /jobs
+GET /jobs/{job_id}
+All job creation endpoints support idempotency keys.
+4.8 Anomaly & Drift Inbox
+GET /anomalies
+Returns:
+schema_drift
+missing_data
+trust_shift
+5. Downstream Engine API Surfaces
+5.1 PIE Consumption
+Primary consumption via Kafka.
+Optional queries:
+GET /signals?signal_type=&confidence_score_min=
+GET /aggregates?signal_type=&window=
+5.2 SIM Consumption
+GET /aggregates
+GET /correlations
+5.3 DAT Consumption
+GET /signals?signal_class=execution
+5.4 FLO Consumption
+GET /signals?signal_class=financial
+5.5 DRE Consumption
+GET /signals
+GET /correlations
+5.6 GGP Oversight
+GET /decisions?source_system=&time_range=
+GET /sources/{source_system}/audit
+6. Canonical Response Envelope
+All endpoints return:
+success
+data
+error_code (nullable)
+message (nullable)
+correlation_id
+7. Error & Security Semantics
+RBAC enforced per endpoint
+Raw capture access restricted
+Validation errors never mutate state
+Control actions always logged
+8. Document Position in SIG Corpus
+This APIMAP is informed by:
+NS-SIG-009 — IMPL
+NS-SIG-010 — FE
+NS-SIG-007 — DATAMODEL
+It informs:
+NS-SIG-012 — STATE
+NS-SIG-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG API Mapping
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,167 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the end-to-end lifecycle of identity and entity handling within the Identity & Entity Nexus (IDN).
+It specifies how:
+identities and entities are created
+identifiers are linked and resolved
+relationships are added and evolved temporally
+merges and splits occur (governed)
+state is projected for fast consumption
+replay and audit are supported
+IDN lifecycle is designed to be auditable, deterministic, and governance-aware.
+2. High-Level Lifecycle Stages
+Identity/Entity Initiation
+Validation & Canonical Creation
+Identifier Linking & Resolution
+Relationship Creation & Temporal Updates
+Conflict Detection & Ambiguity Handling
+Governed Merge/Split Operations
+Projection Updates & Read Model Publication
+Replay, Rebuild, and Audit
+3. Stage 1 — Identity/Entity Initiation
+Initiation sources include:
+human operators
+system services (SIG, DAT, FLO)
+PECA entity creation flows
+CWP agent/worker provisioning
+Initiation always includes:
+requested entity/actor type
+initial identifiers (if available)
+provenance (who/what initiated)
+No identity is created without an initiator record.
+4. Stage 2 — Validation & Canonical Creation
+IDN validates:
+required fields present
+identifier formats
+uniqueness constraints
+lifecycle state compatibility
+If valid:
+assign canonical actor_id or entity_id
+persist canonical registry record
+emit IdentityCreated / EntityCreated event
+Canonical creation is append-only.
+5. Stage 3 — Identifier Linking & Resolution
+IDN links identifiers to canonicals:
+store identifier record
+link to actor/entity
+record confidence and issuing system
+Resolution decisions determine whether:
+identifier is safely attachable
+ambiguity exists
+conflict requires human/governance review
+Events emitted:
+IdentifierLinked
+IdentifierUnlinked (rare; deprecated identifiers)
+6. Stage 4 — Relationship Creation & Temporal Updates
+IDN manages relationships as effective-dated edges.
+Create relationship:
+validate source/target existence
+validate edge type
+set effective window
+persist relationship edge
+emit RelationshipAdded
+Update relationship:
+close existing edge (effective_to)
+create new edge
+emit RelationshipRemoved + RelationshipAdded
+Relationships evolve without mutation.
+7. Stage 5 — Conflict Detection & Ambiguity Handling
+Conflicts include:
+identifier collision (same external ID linked to different canonicals)
+relationship inconsistency (ownership loops, invalid edges)
+duplicate entity suspicion
+IDN responses:
+flag ambiguity
+quarantine resolution
+require governed merge/split decision
+No silent resolution occurs.
+8. Stage 6 — Governed Merge/Split Operations
+8.1 Merge
+Used when two canonicals are determined to be the same.
+Steps:
+create merge request
+attach evidence and rationale
+obtain governance reference (if required)
+perform merge event
+update alias mappings
+Result:
+one surviving canonical
+other becomes redirected/aliased
+8.2 Split
+Used when one canonical represents multiple real subjects.
+Steps:
+create split request
+define resulting identities
+reassign identifiers and relationships
+emit split event
+All operations are evented and auditable.
+9. Stage 7 — Projection Updates & Read Model Publication
+Projections maintained:
+identifier → canonical lookup
+canonical → identifiers list
+adjacency/relationship indexes
+Projection updates occur:
+synchronously (MVP) or asynchronously (later)
+Projections are rebuildable from the event ledger.
+10. Stage 8 — Replay, Rebuild, and Audit
+IDN supports:
+Replay
+rebuild identity state from events
+verify determinism
+Rebuild
+regenerate projections
+Audit
+trace any canonical to:
+creation event
+identifier history
+merge/split rationale
+relationship evolution
+No audit depends on implicit state.
+11. Failure Handling
+Failures may include:
+invalid identifiers
+constraint violations
+projection rebuild errors
+Handling:
+reject invalid writes
+preserve failed operations as decision artifacts
+allow retry after correction
+Identity truth is never partially mutated.
+12. Cross-Engine Lifecycle Coordination
+Engine
+Interaction
+GGP
+governance approvals for merge/split and audit usage
+SIG
+attributes signals to entities
+PIE
+consumes entity grouping
+SIM
+binds scenarios to entities
+DAT
+executes on behalf of entities
+FLO
+accounts by entity
+PECA
+creates new legal/property entities
+CWP
+provisions agentic actors
+13. Document Position in IDN Corpus
+This lifecycle document builds upon:
+NS-IDN-001 — OVERVIEW
+NS-IDN-002 — TAXONOMY
+NS-IDN-003 — ARCHITECTURE
+It informs:
+NS-IDN-005 — DECISION
+NS-IDN-006 — VERSION
+NS-IDN-007 — DATAMODEL
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN End-to-End Lifecycle
+Parent / HoldCo Manager
+Status: Draft

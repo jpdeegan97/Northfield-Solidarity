@@ -1,0 +1,123 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the decision framework used within the Deep Research Engine (DRE).
+DRE decisions govern:
+  how evidence is interpreted
+  how confidence is updated
+  when hypotheses change state
+  when research is eligible for promotion
+DRE decisions are epistemic, not operational or financial.
+2. Decision Design Principles
+ Evidence-Grounded — every decision references evidence
+ Explicit Uncertainty — confidence changes are visible and reasoned
+ Human-Supervised — agents assist, humans retain authority
+ Versioned Logic — decision rules are versioned and replayable
+ Governance-Gated Promotion — downstream usage requires approval
+3. Decision Classes
+DRE defines six primary decision classes:
+ Evidence Relevance Decisions
+ Hypothesis State Decisions
+ Confidence Update Decisions
+ Narrative Acceptance Decisions
+ Promotion Eligibility Decisions
+ Deprecation Decisions
+Each decision produces an immutable decision artifact.
+4. Evidence Relevance Decisions
+Question Answered:
+Is this evidence relevant to an existing theme or hypothesis?
+Inputs:
+  evidence content
+  tagging heuristics
+  reviewer notes
+Outcomes:
+  link to artifact
+  store as unlinked evidence
+5. Hypothesis State Decisions
+Question Answered:
+Should the hypothesis state change?
+States:
+  open
+  supported
+  contradicted
+  retired
+Inputs:
+  cumulative supporting evidence
+  counter-evidence
+  confidence thresholds
+6. Confidence Update Decisions
+Question Answered:
+How confident are we in this hypothesis?
+Inputs:
+  quantity and quality of evidence
+  source credibility
+  recency
+Outcomes:
+  numeric confidence update
+  rationale record
+Confidence updates never delete prior values.
+7. Narrative Acceptance Decisions
+Question Answered:
+Is this narrative ready to be treated as canonical?
+Inputs:
+  narrative completeness
+  citation coverage
+  reviewer approval
+Outcomes:
+  accept
+  revise
+  reject
+8. Promotion Eligibility Decisions
+Question Answered:
+Can this research be promoted downstream?
+Inputs:
+  hypothesis confidence
+  evidence coverage
+  narrative acceptance
+Outcomes:
+  eligible for promotion request
+  not eligible
+Promotion still requires GGP approval.
+9. Deprecation Decisions
+Question Answered:
+Should this research artifact be deprecated?
+Triggers:
+  contradictory evidence
+  obsolescence
+  scope change
+Outcomes:
+  mark deprecated
+  retain for historical reference
+10. Decision Artifact Schema (Logical)
+Each DRE decision emits:
+  decision_id
+  decision_type
+  artifact_ref
+  outcome
+  rationale
+  ruleset_version
+  decided_at
+  actor_id
+11. Governance Interaction
+  promotion eligibility feeds GGP workflows
+  GGP approval required for downstream exposure
+  rejected promotions remain internal to DRE
+12. Failure Modes & Safeguards
+  insufficient evidence → no promotion
+  conflicting evidence → human review required
+  stale research → confidence decay or deprecation
+13. Document Position in DRE Corpus
+This decision document builds upon:
+  NS-DRE-004 — LIFECYCLE
+It informs:
+  NS-DRE-006 — VERSION
+  NS-DRE-008 — EEE
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Decision Framework
+Parent / HoldCo Manager
+Status: Draft

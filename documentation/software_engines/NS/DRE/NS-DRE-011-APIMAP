@@ -1,0 +1,195 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the canonical API map for the Deep Research Engine (DRE).
+It maps:
+  DRE Operator UI screens (NS-DRE-010)
+  ingestion worker interactions
+  governance promotion workflows (GGP)
+  downstream consumption APIs for PIE, SIM, DAT
+The goal is a consistent, minimal, auditable surface that supports MVP and production evolution.
+2. API Design Principles
+ Evidence Immutability — create new evidence; never overwrite
+ Versioned Writes — hypotheses/narratives update by creating new versions
+ Governed Actions Are Guarded — promotion, acceptance, and reviewer actions require actor + reason
+ Idempotency Everywhere — all writes accept idempotency keys
+ Correlation-Ready — correlation_id is included for tracing
+3. API Surface Groups
+ Sources
+ Evidence
+ Citations
+ Themes
+ Hypotheses
+ Narratives
+ Assumptions
+ Promotion
+ Events & Decisions
+ Export
+ Health & Ops
+4. FE Screen → API Mapping
+4.1 Research Dashboard
+  GET /dashboard/summary Returns:
+  theme_counts
+  hypothesis_counts_by_state
+  evidence_ingested_recent
+  pending_reviews
+  promotion_request_counts
+4.2 Source Registry
+  GET /sources
+  GET /sources/{source_id}
+Guarded writes:
+  POST /sources
+  PUT /sources/{source_id}
+Monitoring controls:
+  POST /sources/{source_id}/enable
+  POST /sources/{source_id}/disable
+  POST /sources/{source_id}/ingest-now (guarded)
+4.3 Evidence Inbox
+  GET /evidence Filters:
+  source_id
+  captured_after
+  tags
+  has_citations
+  is_duplicate_suspected
+  GET /evidence/{evidence_id}
+Tagging:
+  POST /evidence/{evidence_id}/tags/add
+  POST /evidence/{evidence_id}/tags/remove
+4.4 Evidence Detail
+  GET /evidence/{evidence_id}/citations
+  GET /sources/{source_id}
+Citations (guarded):
+  POST /citations Body:
+  evidence_id
+  artifact_type
+  artifact_id
+  context
+  actor_id
+  reason
+  idempotency_key
+4.5 Theme Explorer
+  GET /themes
+  GET /themes/{theme_id}
+  GET /themes/{theme_id}/hypotheses
+  GET /themes/{theme_id}/narratives
+Guarded writes:
+  POST /themes
+  PUT /themes/{theme_id} (creates new semantic version)
+4.6 Hypothesis Workbench
+  GET /hypotheses Filters:
+  state
+  theme_id
+  confidence_min
+  GET /hypotheses/{hypothesis_id}
+  GET /hypotheses/{hypothesis_id}/versions
+  GET /hypotheses/{hypothesis_id}/citations
+Guarded writes:
+  POST /hypotheses (create)
+  POST /hypotheses/{hypothesis_id}/update (new version) Body:
+  statement (optional)
+  confidence_score (optional)
+  state (optional)
+  change_summary
+  actor_id
+  reason
+  idempotency_key
+Decision proposals (optional):
+  POST /hypotheses/{hypothesis_id}/confidence/propose
+  POST /hypotheses/{hypothesis_id}/confidence/accept
+4.7 Narrative Builder
+  GET /narratives Filters:
+  scope_type
+  scope_id
+  status (draft/accepted)
+  GET /narratives/{narrative_id}
+  GET /narratives/{narrative_id}/versions
+  GET /narratives/{narrative_id}/citations
+Guarded writes:
+  POST /narratives (create draft)
+  POST /narratives/{narrative_id}/revise (new version)
+  POST /narratives/{narrative_id}/submit-review
+  POST /narratives/{narrative_id}/accept (locks version)
+4.8 Review Queue
+  GET /reviews/queue
+  GET /reviews/{review_id}
+Actions (guarded):
+  POST /reviews/{review_id}/approve
+  POST /reviews/{review_id}/request-changes
+  POST /reviews/{review_id}/note
+4.9 Promotion Center
+  GET /promotions Filters:
+  status
+  target_engine
+  GET /promotions/{promotion_id}
+Submit promotion (guarded):
+  POST /promotions Body:
+  artifact_type
+  artifact_id
+  artifact_version
+  target_engine
+  rationale
+  actor_id
+  reason
+  idempotency_key
+4.10 Briefs & Evidence Packs
+  POST /export/brief Body:
+  scope_type (theme/hypothesis)
+  scope_id
+  format (json/pdf)
+  POST /export/evidence-pack Body:
+  artifact_type
+  artifact_id
+  artifact_version
+  format (json/pdf)
+5. Worker / Internal Integration Endpoints
+5.1 Evidence Ingestion (Worker)
+  POST /ingest/evidence Body:
+  source_id
+  payload
+  capture_method
+  fingerprint
+  captured_at
+  actor_id (service)
+  idempotency_key
+5.2 GGP Promotion Approval Check
+Internal call pattern:
+  POST /ggp/evaluate-promotion
+DRE stores:
+  governance_ref
+  approval outcome
+  rationale summary
+5.3 Downstream Publication
+Internal publish patterns:
+  POST /pie/research/promoted
+  POST /sim/assumptions/promoted
+  POST /dat/research/promoted
+Payload is a promotion snapshot.
+6. Canonical Response Envelope
+All endpoints return:
+  success
+  data
+  error_code (nullable)
+  message (nullable)
+  correlation_id
+7. Security & Controls
+  RBAC by endpoint group
+  governed endpoints require actor_id + reason
+  idempotency_key required for writes
+  acceptance/promotion requires elevated roles
+8. Document Position in DRE Corpus
+This APIMAP is informed by:
+  NS-DRE-009 — IMPL
+  NS-DRE-010 — FE
+  NS-DRE-007 — DATAMODEL
+It informs:
+  NS-DRE-012 — STATE
+  NS-DRE-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE API Mapping
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,424 @@
+NS-CWP-010 — FE (Operator UI)
+
+0. Overview
+
+This document defines the optional Front-End (FE) Operator UI for CWP (Cognitive Work Plane).
+
+CWP’s UI is the operational cockpit for:
+
+task intake and triage
+
+queues, assignments, and SLAs
+
+playbook execution (SOP runner)
+
+approvals and human-in-the-loop steps
+
+evidence capture and completion verification
+
+performance signals (cycle time, throughput, rework)
+
+CWP FE must remain governed by GGP and identity-scoped via IDN.
+
+1. User Roles & Access
+
+1.1 Roles (conceptual)
+
+Operator: triage tasks, manage queues, reassign work
+
+Worker (Human): execute assigned tasks and steps
+
+Approver: respond to approvals (approve/deny/request changes)
+
+Supervisor/Manager: monitor SLAs and performance; handle escalations
+
+Admin: manage playbooks, queue routing rules, templates
+
+1.2 Access model
+
+Identity: via IDN
+
+Authorization:
+
+task visibility scoped by role/queue/tenant
+
+approval eligibility resolved via IDN + GGP decisions
+
+sensitive actions gated by GGP
+
+All meaningful UI actions emit events to LUM.
+
+2. Core UI Areas
+
+2.1 Home Dashboard
+
+Purpose: one-glance operational health.
+
+Widgets
+
+open tasks by priority
+
+SLA risk count (due soon / breached)
+
+blocked tasks count
+
+approvals pending
+
+exception inbox count
+
+throughput (today/7d)
+
+Primary interactions
+
+jump to queue view
+
+jump to approvals
+
+jump to exceptions
+
+2.2 Task Inbox (My Work)
+
+Purpose: worker-centric execution.
+
+Table columns
+
+priority
+
+task title
+
+queue
+
+state
+
+due/SLA
+
+created_at
+
+correlation chips (workflow_id, decision_id, integration_id)
+
+Actions
+
+start task
+
+mark step complete
+
+request help/escalate
+
+attach evidence
+
+comment
+
+2.3 Queue Board (Operations)
+
+Purpose: triage and routing.
+
+Views
+
+kanban (queued/assigned/in_progress/blocked)
+
+table (filter/sort)
+
+Filters
+
+queue
+
+priority
+
+SLA status
+
+task type
+
+integration_id
+
+owner
+
+Actions
+
+assign/unassign
+
+requeue
+
+set priority
+
+set due date
+
+bulk triage
+
+2.4 Task Detail Page
+
+Purpose: execute and verify completion.
+
+Sections
+
+header: title, state, priority, due, owner
+
+description + context
+
+correlation panel (workflow_id, decision_id, entity_id, integration_id)
+
+playbook runner (steps list)
+
+evidence panel (required vs attached)
+
+approvals panel (pending/granted/denied)
+
+activity feed (events + comments)
+
+Actions
+
+transition state (guarded)
+
+complete step
+
+attach evidence
+
+create subtask
+
+link related task
+
+2.5 Playbook Runner (SOP Execution)
+
+Purpose: make SOP steps executable.
+
+Features
+
+step list with status (pending/running/blocked/completed/failed)
+
+step type badges (human/agent/integration/approval/evidence)
+
+required artifacts per step
+
+timers and retries (where allowed)
+
+Step actions
+
+start/complete
+
+mark blocked + reason
+
+request approval (if gate)
+
+execute integration call (via MUX)
+
+2.6 Approvals Center
+
+Purpose: concentrated approval UX.
+
+Views
+
+approvals assigned to me
+
+approvals awaiting someone else (supervisor visibility)
+
+Approval card
+
+request summary
+
+spend/risk summary (if applicable)
+
+evidence preview
+
+decision rationale (from GGP)
+
+buttons: approve / deny / request changes
+
+Constraints
+
+approval actions must produce a decision_id (or reference an existing one)
+
+approvals must be time-boxed with SLA
+
+2.7 Exceptions / Blockers Inbox
+
+Purpose: manage stuck work.
+
+Features
+
+list blocked tasks with blocker reasons
+
+SLA breach indicators
+
+suggested next actions
+
+Actions
+
+escalate to supervisor
+
+spawn subtask
+
+notify external party (via MUX)
+
+request policy clarification (GGP)
+
+2.8 Worker Registry (Agents & Humans)
+
+Purpose: manage worker profiles.
+
+Features
+
+worker list (humans/agents)
+
+capabilities/skills tags
+
+availability/load indicators
+
+eligibility constraints (from IDN)
+
+Actions
+
+enable/disable agent
+
+adjust capability tags
+
+set assignment limits
+
+2.9 Templates & Playbooks Library
+
+Purpose: manage SOPs.
+
+Features
+
+list playbooks by domain (AP, ops, marketing, etc.)
+
+version history
+
+required evidence definitions
+
+governance gate references
+
+Actions
+
+create new playbook version
+
+deprecate playbook
+
+run playbook on a task
+
+2.10 Reporting & Performance
+
+Purpose: measure operational performance.
+
+Core metrics
+
+cycle time (p50/p95)
+
+throughput by queue
+
+SLA breach rate
+
+rework rate (tasks reopened)
+
+approval latency
+
+Filters
+
+time window
+
+queue
+
+owner/worker
+
+task type
+
+3. Global UI Conventions
+
+3.1 Priority & SLA
+
+priorities (starter): P0/P1/P2/P3
+
+SLA status chips:
+
+on track
+
+due soon
+
+breached
+
+3.2 State enforcement
+
+state transitions only allowed if valid by state machine
+
+show “why blocked” with required next step
+
+3.3 Evidence UX
+
+required evidence checklist
+
+attach link/file/hash
+
+completion blocked until required evidence attached
+
+3.4 Correlation chips
+
+Every page should support quick navigation by:
+
+workflow_id
+
+task_id
+
+decision_id
+
+integration_id
+
+4. Navigation (Suggested)
+
+Home
+
+My Work
+
+Queues
+
+Approvals
+
+Exceptions
+
+Playbooks
+
+Workers
+
+Reports
+
+Admin
+
+5. MVP UI Scope
+
+MVP should ship:
+
+Home Dashboard
+
+My Work inbox
+
+Queue Board
+
+Task Detail (with evidence panel)
+
+Approvals Center
+
+Defer to v1:
+
+Worker registry UI
+
+Playbook version management UI
+
+Advanced reporting dashboards
+
+6. Security & Audit Requirements
+
+all task changes emit events to LUM
+
+approval actions must be recorded with decision_id
+
+evidence attachments must be access-controlled
+
+role-based visibility enforced via IDN
+
+7. UX Notes (Operator Ergonomics)
+
+one-click “claim task”
+
+keyboard-first triage shortcuts
+
+quick filters for SLA breaches and approvals
+
+deep links to LUM correlation view for workflow_id
+

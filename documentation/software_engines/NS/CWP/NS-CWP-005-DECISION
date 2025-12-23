@@ -1,0 +1,149 @@
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document defines the decision framework of the Cognitive Work Plane (CWP).
+CWP decisions govern:
+  how work is prioritized and assigned
+  how agent eligibility is determined
+  when work is escalated
+  when reviews are required
+  when work may be paused, reassigned, or closed
+CWP decisions are operational and supervisory, not policy-setting or financial.
+2. Decision Design Principles
+ Bounded Authority — CWP never decides policy or executes actions
+ Explainability — every decision produces a decision artifact
+ Human Override — humans may override automated decisions
+ Versioned Logic — decision rules evolve via explicit versions
+ Governance Respect — decisions never bypass GGP constraints
+3. Decision Classes
+CWP defines six primary decision classes:
+ Work Creation Decisions
+ Assignment Decisions
+ Scheduling Decisions
+ Supervision Decisions
+ Escalation Decisions
+ Closure Decisions
+Each decision emits a CWP Decision Artifact.
+4. Work Creation Decisions
+Question Answered:
+Should this work artifact be created?
+Inputs:
+  triggering intent (strategy, research objective)
+  governance constraints
+  program scope
+Outcomes:
+  create task / mission / program
+  reject creation
+Creation decisions are usually human-initiated.
+5. Assignment Decisions
+Question Answered:
+Which agent(s) should perform this work?
+Inputs:
+  agent capabilities
+  trust level
+  availability
+  workload
+  SLA urgency
+Outcomes:
+  assign agent
+  defer assignment
+  require human assignment
+Assignments never occur without eligibility checks.
+6. Scheduling Decisions
+Question Answered:
+When should this work execute?
+Inputs:
+  schedule definition
+  dependencies
+  system capacity
+Outcomes:
+  immediate execution
+  delayed execution
+  paused
+7. Supervision Decisions
+Question Answered:
+Is this work proceeding acceptably?
+Inputs:
+  progress events
+  heartbeat signals
+  SLA timers
+Outcomes:
+  continue
+  mark blocked
+  trigger escalation
+Supervision decisions are continuous.
+8. Escalation Decisions
+Question Answered:
+Does this situation require intervention?
+Triggers:
+  SLA breach
+  repeated failure
+  risk threshold exceeded
+  governance-required action
+Outcomes:
+  escalate to human
+  escalate to program owner
+  escalate to GGP
+Escalations are never silent.
+9. Closure Decisions
+Question Answered:
+Can this work be closed?
+Inputs:
+  completion signal
+  review outcome
+  unresolved escalations
+Outcomes:
+  close work
+  reopen work
+  archive
+Work cannot close with open escalations.
+10. Decision Artifact Schema (Logical)
+Each CWP decision emits:
+  decision_id
+  decision_type
+  work_ref
+  inputs_summary
+  outcome
+  ruleset_version
+  decided_at
+  actor_id
+Decision artifacts are append-only.
+11. Automation vs Human Control
+Decision Type
+Automated
+Human-Required
+Assignment
+Conditional
+Override
+Scheduling
+Yes
+Override
+Supervision
+Yes
+—
+Escalation
+Triggered
+Resolution
+Closure
+—
+Yes
+Humans retain ultimate authority.
+12. Failure Modes & Safeguards
+  conflicting rules → human review
+  missing inputs → defer decision
+  governance conflict → escalate
+13. Document Position in CWP Corpus
+This decision framework builds upon:
+  NS-CWP-004 — LIFECYCLE
+It informs:
+  NS-CWP-006 — VERSION
+  NS-CWP-013 — RUNBOOK
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CWP Decision Framework
+Parent / HoldCo Manager
+Status: Draft

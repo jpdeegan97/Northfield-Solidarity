@@ -1,0 +1,127 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the optional frontend (FE) / operator UI for the Simulation & Scenario Engine (SIM).
+The SIM operator UI exists to:
+provide visibility into scenario requests, runs, and outcomes
+make assumptions, constraints, and model versions explicit
+support governed controls (run, replay, re-execute)
+enable side-by-side scenario comparison and sensitivity review
+SIM FE is analysis-first, control second.
+2. FE Design Principles
+No Hidden Assumptions — assumptions must be visible and exportable
+Immutability Respect — prior runs cannot be edited
+Explainability Default — drivers and constraints are first-class
+Governed Controls — reruns require identity and reason
+Comparison-Centric — core workflow is A/B scenario comparison
+3. Primary Personas
+Operator / Analyst — runs scenarios and compares variants
+Decision Maker — reviews risk and breakpoints
+Auditor — verifies determinism and provenance
+Governance Reviewer — consumes scenario context for approvals
+4. Canonical Screens (MVP)
+4.1 Scenario Dashboard
+Goal: a single place to see scenario inventory and recent runs.
+Displays:
+scenario list (type, intent, status)
+recent runs (completed/failed)
+top risk flags (constraint breaches)
+4.2 Scenario Builder (Guided)
+Goal: create baseline + variants safely.
+Sections:
+link PIE insight(s)
+select horizon and time-step
+add assumptions (explicit deltas)
+attach constraints (FLO/ops/governance)
+choose model package version
+Outcome: scenario request, not execution.
+4.3 Run Queue & Job Monitor
+Goal: monitor queued/running/completed jobs.
+Displays:
+job status timeline
+execution duration
+failure reasons
+Actions (Governed):
+cancel job
+retry job
+4.4 Scenario Run Detail
+Goal: inspect a single run with full explainability.
+Sections:
+input snapshot hash
+model versions used
+RNG seed
+assumptions and constraints
+outcomes (time-series charts)
+breakpoint events (constraint breaches)
+4.5 Comparison View (Core)
+Goal: compare baseline vs variants.
+Features:
+overlay time-series outcomes
+show deltas at checkpoints (day 7/30/90)
+highlight risk exposure differences
+show constraint breakpoints side-by-side
+4.6 Sensitivity & Driver View
+Goal: make “what matters most” explicit.
+Displays:
+ranked sensitivity drivers
+directionality
+confidence bands
+4.7 Replay & Re-Execution Console (Governed)
+Goal: deterministic replay and comparative re-execution.
+Job Types:
+replay (same snapshot + versions)
+re-execute (same snapshot, new models)
+Required:
+actor identity
+reason
+governance reference (when required)
+4.8 Export & Audit Pack Generator
+Goal: generate a package for governance review.
+Contents:
+scenario definition
+assumptions + constraints
+run summary
+sensitivity drivers
+breakpoints
+5. Component Inventory (Suggested)
+ScenarioTable
+ScenarioBuilderWizard
+AssumptionEditor (delta-only)
+ConstraintCard
+RunJobTimeline
+OutcomeChartPanel
+BreakpointEventList
+CompareOverlayPanel
+SensitivityRankTable
+GovernedActionModal
+AuditPackExporter
+6. Data Requirements (API Needs)
+list scenarios
+create scenario request
+list runs + statuses
+get run detail + artifacts
+compare runs
+trigger replay / re-execute jobs
+export audit pack
+7. Non-Functional Requirements
+Performance: fast comparison and chart rendering
+Security: RBAC on governed actions and financial constraints
+Auditability: all actions logged with reason
+Clarity: baseline vs variants always explicit
+8. Document Position in SIM Corpus
+This FE document is informed by:
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-007 — DATAMODEL
+It complements:
+NS-SIM-011 — APIMAP
+NS-SIM-012 — STATE
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Operator UI Spec
+Parent / HoldCo Manager
+Status: Draft

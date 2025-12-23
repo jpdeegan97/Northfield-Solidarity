@@ -1,0 +1,150 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document provides a concrete end-to-end example (EEE) demonstrating how the Signal Aggregation Engine (SIG) operates across its full lifecycle.
+The example validates:
+signal ingestion from MUX and internal systems
+normalization into canonical signal types
+trust and confidence scoring
+decay semantics
+deduplication and linkage
+aggregation and correlation
+downstream consumption and replay
+2. Scenario Overview
+Scenario:
+A product is launched on an external marketplace. Customer interest grows, ads are run, orders are fulfilled, and revenue is realized.
+SIG’s role is to aggregate and expose signals, not to decide whether the product is successful.
+3. External & Internal Inputs
+External (via MUX)
+Marketplace listing created
+Ad impressions and clicks
+Orders placed
+Fulfillment completed
+Payment settled
+Internal
+DAT execution telemetry (campaign started)
+Infrastructure latency metrics
+4. Step-by-Step Signal Flow
+5. Step 1 — External Event Ingestion
+MUX emits a canonical artifact:
+platform_event_artifact
+source_system = marketplace
+event_type = listing_created
+SIG ingress consumes the event.
+Raw capture recorded:
+source_system = marketplace
+raw_ref = artifact_id
+payload_hash stored
+6. Step 2 — Normalization
+Normalization ruleset marketplace_v1 applies:
+artifact → signal_type = listing_created
+signal_class = market
+observed_at mapped
+Canonical signal candidate created.
+7. Step 3 — Trust & Confidence Scoring
+Scoring ruleset sig_scoring_v1 evaluates:
+source reliability (high)
+integrity metadata (valid)
+latency (low)
+Results:
+trust_score = 0.95
+confidence_score = 0.90
+8. Step 4 — Decay Assignment
+Decay model assigned:
+exponential
+half_life = 14 days
+Signal freshness will decrease over time.
+9. Step 5 — Deduplication
+Deduplication engine evaluates:
+source_system
+signal_type
+observed_at
+subject_ref (listing_id)
+Outcome:
+accept_new
+Signal persisted.
+10. Step 6 — Publication
+SIG publishes canonical signal to Kafka:
+topic: sig.market.signals
+payload includes trust/confidence and provenance
+Consumed by:
+PIE (synthesis)
+DRE (research)
+11. Step 7 — Demand Signals (Clicks)
+MUX emits click events.
+SIG normalizes into:
+signal_type = ad_click
+signal_class = demand
+Multiple click signals arrive over time.
+12. Step 8 — Aggregation
+Aggregation engine computes:
+click_count_24h
+click_velocity
+Derived signals created:
+aggregate_type = windowed
+Derived aggregates reference underlying signal_ids.
+13. Step 9 — Execution Signals
+DAT emits telemetry:
+campaign_started
+campaign_id reference
+SIG ingests as:
+signal_class = execution
+trust_score = 1.0 (internal)
+14. Step 10 — Financial Signals
+MUX emits transaction artifact:
+settlement_confirmed
+SIG normalizes into:
+signal_class = financial
+amount observed
+Marked as non-authoritative (to be reconciled by FLO).
+15. Step 11 — Correlation
+Correlation engine groups signals by:
+product_id
+campaign_id
+Correlation group contains:
+listing_created
+ad_click signals
+fulfillment_completed
+revenue_realized
+No causal claims asserted.
+16. Step 12 — Downstream Consumption
+PIE synthesizes insight candidates
+SIM consumes aggregates for scenarios
+GGP audits signal lineage
+SIG remains passive.
+17. Step 13 — Replay Scenario
+PIE model updated and requests replay.
+SIG:
+re-emits canonical signals
+re-emits aggregates
+does not mutate stored signals
+Replay is deterministic.
+18. Failure Scenario
+Schema drift occurs in click events:
+normalization fails
+signals quarantined
+schema_drift signal emitted
+Ruleset updated → reprocess raw captures → new signals created.
+19. Validation Outcomes
+This EEE validates that SIG:
+preserves atomic signals
+maintains provenance
+supports aggregation and correlation
+safely handles failures
+supports replay and evolution
+20. Document Position in SIG Corpus
+This EEE builds upon:
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+NS-SIG-005 — DECISION
+NS-SIG-006 — VERSION
+NS-SIG-007 — DATAMODEL
+21. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG End-to-End Example
+Parent / HoldCo Manager
+Status: Draft

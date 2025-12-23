@@ -1,0 +1,211 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the canonical taxonomy for the Digital Arbitrage Tooling (DAT) engine.
+The taxonomy establishes the atomic execution primitives used to:
+Translate approved opportunities into executable plans
+Enforce governance, budget, and risk constraints
+Ensure execution is auditable, replayable, and reversible
+This taxonomy is the shared language across DAT, GGP, FLO, SIM, and PTE.
+2. Taxonomy Design Principles
+Execution Is Explicit — No implicit or hidden actions
+Plans Before Actions — Nothing executes without a plan
+Constraints Are First-Class — Execution is bounded by design
+Rollback Is Mandatory — Every action must define recovery
+Telemetry Is Canonical — Every action emits measurable events
+3. Core DAT Primitives
+3.1 Execution Plan
+Definition:
+A versioned, governed artifact describing how an approved opportunity will be executed.
+Characteristics:
+Derived from a specific PIE Insight version
+Authorized by GGP
+Bound by explicit constraints
+Key Attributes:
+execution_plan_id
+plan_version
+linked_insight_id
+linked_insight_version
+status (draft / approved / staged / executing / completed / aborted)
+3.2 Action
+Definition:
+An atomic, externally visible operation performed against a system or market.
+Examples:
+Create marketplace listing
+Launch ad campaign
+Place supplier order
+Update pricing
+Key Attributes:
+action_id
+action_type
+target_system
+parameters
+Actions are never executed directly; they belong to Steps.
+3.3 Step
+Definition:
+A single ordered unit of execution within a plan.
+Characteristics:
+Executes exactly one Action
+Has explicit preconditions and postconditions
+Key Attributes:
+step_id
+execution_plan_id
+step_order
+action_id
+step_status (pending / running / completed / failed / rolled_back)
+3.4 Constraint
+Definition:
+A rule that limits or bounds execution.
+Types:
+Budget constraint
+Time window constraint
+Risk threshold
+Quantity cap
+Key Attributes:
+constraint_id
+constraint_type
+constraint_parameters
+enforcement_level (hard / soft)
+3.5 Budget
+Definition:
+A quantified financial limit applied to a plan or step.
+Characteristics:
+Enforced pre-execution and during execution
+Reported to FLO
+Key Attributes:
+budget_id
+currency
+max_amount
+spent_amount
+3.6 Rollback Policy
+Definition:
+A predefined recovery strategy if execution deviates from expectations.
+Types:
+Automatic rollback
+Manual rollback
+Compensating action
+Key Attributes:
+rollback_policy_id
+rollback_type
+rollback_steps
+3.7 Execution Context
+Definition:
+The immutable snapshot of state and parameters under which execution occurs.
+Includes:
+Plan version
+Constraint snapshot
+Budget snapshot
+External system states (if captured)
+Execution Context is stored for replay and audit.
+4. Telemetry & Event Primitives
+4.1 Execution Event
+Definition:
+An immutable record emitted during execution.
+Examples:
+step.started
+step.completed
+step.failed
+plan.aborted
+Key Attributes:
+event_id
+execution_plan_id
+step_id (optional)
+event_type
+timestamp
+correlation_id
+4.2 Financial Event
+Definition:
+A monetary-impacting event emitted to FLO.
+Examples:
+spend.incurred
+refund.issued
+These events are authoritative for accounting.
+5. Execution States
+5.1 Plan States
+draft
+approved
+staged
+executing
+completed
+aborted
+State transitions are governed and append-only.
+5.2 Step States
+pending
+running
+completed
+failed
+rolled_back
+Steps cannot be skipped or reordered once execution begins.
+6. Relationships Between Primitives
+Execution Plan → many Steps
+Step → one Action
+Execution Plan → many Constraints
+Execution Plan → one Budget
+Step → optional Rollback Policy
+Execution Plan → many Execution Events
+7. Cross-Engine Alignment
+
+
+
+Engine
+
+Interaction
+
+
+PIE
+
+Supplies approved Insight versions
+
+
+SIM
+
+Supplies execution bounds and sensitivities
+
+
+GGP
+
+Authorizes plans and constraints
+
+
+FLO
+
+Consumes financial events
+
+
+PTE
+
+Tracks performance metrics
+DAT primitives map cleanly into governance and accounting systems.
+8. Invariants & Safety Rules
+No Action executes outside a Step
+No Step executes outside an approved Plan
+No Plan executes without constraints and rollback policy
+All execution emits telemetry
+All financial impact is reported
+9. Document Position in DAT Corpus
+This taxonomy document builds upon:
+NS-DAT-001 — OVERVIEW
+It informs:
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+NS-DAT-007 — DATAMODEL
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Canonical Taxonomy
+
+Parent / HoldCo Manager
+Status: Draft

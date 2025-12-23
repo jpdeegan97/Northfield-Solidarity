@@ -1,0 +1,186 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the versioning semantics for the Market Integration Layer (MUX).
+Because MUX is responsible for ingesting and preserving external truth, versioning applies to:
+connector configurations
+normalization and mapping rules
+integrity and deduplication logic
+replay and backfill behavior
+Versioning in MUX never mutates historical artifacts.
+2. Versioning Principles
+External Artifacts Are ImmutableOnce captured and normalized, external artifacts are never modified.
+Rules, Not Facts, Are VersionedInterpretation logic evolves through versioned rulesets.
+Replay With ContextReplays must specify which ruleset version is applied.
+Deterministic DecisionsGiven identical input and ruleset version, decisions are deterministic.
+Forward-Compatible EvolutionNew rules may coexist with old rules without breaking auditability.
+3. Versioned Objects in MUX
+
+
+
+Object
+
+Versioned
+
+Notes
+
+
+Raw Capture Record
+
+❌
+
+Immutable raw input
+
+
+Canonical Artifact
+
+❌
+
+Immutable external truth
+
+
+Connector Configuration
+
+✅
+
+Credentials, scopes, rate limits
+
+
+Normalization Ruleset
+
+✅
+
+Schema mappings
+
+
+Integrity Validation Rules
+
+✅
+
+Signature/hash rules
+
+
+Deduplication Logic
+
+✅
+
+Key and hash strategies
+
+
+Replay Job Definition
+
+✅
+
+Scope + behavior
+
+
+Connector Runtime Image
+
+✅
+
+Deployed connector code
+4. Ruleset Versioning Model
+4.1 Ruleset Identifier
+Each ruleset is identified by:
+ruleset_name
+ruleset_version (semantic or monotonic)
+Examples:
+shopify_normalization_v2
+stripe_signature_rules_v1
+4.2 Ruleset Lifecycle
+
+
+
+State
+
+Description
+
+
+draft
+
+Under development
+
+
+approved
+
+Approved for use
+
+
+active
+
+In production
+
+
+deprecated
+
+No longer used for new ingestion
+
+
+retired
+
+Replay-only
+Only active rulesets may be applied to new captures.
+5. Connector Configuration Versioning
+Connector configuration includes:
+credential sets
+endpoint URLs
+rate limits
+scopes and permissions
+Rules:
+Each change creates a new config version
+Historical versions remain inspectable
+Connector state transitions record config version
+6. Decision Version Binding
+Every MUX Decision Artifact must record:
+ruleset_name
+ruleset_version
+connector_config_version (if applicable)
+evaluated_at
+This guarantees deterministic audit replay.
+7. Replay & Backfill Semantics
+7.1 Replay
+Re-emits canonical artifacts
+Does not alter stored artifacts
+References original or specified ruleset version
+7.2 Reprocessing
+Applies newer normalization rules to raw capture
+Produces new canonical artifacts or projections
+Preserves original artifacts
+8. Schema Evolution
+8.1 Raw Capture Schema
+Additive only
+Payload stored as opaque blob
+8.2 Canonical Artifact Schema
+Additive fields only
+Deprecated fields remain readable
+No destructive migrations
+9. Compatibility Guarantees
+MUX guarantees:
+External truth is never silently reinterpreted
+Historical ingestion remains explainable
+Replay results are reproducible
+10. Document Position in MUX Corpus
+This versioning document builds upon:
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+It informs:
+NS-MUX-007 — DATAMODEL
+NS-MUX-008 — EEE
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Versioning Semantics
+

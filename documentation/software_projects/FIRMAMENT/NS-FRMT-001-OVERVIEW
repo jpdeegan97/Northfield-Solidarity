@@ -1,0 +1,216 @@
+NS-FIRMAMENT-001 — OVERVIEW
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. What Firmament Is
+
+Firmament is a real-time, zoomable 3D Earth that visualizes Northfield Solidarity’s business reality as layered operational truth.
+
+It is a situational awareness + decision cockpit that:
+
+projects what exists (entities, locations, flows),
+
+highlights what’s happening (events, disruptions, performance),
+
+surfaces what matters (risk, opportunity, constraint),
+
+and produces what to do next (action items, mitigations, growth plays),
+all while remaining governed by GGE.
+
+2. What Firmament Is Not
+
+Firmament is not:
+
+an ERP replacement
+
+an accounting ledger (FLO is authoritative)
+
+a task manager (CWP is authoritative)
+
+a research engine (DRE/PIE are authoritative)
+
+a governance authority (GGE is authoritative)
+
+a data integration hub (MUX is authoritative)
+
+Firmament is the projection layer that makes the engines legible and actionable through space, time, and sector lenses.
+
+3. Why Firmament Exists
+
+Traditional dashboards fragment reality:
+
+geography is separated from performance,
+
+events are separated from logistics,
+
+strategy is separated from execution,
+
+and “what should I do” is buried in disconnected reports.
+
+Firmament exists to unify these into a single mental model:
+
+Earth is the stable coordinate system
+
+Layers are the analytical lenses
+
+Drilldowns explain the “why”
+
+Actions close the loop into execution systems
+
+4. Primary Use Cases
+
+A) Entity & Logistics Visibility
+
+View NS / SL entities, sites, vendors, customers, and 3PL nodes
+
+See inbound/outbound flows as paths
+
+Click any node → relationships, dependencies, current state, next actions
+
+B) Geo-Linked Events and Readiness
+
+“Upcoming events” list that is automatically projectable on the globe
+
+Each event includes: location, time window, stakeholders, prep checklist, readiness status
+
+C) Sector Health Heatmap → Sector Operating Brief
+
+Sector treemap/heatmap shows sector weight + performance (and other KPIs)
+
+Clicking a sector generates a “Sector Operating Brief”:
+
+what’s going well / what’s failing
+
+contributing root causes across ops/finance/supply/market
+
+prioritized actions with owners and due dates
+
+D) Plan Slider (Risk ↔ Ambition)
+
+A single control that switches operating posture
+
+Changes:
+
+scenario assumptions (SIM)
+
+recommended actions (priority, aggressiveness, spend)
+
+risk controls and governance requirements
+
+E) Real-Time Signal Projection
+
+Signals (SIG) appear as overlays:
+
+disruptions, anomalies, market shifts
+
+“hot spots” on relevant geos and sectors
+
+alert → drilldown → action routing
+
+5. Key Concepts
+
+5.1 Layers
+
+A Layer is a coherent overlay with:
+
+a purpose (what lens it provides)
+
+a geometry type (pins/paths/polygons/heat tiles/treemap)
+
+filters (entity, sector, time window, severity, etc.)
+
+drilldowns (what opens on click)
+
+5.2 Operational Truth Objects
+
+Firmament renders “truth objects” that are stable enough to reason about:
+
+entities
+
+locations
+
+relationships
+
+events
+
+flows
+
+risks/opportunities
+
+sector summaries
+
+action items
+
+5.3 Render-Ready Projections
+
+Firmament stores view-model projections optimized for:
+
+fast rendering
+
+zoom-level changes
+
+caching and streaming
+while engines remain the sources of truth.
+
+6. Interfaces to Other Engines
+
+GGE: governance gates, decision traceability, approvals, policy constraints
+
+CWP: ownership, task assignment, work status, accountability
+
+FLO: cost/margin overlays, exposure, runway and budget constraints
+
+SIG: live signals/alerts and anomaly detection outputs
+
+SIM: scenario outputs powering the plan slider
+
+IDN: entity graph identities + relationships
+
+MUX: inbound integrations and external connectors
+
+DRE/PIE/DAT: research insights, opportunity findings, execution tooling outputs
+
+7. Outputs (What Firmament Produces)
+
+Firmament produces:
+
+interactive situational views
+
+sector operating briefs
+
+ranked action lists
+
+scenario-differentiated plans
+
+governance-ready decision packets (when a move requires gating)
+
+8. MVP Boundaries (v0 → v1)
+
+v0 (first useful)
+
+globe + layers
+
+entity/logistics layer
+
+events layer
+
+sector heatmap + operating brief
+
+action routing into CWP + gating via GGE
+
+v1 (powerful)
+
+multi-scenario timeline playback
+
+“mission mode” views (campaigns, launches, sourcing pushes)
+
+predictive hot spots (SIG→SIM)
+
+richer financial overlays (FLO) by geo + sector
+
+automated brief generation with stronger causal attribution
+
+9. Summary
+
+Firmament is the visual cognition surface for Northfield Solidarity: a 3D Earth that turns your engines’ outputs into spatial, temporal, sector-aware operational clarity — and converts clarity into governed action.
+

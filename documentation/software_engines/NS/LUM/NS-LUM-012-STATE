@@ -1,0 +1,484 @@
+NS-LUM-012 — STATE
+
+0. Overview
+
+This document defines the canonical runtime states and state transitions for LUM (Luminance Engine) artifacts and workflows.
+
+LUM tracks multiple stateful objects:
+
+schema and standards
+
+SLI/SLOs
+
+alert policies and alert instances
+
+incidents
+
+evidence bundles and artifacts
+
+access requests
+
+integration health status
+
+State models are designed to be:
+
+deterministic
+
+auditable (state transitions are events)
+
+compatible with GGP policy interlocks
+
+1. Schema State Model
+
+1.1 SchemaVersion states
+
+draft
+
+proposed
+
+approved
+
+published
+
+deprecated
+
+retired
+
+1.2 Transitions
+
+draft → proposed (submitted for review)
+
+proposed → approved (review passed; may require GGP gate)
+
+approved → published (available for producers/consumers)
+
+published → deprecated (successor exists; sunset begins)
+
+deprecated → retired (after migration window)
+
+Transition events
+
+schema.submitted
+
+schema.approved
+
+schema.published
+
+schema.deprecated
+
+schema.retired
+
+2. Correlation Standard State Model
+
+2.1 CorrelationStandard states
+
+draft
+
+proposed
+
+published
+
+deprecated
+
+retired
+
+2.2 Transitions
+
+draft → proposed
+
+proposed → published (may require GGP gate if adds required fields)
+
+published → deprecated
+
+deprecated → retired
+
+3. SLI/SLO State Model
+
+3.1 SLI states
+
+draft
+
+validated
+
+active
+
+deprecated
+
+Transitions
+
+draft → validated (definition proven against baseline)
+
+validated → active (visible + used)
+
+active → deprecated (replaced)
+
+3.2 SLO states
+
+draft
+
+approved
+
+active
+
+tuned
+
+deprecated
+
+Transitions
+
+draft → approved (ownership sign-off; may be gated)
+
+approved → active (alert policies generated)
+
+active → tuned (target/alerts adjusted; version increment)
+
+tuned → active (re-enabled as new version)
+
+active/tuned → deprecated (replaced)
+
+3.3 Error budget state (derived)
+
+Error budget is a computed status.
+
+Derived states
+
+healthy (budget remaining above threshold)
+
+warning (budget low)
+
+exhausted (budget depleted)
+
+Derived events
+
+slo.error_budget.warning
+
+slo.error_budget.exhausted
+
+slo.error_budget.recovered
+
+4. Alert Policy State Model
+
+4.1 AlertPolicy states
+
+draft
+
+staged
+
+enabled
+
+suppressed
+
+retired
+
+Transitions
+
+draft → staged (ready for preview/testing)
+
+staged → enabled (active)
+
+enabled → suppressed (time-boxed or conditional)
+
+suppressed → enabled (auto or manual)
+
+enabled/suppressed/staged → retired (remove from service)
+
+Transition events
+
+alert_policy.staged
+
+alert_policy.enabled
+
+alert_policy.suppressed
+
+alert_policy.retired
+
+5. Alert Instance State Model
+
+5.1 AlertInstance states
+
+open
+
+acked
+
+resolved
+
+Optional extended states
+
+snoozed (if supported)
+
+silenced (policy-level suppression)
+
+Transitions
+
+open → acked (human acknowledges)
+
+acked → open (unack)
+
+open/acked → resolved (condition clears or manual resolve)
+
+Linking states
+
+linked_to_incident (flag)
+
+Transition events
+
+alert.opened
+
+alert.acked
+
+alert.unacked
+
+alert.resolved
+
+alert.linked_incident
+
+6. Incident State Model
+
+6.1 Incident states (canonical)
+
+detected
+
+triaging
+
+mitigating
+
+monitoring
+
+resolved
+
+closed
+
+Transitions (typical)
+
+detected → triaging
+
+triaging → mitigating
+
+mitigating → monitoring
+
+monitoring → resolved
+
+resolved → closed
+
+Reopen
+
+resolved → triaging (regression)
+
+Transition events
+
+incident.created
+
+incident.state_changed
+
+incident.resolved
+
+incident.closed
+
+6.2 MitigationAction states
+
+planned
+
+in_progress
+
+done
+
+failed
+
+abandoned
+
+7. Evidence State Model
+
+7.1 EvidenceBundle states
+
+open
+
+collecting
+
+ready_to_seal
+
+sealed
+
+expired
+
+deleted
+
+Transitions
+
+open → collecting (first artifact attached)
+
+collecting → ready_to_seal (requirements satisfied)
+
+ready_to_seal → sealed (seal executed)
+
+sealed → expired (retention satisfied; no longer active)
+
+expired → deleted (final cleanup)
+
+Transition events
+
+evidence.bundle.opened
+
+evidence.bundle.collecting
+
+evidence.bundle.ready_to_seal
+
+evidence.bundle.sealed
+
+evidence.bundle.expired
+
+evidence.bundle.deleted
+
+7.2 EvidenceArtifact states
+
+referenced
+
+captured
+
+verified
+
+attached
+
+sealed
+
+expired
+
+deleted
+
+Notes
+
+artifacts may be only referenced (pointer) or captured (stored copy)
+
+7.3 AuditEvent states
+
+Audit events are append-only.
+
+State (implicit)
+
+recorded
+
+8. Evidence Access State Model
+
+8.1 EvidenceAccessRequest states
+
+requested
+
+approved
+
+denied
+
+expired
+
+revoked
+
+Transitions
+
+requested → approved (GGP decision issued)
+
+requested → denied (GGP decision issued)
+
+approved → expired (time-box ends)
+
+approved → revoked (policy violation or manual revoke)
+
+Transition events
+
+evidence.access.requested
+
+evidence.access.approved
+
+evidence.access.denied
+
+evidence.access.expired
+
+evidence.access.revoked
+
+9. Integration Health State Model
+
+9.1 IntegrationStatus states
+
+healthy
+
+degraded
+
+down
+
+Transitions
+
+healthy → degraded (error rate/latency/quota threshold exceeded)
+
+degraded → down (sustained failures)
+
+down → degraded (partial recovery)
+
+degraded → healthy (stabilized)
+
+Transition events
+
+integration.status.degraded
+
+integration.status.down
+
+integration.status.recovered
+
+10. LUM Decision State Model (Operational Decisions)
+
+10.1 DecisionRecord states
+
+evaluating
+
+decided
+
+executed
+
+revised
+
+expired
+
+Transitions
+
+evaluating → decided (outcome computed)
+
+decided → executed (action taken: alert/route/incident)
+
+decided/executed → revised (new info changes outcome)
+
+* → expired (no longer relevant)
+
+11. State Transition Logging Requirements
+
+All state transitions must:
+
+emit a transition event
+
+capture the actor (human/service)
+
+capture the rationale (optional but recommended)
+
+capture correlation IDs
+
+For sensitive operations (evidence access, sealing, paging enablement):
+
+include the authorizing decision_id (GGP)
+
+12. Common State Machines (Quick Reference)
+
+12.1 Incident lifecycle
+
+detected → triaging → mitigating → monitoring → resolved → closed
+
+12.2 Evidence bundle lifecycle
+
+open → collecting → ready_to_seal → sealed → expired → deleted
+
+12.3 Alert lifecycle
+
+open → acked → resolved
+
+13. Invalid Transitions (Examples)
+
+sealing an evidence bundle from open without entering collecting
+
+enabling an alert policy from draft without staging
+
+granting evidence access without GGP authorization
+

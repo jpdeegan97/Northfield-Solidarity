@@ -1,0 +1,123 @@
+NSDC Engine Charter — SIG (Signal Aggregation Engine)
+1. Engine Identity
+Engine Name: Signal Aggregation Engine
+Acronym: SIG
+Engine Type: Intelligence / Signal Processing
+2. Mission Statement (One Sentence)
+This engine exists to collect, aggregate, and process multiple external and internal signals—including market trends, social, sentiment, and alternative data sources—to provide actionable signals for NSDC decision-making.
+3. Core Responsibilities (Allowed Actions)
+  Aggregate signals from diverse sources: marketplaces, news, social media, APIs, and internal engines
+  Normalize and structure signals for consumption
+  Filter, rank, and prioritize signals based on relevance and reliability
+  Feed actionable signals to execution engines (DAT) and intelligence engines (PIE)
+  Maintain historical signal archives for backtesting and analysis
+  Provide alerts for significant or emergent events
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Directly execute trades or arbitrage (DAT)
+  Govern capital or risk policies (GGP)
+  Create product intelligence or canonical product records (PIE)
+  Distribute content or manage engagement (CDE)
+  Maintain financial ledgers (FLO)
+SIG is purely a signal collection and processing engine.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+External market signals
+APIs, marketplaces, social feeds
+Price, inventory, sentiment, trends
+☑
+Internal engine signals
+PIE, DAT
+Execution, product, and performance signals
+☑
+Governance constraints
+GGP
+Limitations on signal usage
+☐
+Historical signal data
+SIG archives
+Past signals for analysis and backtesting
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Prioritized signals
+DAT, PIE
+Actionable and structured signals
+Continuous / real-time
+Alerts
+Admin / PIE / DAT
+Significant or emergent event notifications
+Event-driven
+Historical signal datasets
+PIE, DAT
+For backtesting, analysis, and trend modeling
+Scheduled / continuous
+Signal logs
+Admin / GGP
+Full record of all ingested and processed signals
+Continuous
+7. Authority & Decision Rights
+SIG May Decide Autonomously:
+  How to normalize, rank, and prioritize signals
+  Signal relevance scoring and filtering
+  Alert thresholds for emergent events
+SIG Must Not Decide:
+  When to execute trades or deploy capital
+  Governance policy enforcement
+  Product development or content strategies
+SIG informs decision-making; it does not act directly.
+8. Governance & Constraints
+  Signal collection and processing must comply with GGP policies
+  Maintain audit-ready logs for all signal ingestion and processing
+  Data integrity and accuracy checks must be enforced
+  Alerts must adhere to governance-defined escalation paths
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Signal feed interruption or errors
+  Misclassification or misranking of signals
+  Latency in processing
+Worst-Case Failure:
+  Downstream engines act on incorrect or incomplete signals
+  Missed opportunities due to delayed signals
+Blast Radius:
+  Primarily impacts DAT execution and PIE insights
+  No direct financial or compliance violation
+Containment strategy:
+  Signal validation and redundancy
+  Alerting on anomalies
+  Historical signal backup for recovery
+10. Time Horizon & Optimization Target
+  Optimizes for: Signal accuracy, relevance, and timeliness
+  Time Horizon: Real-time for emergent events, near real-time for general trends
+11. Interfaces & Shared Primitives
+  Canonical entity IDs (IDN)
+  Product IDs and attributes (PIE)
+  Market identifiers and API endpoints (MUX)
+  Execution references (DAT)
+  Governance flags (GGP)
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Aggregation from 2–3 primary signal sources
+  Normalization and relevance scoring
+  Alerts for emergent events
+  Logging and historical archiving
+MVP Excludes:
+  Predictive modeling for signals beyond relevance scoring
+  Integration with all possible signal sources beyond MVP
+  Execution of trades or direct actions
+13. Evolution Path (Conceptual Only)
+  Phase 1: Signal aggregation, normalization, and ranking
+  Phase 2: Multi-source integration with advanced prioritization and scoring
+  Phase 3: Predictive signal modeling and automated recommendation for execution engines
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

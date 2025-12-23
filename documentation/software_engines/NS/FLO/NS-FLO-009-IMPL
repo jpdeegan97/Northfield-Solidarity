@@ -1,0 +1,186 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Financial Ledger Orchestrator (FLO) MVP.
+It translates the FLO architecture, lifecycle, decision model, and data model into:
+Runnable services and responsibilities
+Module boundaries and interfaces
+Persistence and eventing strategy
+An incremental rollout plan from MVP → production
+This is implementation-oriented but intentionally non-code-specific.
+2. Implementation Scope (MVP)
+The FLO MVP must support:
+Ingest internal financial-impacting events (DAT first)
+Normalize + classify events into transaction candidates
+Write append-only ledger entries + transactions
+Maintain budget burn and budget state
+Ingest at least one external statement source (via MUX)
+Perform basic reconciliation (matched/missing/excess)
+Provide query APIs for:ledger/transactionsbudget burnreconciliation exceptionsexecution attribution
+Out of scope for MVP:
+Complex tax categorization automation
+Multi-currency FX accounting beyond basic normalization
+Full chart-of-accounts UI management
+Advanced reconciliation heuristics
+3. Service Decomposition (MVP)
+3.1 flo-api (Read + Governed Writes)
+Responsibilities:
+Query ledger, transactions, budgets, reconciliation
+Accept governed manual adjustments (optional for MVP)
+Provide health checks and admin controls (rebuild read models)
+Characteristics:
+Read-heavy
+Authz-controlled for write endpoints
+3.2 flo-ingestor (Internal Event Ingestion)
+Responsibilities:
+Consume financial-impacting events from Kafka
+Deduplicate by (source_system, external_event_id) and correlation_id
+Persist normalized_financial_event
+MVP focus:
+DAT events only
+3.3 flo-statement-ingestor (External Truth)
+Responsibilities:
+Import external statements provided by MUX
+Store external_statement and statement line items
+MVP focus:
+One statement feed (processor or bank)
+3.4 flo-classifier
+Responsibilities:
+Apply versioned classification rulesets
+Produce transaction candidates
+Attach entity/account attribution and budget references
+Can be embedded in ingestor for MVP.
+3.5 flo-ledger-writer (System of Record)
+Responsibilities:
+Convert candidates into:transactionledger_entry rows
+Enforce invariants:no partial writesunique dedupe keysbalanced transaction rules (if double-entry)
+3.6 flo-budget-engine
+Responsibilities:
+Compute spend against budgets and allocations
+Emit budget state events (ok/near_limit/exhausted)
+Provide budget burn queries
+Note:
+Budgets are created/approved via GGP references
+3.7 flo-reconciliation-engine
+Responsibilities:
+Match ledger to external statements
+Produce reconciliation_records
+Surface exceptions
+MVP matching can be deterministic:
+amount + date window + external id where available
+3.8 flo-readmodel-builder
+Responsibilities:
+Maintain derived query views
+Rebuild read models from authoritative stores
+May be merged into flo-api for MVP.
+4. Technology Stack (Recommended)
+4.1 Runtime
+Language: Python 3.12+
+Framework: FastAPI (API)
+Workers: asyncio consumers (Kafka)
+4.2 Persistence
+PostgreSQL: authoritative ledger + reconciliation tables
+(Optional) MongoDB: read models / dashboards
+4.3 Messaging
+Kafka for:incoming financial eventsbudget state change eventsreconciliation exception events
+5. Module Layout (Suggested)
+flo/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── authz/
+├── core/
+│   ├── normalization.py
+│   ├── classification.py
+│   ├── rulesets.py
+│   ├── reconciliation.py
+│   └── invariants.py
+├── ingestion/
+│   ├── kafka_consumer.py
+│   └── statement_importer.py
+├── ledger/
+│   ├── writer.py
+│   ├── transactions.py
+│   └── entries.py
+├── budgets/
+│   ├── engine.py
+│   └── state.py
+├── persistence/
+│   ├── models.py
+│   └── repositories.py
+├── readmodels/
+│   ├── builders.py
+│   └── views.py
+└── config/
+6. End-to-End Implementation Flow
+Engine emits financial-impacting event (DAT)
+flo-ingestor consumes event and dedupes
+Normalizer produces normalized_financial_event
+Classifier applies ruleset version → transaction candidate
+Ledger Writer persists transaction + ledger entries (atomic)
+Budget Engine recomputes budget burn and emits budget state
+Statement ingestor stores external truth (via MUX)
+Reconciliation Engine matches and writes reconciliation records
+Read models updated
+Query API exposes canonical financial truth
+7. Persistence & Migration Semantics
+7.1 Authoritative Tables
+Rules:
+additive migrations only
+no destructive schema changes
+no updates to ledger entries
+Corrections are modeled as new ledger entries.
+7.2 Dedupe Keys
+Required uniqueness constraints:
+normalized_financial_event: (source_system, external_event_id)
+ledger_entry: (source_event_id, account_id, direction)
+8. Idempotency & Exactly-Once Effects
+Kafka consumer uses at-least-once
+DB-level dedupe ensures idempotency
+Ledger writer is transactional:either full transaction writes or none
+9. Security & Controls
+Only governed actors can:create/activate budgetspost manual adjustmentstrigger read model rebuilds
+All operations include:correlation_idactor identityreason (for governed writes)
+Secrets managed externally.
+10. MVP Rollout Plan
+Stand up Postgres schema for ledger + budgets
+Implement ingestion + classification for DAT spend events
+Implement ledger writer invariants
+Implement budget burn + state events
+Integrate one statement feed via MUX
+Implement deterministic reconciliation
+Expose read APIs
+Add governed manual adjustments (optional)
+Correctness before scale.
+11. Document Position in FLO Corpus
+This implementation plan builds upon:
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+NS-FLO-005 — DECISION
+NS-FLO-006 — VERSION
+NS-FLO-007 — DATAMODEL
+NS-FLO-008 — EEE
+It informs:
+NS-FLO-011 — APIMAP
+NS-FLO-013 — RUNBOOK
+NS-FLO-014 — DATADEF
+12. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO MVP Implementation Plan
+
+Parent / HoldCo Manager
+Status: Draft

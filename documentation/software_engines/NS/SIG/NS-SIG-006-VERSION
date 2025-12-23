@@ -1,0 +1,142 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the decision framework used by the Signal Aggregation Engine (SIG).
+SIG decisions are local, deterministic, and non-authoritative. They exist to:
+determine admissibility of inputs
+assign trust and confidence scores
+control deduplication and linkage
+govern replay, backfill, and reprocessing
+SIG decisions do not approve actions, rank opportunities, or assert strategy.
+2. Decision Design Principles
+Determinism — identical inputs + ruleset versions yield identical outcomes
+Explainability — every decision produces a rationale artifact
+Locality — decisions apply only to signal processing, not downstream meaning
+Append-Only — decisions are recorded; originals are never mutated
+Governed Overrides — only specific decisions may be overridden, and only with audit
+3. Decision Classes
+SIG defines five primary decision classes:
+Source Admission Decisions
+Normalization Decisions
+Trust & Confidence Scoring Decisions
+Deduplication Decisions
+Operational Control Decisions
+Each class emits a decision artifact.
+4. Source Admission Decisions
+Question Answered:
+Should this source/input be admitted for signal processing?
+Inputs:
+source_system
+ingestion method
+schema compatibility
+governance flags
+Outcomes:
+admit
+quarantine
+reject
+Notes:
+Admission rules are versioned
+High-risk sources may require governance reference
+5. Normalization Decisions
+Question Answered:
+Can this input be mapped to a canonical signal type?
+Inputs:
+raw payload
+normalization ruleset version
+Outcomes:
+normalized (signal_type assigned)
+quarantined (schema_unknown)
+Notes:
+Normalization failures never mutate inputs
+Schema drift emits system signals
+6. Trust & Confidence Scoring Decisions
+Question Answered:
+How reliable and complete is this signal?
+Inputs:
+source reliability profile
+integrity metadata
+latency and completeness
+scoring ruleset version
+Outputs:
+trust_score (0–1)
+confidence_score (0–1)
+Notes:
+Scores are numeric and explainable
+Thresholds may be governed but never implicit
+7. Deduplication Decisions
+Question Answered:
+Is this a new signal or a duplicate observation?
+Inputs:
+stable dedupe keys
+hashes
+temporal proximity
+Outcomes:
+accept_new
+link_existing
+Notes:
+No destructive merges
+Linkage preserves all provenance
+8. Operational Control Decisions
+Question Answered:
+Should ingestion, replay, or reprocessing occur?
+Decision Types:
+pause source ingestion
+resume source ingestion
+trigger replay
+trigger backfill
+trigger reprocess
+Requirements:
+actor identity
+reason
+governance reference (when required)
+9. Decision Artifact Schema (Logical)
+Each SIG decision emits an immutable artifact with:
+decision_id (UUID)
+decision_type
+subject_ref (signal_id, source, or job)
+outcome
+rationale (structured)
+ruleset_name
+ruleset_version
+actor_id (if applicable)
+evaluated_at
+correlation_id
+Decision artifacts are queryable and auditable.
+10. Decision Boundaries
+SIG decisions:
+affect signal lifecycle only
+never propagate intent
+never imply correctness of strategy
+Downstream engines (PIE, SIM, DAT, GGP) make higher-order decisions.
+11. Failure Modes & Safeguards
+If a decision engine fails → quarantine input
+If scoring fails → default to lowest trust + flag
+If dedupe ambiguous → accept_new with linkage hint
+Safety favors preservation over suppression.
+12. Cross-Engine Interaction
+Engine
+Interaction
+MUX
+Supplies raw external observations
+PIE
+Consumes trust/confidence-scored signals
+GGP
+Audits decisions and overrides
+13. Document Position in SIG Corpus
+This decision document builds upon:
+NS-SIG-001 — OVERVIEW
+NS-SIG-002 — TAXONOMY
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+It informs:
+NS-SIG-006 — VERSION
+NS-SIG-007 — DATAMODEL
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Decision Framework
+Parent / HoldCo Manager
+Status: Draft

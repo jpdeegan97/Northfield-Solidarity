@@ -1,0 +1,100 @@
+Overview
+Document Title: Governance Graph Engine – Frontend MVP Wireframes & Module Breakdown 
+Document ID: NS-GGP-010-FE
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+Define wireframes, component interactions, and React / React Native module breakdown for the GGE frontend MVP. This includes the two main screens:
+ GGE Execution Audit Trail
+ SOP Version History Viewer
+Goals:
+  Ensure UI/UX aligns with backend data models
+  Map React component hierarchy
+  Define interactions and data flows for MVP screens
+2. Screen Wireframes (Text-Based)
+2.1 GGE Execution Audit Trail Screen
+Header:
+  Execution ID
+  Trigger Type
+  Executor Role
+  Execution Time
+Tables / Sections:
+ Component Changes Table
+  Columns: Component ID, Previous Version, New Version, Change Type, Materiality, Rationale
+ SOP Versions Updated Table
+  Columns: SOP ID, Version, Change Type, Approval Status, Published Date
+Filters:
+  Date Range
+  Trigger Type
+  Executor Role
+  Materiality Level
+Interactions:
+  Click on SOP ID → opens SOP PDF/HTML
+  Expand component change → show detailed rationale
+2.2 SOP Version History Viewer Screen
+Header:
+  SOP Title
+  SOP Category
+Version Table:
+  Columns: Version, Execution ID, Change Type, Approval Status, Published Date, Notes
+  Sortable by Version or Date
+Interactions:
+  Dropdown to select SOP or category
+  Click version → opens published SOP
+  Optional visualization of dependencies (graph snippet)
+3. React / React Native Module Breakdown
+gge_fe_mvp/
+├── src/
+│   ├── components/
+│   │   ├── Header.js               # Reusable header component
+│   │   ├── FilterPanel.js          # Filters for screens
+│   │   ├── ComponentChangesTable.js # Table of component changes
+│   │   ├── SOPVersionsTable.js      # Table of SOP version updates
+│   │   ├── VersionHistoryTable.js   # SOP Version History Table
+│   │   ├── DependencyGraphSnippet.js # Optional visual dependency component
+│   ├── screens/
+│   │   ├── ExecutionAuditScreen.js  # Full audit trail screen
+│   │   ├── SOPVersionHistoryScreen.js # SOP version history screen
+│   ├── services/
+│   │   ├── api.js                  # Fetch functions for API endpoints
+│   │   ├── auth.js                 # Role-based access helper functions
+│   ├── context/
+│   │   ├── ExecutionContext.js     # Store execution state & selected filters
+│   │   ├── SOPContext.js           # Store SOP selections and version data
+│   ├── App.js
+│   ├── index.js
+└── package.json
+4. Component Interaction Flow
+ User selects a date range / filters → updates context
+ ExecutionAuditScreen fetches execution\_audit\_view from API → renders ComponentChangesTable & SOPVersionsTable
+ SOPVersionHistoryScreen fetches sop\_history\_view from API → renders VersionHistoryTable
+ Clicking SOP or version → triggers PDF/HTML viewer (embedded or new tab)
+ Optional DependencyGraphSnippet renders cross-SOP dependencies using fetched data
+State Management:
+  Use React Context or Redux for MVP simplicity
+  Shared state between screens for filter selections and execution context
+5. MVP Considerations
+  Responsive Design: Desktop-first, mobile compatible
+  Read-only MVP: No editing, only viewing
+  Data Refresh: Polling or manual refresh button for audit updates
+  Performance: Pagination for large tables
+  Security: Role-based rendering; users cannot edit or trigger executions
+6. Next Steps
+ Convert text wireframes into Figma or Sketch design for visual reference
+ Implement API mocks for FE development
+ Build ExecutionAuditScreen and SOPVersionHistoryScreen components
+ Integrate React context and API services
+ Add optional dependency visualization
+7. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial FE MVP wireframes and module breakdown
+Parent / HoldCo Manager
+End of Document

@@ -1,0 +1,91 @@
+Deep Research Engine (DRE)
+1. Purpose
+The Deep Research Engine (DRE) is responsible for continuously tracking, synthesizing, and curating deep research across markets, technologies, competitors, and execution pathways — and mapping those findings into structured, queryable, versioned artifacts.
+DRE exists to answer a single core question:
+What matters over the medium-to-long horizon, what evidence supports it, and how confident are we?
+DRE is not a news feed. It is a research memory and synthesis engine.
+2. Role Within Northfield Solidarity
+DRE sits in the long-horizon intelligence layer and complements PIE and SIG:
+  SIG aggregates and normalizes short-horizon signals
+  PIE turns signals into decision-ready product insights
+  DRE maintains deep context, thematic tracking, and evidence trails over time
+DRE feeds:
+  PIE (context, hypotheses, research artifacts)
+  SIM (assumptions and scenario drivers)
+  DAT (sourcing/logistics/partner research for execution)
+  GGP (auditability, provenance, and governance of research promotion)
+3. What DRE Produces
+DRE produces Research Artifacts, which are structured, versioned objects such as:
+  Themes (e.g., “home battery arbitrage”, “warehouse robotics”)
+  Hypotheses (testable claims linked to evidence)
+  Evidence Bundles (citations, notes, excerpts, datasets)
+  Research Narratives (human-readable syntheses)
+  Source & Credibility Profiles (trust, recency, bias notes)
+  Knowledge Graph Edges (entities, relationships, time-bound assertions)
+All outputs are:
+  explainable
+  attributable
+  replayable (rebuildable from evidence + ruleset)
+4. What DRE Does Not Do
+To maintain clean boundaries, DRE does not:
+  authorize decisions or releases (GGP)
+  execute market actions (DAT)
+  run financial accounting (FLO)
+  act as the identity authority (IDN)
+DRE produces research truth; others decide and act.
+5. Core Capabilities
+ Continuous Collection & TrackingMonitor sources (papers, docs, forums, filings, vendor sites) and track changes over time.
+ Evidence Capture & ProvenanceStore citations and evidence chains that explain every claim.
+ Synthesis & Narrative ConstructionConvert raw evidence into coherent, structured research narratives.
+ Hypothesis ManagementDefine testable hypotheses, track supporting/counter evidence, and update confidence.
+ Thematic Maps & TrendlinesMaintain long-horizon themes, subthemes, and causal drivers.
+ Promotion PathwaysPromote validated research into PIE insights, SIM assumptions, or DAT execution research — governed by GGP.
+6. Interaction With Other Engines
+Engine
+Relationship to DRE
+SIG
+Provides short-horizon signals that may seed research threads
+PIE
+Consumes research artifacts to improve insight quality and explanation
+SIM
+Consumes assumptions, drivers, and hypothesis states
+DAT
+Consumes sourcing/logistics/vendor research and constraint knowledge
+GGP
+Governs promotion, controls, audit, and versioning of research artifacts
+IDN
+Provides canonical actor/entity attribution for artifacts and sources
+CDE
+Distributes research reports/briefings (if released)
+CWP
+Supervises agentic researchers and schedules research programs
+7. Operational Posture
+DRE is:
+  write-heavy (evidence ingestion + artifact updates)
+  read-heavy (query and retrieval for PIE/SIM/DAT)
+  versioned and replayable (audit-grade provenance)
+  human-in-the-loop friendly (research curation and review)
+8. Expected Outcomes
+When DRE is functioning correctly:
+  research compounds over time instead of being lost
+  hypotheses become clearer and more testable
+  decisions are better grounded in evidence
+  downstream engines operate with stronger context and fewer surprises
+DRE reduces epistemic drift.
+9. Document Position in DRE Corpus
+This document provides the conceptual overview of DRE.
+It is complemented by:
+  NS-DRE-000 — CHARTER
+  NS-DRE-002 — TAXONOMY
+  NS-DRE-003 — ARCHITECTURE
+  NS-DRE-004 — LIFECYCLE
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Overview
+Parent / HoldCo Manager
+Status: Draft

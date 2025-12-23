@@ -1,0 +1,184 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document provides an End-to-End Example (EEE) illustrating how the Digital Arbitrage Tooling (DAT) engine operates across its full lifecycle.
+The goal is to:
+Validate the DAT architecture and decision rules
+Demonstrate governance, execution, rollback, and audit behavior
+Show how DAT interacts with PIE, GGP, FLO, and PTE in practice
+This example is illustrative but concrete, intended to surface edge cases and confirm system correctness.
+2. Scenario Overview
+Scenario:
+Launch and test a limited-run digital product listing based on an approved market opportunity.
+Assumptions:
+Opportunity identified and approved via PIE + GGP
+Budget and constraints are conservative
+External marketplace supports idempotent APIs
+3. Inputs
+3.1 Approved Insight (From PIE)
+insight_id: INS-7421
+insight_version: 3
+Opportunity: "Strong short-term demand for niche accessory X"
+This insight has passed governance review and is approved for execution planning.
+3.2 Governance Constraints (From GGP)
+Max budget: $5,000 USD
+Execution window: 14 days
+Max inventory commitment: 100 units
+Rollback required for any failed marketplace action
+4. Phase 1 — Plan Drafting
+DAT Plan Builder creates Execution Plan v1:
+execution_plan_id: PLAN-9912
+plan_version: 1
+Linked to (INS-7421, v3)
+Steps Defined:
+Create marketplace listing
+Enable paid promotion
+Place supplier order
+Each step includes:
+Explicit action parameters
+Constraint references
+Rollback policy
+Plan state: draft
+5. Phase 2 — Governance Approval
+Submission to GGP
+DAT submits:
+Plan v1
+Budget snapshot
+Constraint snapshot
+Rollback coverage report
+Governance Outcome
+Plan approved without modification
+Plan state transitions:
+draft → submitted_for_approval → approved
+6. Phase 3 — Staging & Dry Run
+DAT performs:
+Connector validation (marketplace + supplier)
+Parameter validation
+Dry-run API calls (no side effects)
+No errors detected.
+Plan state transitions:
+approved → staged
+7. Phase 4 — Execution Admission
+At execution start time:
+Admission checks performed:
+Budget available: PASS
+Time window valid: PASS
+Kill switch: OFF
+Connector health: PASS
+Admission decision:
+admission_allowed = true
+Plan state transitions:
+staged → executing
+8. Phase 5 — Step Execution
+Step 1 — Create Marketplace Listing
+Action executed successfully
+step_state: completed
+Telemetry emitted: step.completed
+Step 2 — Enable Paid Promotion
+External API timeout occurs
+step_state: failed
+DAT behavior:
+Emits step.failed
+Evaluates rollback policy
+Rollback policy:
+Disable any partially created promotion
+Rollback succeeds:
+step_state: rolled_back
+DAT decision:
+Abort plan (promotion is critical path)
+9. Phase 6 — Abort & Rollback
+Plan transitions:
+executing → aborted
+DAT emits:
+plan.aborted
+rollback telemetry
+Supplier order step is not executed due to abort.
+10. Phase 7 — Post-Execution Reconciliation
+DAT performs reconciliation:
+Budget spent: $200 (listing fee)
+Budget remaining: $4,800
+Financial events emitted to FLO:
+spend.incurred ($200)
+PTE receives performance telemetry indicating aborted execution.
+11. Phase 8 — Archival
+DAT freezes artifacts:
+Plan v1
+Execution events
+Decision artifacts
+Plan state transitions:
+aborted → archived
+12. Replay & Audit Walkthrough
+From persisted artifacts, auditors can reconstruct:
+Exact plan definition (v1)
+Approved constraints and budget
+Step-by-step execution timeline
+Failure cause and rollback behavior
+Financial impact attribution
+No mutable state is required.
+13. Cross-Engine Traceability
+
+
+
+Engine
+
+Artifact
+
+
+PIE
+
+insight_id, insight_version
+
+
+GGP
+
+governance_decision_id
+
+
+DAT
+
+execution_plan_id, plan_version
+
+
+FLO
+
+financial_event_id
+
+
+PTE
+
+execution_performance_record
+All linked by correlation_id.
+14. Validation Outcomes
+This EEE validates that:
+DAT never executes without approval
+Rollback is automatic and effective
+Budget enforcement is accurate
+Failures are contained
+Full audit and replay are possible
+15. Document Position in DAT Corpus
+This EEE builds upon:
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-006 — VERSION
+NS-DAT-007 — DATAMODEL
+16. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT End-to-End Example
+
+Parent / HoldCo Manager
+Status: Draft

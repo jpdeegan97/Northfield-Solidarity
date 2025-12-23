@@ -1,0 +1,283 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the state model and state management semantics for the Market Integration Layer (MUX).
+MUX exists to represent external truth safely. Therefore, its state model must:
+preserve immutable historical artifacts
+make connector health and ingestion progress explicit
+ensure deterministic processing and replay
+avoid hidden mutation or ambiguous state transitions
+2. State Categories
+MUX maintains three primary categories of state:
+Authoritative Artifact State (Immutable)
+Connector Operational State (Mutable, auditable)
+Processing & Job State (Mutable, auditable)
+Only the first category is “truth.” The others are operational controls.
+3. Authoritative Artifact State (Immutable)
+3.1 Raw Capture State
+Raw capture records are immutable.
+They have outcome classifications (recorded once and never edited):
+accepted
+rejected
+quarantined
+Note:
+If later analysis is needed, a new review decision is appended; original outcome remains.
+3.2 Canonical Artifact State
+Canonical artifacts are immutable.
+However, they may acquire additional immutable references over time:
+new raw_capture_ids linked
+new dedupe references
+new decision artifacts
+Canonical artifacts do not transition state; they accumulate additional audit references.
+4. Connector Operational State Machine
+Connectors are stateful because they interact with unstable external systems.
+4.1 Connector States
+disabled
+enabled
+paused
+degraded
+4.2 Connector State Transitions
+
+
+
+From
+
+To
+
+Trigger
+
+
+disabled
+
+enabled
+
+Operator/governance enables connector
+
+
+enabled
+
+paused
+
+Operator pauses connector
+
+
+paused
+
+enabled
+
+Operator resumes connector
+
+
+enabled
+
+degraded
+
+Error rate threshold, auth failure spike, schema drift
+
+
+degraded
+
+enabled
+
+Health restored + optional backfill complete
+
+
+degraded
+
+paused
+
+Operator pauses degraded connector
+
+
+any
+
+disabled
+
+Operator/governance disables connector
+Rules:
+All transitions produce a connector_state_change event
+Each transition records: actor_id, reason, governance_ref (when required)
+5. Processing Pipeline State
+Processing is modeled as stage outcomes, not mutable “in-flight” records.
+Stages:
+capture
+integrity verification
+normalization
+deduplication
+persistence
+publication
+Each stage produces an immutable decision artifact.
+6. Quarantine State Machine
+Quarantine items represent inputs that are blocked or suspicious.
+6.1 Quarantine States
+open
+reviewed
+reprocessed
+suppressed
+6.2 Quarantine Transitions
+
+
+
+From
+
+To
+
+Trigger
+
+
+open
+
+reviewed
+
+Operator reviews item
+
+
+reviewed
+
+reprocessed
+
+Operator triggers reprocess
+
+
+reviewed
+
+suppressed
+
+Governed suppression
+
+
+open
+
+reprocessed
+
+Automated reprocess after ruleset update (optional)
+Rules:
+Suppression requires governance reference
+Reprocess creates new artifacts/decisions, does not edit originals
+7. Replay / Backfill Job State Machine
+Jobs represent controlled operational actions.
+7.1 Job States
+queued
+running
+completed
+failed
+cancelled
+7.2 Job Transitions
+
+
+
+From
+
+To
+
+Trigger
+
+
+queued
+
+running
+
+Worker starts job
+
+
+running
+
+completed
+
+Job completes successfully
+
+
+running
+
+failed
+
+Error threshold exceeded
+
+
+queued
+
+cancelled
+
+Operator cancels job
+
+
+running
+
+cancelled
+
+Operator cancels job
+Rules:
+Jobs are idempotent by idempotency_key
+Job outputs are immutable logs + emitted counts
+8. Publication State Model
+Publishing is at-least-once.
+For each artifact publication attempt, MUX records an immutable publish attempt record:
+publish_attempted
+publish_succeeded
+publish_failed
+Failures create backlog and may degrade connector.
+9. Platform State Artifacts
+Platform state artifacts are immutable and represent:
+outages
+policy changes
+rate limit states
+They are not operational states of MUX; they are captured external truth.
+10. Consistency Model
+MUX consistency:
+Strong consistency for storage of raw captures and canonical artifacts
+Eventual consistency for indices and UI aggregates
+Publishing:
+at-least-once delivery
+idempotency via stable artifact_id and dedupe keys
+11. Late-Arriving Data Handling
+Late raw captures create new capture records
+Deduplication links them to existing canonical artifacts
+Backfill jobs may be used to retrieve missing windows
+No mutation occurs.
+12. Replay & Recovery
+Replay and recovery paths:
+Rebuild indices from canonical artifacts
+Re-emit artifacts via replay jobs
+Reprocess raw captures using new rulesets
+Original truth remains preserved.
+13. State Change Events
+MUX emits operational state events:
+mux.connector.state_changed
+mux.quarantine.state_changed
+mux.job.state_changed
+mux.publishing.failure_detected
+Each event includes:
+correlation_id
+source_state
+target_state
+timestamp
+actor_id (if applicable)
+14. Document Position in MUX Corpus
+This state document builds upon:
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+NS-MUX-006 — VERSION
+NS-MUX-011 — APIMAP
+It informs:
+NS-MUX-013 — RUNBOOK
+NS-MUX-014 — DATADEF
+15. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX State Model
+
+Parent / HoldCo Manager
+Status: Draft

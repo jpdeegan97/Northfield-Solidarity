@@ -1,0 +1,437 @@
+NS-INT-002 — TAXONOMY
+
+1. Purpose
+
+This taxonomy defines the canonical vocabulary and classification system for Intervention (quickscope). It standardizes how NS describes:
+
+events and state
+
+identities and actors
+
+workflows and gates
+
+projections and read models
+
+subscriptions and streams
+
+edge caches and synchronization
+
+The goal is to make Intervention integrations consistent across every NS engine and UI.
+
+2. Primary Taxonomy Axes
+
+2.1 State Primitives
+
+Event
+
+An immutable record describing a state transition or observation.
+
+State
+
+The authoritative “current truth,” derived from events.
+
+Snapshot
+
+A point-in-time materialization of a state view.
+
+Delta
+
+A streamed change representation emitted when state updates.
+
+Projection
+
+Deterministic transformation of events into a read model.
+
+Read Model
+
+Query-optimized representation of state (the “now” view).
+
+Timeline
+
+Ordered sequence of events for an entity, workflow, or correlation thread.
+
+2.2 Identity and Referencing
+
+Engine ID (engine_id)
+
+Canonical identifier of the producing engine (e.g., GGP, FLO, MUX).
+
+Entity / Aggregate ID (entity_id / aggregate_id)
+
+The object whose state is changing (entity-centric or aggregate-root model).
+
+Workflow Instance ID (workflow_id)
+
+Identifier for a long-running process instance.
+
+Correlation ID (correlation_id)
+
+End-to-end thread identifier spanning engines and services.
+
+Causation ID (causation_id)
+
+Direct trigger pointer for “what caused this event.”
+
+Policy Context Reference (policy_context_ref)
+
+Pointer to governance context (policy set, decision, approval artifact) used by GGP.
+
+Evidence Reference (evidence_ref)
+
+Pointer to supporting evidence/artifacts (logs, docs, signatures, approvals).
+
+2.3 Actor Model
+
+Actor
+
+The initiator of an event or decision.
+
+Actor Types:
+
+Human: operator, administrator, reviewer
+
+Agent: autonomous or semi-autonomous worker (e.g., CWP agents)
+
+System: automated service, scheduler, integration
+
+Actor Fields (canonical):
+
+actor_type (Human | Agent | System)
+
+actor_id (stable identifier)
+
+actor_role (optional)
+
+actor_org (optional)
+
+auth_context_ref (optional pointer to IDN/GGP authz artifacts)
+
+3. Event Taxonomy
+
+3.1 Event Categories (by semantic intent)
+
+Domain Events
+
+Represent meaningful domain state transitions (e.g., order_placed, invoice_posted).
+
+Workflow Events
+
+Represent process progression (e.g., step_started, gate_passed, timer_fired).
+
+Governance Events
+
+Represent policy/approval outcomes (e.g., policy_checked, approval_granted, approval_denied).
+
+Operational Events
+
+Represent system operations (e.g., projection_rebuilt, stream_resumed).
+
+Observational Events
+
+Represent detected facts/measurements (e.g., signal_detected, metric_threshold_crossed).
+
+Error/Exception Events
+
+Represent failures and incident state (e.g., execution_failed, compensation_required).
+
+3.2 Event Criticality
+
+Critical: must be persisted and projected immediately; may require governance gating
+
+Important: persisted; projected within SLA
+
+Informational: persisted; projection optional
+
+Debug: optionally persisted; used for diagnostics
+
+3.3 Event Validity Classes
+
+Accepted: structurally valid and stored
+
+Authoritative: accepted + eligible for projection as truth
+
+Rejected: invalid schema/contract or policy violation
+
+Quarantined: accepted but awaiting review/gating
+
+4. State Object Taxonomy
+
+4.1 Canonical State Objects
+
+EntityState
+
+Current state summary for an entity/aggregate.
+
+WorkflowState
+
+State summary for a workflow instance.
+
+DecisionState
+
+Governance decision snapshot (often referenced from GGP).
+
+ExecutionState
+
+Status of an execution run (job/task/operation).
+
+IntegrationState
+
+Status of an external integration handshake (MUX, connectors, APIs).
+
+IncidentState
+
+Status of an exception/incident and mitigation lifecycle.
+
+4.2 Universal State Fields (recommended)
+
+status (enum)
+
+phase (optional sub-status)
+
+version (monotonic)
+
+last_event_id
+
+last_updated_at
+
+owner_engine_id
+
+correlation_id (if applicable)
+
+tags (key/value)
+
+5. Workflow Taxonomy
+
+5.1 Workflow Composition
+
+Workflow Definition
+
+Template describing steps, gates, timers, retries.
+
+Workflow Instance
+
+Live execution of a workflow definition.
+
+Step
+
+Unit of progress (work stage).
+
+Gate
+
+A control point that must be satisfied to proceed.
+
+Gate Types:
+
+Policy Gate (GGP evaluation required)
+
+Approval Gate (human/agent approval required)
+
+Data Gate (data availability/quality required)
+
+Time Gate (timer / schedule)
+
+Risk Gate (threshold/score)
+
+Integration Gate (external confirmation)
+
+Timer
+
+SLA, delay, escalation, retry backoff.
+
+Compensation
+
+Undo/repair actions when a workflow fails midstream.
+
+5.2 Workflow Status (canonical)
+
+created
+
+running
+
+blocked
+
+waiting_approval
+
+waiting_data
+
+retrying
+
+compensating
+
+completed
+
+failed
+
+cancelled
+
+6. Projection and Read Model Taxonomy
+
+6.1 Projection Types
+
+Canonical Projections (Intervention-maintained, engine-agnostic)
+
+Domain Projections (engine-maintained, but hosted/registered in Intervention)
+
+UI Projections (optimized for rendering, e.g., Firmament surfaces)
+
+6.2 Projection Modes
+
+Streaming: update continuously as events arrive
+
+Batch: rebuild on schedule or by trigger
+
+Hybrid: streaming + periodic reconciliation
+
+6.3 Read Model Classes
+
+Entity View: one entity’s current state
+
+Collection View: lists/feeds (e.g., “active workflows”)
+
+Thread View: correlation-centric story (“what happened?”)
+
+Graph View: linked nodes/edges for visualization
+
+7. Subscription Taxonomy
+
+7.1 Subscription Targets
+
+By engine_id
+
+By entity_id
+
+By workflow_id
+
+By correlation_id
+
+By event_type
+
+By tag query (e.g., env=prod, priority=critical)
+
+7.2 Delivery Semantics
+
+At-least-once (default)
+
+Exactly-once (aspirational; usually via idempotency + version checks)
+
+Ordered-per-key (ordered per entity/workflow/correlation key)
+
+7.3 Stream Forms
+
+Delta Stream: incremental changes
+
+Event Stream: raw canonical events
+
+State Stream: periodic state summaries
+
+8. Edge Cache Taxonomy
+
+8.1 Edge Roles
+
+Engine Edge: used by NS engines to read/write context quickly
+
+UI Edge: used by Firmament/operator surfaces to render instantly
+
+8.2 Edge Data Modes
+
+Write-through: events published upstream immediately
+
+Write-behind: buffer locally, flush on reconnect
+
+Read-through: cache miss calls Core
+
+Pre-warmed: subscribe-first, snapshot bootstrap
+
+8.3 Sync States
+
+cold_start
+
+bootstrapping
+
+in_sync
+
+degraded
+
+reconciling
+
+stale
+
+9. Governance and Control Taxonomy (Intervention ↔ GGP)
+
+9.1 Transition Classes
+
+Unprotected: Intervention accepts and projects without GGP gating
+
+Protected: requires GGP decision/approval reference
+
+Quarantined: accepted but not projected until reviewed
+
+9.2 Policy Outcomes (from GGP)
+
+allow
+
+deny
+
+allow_with_conditions
+
+escalate
+
+10. Firmament-Oriented Taxonomy (Visualization)
+
+10.1 Render Objects
+
+Node: entity/workflow/engine/decision
+
+Edge: causal or dependency link
+
+Pulse: event/delta visualization primitive
+
+10.2 Visual Channels (logical)
+
+Global Feed: high-level system activity
+
+Threads: correlation-centric storylines
+
+Hotspots: regions/entities with high change frequency
+
+Incidents: failure and mitigation lifecycles
+
+11. Canonical Naming Conventions
+
+11.1 Event Types
+
+Format:
+
+verb_past_tense or noun_verb_past_tense
+Examples:
+
+request_created
+
+policy_checked
+
+approval_granted
+
+execution_failed
+
+projection_rebuilt
+
+11.2 IDs
+
+IDs are globally unique and stable.
+
+Correlation IDs are reused across the full lifecycle of a thread.
+
+12. Summary
+
+This taxonomy standardizes Intervention’s language so NS can:
+
+integrate engines consistently
+
+stream coherent state to Firmament
+
+reconstruct history reliably
+
+enforce governance gating predictably
+
+Intervention’s taxonomy is the backbone of NS coherence.
+

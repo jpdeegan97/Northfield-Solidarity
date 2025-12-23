@@ -1,0 +1,275 @@
+NS-FIRMAMENT-004 — LIFECYCLE
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the lifecycle of Firmament as a governed, real-time operational visualization system: from signal → projection → visualization → brief → action → governance → execution → verification.
+
+Firmament’s lifecycle is designed to ensure:
+
+freshness (realtime awareness),
+
+traceability (why the UI shows what it shows),
+
+actionability (every drilldown produces next steps),
+
+and governance (meaningful moves are gated by GGE).
+
+2. Lifecycle Overview
+
+Firmament operates as a continuous loop with two modes:
+
+Continuous State Loop (always on): keeps the globe updated
+
+Decision Loop (on demand): converts observations into governed action
+
+3. Continuous State Loop (Always On)
+
+Stage A — Ingest
+
+Inputs: IDN, FLO, SIG, CWP, SIM (via MUX), plus optional external feedsTrigger: scheduled pull + event-driven pushes (later)Output: normalized ingestion records
+
+Guarantees
+
+every input is tagged with source_engine, ingest_time, staleness_budget
+
+Stage B — Normalize & Enrich
+
+Transforms raw inputs into Firmament-ready semantics:
+
+entity normalization (IDs, relationship types)
+
+geo resolution (lat/lon, regions, routes)
+
+time normalization (windows, timezones, readiness)
+
+sector mapping (entity/flow/event → sector tags)
+
+severity/health derivation (watch/at-risk/failing)
+
+Output: enriched domain objects
+
+Stage C — Project (Render Model Build)
+
+Projection Builder materializes view models:
+
+GeoFeatures (pins/paths/polygons/heat cells)
+
+SectorMetrics (treemap values, health score)
+
+PayloadRefs (drilldown backing objects)
+
+Stores
+
+Current state tables (fast render)
+
+Snapshots (history + audit + playback)
+
+Stage D — Publish Deltas (Realtime)
+
+Realtime Gateway publishes:
+
+feature changes (create/update/delete)
+
+metric changes (sector values, health score)
+
+staleness warnings (source degraded)
+
+Delivery
+
+WebSocket/SSE when available
+
+polling fallback for resilience
+
+Stage E — Render & Adapt (Client)
+
+Client renders based on:
+
+zoom context (LOD rules)
+
+active layers and filters
+
+rate limits / density controls
+
+staleness indicators
+
+Result: the globe is always “truthful enough” and visibly explains staleness.
+
+4. Decision Loop (On Demand)
+
+Triggered when a user clicks a sector, an alert, an event, or a geo feature.
+
+Stage 1 — Observe (Select Feature / Sector / Region)
+
+User interacts:
+
+clicks a treemap tile
+
+selects a hotspot
+
+focuses a region
+
+opens the events list item
+
+Output: ContextSelection (geo scope + time window + sector scope)
+
+Stage 2 — Explain (Generate Operating Brief)
+
+Brief/Recommendation Service assembles:
+
+what’s going well vs failing
+
+root causes across domains (ops/finance/supply/market)
+
+top constraints (budget, capacity, governance)
+
+impacted entities, routes, deadlines
+
+Output: SectorOperatingBrief / RiskBrief / EventBrief
+
+Stage 3 — Propose Actions
+
+System generates:
+
+Immediate mitigations (stop the bleeding)
+
+Near-term fixes (stabilize)
+
+Strategic moves (growth)
+
+Each action includes:
+
+impact score
+
+urgency
+
+dependencies
+
+owner role suggestion (CWP)
+
+governance gate suggestion (GGE)
+
+Output: ranked ActionItem[]
+
+Stage 4 — Plan Mode Shift (Risk ↔ Ambition Slider)
+
+User adjusts slider → Scenario Adapter calls SIM:
+
+modifies assumptions (speed vs safety, spend tolerance, inventory posture)
+
+projects outcomes (KPIs + downside risk)
+
+reprioritizes actions
+
+Outputs
+
+ScenarioBundle (per posture)
+
+action ranks recalculated
+
+gating requirements may change (more aggressive → more gating)
+
+Stage 5 — Gate (GGE) and Assign (CWP)
+
+For each action:
+
+if gated → create Decision Packet → GGE gate workflow
+
+if not gated → create Task → CWP with owner + due date
+
+Firmament stores:
+
+action_id, cwp_task_id, gge_decision_id links
+(not the authoritative records)
+
+Stage 6 — Execute (External)
+
+Execution occurs in the appropriate engine/system:
+
+logistics changes via integrations (MUX)
+
+financial adjustments via FLO workflows
+
+operations via human/agent work through CWP
+
+Firmament reflects progress through updates from sources.
+
+Stage 7 — Verify & Learn
+
+Firmament verifies:
+
+did KPIs improve?
+
+did risk decrease?
+
+did the action complete on time?
+
+what changed in the sector health score?
+
+Outputs:
+
+post-action delta report
+
+decision trail completeness score
+
+recommendations for iteration
+
+5. Lifecycle States (Core Objects)
+
+5.1 GeoFeature State
+
+Active | Muted | Archived | Invalid
+
+5.2 Signal State
+
+New | Acknowledged | Monitoring | Resolved | FalsePositive
+
+5.3 Sector Brief State
+
+Generated | Reviewed | Executing | Reassess
+
+5.4 Action Item State
+
+Proposed | Approved | InProgress | Blocked | Done | Abandoned
+
+5.5 Governance Gate State (GGE)
+
+Draft | Submitted | UnderReview | Approved | Rejected | Expired
+
+6. Cadence (Default Timers)
+
+v0 baseline (tunable):
+
+sector treemap refresh: every 5–15 minutes
+
+events refresh: every 1–5 minutes
+
+signals refresh: realtime push if available; otherwise every 1–2 minutes
+
+snapshots: hourly + on major changes
+
+staleness threshold: per source (configured)
+
+7. Failure Handling & Degradation
+
+Source down: show last-known snapshot + staleness badge + reduced confidence
+
+Realtime down: switch to polling, suppress animations
+
+Projection failure: auto-disable affected layer, publish error payload with cause
+
+SIM unavailable: slider still changes policy weighting but marks scenario outputs unavailable
+
+8. Governance Guarantees
+
+Firmament must ensure:
+
+Every recommended action has a trace (inputs + rationale).
+
+Actions above a configured threshold require GGE gating.
+
+Every task has an owner (CWP) or a reason it is unassigned.
+
+Staleness is visible and measurable (never silently stale).
+

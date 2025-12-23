@@ -1,0 +1,436 @@
+NS-AEGIS-014 — DATAREF
+
+Project: Aegis (Dependency Management Product)
+
+1) Data Reference Purpose
+
+This document defines Aegis’ data inputs, outputs, and storage references so that:
+
+Integrations know what to send and what to expect
+
+Operators know what “source of truth” exists for each data class
+
+Governance and audit can trace posture to evidence, signals, and snapshots
+
+Aegis data is grouped into:
+
+Registry facts (truth)
+
+Graph facts (impact)
+
+Evidence artifacts (trust)
+
+Signals & incidents (operations)
+
+Snapshots (audit replay)
+
+Observations (connector emissions)
+
+2) Canonical Data Stores
+
+These are conceptual stores; implementation choices may vary.
+
+2.1 Registry DB (SQL)
+
+Purpose: canonical dependency records and workflow state.
+
+Primary datasets (tables/collections)
+
+dependency
+
+dependency_unit
+
+principal
+
+policy_profile
+
+change_request
+
+policy_decision
+
+approval_record
+
+evidence_artifact (metadata only)
+
+signal
+
+incident_case
+
+snapshot (metadata only)
+
+observation
+
+Source of truth: Aegis
+
+2.2 Graph Store
+
+Purpose: fast traversals for impact analysis.
+
+Primary datasets
+
+nodes (dependency + DU nodes)
+
+edges (relationship edges with qualifiers)
+
+Source of truth: Aegis (derived from CR commits + observations)
+
+2.3 Evidence Object Store
+
+Purpose: binary artifacts (SBOMs, PDFs, attestations, reports).
+
+Primary datasets
+
+evidence/{evidence_id}/{revision} (object keys)
+
+Source of truth: Aegis stores metadata; objects live in object store.
+
+2.4 Event Bus
+
+Purpose: decouple ingestion + loops + state updates.
+
+Primary topics (canonical naming)
+
+aegis.* (Aegis-emitted)
+
+gge.* (GGE-emitted)
+
+sig.* (SIG-emitted)
+
+mux.* (connector-emitted)
+
+cwp.* (agent-emitted)
+
+2.5 Search Index (optional)
+
+Purpose: operator search across dependencies, evidence, CRs.
+
+Primary indices
+
+dependency_index
+
+cr_index
+
+evidence_index
+
+3) Inbound Data Feeds (Inputs)
+
+3.1 IDN (Identity Resolution)
+
+Input type: identity resolution results
+
+Used for:
+
+canonical dependency IDs
+
+alias normalization
+
+principal identity references
+
+Key fields
+
+canonical_id
+
+aliases[]
+
+idn_ref
+
+3.2 GGE (Governance)
+
+Input type: policy evaluation and approval events
+
+Used for:
+
+CR required evidence + approval chain
+
+approval decisions + audit references
+
+Key fields
+
+policy_set_id, policy_set_version
+
+evaluation_inputs, evaluation_outputs
+
+approval_step_id, approver_ref, decision, decided_at
+
+gge_audit_ref
+
+3.3 SIG (Signals)
+
+Input type: normalized signals
+
+Used for:
+
+vulnerability/incident/EOL/renewal/drift alerts
+
+triggering incident workflows and/or CR proposals
+
+Signal minimum schema
+
+signal_type
+
+severity
+
+confidence
+
+subject_hint (identifiers; vendor/package/service)
+
+scope_hint (env/region/boundary)
+
+payload (free-form)
+
+3.4 MUX (Connector Observations)
+
+Input type: observations about dependencies, edges, evidence, renewal windows, drift.
+
+Observation minimum schema
+
+connector_name, connector_version, contract_version
+
+observation_type
+
+scope (env/region/boundary)
+
+confidence (observed/inferred)
+
+payload
+
+Common observation payloads
+
+dependency observed (name, class/subclass, identifiers)
+
+edge observed (from, to, edge_type, env, last_seen_at)
+
+evidence observed (artifact pointers, hashes, timestamps)
+
+renewal window (vendor, contract id, renewal date)
+
+drift observed (declared vs observed version/config)
+
+3.5 CWP (Loop Results)
+
+Input type: enrichment and operational outcomes
+
+Used for:
+
+evidence collection outcomes
+
+enrichment proposals (aliases, edges, metadata)
+
+remediation plans for incidents
+
+Key payloads
+
+cwp.evidence.collected
+
+cwp.enrichment.proposed
+
+cwp.remediation.plan.proposed
+
+4) Outbound Data (Outputs)
+
+4.1 Product APIs (UI + consumers)
+
+Aegis outputs via /api/v1/...:
+
+registry records
+
+graph query results
+
+CR and approval state
+
+evidence status
+
+signals/incidents
+
+snapshots
+
+4.2 Export Bundles
+
+Aegis supports export of:
+
+registry state
+
+graph state
+
+evidence manifest (not necessarily all binaries)
+
+snapshot bundles
+
+Recommended export formats
+
+JSONL for registry exports
+
+CSV for operator reporting
+
+Graph export (JSON adjacency or common graph formats)
+
+5) Canonical Schemas (Reference)
+
+5.1 Dependency (canonical)
+
+dependency_id (canonical)
+
+class, subclass
+
+status, risk_tier, criticality
+
+owner_ref, steward_ref
+
+policy_profile_ref
+
+last_verified_at
+
+5.2 Dependency Unit (canonical)
+
+dependency_id
+
+du_key
+
+environment, region, system_boundary
+
+status
+
+constraints
+
+last_observed_at
+
+5.3 Edge (canonical)
+
+from_node, to_node
+
+edge_type
+
+environment, system_boundary
+
+confidence (declared/observed/inferred)
+
+last_seen_at
+
+5.4 Evidence Artifact (canonical)
+
+evidence_id, evidence_type, revision
+
+subject_type, subject_ref
+
+hash, source
+
+verified_status, verified_at, expires_at
+
+5.5 Snapshot (canonical)
+
+snapshot_id
+
+trigger + trigger_ref
+
+registry_schema_version, graph_semantics_version
+
+graph_export_uri, registry_export_uri
+
+6) Evidence Reference Catalog
+
+Aegis evidence types are defined in NS-AEGIS-002.
+
+Operational expectations
+
+Tier_3 evidence generally requires:
+
+freshness window
+
+verification method
+
+expiry enforcement behavior (constrain vs warn)
+
+Binary formats (common)
+
+PDF (SOC2, ISO)
+
+JSON (SBOM)
+
+HTML/PDF exports (questionnaires)
+
+Signed attestations (JSON + signature)
+
+7) Retention & Expiry
+
+Retention policies are policy-driven and may vary by tier.
+
+7.1 Registry Data
+
+Retain CRs and approval records for audit duration (default: long-lived).
+
+7.2 Evidence Artifacts
+
+Retain by:
+
+risk tier
+
+contract requirements
+
+privacy constraints
+
+7.3 Snapshots
+
+Retain recent snapshots at higher frequency; archive older snapshots.
+
+7.4 Observations
+
+Raw observations may be retained short-term if storage pressure is high; summarize into derived posture.
+
+8) Data Access Controls
+
+8.1 Access Dimensions
+
+environment (prod vs non-prod)
+
+system boundary (engine/project/service)
+
+risk tier
+
+data sensitivity
+
+8.2 Sensitive Data
+
+Evidence may contain sensitive vendor and security information.
+
+Enforce least privilege on evidence retrieval.
+
+Prefer storing only metadata in registry DB; binaries in encrypted object store.
+
+9) Lineage & Provenance
+
+Aegis must be able to answer:
+
+“Why do we believe this edge exists?” (declared vs observed vs inferred)
+
+“Which connector last observed this?”
+
+“Which CR introduced this dependency/scope?”
+
+“Which policy version approved it?”
+
+Provenance fields (minimum)
+
+created_by / observed_by references
+
+source_event_id
+
+confidence
+
+first_seen_at / last_seen_at
+
+cr_id link (for declared facts)
+
+10) MVP Dataref Cut
+
+MVP requires:
+
+Registry DB tables for dependency, DU, CR, evidence metadata, signals/incidents, snapshots
+
+Graph edges sufficient for downstream impact queries
+
+Evidence object store integration
+
+Event bus topic names + minimal payload schemas
+
+Clear contracts for GGE approvals and SIG signals
+

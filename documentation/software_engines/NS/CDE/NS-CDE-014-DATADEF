@@ -1,0 +1,290 @@
+Content Distribution Engine (CDE)
+
+1. Purpose of This Document
+This document defines the canonical data definitions (DATADEF) for the Content Distribution Engine (CDE).
+It provides:
+field-level semantic meaning
+invariants and constraints
+cross-engine contract expectations
+authoritative reference for audits and integrations
+This document complements NS-CDE-007 — DATAMODEL and completes the CDE documentation set.
+2. DATADEF Principles
+Semantic Stability — field meaning never changes
+Immutability by Default — history is preserved via new records
+Proof-Based Truth — delivery success requires evidence
+Governed Mutation — high-impact changes require approval context
+Cross-Engine Clarity — shared fields have single meaning
+3. Content Artifact Definitions
+3.1 content_artifact
+Field
+Definition
+Notes
+content_id
+Canonical content identifier
+Stable UUID
+content_type
+Content classification
+listing / media / document / notification
+source_engine
+Originating engine
+PIE / DRE / external
+content_version
+Version string
+External or internal
+created_at
+Registration time (UTC)
+Immutable
+Invariants:
+content_id never changes
+content_version is opaque to CDE
+4. Distribution Plan Definitions
+4.1 distribution_plan
+Field
+Definition
+Notes
+plan_id
+Distribution plan identifier
+UUID
+plan_version
+Plan revision number
+Integer
+status
+Lifecycle state
+draft / submitted / approved / rejected / archived / cancelled
+actor_id
+Plan owner
+IDN canonical
+created_at
+Creation timestamp
+UTC
+approved_at
+Approval timestamp
+Nullable
+Invariants:
+approved plans are immutable
+revisions require new plan_version
+4.2 distribution_plan_item
+Field
+Definition
+Notes
+plan_item_id
+Line item identifier
+UUID
+plan_id
+Parent plan
+FK
+content_id
+Content reference
+FK
+destination_id
+Target destination
+FK
+5. Distribution Intent Definitions
+5.1 distribution_intent
+Field
+Definition
+Notes
+intent_id
+Execution intent identifier
+UUID
+plan_id
+Source plan
+FK
+plan_version
+Frozen plan version
+Integer
+trigger_type
+Trigger cause
+manual / scheduled / event
+actor_id
+Triggering actor
+IDN canonical
+triggered_at
+Trigger time
+UTC
+Invariants:
+intents are immutable
+6. Execution Attempt Definitions
+6.1 execution_attempt
+Field
+Definition
+Notes
+attempt_id
+Execution attempt identifier
+UUID
+intent_id
+Parent intent
+FK
+destination_id
+Execution target
+FK
+status
+Execution state
+pending / running / succeeded / failed_transient / failed_permanent / dlq
+retry_count
+Number of retries
+Integer
+started_at
+Attempt start
+UTC
+completed_at
+Attempt completion
+Nullable
+adapter_name
+Adapter used
+From MUX
+adapter_version
+Adapter version
+From MUX
+ruleset_version
+Decision ruleset
+CDE
+correlation_id
+Trace identifier
+Required
+Invariants:
+succeeded requires valid delivery proof
+retry_count only increments
+7. Delivery Proof Definitions
+7.1 delivery_proof
+Field
+Definition
+Notes
+proof_id
+Proof identifier
+UUID
+attempt_id
+Associated attempt
+FK
+proof_type
+Proof classification
+external_id / url / receipt
+proof_value
+Proof content
+Immutable
+recorded_at
+Proof capture time
+UTC
+Invariants:
+proofs are immutable
+proofs cannot be deleted or overwritten
+8. Decision Artifact Definitions
+8.1 cde_decision
+Field
+Definition
+Notes
+decision_id
+Decision identifier
+UUID
+decision_type
+Decision class
+retry / escalate / validate_proof
+subject_ref
+Target of decision
+plan_id / intent_id / attempt_id
+outcome
+Decision outcome
+enumerated
+rationale
+Structured explanation
+JSON
+ruleset_version
+Logic version
+Required
+evaluated_at
+Decision time
+UTC
+correlation_id
+Trace identifier
+Required
+9. Feedback Signal Definitions
+9.1 distribution_feedback
+Field
+Definition
+Notes
+feedback_id
+Feedback identifier
+UUID
+content_id
+Content reference
+FK
+destination_id
+Destination
+FK
+signal_type
+Signal classification
+impressions / clicks / conversions / rejection
+value
+Signal value
+Numeric
+observed_at
+Observation time
+UTC
+Feedback does not alter execution state.
+10. Event Ledger Definitions
+10.1 distribution_event
+Field
+Definition
+Notes
+event_id
+Event identifier
+UUID
+event_type
+Event classification
+PlanApproved / AttemptFailed
+subject_ref
+Event target
+plan_id / intent_id / attempt_id
+payload
+Event details
+JSON
+occurred_at
+Event time
+UTC
+correlation_id
+Trace identifier
+Required
+Events are append-only.
+11. Cross-Engine Contract Expectations
+Engine
+CDE Contract
+PIE
+Provides content artifacts
+DRE
+Provides research artifacts
+GGP
+Governs plan approval
+MUX
+Executes channel adapters
+SIG
+Aggregates feedback signals
+DAT
+Consumes outcome metrics
+IDN
+Resolves actor/entity identity
+CWP
+Schedules and supervises execution
+12. Validation & Constraints
+all timestamps are UTC
+all IDs are UUIDs
+proofs required for success
+idempotency keys enforced per attempt
+13. Backward Compatibility Rules
+fields may be added, never removed
+field meaning never changes
+deprecated fields remain readable
+14. Document Position in CDE Corpus
+This DATADEF completes the CDE documentation set (001–014).
+It complements:
+NS-CDE-007 — DATAMODEL
+NS-CDE-006 — VERSION
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Canonical Data Definitions
+Parent / HoldCo Manager
+Status: Draft

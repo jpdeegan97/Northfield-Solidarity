@@ -1,0 +1,117 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the end-to-end signal lifecycle within the Signal Aggregation Engine (SIG).
+It specifies how signals are:
+ingested
+normalized
+trust/confidence scored
+assigned decay semantics
+deduplicated
+persisted
+aggregated and correlated
+published and replayed
+SIG lifecycle is designed to be append-only, deterministic, replayable, and auditable.
+2. Lifecycle Stages (High Level)
+Source Admission & Configuration
+Raw Input Ingestion
+Raw Capture Preservation (optional but recommended)
+Normalization into Canonical Signal
+Trust & Confidence Scoring
+Decay Assignment
+Deduplication & Linkage
+Canonical Signal Persistence
+Publication to Internal Fabric
+Derived Aggregation & Correlation Updates
+Replay, Backfill, and Reprocessing
+Source Degradation and Recovery
+3. Stage 1 — Source Admission & Configuration
+SIG treats each upstream source as a signal source:
+MUX topics
+internal telemetry topics
+vendor feeds
+Admission requires:
+schema definition
+normalization mapping
+baseline reliability profile
+Governance may be required for high-risk sources.
+4. Stage 2 — Raw Input Ingestion
+Inputs arrive via:
+Kafka (primary)
+scheduled pulls
+batch imports
+Ingress validates:
+message envelope
+presence of source identifiers
+basic schema sanity
+Outcomes:
+accepted
+rejected
+quarantined (suspicious)
+5. Stage 3 — Raw Capture Preservation
+SIG may store immutable raw capture records:
+received_at
+payload hash
+raw reference (artifact_id or upstream event id)
+Raw capture is used for:
+forensic audit
+deterministic replay
+reprocessing under new rulesets
+6. Stage 4 — Normalization
+Normalization ruleset maps input → canonical signal:
+assigns signal_type and signal_class
+normalizes time (UTC)
+normalizes units and values
+attaches provenance links
+If mapping fails:
+the input is quarantined
+schema drift event emitted
+7. Stage 5 — Trust & Confidence Scoring
+Scoring assigns:
+trust_score (source integrity + reliability)
+confidence_score (measurement quality + completeness)
+Trust and confidence are stored as explicit numeric values and explainable metadata.
+If scoring fails:
+quarantine the record
+emit scoring_failure event
+8. Stage 6 — Decay Assignment
+SIG assigns decay semantics:
+decay_model (linear/exponential/step)
+half-life or TTL
+Freshness is derived as a function of current time.
+9. Stage 7 — Deduplication & Linkage
+Deduplication prevents double-counting.
+Keys may include:
+source_system
+signal_type
+observed_at
+subject_ref
+Outcomes:
+accept_new (create new signal)
+link_existing (attach reference)
+No destructive deletes.
+10. Stage 8 — Canonical Signal Persistence
+Canonical signals are stored append-only.
+Stored attributes include:
+normalized values
+provenance references
+trust/confidence scores
+decay parameters
+Signals are immutable.
+11. Stage 9 — Publication to Internal Fabric
+SIG publishes:
+canonical signals
+derived aggregates (optional)
+correlation group updates (optional)
+Each published event includes:
+signal_id
+signal_type
+scores
+provenance
+correlation hints
+12. Stage 10 — Derived Aggregation & Correlation Updates
+Aggregation:
+time-window rollups
+source-weighted rollups
+Correlation:
+group signals by shared identifiers
+produce correlation group membership

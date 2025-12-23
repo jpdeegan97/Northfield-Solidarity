@@ -1,0 +1,175 @@
+
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Signal Aggregation Engine (SIG).
+It translates SIG’s architecture, lifecycle, decision model, versioning, and data model into:
+runnable services and responsibilities
+module boundaries and interfaces
+persistence and eventing strategy
+replay, reprocessing, and rebuild mechanics
+a phased MVP → production rollout plan
+This document is implementation-oriented but technology-agnostic.
+2. Implementation Scope (MVP)
+The SIG MVP must support:
+Ingestion from MUX Kafka topics
+Ingestion of internal telemetry (DAT, FLO)
+Canonical signal normalization
+Trust & confidence scoring
+Decay assignment
+Deduplication and linkage
+Append-only canonical signal persistence
+Publication of signals to Kafka
+Replay and aggregate rebuild
+Out of scope for MVP:
+Dozens of vendor feeds
+Advanced ML-based scoring
+Large-scale UI tooling
+3. Service Decomposition
+3.1 sig-ingress
+Responsibilities:
+Consume upstream Kafka topics
+Validate message envelopes
+Perform basic sanity checks
+Emit raw signal capture records
+Stateless and horizontally scalable.
+3.2 sig-normalizer
+Responsibilities:
+Apply normalization rulesets
+Map inputs to canonical signal types
+Normalize timestamps, units, values
+Rulesets are versioned and hot-swappable.
+3.3 sig-scoring-engine
+Responsibilities:
+Assign trust_score
+Assign confidence_score
+Attach explainable scoring metadata
+Scoring policies are versioned.
+3.4 sig-decay-engine
+Responsibilities:
+Assign decay models and parameters
+Record decay semantics
+Freshness is derived, not stored.
+3.5 sig-dedupe-engine
+Responsibilities:
+Detect duplicate signals
+Link duplicates deterministically
+Never deletes or mutates signals.
+3.6 sig-signal-store
+Responsibilities:
+Persist canonical signals append-only
+Enforce immutability constraints
+Recommended persistence:
+PostgreSQL (authoritative)
+3.7 sig-aggregate-engine
+Responsibilities:
+Compute windowed and weighted aggregates
+Maintain derived aggregate tables
+Aggregates are rebuildable.
+3.8 sig-correlation-engine
+Responsibilities:
+Group signals by correlation hints
+Maintain correlation group membership
+Correlation asserts linkage, not causality.
+3.9 sig-publisher
+Responsibilities:
+Publish canonical and derived signals to Kafka
+Enforce topic routing and schema
+3.10 sig-replay-engine
+Responsibilities:
+Replay canonical signals
+Rebuild aggregates and correlations
+Reprocess raw captures under new rulesets
+Governed control surface.
+3.11 sig-api (Read & Control)
+Responsibilities:
+Query signals, aggregates, correlations
+Expose source reliability status
+Trigger replay and rebuild (governed)
+4. Suggested Technology Stack
+Language: Python 3.12+
+API: FastAPI
+Stream Processing: Kafka consumers (async)
+Persistence: PostgreSQL
+Cache/Search (Optional): Redis / Elastic
+5. Module Layout (Suggested)
+sig/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── authz/
+├── ingress/
+│   └── kafka_consumer.py
+├── normalization/
+│   ├── rulesets/
+│   └── normalizer.py
+├── scoring/
+│   └── engine.py
+├── decay/
+│   └── engine.py
+├── dedupe/
+│   └── engine.py
+├── store/
+│   ├── models.py
+│   └── repository.py
+├── aggregation/
+│   └── engine.py
+├── correlation/
+│   └── engine.py
+├── replay/
+│   └── engine.py
+├── publishing/
+│   └── kafka_publisher.py
+└── config/
+6. End-to-End Processing Flow
+Ingress consumes upstream event
+Raw capture recorded (optional)
+Normalization applied
+Trust/confidence scoring applied
+Decay semantics assigned
+Deduplication evaluated
+Canonical signal persisted
+Signal published to Kafka
+Aggregates and correlations updated
+7. Idempotency & Processing Guarantees
+At-least-once ingestion
+Deduplication prevents double-counting
+Signal immutability ensures replay safety
+Publisher retries with stable signal_id
+8. Security & Isolation
+Strict RBAC for raw capture access
+Source-specific reliability weights governed
+No secret material stored in signals
+9. Operational Controls
+Enable/disable ingestion per source
+Trigger replay or rebuild jobs
+Adjust scoring weights (governed)
+All actions produce decision artifacts.
+10. MVP Rollout Plan
+Implement ingestion + canonical signal store
+Add normalization + scoring
+Publish signals to Kafka
+Integrate PIE consumer
+Add aggregation + correlation
+Add replay and rebuild tooling
+Harden observability and security
+11. Document Position in SIG Corpus
+This implementation plan builds upon:
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+NS-SIG-005 — DECISION
+NS-SIG-006 — VERSION
+NS-SIG-007 — DATAMODEL
+NS-SIG-008 — EEE
+It informs:
+NS-SIG-011 — APIMAP
+NS-SIG-013 — RUNBOOK
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG MVP Implementation Plan
+Parent / HoldCo Manager
+Status: Draft

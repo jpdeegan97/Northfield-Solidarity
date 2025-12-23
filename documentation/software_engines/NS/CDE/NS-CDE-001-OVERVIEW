@@ -1,0 +1,101 @@
+Content Distribution Engine (CDE)
+1. Purpose
+The Content Distribution Engine (CDE) is responsible for controlled, auditable, and optimized distribution of content artifacts across internal and external channels.
+CDE exists to answer a single operational question:
+What content should be distributed, where, when, and under what constraints — and can we prove it happened correctly?
+CDE ensures that content movement is intentional, governed, observable, and replayable.
+2. Role Within Northfield Solidarity
+CDE sits at the execution-adjacent distribution layer of the Northfield Solidarity ecosystem.
+It bridges:
+PIE / DRE — content and insight generation
+GGP — governance, approval, and audit
+MUX — channel integration and protocol translation
+And delivers to:
+external platforms (marketplaces, media, partners)
+internal systems (dashboards, archives, knowledge bases)
+CDE does not create content or decide strategy; it executes governed distribution plans.
+3. What CDE Produces
+CDE produces Distribution Artifacts, including:
+distribution plans (what/where/when)
+execution records (attempts, outcomes)
+delivery proofs (IDs, URLs, receipts)
+performance feedback signals
+All artifacts are:
+versioned
+auditable
+attributable to actors and entities
+4. What CDE Does Not Do
+To maintain clean boundaries, CDE does not:
+generate content (PIE, DRE)
+decide whether content should be published (GGP)
+manage channel credentials (IDN / secure vaults)
+optimize pricing or bids (DAT)
+CDE distributes; others decide and optimize.
+5. Core Capabilities
+Distribution Planning
+Encode where, when, and how content should be distributed.
+Channel-Oriented Execution
+Execute distribution via channel adapters (MUX-backed).
+Governed Release Controls
+Ensure content is only released after approvals.
+Delivery Verification
+Capture proof-of-distribution artifacts.
+Feedback Capture
+Ingest downstream performance signals.
+6. Content Classes
+CDE handles multiple content classes:
+listings (product, property)
+media (images, video)
+documents (reports, disclosures)
+signals (alerts, notifications)
+metadata updates
+Content meaning is opaque to CDE; only structure and constraints matter.
+7. Interaction With Other Engines
+Engine
+Relationship to CDE
+PIE
+Supplies content insights
+DRE
+Supplies research artifacts
+GGP
+Governs release and audit
+MUX
+Executes channel-specific delivery
+DAT
+Adjusts strategy based on outcomes
+SIG
+Feeds performance signals
+IDN
+Resolves actor/entity attribution
+CWP
+Schedules and supervises execution
+8. Operational Posture
+CDE is:
+Write-controlled (governed plans)
+Execution-heavy (fan-out delivery)
+Idempotent (safe retries)
+Replayable (distribution attempts can be re-run)
+9. Expected Outcomes
+When CDE is functioning correctly:
+content reaches intended destinations reliably
+releases are provably governed
+failures are visible and recoverable
+downstream engines learn from distribution performance
+CDE reduces chaos, not creativity.
+10. Document Position in CDE Corpus
+This document provides the conceptual overview of CDE.
+It is complemented by:
+NS-CDE-000 — CHARTER
+NS-CDE-002 — TAXONOMY
+NS-CDE-003 — ARCHITECTURE
+NS-CDE-004 — LIFECYCLE
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Overview
+Parent / HoldCo Manager
+Status: Draft

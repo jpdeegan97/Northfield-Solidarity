@@ -1,0 +1,347 @@
+NS-AEGIS-012 — STATE
+
+Project: Aegis (Dependency Management Product)
+
+1) State Purpose
+
+Aegis manages state across four layers:
+
+Domain State — dependency lifecycle posture (what is true)
+
+Workflow State — change requests and approvals (what is being decided)
+
+Operational State — signals, incidents, loops (what is happening)
+
+System State — runtime health and ingestion coverage (whether Aegis is reliable)
+
+This document defines the state machines, canonical states, and cross-state invariants.
+
+2) Domain State (Dependency Posture)
+
+2.1 Dependency Lifecycle State
+
+Applies to both Dependency and Dependency Unit (DU).
+
+States
+
+proposed
+
+approved
+
+active
+
+constrained
+
+deprecated
+
+removed
+
+State meanings
+
+proposed: requested but not yet approved for use
+
+approved: allowed for use; may not be deployed/observed yet
+
+active: in use and monitored
+
+constrained: allowed but gated/limited (exception constraints apply)
+
+deprecated: removal scheduled; replacement required
+
+removed: no longer allowed/used
+
+Domain invariants
+
+removed dependencies cannot have any active DUs.
+
+deprecated dependencies must have a documented replacement target or removal plan.
+
+constrained must have explicit constraints and an owner.
+
+2.2 Evidence State
+
+Evidence is versioned; verification is stateful.
+
+States
+
+pending
+
+verified
+
+expired
+
+failed
+
+Invariants
+
+Tier-driven evidence gaps trigger domain consequences:
+
+tier_0/1: warn
+
+tier_2: warn + optionally constrain DU
+
+tier_3: constrain DU unless exception CR exists
+
+2.3 Edge Confidence State
+
+Aegis stores provenance for graph edges.
+
+States
+
+declared
+
+observed
+
+inferred
+
+Invariants
+
+observed edges must have last_seen_at updated by connector observations.
+
+inferred edges are excluded by default from high-stakes impact queries unless explicitly requested.
+
+3) Workflow State (Control Plane)
+
+3.1 Change Request (CR) State Machine
+
+States
+
+draft
+
+submitted
+
+policy_evaluated
+
+evidence_pending
+
+approvals_pending
+
+approved
+
+rejected
+
+committed
+
+operationalized
+
+closed
+
+stateDiagram-v2
+  [*] --> draft
+  draft --> submitted
+  submitted --> policy_evaluated
+  policy_evaluated --> evidence_pending
+  evidence_pending --> approvals_pending
+  approvals_pending --> approved
+  approvals_pending --> rejected
+  approved --> committed
+  committed --> operationalized
+  operationalized --> closed
+
+  submitted --> draft: withdraw
+  evidence_pending --> draft: withdraw
+  approvals_pending --> draft: withdraw
+  rejected --> draft: revise
+  draft --> [*]: delete (local only)
+
+CR invariants
+
+No domain mutation without committed state.
+
+Every committed CR must reference a policy decision record (policy_set_id, policy_set_version).
+
+Exceptions (emergency_exception) must have expiry_at and compensating controls.
+
+3.2 Approval State (GGE)
+
+Aegis does not decide approvals; it records them.
+
+Approval states (per approver step)
+
+pending
+
+approved
+
+rejected
+
+Invariants
+
+A CR cannot move to approved unless the required approval chain is satisfied.
+
+Approval records must include gge_audit_ref.
+
+4) Operational State (Signals, Incidents, Loops)
+
+4.1 Signal State
+
+States
+
+received
+
+mapped
+
+assessed
+
+remediating
+
+closed
+
+stateDiagram-v2
+  [*] --> received
+  received --> mapped
+  mapped --> assessed
+  assessed --> remediating
+  remediating --> closed
+  assessed --> closed: no-action
+
+Invariants
+
+A signal must be mapped to a dependency/DU before impact assessment is considered valid.
+
+Severity critical signals for tier_3 dependencies must open an incident case (unless policy says otherwise).
+
+4.2 Incident Case State
+
+States
+
+open
+
+triage
+
+planned
+
+executing
+
+verified
+
+closed
+
+stateDiagram-v2
+  [*] --> open
+  open --> triage
+  triage --> planned
+  planned --> executing
+  executing --> verified
+  verified --> closed
+
+  triage --> closed: false_positive
+  executing --> triage: regression
+
+Invariants
+
+Every incident must have an owner (principal).
+
+Incident closure should create a posture snapshot.
+
+4.3 Loop State (CWP)
+
+Loops are executed by CWP; Aegis records outcomes.
+
+Loop run states
+
+scheduled
+
+running
+
+succeeded
+
+failed
+
+partial
+
+Invariants
+
+Tier_3 freshness loop failures must alert owners.
+
+Loop outcomes that change posture must do so through a CR (unless policy allows auto-commit for low-risk).
+
+5) System State (Runtime + Ingestion Coverage)
+
+5.1 Service Health
+
+healthy
+
+degraded
+
+down
+
+5.2 Ingestion Health (per connector)
+
+online
+
+stale
+
+offline
+
+Invariants
+
+If a connector is offline beyond threshold, confidence of observations decays and is flagged in UI.
+
+5.3 Consistency State (Registry vs Graph)
+
+Aegis maintains eventual consistency.
+
+States
+
+in_sync
+
+lagging
+
+diverged
+
+Invariants
+
+diverged requires automated reconciliation and blocks high-risk commits.
+
+6) Cross-Layer State Rules
+
+6.1 Evidence → Domain
+
+Evidence expiry can trigger:
+
+DU → constrained
+
+CR required for exception
+
+6.2 Signals → Operations
+
+critical signal + tier_3 dependency → incident must open.
+
+6.3 Workflow → Domain
+
+Only a CR in committed state can mutate:
+
+dependency lifecycle
+
+DU scope/constraints
+
+declared edges
+
+6.4 Operations → Workflow
+
+Incident loop may propose:
+
+update_version CR
+
+emergency_exception CR
+
+replace_dependency CR
+
+7) MVP State Cut
+
+For MVP, Aegis must implement:
+
+Dependency lifecycle states
+
+CR state machine
+
+Evidence verification states
+
+Signal states for one signal family
+
+Incident case states
+
+Basic system/connector health reporting
+
+Everything else can be added additively without changing core semantics.
+

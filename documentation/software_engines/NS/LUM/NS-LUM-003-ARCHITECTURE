@@ -1,0 +1,398 @@
+NS-LUM-003 — ARCHITECTURE
+
+0. Overview
+
+This document defines the reference architecture for LUM (Luminance Engine) — Northfield Solidarity’s observability and reliability platform.
+
+LUM standardizes how telemetry and evidence-support signals are:
+
+collected (ingested)
+
+normalized (schemas, redaction)
+
+correlated (IDs + trace context)
+
+stored (hot/warm/evidence tiers)
+
+surfaced (dashboards, trace explorer)
+
+acted on (alerts, incidents, runbooks)
+
+LUM is a platform engine. It does not create governance policy; it implements policy requirements defined by GGP.
+
+1. Architectural Principles
+
+Correlation-first: every signal must be joinable via canonical IDs.
+
+Structured-by-default: machine-queryable logs/events are required.
+
+Least data necessary: strict redaction and field allowlists.
+
+Separation of concerns: telemetry vs evidence store; platform vs governance.
+
+Provider-agnostic: OpenTelemetry-style semantics; pluggable backends.
+
+Audit-grade integrity: append-only streams and sealing for evidence bundles.
+
+2. High-Level System Diagram (Conceptual)
+
+graph TD
+  subgraph Producers[Signal Producers]
+    E1[Engines: GGP/FLO/IDN/CWP/SIG/MUX/DRE/CDE/DAT]
+    E2[Infra: DB/Kafka/Ingress/K8s]
+    E3[External Integrations: Coinbase/Google APIs]
+  end
+
+  subgraph Collect[Collection Layer]
+    A1[Agent/SDK: OTel exporters + Log shipper]
+    A2[Webhook/Event Bridge]
+  end
+
+  subgraph Normalize[Normalization & Policy Layer]
+    N1[Schema Registry + Validators]
+    N2[Redaction/PII Filter]
+    N3[Correlation Enricher
+(add IDs, service/env metadata)]
+    N4[Routing & Sampling
+(rules, tail-sampling)]
+  end
+
+  subgraph Pipelines[Ingest Pipelines]
+    P1[Logs Pipeline]
+    P2[Metrics Pipeline]
+    P3[Traces Pipeline]
+    P4[Events/Audit Pipeline]
+  end
+
+  subgraph Stores[Storage Tiers]
+    S1[Hot Store
+(recent logs/traces)]
+    S2[Metrics TSDB]
+    S3[Warm Archive
+(longer retention)]
+    S4[Evidence Store
+(append-only + sealing)]
+  end
+
+  subgraph Serve[Query & Surfaces]
+    Q1[Unified Query API]
+    Q2[Dashboards]
+    Q3[Trace Explorer]
+    Q4[Incident Console]
+    Q5[Evidence Viewer
+(policy-controlled)]
+  end
+
+  subgraph Action[Alerting & Response]
+    R1[Alert Engine
+(SLO burn, spikes, quotas)]
+    R2[Routing & Escalation]
+    R3[Incident Manager]
+    R4[Runbook Registry]
+    R5[CWP Handoff
+(action items)]
+  end
+
+  Producers --> Collect --> Normalize --> Pipelines --> Stores --> Serve
+  Serve --> Action
+  Action --> Serve
+
+  N2 -.GGP policies.-> N2
+  Q5 -.Access via IDN + GGP.-> Q5
+
+3. Component Architecture
+
+3.1 Producer-side instrumentation
+
+Goal: make emitting telemetry frictionless and consistent.
+
+Components
+
+LUM SDK (language wrappers):
+
+structured logging helpers
+
+correlation context propagation
+
+standard event emitter
+
+redaction helpers
+
+OpenTelemetry exporters for traces/metrics
+
+Log shippers/agents (node/daemonset) where needed
+
+Producer responsibilities (minimum)
+
+include canonical correlation IDs
+
+avoid secrets/PII in payloads
+
+emit domain events for key lifecycle milestones
+
+3.2 Collection layer
+
+Agent/SDK ingestion
+
+receives logs/metrics/traces from services
+
+Webhook/Event bridge
+
+converts external callbacks (Coinbase, provider webhooks, etc.) into normalized events
+
+verifies authenticity (signature verification handled by integration layer, but LUM receives verification outcome signals)
+
+3.3 Normalization & policy layer
+
+Schema registry + validators
+
+enforces event/log schemas
+
+rejects/flags malformed payloads
+
+versions schemas and keeps compatibility rules
+
+Redaction and classification
+
+field allowlists + blocklists
+
+tokenization/hashing for sensitive identifiers
+
+policy-driven retention tags (e.g., evidence vs telemetry)
+
+Correlation enricher
+
+attaches environment/service metadata
+
+ensures trace_id/workflow_id/decision_id consistency
+
+attaches integration_id for external calls
+
+Routing & sampling
+
+head sampling (baseline)
+
+tail sampling for error traces and high-value workflows
+
+routing rules to hot/warm/evidence stores
+
+3.4 Ingest pipelines
+
+LUM treats pipelines as independent but correlated streams.
+
+Logs pipeline: high volume, searchable
+
+Metrics pipeline: time series + aggregations
+
+Traces pipeline: spans + service graph
+
+Events/Audit pipeline: domain events and audit events (append-only)
+
+3.5 Storage tiers
+
+Hot store
+
+fast query for recent signals (incident response)
+
+Metrics store (TSDB)
+
+efficient aggregation for SLOs
+
+Warm archive
+
+longer retention, cheaper, slower
+
+Evidence store
+
+append-only event log + immutable object storage
+
+evidence bundles can be sealed
+
+strict access controls via IDN + GGP policy
+
+3.6 Query & surfaces
+
+Unified query API
+
+query by correlation IDs (workflow_id, decision_id, integration_id)
+
+query by engine/service, time window, severity
+
+Dashboards
+
+engine health (golden signals)
+
+workflow health (pipeline SLIs)
+
+integration health (quota, error codes, webhook failures)
+
+Trace explorer
+
+follow single workflow end-to-end
+
+Incident console
+
+incident record
+
+linked alerts
+
+timeline from correlated signals
+
+Evidence viewer
+
+browse sealed bundles
+
+access-controlled and audit-logged
+
+4. Data Flows (Canonical)
+
+4.1 Request-driven workflow (internal)
+
+Engine receives a request → creates request_id + trace_id
+
+Downstream calls propagate context
+
+Each service emits logs/spans and domain events
+
+LUM correlates everything by IDs
+
+Alerts fire on SLO burn or anomalies
+
+4.2 Governed action workflow (GGP)
+
+Action request triggers decision_id creation
+
+Evaluation emits decision events
+
+If approved, execution proceeds; every step emits audit events
+
+Evidence artifacts are referenced and bundled
+
+Bundle is sealed when complete
+
+4.3 External integration workflow (Coinbase/Maps)
+
+API call emits integration event (request, response, status, quota)
+
+Webhook received emits webhook event (verification result)
+
+Retries emit idempotency events
+
+LUM dashboard shows integration health and drift
+
+5. Reliability Architecture
+
+5.1 SLO system
+
+SLO definitions stored as versioned objects
+
+SLO burn rate alerts (fast/slow burn)
+
+Error budget policies can gate automation (via GGP)
+
+5.2 Alerting
+
+Alert pipeline stages
+
+detection (threshold/anomaly/SLO burn)
+
+dedupe + grouping
+
+routing (severity → destination)
+
+escalation (time-based)
+
+5.3 Incident management
+
+auto-create incidents for SEV0–SEV2 thresholds
+
+attach relevant dashboards and traces
+
+collect timeline automatically from correlated signals
+
+postmortem packet generation templates
+
+6. Security & Access Control
+
+6.1 Access model
+
+Evidence access requires:
+
+IDN identity (actor)
+
+GGP policy decision
+
+audit logging of access
+
+6.2 Redaction model
+
+“deny by default” for sensitive fields
+
+allowlist safe fields per signal type
+
+hash/tokenize stable identifiers where possible
+
+6.3 Integrity model
+
+append-only audit stream
+
+object hashing for artifacts
+
+sealing bundles to prevent mutation
+
+7. Deployment Topology (Reference)
+
+7.1 Core services
+
+LUM Ingest Gateway
+
+Normalization/Enrichment Service
+
+Schema Registry
+
+Alert Engine
+
+Incident Manager
+
+Query API
+
+UI (Dashboards/Incident/Evidence)
+
+7.2 Scaling strategy
+
+ingest horizontally scalable
+
+storage tiered by cost/performance
+
+alert engine isolated to avoid noisy-neighbor impact
+
+8. MVP Architecture Slice
+
+MVP should include:
+
+Structured logs + events ingestion
+
+Correlation IDs enforced
+
+Integration health dashboards for Coinbase + Google Maps
+
+Basic alerting (error spikes, webhook failures, quota nearing limits)
+
+Incident record with linked signals
+
+Deferred to v1
+
+full distributed tracing across all engines
+
+evidence sealing and chain-of-custody automation
+
+SLO framework with error budgets
+
+9. Interfaces to Document Next
+
+NS-LUM-011 — APIMAP: query endpoints, ingest endpoints, incident endpoints
+
+NS-LUM-007 — DATAMODEL: canonical schemas and indexes
+
+NS-LUM-014 — DATADEF: field-level constraints/redaction rules
+

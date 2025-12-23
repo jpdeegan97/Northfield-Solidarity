@@ -1,0 +1,292 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the canonical data contracts and field-level definitions for the Simulation & Scenario Engine (SIM).
+It complements NS-SIM-007 — DATAMODEL by:
+providing semantic definitions for key fields
+specifying invariants and constraints
+clarifying cross-engine expectations
+acting as the definitive reference for consumers (GGP, DAT, FLO, PIE, PTE)
+2. Data Definition Principles
+Semantic Stability — field meanings never change
+Immutability by Default — runs and artifacts are append-only
+Explainability — assumptions, constraints, and versions are visible
+Determinism — RNG seeds and versions are recorded
+ID-First Contracts — cross-engine references use IDs only
+3. Canonical Scenario Contract
+3.1 scenario
+Represents a versioned scenario definition.
+Field
+Type
+Definition
+scenario_id
+UUID
+Unique scenario identifier
+scenario_type
+String
+baseline/action/stress/comparative
+description
+Text
+Human-readable intent
+baseline_ref
+String
+Reference to baseline (SIG/FLO binding descriptor)
+scenario_version
+String
+Version of the scenario definition
+created_by
+String
+Actor identifier
+created_at
+Timestamp (UTC)
+Creation time
+Invariants:
+Scenario becomes structurally immutable once sealed.
+4. Assumption Set Contract
+4.1 assumption_set
+Field
+Type
+Definition
+assumption_set_id
+UUID
+Assumption set identifier
+scenario_id
+UUID
+Parent scenario
+category
+String
+market/demand/supply/execution/financial
+assumptions
+JSON
+Explicit deltas and values
+version
+String
+Assumption set version
+Notes:
+Assumptions must be explicit deltas; no hidden defaults.
+5. Constraint Set Contract
+5.1 constraint_set
+Field
+Type
+Definition
+constraint_set_id
+UUID
+Constraint set identifier
+scenario_id
+UUID
+Parent scenario
+constraint_type
+String
+financial/operational/temporal/governance
+constraints
+JSON
+Hard limits enforced during simulation
+version
+String
+Constraint set version
+Invariants:
+Constraints are enforced, not averaged.
+6. Input Snapshot Contract
+6.1 scenario_input_snapshot
+Frozen binding of all inputs used for a run.
+Field
+Type
+Definition
+snapshot_id
+UUID
+Snapshot identifier
+scenario_id
+UUID
+Parent scenario
+sig_refs
+JSON
+SIG IDs + versions used
+pie_refs
+JSON
+PIE insight IDs + versions
+dat_refs
+JSON
+DAT plan/params IDs + versions
+flo_refs
+JSON
+FLO constraint/state IDs + versions
+snapshot_hash
+String
+Deterministic hash of snapshot
+created_at
+Timestamp (UTC)
+Snapshot creation time
+Invariants:
+snapshot_hash must be stable for identical content.
+7. Scenario Run Contract
+7.1 scenario_run
+Represents a single execution instance.
+Field
+Type
+Definition
+run_id
+UUID
+Run identifier
+scenario_id
+UUID
+Parent scenario
+snapshot_id
+UUID
+Input snapshot used
+model_versions
+JSON
+Models and versions selected
+execution_engine_version
+String
+Engine version
+random_seed
+Integer
+Seed used for deterministic stochasticity
+status
+Enum
+queued/running/completed/failed/cancelled
+started_at
+Timestamp (UTC)
+Start time
+completed_at
+Timestamp (UTC)
+End time (if terminal)
+Invariants:
+Completed runs are immutable.
+8. Outcome Series Contract
+8.1 outcome_series
+Stores time-series outcomes.
+Field
+Type
+Definition
+outcome_id
+UUID
+Outcome identifier
+run_id
+UUID
+Parent run
+metric
+String
+e.g., revenue, cashflow, profit
+time_index
+Integer
+Time step index
+value
+Decimal
+Metric value
+unit
+String
+Optional unit
+9. Uncertainty Artifact Contract
+9.1 uncertainty_artifact
+Field
+Type
+Definition
+uncertainty_id
+UUID
+Identifier
+run_id
+UUID
+Parent run
+metric
+String
+Outcome metric
+lower_bound
+Decimal
+Lower confidence bound
+upper_bound
+Decimal
+Upper confidence bound
+confidence_level
+Decimal
+e.g., 0.95
+10. Sensitivity Artifact Contract
+10.1 sensitivity_artifact
+Field
+Type
+Definition
+sensitivity_id
+UUID
+Identifier
+run_id
+UUID
+Parent run
+input_ref
+String
+Assumption/variable reference
+outcome_ref
+String
+Outcome metric
+sensitivity_score
+Decimal
+Influence magnitude
+direction
+String
+positive/negative
+11. Decision Artifact Contract
+11.1 sim_decision
+Captures all SIM decisions (admission, model selection, constraint enforcement, execution control).
+Field
+Type
+Definition
+decision_id
+UUID
+Decision identifier
+decision_type
+String
+admission/input/model/constraint/exec/outcome
+subject_ref
+String
+scenario_id or run_id
+outcome
+String
+Decision result
+rationale
+JSON
+Structured explanation
+ruleset_version
+String
+Logic/ruleset version
+evaluated_at
+Timestamp (UTC)
+Decision time
+correlation_id
+UUID
+Trace ID
+12. Cross-Engine Contract Expectations
+Engine
+Expected Usage Constraints
+GGP
+Uses run summaries + decision artifacts for approval context
+DAT
+Uses breakpoints + sensitivity drivers to refine execution plans
+FLO
+Uses financial outcomes as modeled projections (non-authoritative)
+PIE
+Uses scenario results to improve insight scoring and prioritization
+PTE
+Uses outcomes + snapshot references to compare actual vs simulated
+13. Field-Level Constraints & Validation
+All timestamps are UTC
+status must be one of the defined enums
+snapshot_hash is required and stable
+random_seed required when uncertainty sampling is used
+JSON fields must be schema-validated
+14. Backward Compatibility Rules
+Fields may be added but not removed
+Field meaning must never change
+Deprecated fields remain readable
+15. Document Position in SIM Corpus
+This DATADEF complements:
+NS-SIM-007 — DATAMODEL
+NS-SIM-006 — VERSION
+It completes the SIM documentation set.
+16. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Canonical Data Definitions
+Parent / HoldCo Manager
+Status: Draft

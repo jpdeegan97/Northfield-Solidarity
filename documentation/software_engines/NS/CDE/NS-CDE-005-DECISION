@@ -1,0 +1,144 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the decision framework for the Content Distribution Engine (CDE).
+CDE decisions are narrowly scoped to:
+distribution execution correctness
+idempotent retry behavior
+scheduling, throttling, and failure escalation
+proof validation and feedback classification
+CDE does not decide strategy, content meaning, pricing, or governance approvals.
+2. Decision Design Principles
+Bounded Authority — CDE decides distribution operations, not business intent
+Idempotency First — all decisions respect dedupe guarantees
+Explainability — every decision emits a rationale artifact
+Safety Over Speed — uncertain cases escalate instead of guessing
+Governance Respect — approval state is a hard gate
+3. Decision Classes
+CDE defines seven primary decision classes:
+Plan Admission Decisions
+Release Eligibility Decisions (Governance Gate)
+Scheduling & Dispatch Decisions
+Retry / Backoff Decisions
+Escalation Decisions
+Proof Validation Decisions
+Feedback Classification Decisions
+Each decision produces an immutable decision artifact.
+4. Plan Admission Decisions
+Question Answered:
+Is this distribution plan structurally valid and admissible?
+Inputs:
+content reference integrity
+destination validity
+required constraints present
+Outcomes:
+accept draft
+reject (validation error)
+defer (missing upstream references)
+5. Release Eligibility Decisions
+Question Answered:
+Is this plan eligible for execution at this moment?
+Inputs:
+governance approval state (GGP)
+time window
+actor authority
+Outcomes:
+eligible → create intent
+blocked → no intent
+expired → archive
+6. Scheduling & Dispatch Decisions
+Question Answered:
+When and how should execution attempts be dispatched?
+Inputs:
+schedule policy
+per-channel concurrency limits
+historical error rates
+Outcomes:
+dispatch now
+defer
+throttle
+7. Retry / Backoff Decisions
+Question Answered:
+Should a failed attempt be retried, and with what backoff?
+Inputs:
+error category (transient vs permanent)
+destination characteristics
+retry count
+idempotency key presence
+Outcomes:
+retry with backoff
+stop retry (permanent)
+escalate
+Backoff is policy-driven and versioned.
+8. Escalation Decisions
+Question Answered:
+Does this failure require operator or governance intervention?
+Triggers:
+repeated failures
+suspected duplication
+credential failures
+policy violations
+Outcomes:
+notify operator
+open incident
+require governance review
+9. Proof Validation Decisions
+Question Answered:
+Is the returned proof sufficient to assert successful delivery?
+Inputs:
+adapter response
+proof type requirements per channel
+Outcomes:
+accept proof
+mark insufficient (requires reconciliation)
+Proof acceptance is deterministic.
+10. Feedback Classification Decisions
+Question Answered:
+How should downstream feedback be classified and forwarded?
+Inputs:
+feedback payload
+destination
+signal type
+Outcomes:
+performance signal → SIG
+rejection/quality issue → operator queue
+anomaly → incident
+11. Decision Artifact Schema (Logical)
+Each CDE decision emits an immutable artifact containing:
+decision_id (UUID)
+decision_type
+subject_ref (plan_id / intent_id / attempt_id)
+outcome
+rationale (structured JSON)
+ruleset_name
+ruleset_version
+evaluated_at (UTC)
+correlation_id
+12. Governance Interaction
+CDE decisions integrate with governance by:
+checking GGP approval state before execution
+recording governance_ref on release decisions
+escalating policy violations for review
+CDE never self-approves releases.
+13. Failure Modes & Safeguards
+ambiguous proof → do not mark success
+idempotency uncertainty → stop and escalate
+credential failure → stop retries
+CDE favors correctness and auditability.
+14. Document Position in CDE Corpus
+This decision document builds upon:
+NS-CDE-003 — ARCHITECTURE
+NS-CDE-004 — LIFECYCLE
+It informs:
+NS-CDE-006 — VERSION
+NS-CDE-007 — DATAMODEL
+NS-CDE-013 — RUNBOOK
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Decision Framework
+Parent / HoldCo Manager
+Status: Draft

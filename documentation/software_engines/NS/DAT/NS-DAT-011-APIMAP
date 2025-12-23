@@ -1,0 +1,161 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the canonical mapping between DAT backend API surfaces and DAT frontend/operator needs.
+It ensures:
+Operator UI screens (NS-DAT-010) have complete and safe access
+Plan creation, submission, staging, and execution controls are properly gated
+Downstream engines (FLO, PTE) can query attributable execution artifacts
+All mutating endpoints are governed and auditable
+This is a logical API map; implementation detail belongs in NS-DAT-009.
+2. API Design Principles
+Read-First for visibility and audit
+Versioned access is mandatory (plan_version required for details)
+Control endpoints are governed (GGP authorization required)
+No hidden side effects (every mutation emits control/execution events)
+Idempotent writes for plan creation, submission, and execution starts
+3. API Surface Groups
+DAT APIs are grouped into:
+Plans (Read/Write) — plan drafting, listing, retrieval
+Governance (Write/Read) — submission and decision binding
+Staging & Admission (Write/Read) — validations and admission checks
+Execution (Write/Read) — execution start/abort + run visibility
+Controls (Write/Read) — kill switch, connector disablement
+Events & Audit (Read) — immutable timelines and exports
+4. FE Screen → API Mapping
+4.1 Screen: Plan Registry (List)
+Endpoints:
+GET /plans
+Query params:status (optional)connector (optional)linked_insight_id (optional)limit, offsetsort (created_at | updated_at | status)
+Response fields:
+execution_plan_id
+latest_plan_version
+status
+linked_insight_id / linked_insight_version
+budget_cap / spent_amount
+last_execution_outcome
+created_at / updated_at
+4.2 Screen: Plan Detail
+Endpoints:
+GET /plans/{plan_id}?version={n}
+Returns authoritative plan artifact for specified version.
+GET /plans/{plan_id}/constraints?version={n}
+GET /plans/{plan_id}/budget?version={n}
+GET /plans/{plan_id}/rollback?version={n}
+Optional convenience:
+GET /plans/{plan_id}/detail?version={n} (expanded response)
+4.3 Screen: Staging / Admission View
+Endpoints (Read):
+GET /plans/{plan_id}/staging?version={n}
+GET /plans/{plan_id}/admission?version={n}
+Endpoints (Write, Governed):
+POST /plans/{plan_id}/staging/run?version={n}
+POST /plans/{plan_id}/admission/check?version={n}
+All writes require:
+operator role
+reason
+correlation_id
+4.4 Screen: Execution Run Detail (Timeline)
+Endpoints:
+GET /runs?plan_id={id}&version={n}
+GET /runs/{run_id}
+GET /runs/{run_id}/events
+GET /runs/{run_id}/export (timeline export)
+Response fields:
+run_id
+execution_plan_id
+plan_version
+run_status
+started_at / ended_at
+step summary
+4.5 Screen: Kill Switch & Controls
+Endpoints (Read):
+GET /controls/status
+GET /controls/history?limit={n}
+Endpoints (Write, Governed):
+POST /controls/execution/pause
+POST /controls/execution/resume
+POST /controls/plans/{plan_id}/abort?run_id={run_id}
+POST /controls/connectors/{connector_name}/disable
+POST /controls/connectors/{connector_name}/enable
+All control writes require:
+two-step confirm at FE
+reason text
+correlation_id
+5. Planner Flows → API Mapping
+5.1 Create Draft Plan
+POST /plans
+Body:linked_insight_idlinked_insight_versionplan_template_id (optional)
+Returns:
+execution_plan_id
+plan_version = 1
+5.2 Update Draft (Creates New Version)
+POST /plans/{plan_id}/versions
+Body:changeset (structured)
+Returns:
+new plan_version
+No in-place updates.
+5.3 Submit for Governance Approval
+POST /plans/{plan_id}/submit?version={n}
+Returns:
+submission_id
+5.4 Bind Governance Decision
+POST /plans/{plan_id}/governance/bind?version={n}
+Body:ggp_decision_iddecision_outcome (approved/rejected)
+6. Execution Flows → API Mapping
+6.1 Start Execution (Governed)
+POST /plans/{plan_id}/execute?version={n}
+Body:execution_mode (live | dry)requested_by
+Returns:
+run_id
+Must be idempotent.
+6.2 Step Retry (Governed)
+POST /runs/{run_id}/steps/{step_id}/retry
+Body:reason
+Retry bounded and idempotent.
+6.3 Manual Rollback (Governed)
+POST /runs/{run_id}/rollback
+Body:reason
+7. Downstream Engine Query Surfaces
+7.1 FLO
+GET /runs/{run_id}/financial-events
+GET /plans/{plan_id}/budget?version={n}
+7.2 PTE
+GET /runs/{run_id}/metrics
+GET /plans/{plan_id}?version={n}
+8. Canonical Error & Response Envelope
+All endpoints should return a consistent envelope:
+correlation_id
+success
+data (nullable)
+error_code (nullable)
+message (nullable)
+details (nullable)
+9. Document Position in DAT Corpus
+This APIMAP document is informed by:
+NS-DAT-009 — IMPL
+NS-DAT-010 — FE
+NS-DAT-007 — DATAMODEL
+It complements:
+NS-DAT-012 — STATE
+NS-DAT-013 — RUNBOOK
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT API Mapping
+
+Parent / HoldCo Manager
+Status: Draft

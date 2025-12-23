@@ -1,0 +1,185 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Market Integration Layer (MUX) MVP.
+It translates the MUX architecture, lifecycle, decisions, and data model into:
+Runnable services and responsibilities
+Module boundaries and interfaces
+Connector patterns and isolation guarantees
+Persistence, eventing, and replay strategy
+A phased rollout plan from MVP → production
+This document is implementation-oriented but technology-agnostic.
+2. Implementation Scope (MVP)
+The MUX MVP must support:
+At least two external integrations (e.g., one webhook-based, one polling/batch)
+Secure capture of raw external payloads
+Deterministic normalization into canonical artifacts
+Integrity validation and deduplication
+Append-only artifact persistence
+Publication of canonical artifacts to Kafka
+Connector isolation and degradation handling
+Operator-triggered replay and backfill
+Out of scope for MVP:
+Dozens of connectors
+Advanced trust scoring ML
+Cross-connector correlation inference
+3. Service Decomposition (MVP)
+3.1 mux-ingress
+Responsibilities:
+Terminate inbound webhook traffic
+Validate signatures and origins
+Apply rate limits
+Persist raw_capture_record
+Notes:
+Public-facing, hardened
+No business logic
+3.2 mux-connector-workers (Per Integration)
+Responsibilities:
+Poll APIs or import files
+Handle pagination, retries, backoff
+Persist raw_capture_record
+Isolation:
+One worker group per connector
+Independent failure domains
+3.3 mux-normalizer
+Responsibilities:
+Apply normalization rulesets
+Produce canonical_artifact candidates
+Normalize timestamps, currency, identifiers
+Rulesets are versioned and hot-swappable.
+3.4 mux-integrity-engine
+Responsibilities:
+Signature verification
+Integrity hash computation
+Schema sanity checks
+Produces integrity decisions.
+3.5 mux-dedupe-engine
+Responsibilities:
+Deduplicate by external_id and hash
+Link duplicates via artifact_dedupe_ref
+Never deletes artifacts.
+3.6 mux-artifact-store
+Responsibilities:
+Persist canonical artifacts append-only
+Enforce immutability constraints
+Postgres recommended for MVP.
+3.7 mux-publisher
+Responsibilities:
+Publish canonical artifacts to Kafka
+Enforce topic routing
+Attach provenance metadata
+3.8 mux-replay-engine
+Responsibilities:
+Re-emit canonical artifacts
+Execute backfill jobs
+Reprocess raw captures with new rulesets
+Governed control surface.
+3.9 mux-api (Read + Control)
+Responsibilities:
+Read-only queries (artifacts, statements)
+Connector health/status
+Trigger replay/backfill (governed)
+4. Suggested Technology Stack
+Language: Python 3.12+
+API: FastAPI
+Workers: asyncio / Celery / Faust-style consumers
+Messaging: Kafka
+Persistence: PostgreSQL (authoritative), optional object storage for raw payloads
+Secrets: External secret manager
+5. Module Layout (Suggested)
+mux/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── authz/
+├── connectors/
+│   ├── base.py
+│   ├── webhook/
+│   ├── polling/
+│   └── batch/
+├── ingestion/
+│   ├── ingress.py
+│   └── capture_store.py
+├── normalization/
+│   ├── rulesets/
+│   └── normalizer.py
+├── integrity/
+│   ├── verifier.py
+│   └── hashes.py
+├── dedupe/
+│   └── engine.py
+├── artifacts/
+│   ├── models.py
+│   ├── repository.py
+│   └── publisher.py
+├── replay/
+│   └── engine.py
+├── decisions/
+│   └── artifacts.py
+└── config/
+
+6. End-to-End Implementation Flow
+External payload arrives (webhook/poll/file)
+Raw payload stored (raw_capture_record)
+Integrity verification executed
+Normalization ruleset applied
+Deduplication evaluated
+Canonical artifact persisted
+Artifact published to Kafka
+Decision artifacts recorded
+7. Idempotency & Exactly-Once Effects
+At-least-once ingestion
+DB-enforced dedupe constraints
+Artifact immutability ensures safety
+Publisher retries with idempotent keys
+8. Security & Isolation
+Connector credentials isolated per worker
+Webhook signature verification mandatory
+Payload redaction before persistence
+Least-privilege runtime identities
+9. Operational Controls
+Enable/disable connector
+Pause ingress
+Trigger replay/backfill
+Rotate credentials
+All actions are auditable.
+10. MVP Rollout Plan
+Implement raw capture + ingress
+Add normalization + dedupe
+Persist canonical artifacts
+Publish to Kafka
+Integrate first downstream consumer (FLO or DAT)
+Add replay/backfill
+Harden security and observability
+11. Document Position in MUX Corpus
+This implementation plan builds upon:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+NS-MUX-006 — VERSION
+NS-MUX-007 — DATAMODEL
+NS-MUX-008 — EEE
+It informs:
+NS-MUX-011 — APIMAP
+NS-MUX-013 — RUNBOOK
+NS-MUX-014 — DATADEF
+12. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX MVP Implementation Plan
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,167 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document provides a concrete end-to-end example (EEE) demonstrating how the Simulation & Scenario Engine (SIM) operates across its lifecycle.
+The example validates:
+scenario initiation from PIE insights
+input snapshot assembly from SIG/DAT/FLO
+scenario construction (baseline + variants)
+deterministic execution under constraints
+uncertainty and sensitivity artifacts
+downstream consumption by GGP and DAT
+replay and comparative re-execution
+2. Scenario Narrative
+Narrative:
+PIE surfaces an insight suggesting a new product listing opportunity. Before execution, SIM models multiple futures to assess risk and expected outcomes.
+Goal:
+quantify downside risk
+identify breakpoints (where the plan fails)
+expose key sensitivity drivers
+3. Inputs
+3.1 PIE Insight
+insight_id = PIE-INS-123
+opportunity: “List Product X in Market Y with paid ads”
+supporting signals: rising keyword velocity + competitor price gap
+3.2 SIG Observed Reality
+demand aggregates (search volume, CTR, conversion rate)
+market signals (competitor price observed)
+supply signals (stock availability signals)
+3.3 DAT Execution Parameters
+channel plan: marketplace listing + ads
+spend schedule: $150/day for 14 days
+fulfillment method and estimated costs
+3.4 FLO Financial Constraints
+max daily burn: $250/day
+minimum cash reserve: $5,000
+max inventory exposure: $8,000
+4. Step-by-Step Simulation Lifecycle
+5. Step 1 — Scenario Initiation
+A scenario request is created:
+scenario_type = comparative
+initiator = operator
+references PIE insight PIE-INS-123
+requested horizon = 90 days
+SIM performs Scenario Admission Decision:
+outcome: admit
+rationale: input references valid
+A sim_decision artifact is recorded.
+6. Step 2 — Input Snapshot Assembly
+SIM assembles a frozen snapshot:
+SIG references: signal IDs + aggregate IDs + versions
+PIE reference: insight ID + version
+DAT references: execution param package version
+FLO references: capital state version
+A snapshot hash is computed:
+snapshot_hash = H(snapshot)
+Snapshot is immutable.
+7. Step 3 — Scenario Construction
+SIM creates:
+Baseline
+no new listing
+demand continues per SIG trend
+Variant A (Action-Driven)
+listing + $150/day ads
+Variant B (Stress Test)
+Variant A + demand drop shock (-25%) at day 21
+Constraints applied:
+burn limit
+minimum reserve
+inventory exposure cap
+8. Step 4 — Model Selection
+SIM selects models:
+demand projection model v1.0
+conversion model v1.0
+cost model v1.0
+Decision recorded:
+model selection decision
+9. Step 5 — Execution (Deterministic)
+Simulation executed with:
+time step = daily
+seeded RNG = 424242
+Produces time-series:
+revenue
+spend
+profit
+inventory drawdown
+cash reserve
+No side effects occur.
+10. Step 6 — Constraint & Risk Evaluation
+During Variant B, demand shock causes:
+slower revenue growth
+reserve approaching minimum threshold
+Constraint violation detected:
+min cash reserve breached at day 38
+SIM annotates:
+breakpoint = day 38
+failure mode: “cash reserve breach”
+11. Step 7 — Outcome Packaging
+SIM persists:
+scenario_run records (baseline, variant A, variant B)
+outcome_series (time-series)
+uncertainty_artifacts (CI bands)
+sensitivity_artifacts
+Artifacts reference:
+snapshot_hash
+model versions
+random_seed
+12. Step 8 — Sensitivity Analysis
+Sensitivity results show:
+conversion_rate
+ad_CPC
+demand_growth_rate
+These become the “what matters most” explanation.
+13. Step 9 — Governance Review
+SIM publishes scenario summary to GGP context:
+Variant A: acceptable risk
+Variant B: fails under shock, breakpoint day 38
+GGP uses this as approval context.
+14. Step 10 — Execution Planning Refinement
+DAT consumes results:
+recommends reducing spend after day 14 unless conversion improves
+proposes a stop-loss threshold for reserve
+SIM does not execute; it informs.
+15. Step 11 — Deterministic Replay
+An auditor replays Variant A:
+identical snapshot
+identical model versions
+identical RNG seed
+Expected: identical outputs.
+Replay produces matching hashes.
+16. Step 12 — Comparative Re-Execution (Model Upgrade)
+A new conversion model v1.1 is released.
+SIM re-executes:
+same snapshot
+model v1.1
+New run results are stored as a new scenario_run.
+Historical runs remain unchanged.
+17. Failure Case Example
+Model error occurs:
+cost model fails for missing parameter
+SIM:
+marks run failed
+preserves partial outputs
+records failure decision artifact
+No other runs affected.
+18. Validation Outcomes
+This EEE validates that SIM:
+constructs governed scenarios from upstream inputs
+freezes deterministic snapshots
+enforces constraints
+produces explainable, version-bound results
+supports replay and re-execution
+19. Document Position in SIM Corpus
+This EEE builds upon:
+NS-SIM-001 — OVERVIEW
+NS-SIM-002 — TAXONOMY
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+NS-SIM-006 — VERSION
+NS-SIM-007 — DATAMODEL
+20. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+

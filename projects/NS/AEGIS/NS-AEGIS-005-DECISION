@@ -1,0 +1,203 @@
+NS-AEGIS-005 — DECISION
+
+Project: Aegis (Dependency Management Product)
+
+1) Decision Purpose
+
+This document records the key architectural and product decisions for Aegis, including what was chosen, why it was chosen, and what alternatives were considered.
+
+Aegis is intended to survive project evolution from MVP → internal platform → standalone product.
+
+2) Primary Decision Statement
+
+We will build Aegis as a graph-native dependency lifecycle product that is:
+
+A system-of-record (Registry + Evidence)
+
+A system-of-impact (Graph + blast radius)
+
+A system-of-action (Workflows + Monitoring)
+
+…and that stays continuously correct through CWP agentic loops, while all material changes remain governed via GGE.
+
+3) Decision Log (Canonical)
+
+D-001 — Build as a Product, not only an Internal CWP Capability
+
+Decision: Aegis is a standalone product surface (UI + API), not just CWP playbooks.
+
+Why: Ensures a durable system-of-record, consistent governance, and externalization potential.
+
+Alternatives:
+
+A1: CWP-only ops runbooks + spreadsheets
+
+A2: “Dependency wiki” as documentation-first
+
+Tradeoff: More up-front platform work, but massively reduces long-term drift and fragmentation.
+
+D-002 — Registry + Graph Split (Truth vs Impact)
+
+Decision: Keep a canonical Registry store and a specialized Graph store.
+
+Why: Registry optimizes integrity and audit; graph optimizes traversals and impact queries.
+
+Alternatives:
+
+A1: Single relational model with recursive queries
+
+A2: Graph-only (everything in graph)
+
+Tradeoff: Dual-store consistency requirements; mitigated with events + snapshots.
+
+D-003 — Every Material Change Requires a Change Request
+
+Decision: All material mutations (add/update/renew/deprecate/replace) flow through CRs.
+
+Why: Enforces policy, creates traceability, and supports audit-ready posture.
+
+Alternatives:
+
+A1: Direct edits for “low risk” items
+
+A2: Partial CR usage only for vendors/security
+
+Tradeoff: Friction risk; mitigated with risk-tiered workflows and auto-filled CR drafts.
+
+D-004 — Governance Authority Lives in GGE
+
+Decision: GGE remains the policy/approval/audit authority; Aegis does not re-implement governance.
+
+Why: Single governance nucleus; consistent rules across engines/projects.
+
+Alternatives:
+
+A1: Aegis-local RBAC approvals
+
+A2: External GRC tool as authority
+
+Tradeoff: Strong dependency on GGE availability; mitigated with queued workflows and idempotent commits.
+
+D-005 — Agentic Operations Lives in CWP
+
+Decision: CWP executes the operational loops (freshness, drift, renewal, incident, discovery).
+
+Why: Keeps Aegis lean; allows reusable agentic primitives across the stack.
+
+Alternatives:
+
+A1: Embed schedulers and agents inside Aegis
+
+A2: Manual operations only
+
+Tradeoff: Requires clean event contracts; mitigated with a strict loop interface.
+
+D-006 — Identity is Centralized via IDN
+
+Decision: Canonical IDs for vendors/packages/services are resolved via IDN.
+
+Why: Prevents duplication, enables cross-engine joins, keeps names stable over time.
+
+Alternatives:
+
+A1: Aegis-local ID generation
+
+A2: Human-defined naming only
+
+Tradeoff: Coupling to IDN; mitigated with caching + alias layers.
+
+D-007 — Signals are Normalized via SIG
+
+Decision: Aegis consumes signals (CVE/incidents/EOL/drift) from SIG.
+
+Why: Avoids bespoke feed integrations; standardizes severity/confidence.
+
+Alternatives:
+
+A1: Aegis integrates feeds directly
+
+A2: Manual signal entry
+
+Tradeoff: SIG becomes critical path; mitigated with fallback ingestion for highest-severity feeds.
+
+D-008 — Confidence-Aware Edges
+
+Decision: Store edge provenance: declared vs observed vs inferred with confidence scores.
+
+Why: Graph correctness is gradual; prevents overconfidence in early discovery.
+
+Alternatives:
+
+A1: Treat all edges as equally true
+
+A2: Only declared edges
+
+Tradeoff: More complexity in UI/queries; mitigated with default views that prioritize observed edges.
+
+D-009 — Snapshots for “As-Of” and Audit
+
+Decision: Produce immutable snapshots at CR commit and incident closure (optionally scheduled).
+
+Why: Enables audit replay, diffs, and historical impact analysis.
+
+Alternatives:
+
+A1: Only current-state graph
+
+A2: Event log only
+
+Tradeoff: Storage growth; mitigated with retention tiers + snapshot compression.
+
+D-010 — Risk-Tiered Workflow Strictness
+
+Decision: Workflow friction scales with risk tier.
+
+Why: Keeps velocity for low-risk items while enforcing rigor for critical dependencies.
+
+Alternatives:
+
+A1: One-size-fits-all approvals
+
+A2: No approvals for software deps
+
+Tradeoff: Requires good tiering policy; mitigated with default classification + override justification.
+
+4) MVP Decisions (Locked)
+
+These decisions are locked for MVP:
+
+Registry + Graph split
+
+CR required for add/update
+
+GGE as policy/approval authority
+
+CWP as loop executor
+
+SIG provides at least one signal path (CVE or vendor incident)
+
+Snapshots on commit + incident closure
+
+5) Deferred Decisions (Intentionally Not Locked Yet)
+
+Graph database selection and scaling strategy
+
+Multi-tenancy model (internal-only vs external product)
+
+Connector security posture (pull vs push; signed observations)
+
+Evidence verification depth (light vs strict attestations)
+
+Automated CR generation thresholds (when drift should auto-open CRs)
+
+6) Evolution Notes (How Decisions Hold Up Over Time)
+
+MVP: manual + one connector + minimal signals
+
+V1: multiple connectors, stronger evidence freshness, exception automation
+
+V2: predictive risk posture + standardization recommendations + migration portfolio planning
+
+Aegis decisions are structured so the product can evolve without changing its fundamentals:
+truth (registry), impact (graph), action (workflow/loops), governance (GGE), operations (CWP).
+

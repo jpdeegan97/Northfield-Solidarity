@@ -1,0 +1,196 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Simulation & Scenario Engine (SIM).
+It translates SIM’s architecture, lifecycle, decisions, versioning, and data model into:
+runnable service components and responsibilities
+module boundaries and interfaces
+persistence and eventing strategy
+replay, comparison, and re-execution mechanics
+a phased MVP → production rollout plan
+This document is implementation-oriented but technology-agnostic.
+2. Implementation Scope (MVP)
+The SIM MVP must support:
+Scenario initiation (human or governed automation)
+Input snapshot assembly from SIG/PIE/DAT/FLO
+Baseline + variant construction
+Deterministic execution with seeded stochasticity
+Constraint enforcement (hard limits)
+Outcome packaging (time-series)
+Uncertainty bands (simple CI / bounded distributions)
+Sensitivity analysis (first-order / ranking)
+Read APIs for scenario retrieval and comparison
+Replay and comparative re-execution
+Out of scope for MVP:
+Sophisticated ML simulation models
+Real-time streaming simulations
+Large operator UI (optional)
+3. Service Decomposition
+3.1 sim-api (Read + Governed Control)
+Responsibilities:
+Create scenario requests
+Query scenarios and runs
+Trigger replay / re-execution jobs (governed)
+Provide comparison endpoints
+3.2 sim-snapshotter
+Responsibilities:
+Resolve upstream references
+Freeze immutable input snapshots
+Compute snapshot hashes
+3.3 sim-scenario-builder
+Responsibilities:
+Construct baseline scenarios from observed reality
+Apply assumption sets and variants
+Attach constraint sets
+Produces immutable scenario definitions.
+3.4 sim-model-registry
+Responsibilities:
+Register and serve model/ruleset versions
+Validate model compatibility
+Provide model selection lookups
+May be embedded or a shared registry.
+3.5 sim-executor
+Responsibilities:
+Execute simulations deterministically
+Advance time steps
+Update variables according to models
+No external side effects.
+3.6 sim-constraint-engine
+Responsibilities:
+Enforce constraint sets during execution
+Detect violations and breakpoints
+Emit constraint annotations
+3.7 sim-uncertainty-engine
+Responsibilities:
+Produce uncertainty bands
+Support deterministic stochastic sampling
+MVP approach:
+bounded ranges per key assumption
+Monte Carlo with fixed seed
+3.8 sim-sensitivity-engine
+Responsibilities:
+Compute sensitivity rankings
+Identify dominant drivers
+MVP approach:
+one-at-a-time perturbation
+rank by outcome variance
+3.9 sim-result-store
+Responsibilities:
+Persist scenario runs and outcome series
+Persist uncertainty and sensitivity artifacts
+Recommended persistence:
+PostgreSQL (authoritative)
+3.10 sim-publisher (Optional)
+Responsibilities:
+Publish scenario summary events to Kafka
+Provide run-completed notifications
+Consumers:
+GGP, DAT, PTE
+3.11 sim-job-runner
+Responsibilities:
+Execute queued scenario runs
+Execute replay / re-execution jobs
+Job state machine:
+queued → running → completed/failed
+4. Suggested Technology Stack
+Aligned to your GGP approach:
+Language: Python 3.12+
+API: FastAPI
+Jobs: worker process (async) + queue
+Eventing: Kafka (optional for SIM, but recommended)
+Persistence: PostgreSQL
+Caching: Redis (optional)
+5. Module Layout (Suggested)
+sim/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── middleware/
+├── snapshot/
+│   └── snapshotter.py
+├── scenario/
+│   ├── builder.py
+│   └── variants.py
+├── models/
+│   ├── registry.py
+│   ├── selection.py
+│   └── v1/
+├── execution/
+│   ├── executor.py
+│   └── timestep.py
+├── constraints/
+│   └── engine.py
+├── uncertainty/
+│   └── engine.py
+├── sensitivity/
+│   └── engine.py
+├── store/
+│   ├── models.py
+│   └── repository.py
+├── jobs/
+│   ├── runner.py
+│   └── state.py
+├── publishing/
+│   └── kafka_publisher.py
+└── config/
+6. End-to-End Execution Flow (Implementation)
+sim-api receives scenario request
+sim-snapshotter resolves and freezes inputs
+sim-scenario-builder creates baseline + variants
+sim-model-registry selects model versions
+sim-job-runner queues run
+sim-executor runs simulation (deterministic)
+sim-constraint-engine enforces constraints
+sim-uncertainty-engine generates uncertainty artifacts
+sim-sensitivity-engine generates sensitivity artifacts
+sim-result-store persists all artifacts
+sim-publisher emits run-completed (optional)
+7. Determinism & Idempotency
+Determinism requirements:
+input snapshot hash must be stable
+all versions recorded
+RNG seed stored and used for stochastic paths
+Idempotency requirements:
+run requests support idempotency keys
+jobs are safe to retry
+write operations are append-only
+8. Security & Governance
+No credentials for execution systems
+Governed endpoints for replay / re-execution
+Operator actions require reason and identity
+Audit trail required for model version changes
+9. Operational Controls
+enable/disable model versions
+trigger re-execution using new models
+run comparisons and export summaries
+All controls are auditable.
+10. MVP Rollout Plan
+Implement scenario definitions + run persistence
+Implement snapshotter and version binding
+Implement deterministic executor v1
+Add constraint enforcement
+Add uncertainty bands (simple)
+Add sensitivity rankings
+Add APIs for read + comparison
+Add optional Kafka publisher
+Harden observability and runbook
+11. Document Position in SIM Corpus
+This implementation plan builds upon:
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+NS-SIM-006 — VERSION
+NS-SIM-007 — DATAMODEL
+NS-SIM-008 — EEE
+It informs:
+NS-SIM-011 — APIMAP
+NS-SIM-013 — RUNBOOK
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM MVP Implementation Plan
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,201 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document translates the PIE conceptual specifications (NS-PIE-001 → NS-PIE-008) into a practical, MVP-oriented implementation blueprint.
+It defines:
+Concrete services and responsibilities
+Data flows and persistence boundaries
+Event and API surfaces
+Operational and governance controls
+The goal is to enable incremental delivery while preserving replayability, auditability, and governance alignment.
+2. Implementation Principles
+PIE implementation adheres to the following principles:
+Thin Services, Strong ContractsKeep services small; enforce behavior via contracts and schemas.
+Append-Only CoreAuthoritative data is immutable and replayable.
+Deterministic PipelinesSame inputs + same versions = same outputs.
+Governance-First ControlsPromotion, thresholds, and model activation are governed.
+MVP First, Extensible LaterStart simple; avoid premature optimization.
+3. Logical Service Decomposition (MVP)
+3.1 Signal Intake Service
+Responsibilities:
+Consume normalized signals from SIG (event or pull)
+Validate envelopes and trust thresholds
+Persist signal references
+Key Outputs:
+SignalReference records
+3.2 Research Intake Service
+Responsibilities:
+Ingest research artifacts from DRE
+Validate metadata and versions
+Key Outputs:
+ResearchArtifactReference records
+3.3 Context Assembly Service
+Responsibilities:
+Group signals and research into Evidence Bundles
+Persist deterministic context snapshots
+Key Outputs:
+EvidenceBundle (authoritative)
+3.4 Insight Generation Service
+Responsibilities:
+Generate Opportunity Statements
+Create initial Insight records (status = Proposed)
+Assign Insight Type
+Key Outputs:
+Insight v1 records
+3.5 Scoring Service
+Responsibilities:
+Apply active Scoring Model version
+Produce confidence scores and breakdowns
+Key Outputs:
+scoring_result records
+3.6 Risk Profiling Service
+Responsibilities:
+Attach explicit risk annotations
+Flag known constraints
+Key Outputs:
+risk_profile records
+3.7 Decay & Relevance Service
+Responsibilities:
+Assign relevance windows
+Evaluate decay thresholds over time
+Emit expiry events
+Key Outputs:
+decay_model records
+insight.expired events
+3.8 Narrative Generation Service
+Responsibilities:
+Produce explainable summaries
+Bind narratives to evidence and scores
+Key Outputs:
+narrative records
+3.9 Decision Evaluation Service
+Responsibilities:
+Evaluate Promotion Readiness
+Create immutable Decision Context snapshots
+Key Outputs:
+decision_context records
+pie.insight.ready_for_review events
+3.10 Output & Query Service
+Responsibilities:
+Publish insight events
+Serve read-only APIs for consumers
+Maintain derived read models
+Key Outputs:
+Ranked insight lists
+Insight detail views
+4. Data Persistence Mapping
+
+
+
+Data Category
+
+Store Type
+
+Notes
+
+
+Insights & Versions
+
+Authoritative DB
+
+Append-only
+
+
+Evidence Bundles
+
+Authoritative DB
+
+Replayable
+
+
+Scores / Risk / Narratives
+
+Authoritative DB
+
+Versioned
+
+
+Rankings / Search
+
+Derived Store
+
+Rebuildable
+Storage technology is intentionally unspecified at this layer.
+5. Event Contracts (Conceptual)
+PIE emits immutable domain events:
+pie.insight.proposed
+pie.insight.ready_for_review
+pie.insight.approved (from GGP)
+pie.insight.rejected
+pie.insight.expired
+Each event includes:
+insight_id
+insight_version
+correlation_id
+timestamp
+6. API Surfaces (MVP)
+6.1 Read APIs
+GET /insights — ranked list
+GET /insights/{id} — full detail
+GET /insights/{id}/versions
+6.2 Control APIs (Governed)
+POST /controls/scoring-model/activate
+POST /controls/replay
+All control APIs require GGP authorization.
+7. Replay & Backfill Operations
+MVP supports:
+Read Model Rebuild
+Drop derived tables
+Recompute from authoritative records
+Score Re-evaluation
+Apply new scoring_model_version
+Append new scoring_result records
+Decision Re-evaluation
+Re-run promotion readiness
+Append new decision_context records
+No replay mutates history.
+8. Governance & Safety Controls
+PIE exposes the following governance surfaces:
+Active scoring model registry
+Confidence threshold configuration
+Promotion readiness gating
+Kill switch (pause publication)
+All changes are auditable and GGP-governed.
+9. Incremental Delivery Plan
+Phase 1 (MVP):
+Single scoring model
+Batch-based insight generation
+Read-only dashboards
+Phase 2:
+Multiple scoring models
+Near-real-time signal intake
+Rich narrative explanations
+Phase 3:
+Human-in-the-loop feedback
+Advanced decay models
+10. Document Position in PIE Corpus
+This implementation document is informed by:
+NS-PIE-001 → NS-PIE-008
+It precedes:
+NS-PIE-010 — FE / VISUALIZATION
+NS-PIE-011 — APIMAP
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE Implementation Blueprint
+
+Parent / HoldCo Manager
+**Statu

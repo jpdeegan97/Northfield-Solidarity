@@ -1,0 +1,168 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the state model and state transition semantics for the Identity & Entity Nexus (IDN).
+IDN state management is designed to:
+preserve canonical identity truth
+make all mutations explicit and auditable
+separate immutable historical state from operational control state
+support deterministic replay and projection rebuilds
+2. State Design Principles
+Canonical Immutability — canonical IDs are never changed or deleted
+Event-Driven Evolution — identity state evolves via events
+Temporal Truth — "current state" is a projection over time
+Explicit Transitions — no implicit or silent state changes
+Governed Mutation — high-impact transitions require approval context
+3. State Domains
+IDN maintains four distinct state domains:
+Canonical Registry State
+Identifier Link State
+Relationship State
+Operational & Governance State
+Each domain has explicit state machines and invariants.
+4. Canonical Registry State
+4.1 Actor State
+Actors have a lifecycle state:
+active
+suspended
+retired
+Transitions:
+From
+To
+Trigger
+active
+suspended
+governance action
+suspended
+active
+governance action
+active
+retired
+administrative close
+Canonical actor records are never deleted.
+4.2 Entity State
+Entities have a lifecycle state:
+proposed
+active
+archived
+Transitions:
+From
+To
+Trigger
+proposed
+active
+validation / approval
+active
+archived
+decommission
+5. Identifier Link State
+Identifiers have explicit link states:
+linked
+quarantined
+unlinked
+5.1 Identifier Transitions
+From
+To
+Trigger
+linked
+quarantined
+conflict detected
+quarantined
+linked
+conflict resolved
+linked
+unlinked
+deprecation event
+Identifiers are never reassigned silently.
+6. Relationship State
+Relationships are effective-dated rather than mutated.
+Relationship record states:
+open (effective_to = null)
+closed (effective_to set)
+Transitions:
+From
+To
+Trigger
+open
+closed
+update / termination
+A new relationship creates a new record.
+7. Merge & Split State
+Merge and split operations have explicit workflow state.
+7.1 Merge Case State
+proposed
+under_review
+approved
+rejected
+executed
+Transitions:
+From
+To
+Trigger
+proposed
+under_review
+reviewer assigned
+under_review
+approved
+governance approval
+approved
+executed
+merge applied
+under_review
+rejected
+rejection decision
+7.2 Split Case State
+Same lifecycle as merge cases (phase 2).
+8. Operational Job State
+IDN operational jobs (projection rebuilds, audits):
+queued
+running
+completed
+failed
+Jobs are idempotent and auditable.
+9. Projection State
+Projections have versioned state:
+healthy
+stale
+rebuilding
+Projection rebuilds:
+never modify canonical history
+may be rerun safely
+10. Consistency Model
+Strong consistency for canonical records and identifier links
+Eventual consistency for projections
+At-least-once delivery for published events
+11. Failure Handling
+Failure scenarios:
+identifier collision
+invalid relationship
+governance denial
+Handling:
+state transitions halted
+artifacts preserved
+retry via new events
+12. State Change Events
+IDN emits explicit state change events:
+idn.actor.state_changed
+idn.entity.state_changed
+idn.identifier.state_changed
+idn.merge.executed
+idn.relationship.changed
+13. Document Position in IDN Corpus
+This state document builds upon:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-006 — VERSION
+NS-IDN-011 — APIMAP
+It informs:
+NS-IDN-013 — RUNBOOK
+NS-IDN-014 — DATADEF
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN State Model
+Parent / HoldCo Manager
+Status: Draft

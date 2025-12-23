@@ -1,0 +1,696 @@
+NS-LUM-007 — DATAMODEL
+
+0. Overview
+
+This document defines the canonical data model for LUM (Luminance Engine).
+
+LUM stores and serves:
+
+Telemetry (logs, metrics, traces, events)
+
+Reliability artifacts (SLIs/SLOs, alerts)
+
+Incident artifacts (incidents, timelines, postmortems)
+
+Evidence support artifacts (evidence bundles, artifacts, access logs)
+
+LUM is designed to correlate across engines using canonical identifiers (trace/workflow/decision/integration/entity).
+
+1. Data Model Principles
+
+Correlation-first indexing: all records join via IDs.
+
+Immutable records + revisions: updates append revisions.
+
+Tiered storage: hot/warm/evidence separated.
+
+Redaction and classification: sensitive fields never stored unredacted.
+
+Explainability: alerts/incidents store “why” alongside “what”.
+
+2. Canonical Identifiers (Cross-Cutting)
+
+These fields appear broadly across the model:
+
+request_id
+
+trace_id, span_id
+
+workflow_id
+
+task_id, job_id
+
+decision_id (GGP)
+
+integration_id (External API integration)
+
+entity_id, actor_id (IDN)
+
+environment (dev|uat|prod)
+
+source_engine, service, component
+
+3. Core Entities
+
+3.1 SignalRecord (abstract)
+
+Parent model for any ingested signal.
+
+Fields
+
+signal_id (PK)
+
+signal_type (log|metric|trace|event)
+
+occurred_at
+
+received_at
+
+environment
+
+source_engine
+
+service
+
+component
+
+severity (optional)
+
+correlation (object containing canonical IDs)
+
+classification (public|internal|confidential|restricted)
+
+retention_class (hot|warm|cold|evidence)
+
+payload_ref (pointer to blob/object store, if large)
+
+payload_redacted (inline small payload, redacted)
+
+schema_id, schema_version
+
+3.2 LogRecord
+
+Extends SignalRecord.
+
+Fields
+
+log_level (debug|info|warn|error|fatal)
+
+category (audit|security|application|integration|system)
+
+message
+
+attributes (key/value; redacted)
+
+error (optional object)
+
+error_type, error_code, stack_ref
+
+Indexes
+
+by time, service, category, correlation IDs, integration failure mode
+
+3.3 MetricSeries
+
+Represents a time series definition + storage reference.
+
+Fields
+
+metric_id
+
+name
+
+metric_type (counter|gauge|histogram|summary)
+
+unit
+
+labels_schema (allowed label keys)
+
+source_engine/service
+
+storage_ref
+
+3.4 Trace
+
+Represents an end-to-end trace with spans stored separately.
+
+Trace fields
+
+trace_id (PK)
+
+root_span_id
+
+started_at, ended_at, duration_ms
+
+environment, service (entry)
+
+correlation (workflow_id, decision_id, integration_id, entity_id)
+
+status (ok|error)
+
+sampling_strategy (head|tail|error_only|priority)
+
+3.5 Span
+
+Fields
+
+span_id (PK)
+
+trace_id (FK)
+
+parent_span_id (nullable)
+
+name / operation
+
+service, component
+
+started_at, ended_at, duration_ms
+
+status (ok|error)
+
+attributes (redacted)
+
+events[] (span events, optional)
+
+Indexes
+
+by trace_id, service, status
+
+3.6 DomainEvent
+
+Semantic events emitted by engines.
+
+Fields
+
+event_id (PK)
+
+event_type
+
+occurred_at
+
+source_engine
+
+correlation
+
+payload_ref / payload_redacted
+
+schema_id, schema_version
+
+Common event_type namespaces
+
+workflow.* (CWP)
+
+decision.* (GGP)
+
+integration.* (MUX / connectors)
+
+job.* (CDE/DAT)
+
+3.7 DecisionRecord (LUM operational decision)
+
+Tracks decisions LUM makes (alerts, sampling, routing, incidents).
+
+Fields
+
+lum_decision_id (PK)
+
+decision_type (alert|incident|routing|sampling|integration_health|evidence_completeness)
+
+decided_at
+
+inputs_refs[] (pointers to signals)
+
+rule_id (optional)
+
+rule_version (optional)
+
+outcome (typed object)
+
+rationale (string + structured fields)
+
+correlation
+
+supersedes_decision_id (optional)
+
+4. Reliability Model
+
+4.1 SLI
+
+Fields
+
+sli_id (PK)
+
+name
+
+description
+
+signal_source (metric/query)
+
+calculation (definition)
+
+owner
+
+status (draft|validated|active|deprecated)
+
+version
+
+4.2 SLO
+
+Fields
+
+slo_id (PK)
+
+name
+
+objective_target (e.g., 99.9)
+
+window (e.g., 30d)
+
+sli_id (FK)
+
+alert_policy_ids[]
+
+error_budget_policy (optional)
+
+status (draft|approved|active|tuned|deprecated)
+
+version
+
+4.3 SLOEvaluation
+
+Stores computed SLO performance for a time window.
+
+Fields
+
+evaluation_id (PK)
+
+slo_id (FK)
+
+slo_version
+
+window_start, window_end
+
+good_count, bad_count, total_count
+
+achieved (percentage)
+
+error_budget_remaining
+
+burn_rate_fast, burn_rate_slow
+
+Indexes
+
+by slo_id + window
+
+4.4 AlertPolicy
+
+Defines alert conditions.
+
+Fields
+
+policy_id (PK)
+
+name
+
+policy_type (threshold|anomaly|slo_burn|quota)
+
+query/condition (definition)
+
+severity_mapping
+
+dedupe_key_template
+
+routing_policy_id
+
+status (draft|staged|enabled|suppressed|retired)
+
+version
+
+4.5 AlertInstance
+
+A fired alert instance.
+
+Fields
+
+alert_id (PK)
+
+policy_id (FK)
+
+policy_version
+
+triggered_at
+
+resolved_at (nullable)
+
+current_state (open|acked|resolved)
+
+severity
+
+group_key
+
+summary
+
+details_ref
+
+correlation
+
+linked_incident_id (nullable)
+
+lum_decision_id (FK to DecisionRecord)
+
+Indexes
+
+open alerts by severity, service, integration_id
+
+4.6 RoutingPolicy
+
+Fields
+
+routing_policy_id (PK)
+
+routes[] (conditions → destinations)
+
+escalation_policy_id
+
+version
+
+4.7 EscalationPolicy
+
+Fields
+
+escalation_policy_id (PK)
+
+steps[] (time thresholds → destinations)
+
+version
+
+5. Incident Model
+
+5.1 Incident
+
+Fields
+
+incident_id (PK)
+
+title
+
+incident_type (availability|degradation|data|security|integration)
+
+severity (sev0–sev4)
+
+state (detected|triaging|mitigating|monitoring|resolved|closed)
+
+created_at, updated_at, resolved_at, closed_at
+
+owner_ic (actor_id)
+
+participants[] (actor_ids)
+
+primary_service / primary_engine
+
+integration_id (nullable)
+
+correlation (workflow_id/trace_id/decision_id)
+
+summary_ref
+
+postmortem_id (nullable)
+
+Indexes
+
+open incidents by severity
+
+5.2 IncidentTimelineEntry
+
+Fields
+
+entry_id (PK)
+
+incident_id (FK)
+
+occurred_at
+
+entry_type (alert|signal|note|action|status_change)
+
+ref_id (alert_id/signal_id/decision_id)
+
+message
+
+actor_id (optional)
+
+5.3 MitigationAction
+
+Fields
+
+action_id (PK)
+
+incident_id (FK)
+
+action_type (rollback|disable_feature|increase_capacity|provider_failover|other)
+
+requested_at, executed_at
+
+requested_by (actor_id)
+
+status (planned|in_progress|done|failed)
+
+correlation
+
+evidence_bundle_id (optional)
+
+5.4 Postmortem
+
+Fields
+
+postmortem_id (PK)
+
+incident_id (FK)
+
+status (draft|published)
+
+summary
+
+impact
+
+root_cause
+
+contributing_factors[]
+
+remediations[]
+
+action_items[] (refs to CWP tasks)
+
+published_at
+
+6. Evidence Support Model
+
+6.1 EvidenceBundle
+
+Fields
+
+bundle_id (PK)
+
+bundle_type (payment|publication|permission_change|release|other)
+
+state (open|collecting|ready_to_seal|sealed|expired|deleted)
+
+created_at, sealed_at (nullable)
+
+decision_id (GGP)
+
+workflow_id
+
+integration_id (nullable)
+
+entity_id (nullable)
+
+artifacts[] (artifact_ids)
+
+audit_events[] (audit_event_ids)
+
+integrity_hash (nullable)
+
+format_version
+
+access_policy_ref
+
+Indexes
+
+by decision_id, workflow_id, integration_id
+
+6.2 EvidenceArtifact
+
+Fields
+
+artifact_id (PK)
+
+artifact_type (receipt|invoice|webhook_payload|signature_record|approval|delivery_receipt|log_extract|other)
+
+storage_ref
+
+hash
+
+created_at
+
+captured_by (actor_id/service)
+
+classification
+
+redaction_status (redacted|n/a)
+
+6.3 AuditEvent (governed action record)
+
+Although GGP defines the authoritative audit schema, LUM stores/serves audit events for correlation.
+
+Fields
+
+audit_event_id (PK)
+
+action_type
+
+occurred_at
+
+actor_id
+
+entity_id (nullable)
+
+decision_id (GGP)
+
+workflow_id
+
+integration_id (nullable)
+
+inputs_ref / outputs_ref
+
+integrity_hash (optional)
+
+schema_version
+
+6.4 EvidenceAccessLog
+
+Fields
+
+access_log_id (PK)
+
+bundle_id (FK)
+
+actor_id
+
+access_type (view|export|download|share)
+
+accessed_at
+
+decision_id (GGP authorization)
+
+purpose (optional)
+
+client_context (ip/device/session; redacted)
+
+7. Integration Health Model
+
+7.1 IntegrationProfile
+
+Fields
+
+integration_id (PK)
+
+provider
+
+category (payments|maps|workspace|other)
+
+criticality (tier0|tier1|tier2)
+
+baseline_slo_ids[]
+
+quota_limits (optional)
+
+owner
+
+7.2 IntegrationStatusSnapshot
+
+Fields
+
+snapshot_id (PK)
+
+integration_id (FK)
+
+captured_at
+
+status (healthy|degraded|down)
+
+error_rate
+
+latency_p95
+
+quota_remaining (if available)
+
+top_error_codes[]
+
+lum_decision_id (FK)
+
+8. Storage Mapping (Implementation-Agnostic)
+
+8.1 Hot telemetry store
+
+LogRecord (recent)
+
+Trace/Span (recent)
+
+DomainEvent (recent)
+
+8.2 Metrics store
+
+MetricSeries + time series backend
+
+SLOEvaluation
+
+8.3 Relational/Document store
+
+SLI/SLO definitions
+
+AlertPolicy/AlertInstance
+
+Incident/Timeline/Postmortem
+
+DecisionRecord
+
+IntegrationProfile/StatusSnapshot
+
+8.4 Evidence store
+
+EvidenceBundle
+
+EvidenceArtifact (metadata)
+
+AuditEvent copies/refs
+
+EvidenceAccessLog
+
+Object storage for large artifacts
+
+9. Minimal Index Strategy (Starter)
+
+To support “find everything about X” queries:
+
+by trace_id
+
+by workflow_id
+
+by decision_id
+
+by integration_id
+
+by incident_id
+
+by entity_id
+
+10. Output Views (Common Queries)
+
+“Show all signals for workflow_id=W”
+
+“Show all external integration failures for integration_id=EXT-… in last 24h”
+
+“Show incident timeline with linked traces and alerts”
+
+“Show evidence bundle for decision_id=D and who accessed it”
+

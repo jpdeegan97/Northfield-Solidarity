@@ -1,0 +1,384 @@
+NS-AEGIS-010 — FE
+
+Project: Aegis (Dependency Management Product)
+
+1) FE Purpose
+
+Define the Frontend (FE) operator experience for Aegis.
+
+Aegis FE is the human control surface for:
+
+Registering and governing dependencies
+
+Visualizing the dependency graph and blast radius
+
+Managing evidence, approvals, and lifecycle
+
+Responding to signals/incidents
+
+The FE must remain effective as Aegis evolves from MVP → platform → standalone product.
+
+2) UX Principles
+
+Search-first, graph-second. Users start with “find the thing,” then explore impact.
+
+Policy is visible. Show why a gate exists and what evidence/approvals are required.
+
+Confidence is explicit. Declared vs observed vs inferred edges are visually distinct.
+
+Environment-aware everywhere. Prod vs non-prod is a first-class filter.
+
+Actionable alerts. Every signal leads to a recommended next step (CR, incident, refresh).
+
+Low friction for low risk. Risk-tiered UX: tier_0 should feel fast.
+
+3) MVP FE Scope
+
+MVP FE must include:
+
+Dependency search + detail pages
+
+DU (scope) management and environment filtering
+
+Change Request creation + tracking (add_dependency, update_version)
+
+Evidence upload + status (pending/verified/expired)
+
+Approvals view (read-only decisions; link to GGE audit ref)
+
+Graph visualization (basic) + blast-radius results list
+
+Signals/Incidents list + detail
+
+Nice-to-have for MVP:
+
+Saved views (e.g., “Tier-3 expiring evidence”)
+
+Inline edge editing (declared edges)
+
+4) Information Architecture (Navigation)
+
+Primary Nav
+
+Dashboard
+
+Dependencies
+
+Graph
+
+Change Requests
+
+Evidence
+
+Signals / Incidents
+
+Policies (read-only in Aegis; source-of-truth is GGE)
+
+Connectors (read-only health + coverage)
+
+Global Controls
+
+Environment selector: All / dev / uat / prod
+
+System boundary selector (engine/project/service)
+
+Confidence selector: observed / declared / inferred
+
+Time window selector (for observed edges): e.g., last seen in 7/30/90 days
+
+5) Screen Specifications
+
+5.1 Dashboard
+
+Purpose: immediate posture overview.
+
+Key tiles (MVP):
+
+Dependencies by state (Active/Constrained/Deprecated)
+
+Tier-3 coverage (owners assigned, evidence fresh)
+
+Evidence expiring soon (30/60/90 days)
+
+Open incidents / high severity signals
+
+Drift alerts count (if enabled)
+
+Primary actions:
+
+“Add dependency” (opens CR wizard)
+
+“Create update CR”
+
+5.2 Dependencies List
+
+Search + filters:
+
+Text search (name/id/alias)
+
+Class/subclass
+
+Lifecycle status
+
+Risk tier
+
+Owner
+
+Evidence state (missing/expired)
+
+Row fields:
+
+Name, class, risk tier, status, owner, last verified, evidence health
+
+5.3 Dependency Detail
+
+Sections:
+
+Header: name, canonical ID, class/subclass, status, risk tier, owner
+
+Scope (DUs): table grouped by environment/region/boundary
+
+Evidence: required vs present, verification status, expiry
+
+Graph: upstream/downstream panels with counts
+
+Activity: CR history + signal history + observations
+
+Primary actions:
+
+“Request change” → creates CR
+
+“Add scope (DU)” → creates CR (add_environment_scope)
+
+“Deprecate / Replace” → creates CR (deprecate_dependency / replace_dependency)
+
+5.4 DU (Dependency Unit) Detail
+
+Purpose: environment-scoped posture.
+
+Fields:
+
+env/region/boundary
+
+constraints (data sent, endpoints, rate limits, allowed services)
+
+last observed
+
+DU-level evidence
+
+Actions:
+
+“Constrain” (exception CR)
+
+“Request renewal” (renew_vendor CR)
+
+5.5 Graph View
+
+Modes:
+
+Explore: start from a node and expand 1–3 hops
+
+Impact: enter a dependency, compute downstream blast radius
+
+Controls:
+
+hop count
+
+environment filter
+
+confidence filter
+
+edge type filter
+
+Visual encoding:
+
+Node type icons (software/vendor/infra/data)
+
+Edge style indicates confidence (observed solid, declared dashed, inferred dotted)
+
+Severity overlay for nodes affected by active signals
+
+MVP output: graph canvas + a results table of affected assets.
+
+5.6 Change Requests (CR) List
+
+Filters:
+
+status
+
+type
+
+risk tier
+
+requested by
+
+updated within
+
+CR card/row:
+
+CR ID, type, subject, status, current gate (evidence/approvals), timestamps
+
+5.7 CR Detail
+
+Sections:
+
+Summary + justification
+
+Diff (before/after) with human-friendly render
+
+Policy decision:
+
+required evidence
+
+approval chain
+
+constraints
+
+policy set/version
+
+Approvals timeline (read-only; link out to GGE)
+
+Evidence checklist (upload + status)
+
+Commit log (when registry/graph changed)
+
+Actions:
+
+Upload evidence
+
+Withdraw (if draft/submitted)
+
+5.8 Evidence Library
+
+Views:
+
+By dependency/DU
+
+Expiring soon
+
+Missing required evidence (derived by policy)
+
+Evidence detail:
+
+type, revision, hash, verification status, verified_at, expires_at, source
+
+5.9 Signals / Incidents
+
+Signals list:
+
+severity, type, status, mapped subject, received time
+
+Incident detail:
+
+impacted graph results
+
+assigned owner/on-call
+
+remediation plan (from CWP)
+
+state transitions
+
+closure evidence + snapshot ref
+
+5.10 Policies (Read-only)
+
+Aegis should display (not author) the policies sourced from GGE:
+
+risk tier definitions
+
+evidence baselines
+
+approval baselines
+
+exception limits
+
+5.11 Connectors (Read-only)
+
+Show ingestion posture:
+
+connectors online/offline
+
+last event time
+
+coverage summary (how many dependencies have observed edges)
+
+contract versions
+
+6) CR Wizard (MVP: Add Dependency)
+
+A guided flow that reduces friction.
+
+Steps:
+
+Classify: software/vendor/infra/data + subclass
+
+Scope: environment + boundary + region
+
+Risk Inputs: criticality + data sensitivity + exposure hints
+
+Policy Preview: show derived risk tier, required evidence, approval chain (from GGE)
+
+Evidence Upload (optional now; required before approvals complete)
+
+Submit
+
+7) Component Library (Reusable)
+
+EntityCard (dependency/DU/service)
+
+RiskBadge (tier + criticality)
+
+EvidenceChecklist (required vs present)
+
+ApprovalTimeline
+
+DiffViewer (structured JSON diff + friendly view)
+
+GraphMiniPanel (up/downstream counts)
+
+SignalBanner (active alerts)
+
+EnvironmentFilterBar (global)
+
+8) Permissions Model (FE Behavior)
+
+FE must enforce and reflect authz:
+
+Operators can draft/submit CRs in allowed boundaries
+
+Approvers can view CRs and approval state; approvals happen in GGE (or via embedded GGE surface)
+
+Security/compliance can view evidence and signals broadly
+
+Evidence access is restricted by boundary + risk tier + sensitivity
+
+UI behavior:
+
+If user lacks access, hide actions but allow partial read views where permitted.
+
+9) FE Telemetry
+
+Track:
+
+search usage and time-to-find dependency
+
+CR funnel drop-offs (where friction occurs)
+
+most common evidence missing types
+
+graph query usage (impact vs explore)
+
+10) Evolution Path (FE)
+
+MVP
+
+Core pages + basic graph + CR wizard + evidence upload
+
+V1
+
+Saved views, richer graph overlays, snapshot diffs in UI, connector coverage panels
+
+V2
+
+Predictive posture dashboards, migration portfolio tracking, standardization recommendations UI
+

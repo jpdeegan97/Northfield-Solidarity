@@ -1,0 +1,156 @@
+
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This runbook defines the production-grade operational procedures for the Signal Aggregation Engine (SIG).
+It covers:
+safe startup and shutdown
+normal ingestion operations
+source incident handling
+replay, rebuild, and reprocessing
+data quality, security, and audit readiness
+SIG operations prioritize signal integrity, traceability, and recoverability.
+2. Operational Invariants
+Operators must never:
+edit canonical signal records
+delete signal provenance
+mutate trust, confidence, or decay values
+All remediation occurs via:
+source state transitions
+replay or rebuild jobs
+reprocessing with new rulesets
+3. Startup Procedure (Cold Start)
+3.1 Preflight Checks
+Before starting SIG services:
+Kafka reachable (consume + produce)
+Database reachable (read/write)
+Schema migrations applied
+Ruleset registry accessible
+Governance service reachable (if required)
+If any check fails → do not enable ingestion.
+3.2 Startup Order
+Start persistence services (PostgreSQL)
+Start Kafka + schema registry
+Start sig-signal-store
+Start sig-normalizer
+Start sig-scoring-engine
+Start sig-decay-engine
+Start sig-dedupe-engine
+Start sig-aggregate-engine
+Start sig-correlation-engine
+Start sig-publisher
+Start sig-ingress (sources disabled by default)
+3.3 Initial State
+All sources start as disabled
+Operators must explicitly enable sources after verification
+4. Normal Operations
+4.1 Enabling a Source
+Verify schema compatibility
+Review baseline reliability profile
+Enable source ingestion
+Monitor ingestion metrics for first 30 minutes
+4.2 Monitoring Checklist
+Per source:
+ingestion rate
+lag/backlog
+normalization error rate
+trust/confidence distribution shifts
+System-wide:
+write latency
+publish latency
+aggregate rebuild duration
+5. Incident Response Playbooks
+5.1 Schema Drift Detected
+Symptoms:
+spike in normalization failures
+Actions:
+Pause source ingestion
+Inspect raw captures
+Update normalization ruleset
+Reprocess affected inputs
+Resume source
+5.2 Abnormal Trust or Confidence Shifts
+Symptoms:
+sudden drop or spike in trust_score
+Actions:
+Validate source behavior
+Inspect scoring rationale
+Adjust scoring ruleset (governed)
+Trigger reprocessing if needed
+5.3 Deduplication Anomalies
+Symptoms:
+dedupe rate far outside baseline
+Actions:
+Inspect dedupe keys
+Validate temporal boundaries
+Tune dedupe ruleset
+5.4 Kafka Publish Failures
+Symptoms:
+publish failures or lag
+Actions:
+Pause ingress
+Verify Kafka health
+Resume publisher
+Trigger replay if required
+6. Replay, Rebuild, and Reprocessing
+6.1 Replay
+Used when downstream consumers need to rebuild state.
+Steps:
+Define replay scope
+Submit replay job with reason
+Monitor job progress
+Verify downstream consumption
+6.2 Aggregate & Correlation Rebuild
+Used after logic changes.
+Steps:
+Pause ingestion (optional)
+Trigger rebuild job
+Validate aggregate counts
+Resume ingestion
+6.3 Reprocessing Raw Captures
+Used after normalization or scoring updates.
+Steps:
+Deploy new ruleset version
+Select capture window
+Trigger reprocessing job
+Verify new signals emitted
+7. Security & Compliance
+Strict RBAC on provenance views
+No secrets in signal payloads
+All operator actions logged with reason
+Governance enforced for sensitive controls
+8. Disaster Recovery
+8.1 Database Failure
+Restore from backup
+Verify signal counts
+Rebuild aggregates
+8.2 Kafka Failure
+Restore Kafka
+Replay canonical signals
+9. Audit Readiness
+SIG must support:
+tracing any signal to its provenance
+explaining trust and confidence assignments
+reproducing aggregates deterministically
+auditing all operator actions
+10. Change Management
+Ruleset changes are versioned
+Source configuration changes audited
+Replay and rebuild jobs logged
+11. Document Position in SIG Corpus
+This runbook is informed by:
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+NS-SIG-011 — APIMAP
+NS-SIG-012 — STATE
+It complements:
+NS-SIG-014 — DATADEF
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Operational Runbook
+Parent / HoldCo Manager
+Status: Draft

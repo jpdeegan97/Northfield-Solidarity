@@ -1,0 +1,204 @@
+GGE Architecture & Design Document
+Overview
+System Name: Governance Graph Engine (GGE) 
+Document Title: GGE Architecture & Design Document
+Document Id: NS-GGP-003-ARCHITECTURE
+Version: 0.2 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: Upon Material System Change
+1. Purpose of This Document
+This document defines version 0.2 of the Governance Graph Engine (GGE) architecture, expanding the MVP design to explicitly include a Frontend (FE) MVP layer.
+The objective is to ensure that auditability, transparency, and governance visibility are first-class system features from day one — not retrofits.
+2. Design Philosophy (Reaffirmed)
+GGE is built on the following non-negotiable principles:
+ Governance-first architecture – the system enforces rules, not users
+ Deterministic execution – LLMs advise, code decides
+ Auditability by default – every action is traceable
+ Graph-native reasoning – dependencies determine behavior
+ Transparency over obscurity – governance state must be visible
+ Incremental extensibility – FE starts read-only, expands later
+3. High-Level System Overview
+GGE now consists of six core layers:
+ Data Layer (Source of Truth)
+ Graph & Dependency Layer
+ Decision Intelligence Layer (LLM-assisted)
+ Workflow & Versioning Layer
+ SOP Compilation & Output Layer
+ Frontend Visibility & Audit Layer (NEW)
+4. Core Backend Components (Unchanged, Contextualized)
+4.1 Component Registry
+Stores atomic governance components:
+  Authority Matrix
+  Materiality Thresholds
+  Risk & Compliance Elements
+These components drive all downstream SOP behavior.
+4.2 Dependency Graph Engine
+Maintains directed relationships between:
+  Components
+  SOPs
+  Other components
+The graph determines impact scope and update order.
+4.3 Update Decision Engine (LLM-assisted)
+Provides strategic reasoning:
+  Impact classification
+  Update sequencing
+  Version bump recommendation
+  Rationale generation
+All outputs are validated and constrained by system rules.
+4.4 Workflow & Versioning Engine
+Orchestrates the lifecycle of a governance update:
+ Component Change Detected
+ Impact Analysis
+ Update Plan Proposed
+ Approval Gate
+ SOP Regeneration
+ Release & Logging
+4.5 SOP Compiler
+Generates versioned SOP artifacts:
+  Markdown (authoritative)
+  Exportable formats (PDF, DOCX, HTML)
+Each SOP version is cryptographically and logically tied to its trigger events.
+5. Frontend (FE) MVP Layer (NEW)
+The FE MVP is intentionally read-only, focused on visibility and assurance, not control.
+5.1 FE Objectives
+  Provide transparency into GGE operations
+  Support audit, review, and governance oversight
+  Eliminate black-box perception of automation
+  Enable rapid historical reconstruction
+5.2 FE Screen 1: GGE Audit Trail Dashboard
+Purpose: Full visibility into every execution of GGE.
+Core Capabilities:
+  Chronological list of GGE execution events
+  Filter by:
+  Date range
+  Triggering component
+  SOP affected
+  Executing user / system actor
+Displayed Data:
+  Execution ID
+  Trigger source (component + version)
+  Affected SOPs
+  Decision summary
+  Approval outcomes
+  Timestamp
+Data Source:
+  update_events
+  approval_events
+  sop_versions
+5.3 FE Screen 2: SOP Version History & Registry
+Purpose: Centralized visibility into all SOP artifacts.
+Core Capabilities:
+  List of all SOPs
+  Expandable view of all historical versions
+  Direct access to:
+  Published SOP documents
+  Version metadata
+Displayed Data:
+  SOP title & ID
+  Current active version
+  Historical versions
+  Triggering component(s)
+  Effective dates
+Data Source:
+  sops
+  sop_versions
+  component_versions
+6. FE–BE Integration Model
+6.1 API-First Design
+The FE consumes read-only APIs exposed by the backend:
+  GET /audit/events
+  GET /sops
+  GET /sops/{id}/versions
+  GET /components/{id}/history
+No mutation endpoints are exposed in MVP.
+7. Data Model (FE-Relevant Additions)
+No new core tables are required.
+However, the following tables are explicitly FE-facing:
+  update_events
+  approval_events
+  sop_versions
+  component_versions
+Indexes should be optimized for:
+  Timestamp queries
+  SOP-based filtering
+  Component-based filtering
+8. Python Project Structure (Updated)
+gge/
+├── core/
+│   ├── components.py
+│   ├── dependencies.py
+│   ├── versioning.py
+│   └── audit.py
+│
+├── decision_engine/
+│   ├── prompts/
+│   │   └── update_decision.md
+│   ├── llm_interface.py
+│   └── validators.py
+│
+├── workflow/
+│   ├── state_machine.py
+│   └── approvals.py
+│
+├── sop_compiler/
+│   ├── templates/
+│   ├── injector.py
+│   └── exporter.py
+│
+├── api/                # NEW
+│   ├── audit_routes.py
+│   ├── sop_routes.py
+│   └── component_routes.py
+│
+├── db/
+│   ├── models.py
+│   ├── migrations/
+│   └── session.py
+│
+├── config/
+│   └── settings.yaml
+│
+└── main.py
+9. Frontend Stack (MVP Recommendation)
+Recommended:
+  React (TypeScript)
+  Minimal UI framework (e.g., Tailwind or equivalent)
+  Read-only authentication context
+Design Constraints:
+  No write actions in MVP
+  No approval actions in MVP
+  Focus on clarity, traceability, and navigation
+10. Governance & Security Boundaries
+  FE users cannot mutate data
+  All actions are executed via BE
+  Audit logs are immutable
+  Access control enforced at API layer
+11. MVP Success Criteria (Updated)
+  Deterministic SOP regeneration
+  Full audit trail visible via FE
+  Complete SOP version history accessible
+  Clear lineage from component → decision → SOP
+  Zero manual SOP drift
+12. Future FE Expansion (Explicitly Out of Scope)
+  Approval actions
+  Component editing
+  Threshold modification
+  User role management
+  External advisor portals
+These are intentionally deferred to preserve governance integrity.
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial MVP Architecture
+Parent / HoldCo Manager
+0.2
+TBD
+FE MVP Added (Audit + SOP History)
+Parent / HoldCo Manager
+End of Document

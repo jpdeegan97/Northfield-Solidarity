@@ -1,0 +1,125 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document provides a concrete end-to-end example (EEE) illustrating how the Deep Research Engine (DRE) operates across its full lifecycle — from raw source ingestion to governed promotion into downstream engines.
+The goal is to validate:
+  evidence provenance
+  hypothesis evolution
+  confidence management
+  governance-controlled promotion
+  replay and auditability
+2. Scenario Overview
+Scenario:
+Northfield Solidarity is exploring small-scale warehouse automation for regional 3PL operators.
+The research question:
+Is there a durable cost and throughput advantage in adopting mid-cap autonomous picking robots for regional warehouses?
+DRE will:
+  collect evidence
+  form and evolve a hypothesis
+  synthesize a narrative
+  promote validated research to PIE and SIM
+3. Step 1 — Source Discovery & Registration
+Sources Identified:
+  vendor whitepapers (robotics vendors)
+  logistics trade publications
+  warehouse automation case studies
+Actions:
+  sources registered in source
+  credibility and bias notes recorded
+Artifacts Created:
+  source_id = SRC-101, SRC-102, SRC-103
+4. Step 2 — Evidence Capture
+Evidence Items Captured:
+  EV-201: throughput benchmarks from vendor A
+  EV-202: cost breakdown from 3PL case study
+  EV-203: failure rate discussion from forum
+Each evidence item is:
+  timestamped
+  fingerprinted
+  immutable
+5. Step 3 — Theme & Hypothesis Creation
+Theme Created:
+  Theme: “Regional Warehouse Automation”
+Hypothesis v1:
+“Mid-cap autonomous picking robots reduce per-unit fulfillment cost by ≥15% in regional warehouses.”
+Initial state:
+  hypothesis_version = 1
+  state = open
+  confidence = 0.45
+Citations link EV-201 and EV-202.
+6. Step 4 — Synthesis & Narrative Draft
+Narrative Draft v1:
+  summarizes throughput gains
+  highlights cost reduction mechanisms
+  notes operational risks
+Narrative is:
+  editable
+  linked to hypothesis v1
+7. Step 5 — Confidence Update
+New Evidence:
+  EV-204: maintenance downtime report
+Decision:
+  classify EV-204 as counter-evidence
+  update confidence
+Hypothesis v2:
+  confidence = 0.62
+  state = supported
+Prior version remains intact.
+8. Step 6 — Promotion Request
+Promotion Request Created:
+  artifact: hypothesis v2 + narrative v1
+  target engines: PIE, SIM
+  rationale: sustained cost advantage with bounded risk
+Request is immutable once submitted.
+9. Step 7 — Governance Review (GGP)
+GGP Review Checks:
+  evidence coverage sufficient
+  confidence above threshold
+  narrative accepted
+Outcome: approved
+Governance Ref: GGP-APR-7781
+10. Step 8 — Downstream Consumption
+PIE:
+  incorporates hypothesis into opportunity scoring
+SIM:
+  uses cost-reduction assumption in scenarios
+Downstream engines consume a promotion snapshot, not live research.
+11. Step 9 — Iteration & Evolution
+New Evidence Appears:
+  EV-205: energy cost volatility
+Actions:
+  evidence captured
+  hypothesis v3 created
+  confidence adjusted
+Previously promoted version remains valid for historical decisions.
+12. Audit & Replay Validation
+Questions Answered:
+ Why was the hypothesis promoted?
+  evidence citations + decision artifact
+ What changed confidence?
+  EV-204 counter-evidence
+ Can we replay conclusions as of promotion?
+  replay hypothesis v2 + ruleset_version
+13. Invariants Demonstrated
+  evidence is immutable
+  hypotheses evolve via versions
+  confidence updates are explicit
+  promotion is governed
+  downstream engines consume frozen snapshots
+14. Document Position in DRE Corpus
+This EEE validates:
+  NS-DRE-002 — TAXONOMY
+  NS-DRE-003 — ARCHITECTURE
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-005 — DECISION
+  NS-DRE-006 — VERSION
+  NS-DRE-007 — DATAMODEL
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE End-to-End Example
+Parent / HoldCo Manager
+Status: Draft

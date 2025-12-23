@@ -1,0 +1,103 @@
+Signal Aggregation Engine (SIG)
+1. Purpose
+The Signal Aggregation Engine (SIG) is responsible for ingesting, normalizing, scoring, and aggregating raw signals from across the internal and external landscape.
+SIG answers a single foundational question:
+What signals exist right now, how reliable are they, and how do they relate to one another?
+SIG does not decide strategy, generate insights, execute actions, or govern outcomes. It exists to provide clean, trust-scored signal primitives that higher-order engines can reason over.
+2. Role Within Northfield Solidarity
+SIG sits at the base of the intelligence stack, upstream of synthesis engines.
+Primary upstream sources:
+MUX — external platform events and state artifacts
+Internal telemetry — execution traces, performance metrics, system events
+Third-party data feeds — market, pricing, sentiment, macro indicators
+Primary downstream consumers:
+PIE — signal synthesis into product insights
+DRE — long-horizon research and thematic discovery
+SIM — scenario inputs and parameterization
+GGP — audit, provenance, and governance review
+SIG is the only engine permitted to define canonical signal semantics.
+3. What SIG Produces
+SIG produces Signals, which are atomic, time-bound observations with explicit provenance and trust metadata.
+Each signal includes:
+A canonical signal type
+Normalized value(s)
+Source attribution
+Trust and confidence scores
+Temporal validity and decay semantics
+Signals are designed to be:
+composable
+comparable
+replayable
+explainable
+4. What SIG Does Not Do
+SIG explicitly does not:
+Interpret signals into opportunities (PIE)
+Simulate outcomes or counterfactuals (SIM)
+Execute or verify actions (DAT)
+Manage identities or permissions (IDN / PECA)
+Approve or govern decisions (GGP)
+SIG aggregates truth; others interpret it.
+5. Core Capabilities
+Signal Ingestion
+Consume raw events and metrics from MUX and internal systems.
+Normalization
+Convert heterogeneous inputs into canonical signal types.
+Trust Scoring
+Assign reliability and confidence scores based on source, recency, and integrity.
+Aggregation & Correlation
+Group related signals across sources and time.
+Decay & Relevance Management
+Reduce influence of stale or low-confidence signals.
+6. Signal Characteristics
+Signals managed by SIG are:
+Atomic — smallest meaningful observation
+Time-indexed — bound to a moment or interval
+Source-attributed — always traceable
+Non-authoritative — inputs to decision-making, not decisions themselves
+Signals may be contradictory; SIG preserves disagreement rather than resolving it.
+7. Interaction With Other Engines
+Engine
+Relationship to SIG
+MUX
+Supplies raw external events
+PIE
+Consumes trust-scored signals
+DRE
+Explores long-horizon signal patterns
+SIM
+Uses signals as scenario inputs
+DAT
+May emit execution telemetry signals
+GGP
+Audits signal lineage and usage
+SIG never bypasses governance or execution controls.
+8. Operational Posture
+SIG is:
+Write-heavy (continuous ingestion)
+Append-only for signal facts
+Replayable for model evolution
+Eventually consistent for derived aggregates
+SIG favors completeness and traceability over immediacy.
+9. Expected Outcomes
+When SIG is operating correctly:
+Signals are clean, comparable, and trustworthy
+Noise is reduced without discarding information
+Downstream engines reason with better primitives
+Audit and replay are straightforward
+SIG reduces ambiguity at the signal layer.
+10. Document Position in SIG Corpus
+This overview document is complemented by:
+NS-SIG-000 — CHARTER
+NS-SIG-002 — TAXONOMY
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-004 — LIFECYCLE
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Overview
+Parent / HoldCo Manager
+Status: Draft

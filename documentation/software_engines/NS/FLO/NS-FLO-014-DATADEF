@@ -1,0 +1,1205 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the canonical data definitions for the Financial Ledger Orchestrator (FLO).
+It provides:
+Field-level definitions for authoritative FLO entities
+Explicit meaning, constraints, and invariants
+Cross-engine contract clarity (DAT, MUX, GGP, PTE, IDN/PECA)
+Replay and audit semantics
+This is the single source of truth for FLO data semantics.
+2. Data Definition Principles
+Append-Only Truth — ledger history is never rewritten
+Evidence & Attribution — every entry must have a source and linkable evidence
+Derived State Only — balances, budget burn, and reconciliation status are derived
+Version-Bound Decisions — ruleset versions are recorded for all decisions
+Reference External Truth — other engines are referenced by stable IDs only
+3. Identifier Conventions
+ledger_entry_id (UUID): immutable ledger record
+transaction_id (UUID): immutable grouping of entries
+event_id (UUID): normalized financial event record
+statement_id (UUID): external statement batch
+reconciliation_id (UUID): reconciliation outcome record
+budget_id (UUID): budget artifact
+allocation_id (UUID): allocation artifact
+entity_id (UUID): entity owner reference (IDN/PECA)
+account_id (UUID): account reference (IDN/PECA)
+correlation_id (UUID): end-to-end trace ID
+4. Canonical Entity Definitions (Authoritative)
+4.1 Normalized Financial Event (normalized_financial_event)
+Meaning:A normalized representation of a financial-impacting observation from an engine or external feed.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+event_id
+
+UUID
+
+Yes
+
+Internal normalized event identifier
+
+
+source_system
+
+Enum
+
+Yes
+
+DAT / MUX / MANUAL
+
+
+external_event_id
+
+String
+
+No
+
+External event identifier (if exists)
+
+
+event_type
+
+String
+
+Yes
+
+Canonical type (spend, sale, payout, fee, refund, transfer)
+
+
+gross_amount
+
+Decimal
+
+Yes
+
+Signed amount in original currency
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+When the activity occurred
+
+
+ingested_at
+
+Timestamp
+
+Yes
+
+When FLO ingested it
+
+
+entity_id
+
+UUID
+
+Yes
+
+Owner entity
+
+
+account_hint
+
+String
+
+No
+
+Optional hint from source
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+
+
+payload
+
+JSON
+
+No
+
+Source payload (redacted where needed)
+Constraints:
+Uniqueness: (source_system, external_event_id) when external_event_id is present
+4.2 Transaction (transaction)
+Meaning:A logical grouping of one or more ledger entries that represent a financial action.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+transaction_id
+
+UUID
+
+Yes
+
+Transaction identifier
+
+
+transaction_type
+
+String
+
+Yes
+
+e.g., sale, expense, refund, payout, transfer
+
+
+entity_id
+
+UUID
+
+Yes
+
+Owner entity
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Ledger creation time
+
+
+classification_ruleset
+
+String
+
+Yes
+
+Ruleset name
+
+
+classification_version
+
+String
+
+Yes
+
+Ruleset version
+
+
+source_event_ids
+
+JSON/Array
+
+Yes
+
+References to normalized events
+
+
+upstream_refs
+
+JSON
+
+No
+
+DAT/MUX/GGP references
+Constraints:
+Transaction is immutable after creation
+4.3 Ledger Entry (ledger_entry)
+Meaning:The authoritative financial fact record. Immutable and append-only.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+ledger_entry_id
+
+UUID
+
+Yes
+
+Ledger entry identifier
+
+
+transaction_id
+
+UUID
+
+Yes
+
+Parent transaction
+
+
+entity_id
+
+UUID
+
+Yes
+
+Owner entity
+
+
+account_id
+
+UUID
+
+Yes
+
+Account affected
+
+
+direction
+
+Enum
+
+Yes
+
+debit / credit
+
+
+amount
+
+Decimal
+
+Yes
+
+Absolute amount
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+Financial time
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Ledger write time
+
+
+category
+
+String
+
+No
+
+Expense/revenue category (MVP: coarse)
+
+
+budget_id
+
+UUID
+
+No
+
+Budget reference
+
+
+budget_version
+
+Integer
+
+No
+
+Budget version at time of entry
+
+
+allocation_id
+
+UUID
+
+No
+
+Allocation reference
+
+
+allocation_version
+
+Integer
+
+No
+
+Allocation version
+
+
+source_event_id
+
+UUID
+
+Yes
+
+Normalized event reference
+
+
+dedupe_key
+
+String
+
+Yes
+
+Stable dedupe key for idempotency
+
+
+evidence_refs
+
+JSON/Array
+
+No
+
+Links to evidence artifacts
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+Invariants:
+Ledger entries are immutable
+(source_event_id, account_id, direction, amount) should be unique (implementation choice)
+4.4 Budget Definition (budget_definition)
+Meaning:A governed financial cap policy applied to an entity or scope.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+budget_id
+
+UUID
+
+Yes
+
+Budget identifier
+
+
+version
+
+Integer
+
+Yes
+
+Monotonic version
+
+
+entity_id
+
+UUID
+
+Yes
+
+Owner entity
+
+
+scope_type
+
+Enum
+
+Yes
+
+plan / category / time_window / allocation_pool
+
+
+scope_ref
+
+String
+
+No
+
+Optional scope binding (e.g., plan_id)
+
+
+max_amount
+
+Decimal
+
+Yes
+
+Cap
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+warning_threshold_pct
+
+Decimal
+
+No
+
+e.g., 0.85
+
+
+active_from
+
+Timestamp
+
+Yes
+
+Start
+
+
+active_to
+
+Timestamp
+
+No
+
+End
+
+
+ggp_decision_id
+
+String
+
+Yes
+
+Governance approval reference
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Creation time
+Invariants:
+Budgets are immutable per version
+New versions replace forward; old versions remain valid historically
+4.5 Allocation Definition (allocation_definition)
+Meaning:A governed subdivision of a budget.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+allocation_id
+
+UUID
+
+Yes
+
+Allocation identifier
+
+
+version
+
+Integer
+
+Yes
+
+Monotonic version
+
+
+budget_id
+
+UUID
+
+Yes
+
+Parent budget
+
+
+allocation_scope
+
+String
+
+Yes
+
+product/campaign/channel/etc
+
+
+scope_ref
+
+String
+
+No
+
+Optional binding
+
+
+max_amount
+
+Decimal
+
+Yes
+
+Cap
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+created_at
+
+Timestamp
+
+Yes
+
+Creation
+4.6 Decision Artifact (decision_artifact)
+Meaning:An immutable record of a FLO decision.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+decision_id
+
+UUID
+
+Yes
+
+Decision identifier
+
+
+decision_type
+
+Enum
+
+Yes
+
+dedupe / classify / ledger_admit / budget_eval / recon_match / manual_adjust
+
+
+outcome
+
+String
+
+Yes
+
+Outcome value
+
+
+rationale
+
+JSON
+
+Yes
+
+Structured explanation
+
+
+ruleset_name
+
+String
+
+Yes
+
+Ruleset
+
+
+ruleset_version
+
+String
+
+Yes
+
+Version
+
+
+evaluated_at
+
+Timestamp
+
+Yes
+
+Decision time
+
+
+actor_type
+
+Enum
+
+Yes
+
+system / operator / governance
+
+
+actor_id
+
+String
+
+No
+
+Operator/governance identifier
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+5. External Truth & Reconciliation Entities
+5.1 External Statement (external_statement)
+Meaning:A snapshot of external truth from a bank/processor/marketplace.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+statement_id
+
+UUID
+
+Yes
+
+Statement identifier
+
+
+source_system
+
+String
+
+Yes
+
+Bank/Processor/Marketplace
+
+
+period_start
+
+Date
+
+Yes
+
+Start
+
+
+period_end
+
+Date
+
+Yes
+
+End
+
+
+imported_at
+
+Timestamp
+
+Yes
+
+Import time
+
+
+statement_hash
+
+String
+
+Yes
+
+Content hash
+
+
+raw_ref
+
+String
+
+No
+
+File/object reference
+5.2 Statement Line Item (statement_line_item)
+Meaning:A line item within an external statement.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+statement_line_id
+
+UUID
+
+Yes
+
+Line identifier
+
+
+statement_id
+
+UUID
+
+Yes
+
+Parent statement
+
+
+external_line_id
+
+String
+
+No
+
+External line ID
+
+
+amount
+
+Decimal
+
+Yes
+
+Signed amount
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+External time
+
+
+counterparty
+
+String
+
+No
+
+Optional
+
+
+memo
+
+String
+
+No
+
+Optional
+Constraints:
+Uniqueness: (statement_id, external_line_id) when present
+5.3 Reconciliation Record (reconciliation_record)
+Meaning:An immutable record describing a match or mismatch between ledger truth and external truth.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+reconciliation_id
+
+UUID
+
+Yes
+
+Reconciliation identifier
+
+
+outcome
+
+Enum
+
+Yes
+
+pending / matched / missing / excess / disputed
+
+
+ledger_entry_id
+
+UUID
+
+No
+
+Ledger ref (optional for missing)
+
+
+transaction_id
+
+UUID
+
+No
+
+Optional transaction-level recon
+
+
+statement_line_id
+
+UUID
+
+No
+
+Statement line ref (optional for excess)
+
+
+statement_id
+
+UUID
+
+Yes
+
+Statement batch
+
+
+match_confidence
+
+Decimal
+
+No
+
+0..1
+
+
+matched_by
+
+Enum
+
+Yes
+
+system / operator
+
+
+reason
+
+String
+
+No
+
+Operator reason or classifier reason
+
+
+ruleset_name
+
+String
+
+Yes
+
+Reconciliation ruleset
+
+
+ruleset_version
+
+String
+
+Yes
+
+Version
+
+
+evaluated_at
+
+Timestamp
+
+Yes
+
+Time
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+Invariants:
+Reconciliation never mutates ledger entries
+Multiple reconciliation records may exist over time
+6. Derived Read Models (Non-Authoritative)
+6.1 Account Balance View (account_balance_view)
+
+
+
+Field
+
+Type
+
+Description
+
+
+entity_id
+
+UUID
+
+Owner
+
+
+account_id
+
+UUID
+
+Account
+
+
+currency
+
+String
+
+ISO
+
+
+balance
+
+Decimal
+
+Derived from ledger
+
+
+as_of
+
+Timestamp
+
+Computation time
+6.2 Budget State View (budget_state_view)
+
+
+
+Field
+
+Type
+
+Description
+
+
+budget_id
+
+UUID
+
+Budget
+
+
+version
+
+Integer
+
+Budget version
+
+
+spent_amount
+
+Decimal
+
+Derived
+
+
+remaining_amount
+
+Decimal
+
+Derived
+
+
+state
+
+Enum
+
+ok/near_limit/exhausted
+
+
+as_of
+
+Timestamp
+
+Computation time
+6.3 Execution Attribution View (execution_attribution_view)
+
+
+
+Field
+
+Type
+
+Description
+
+
+execution_plan_id
+
+UUID/String
+
+DAT plan
+
+
+plan_version
+
+Integer
+
+DAT version
+
+
+entity_id
+
+UUID
+
+Owner
+
+
+total_spend
+
+Decimal
+
+Derived
+
+
+total_revenue
+
+Decimal
+
+Derived (if available)
+
+
+as_of
+
+Timestamp
+
+Computation time
+7. Cross-Engine Reference Contracts (IDs Only)
+FLO references external engines by ID only:
+DAT: execution_plan_id, plan_version
+MUX: processor_transaction_id, payout_id, bank_transfer_id
+GGP: ggp_decision_id (budget approval, adjustment approval)
+PTE: performance_record_id (reference)
+IDN/PECA: entity_id, account_id
+FLO does not duplicate external authoritative truth.
+8. Invariants & Validation Rules
+Ledger entries are immutable
+Transactions are immutable groupings
+Every ledger entry has:entity_idaccount_idsource attributioncorrelation_id
+Corrections occur via new ledger entries
+Reconciliation never mutates ledger truth
+All timestamps are UTC
+9. Document Position in FLO Corpus
+This DATADEF document completes the FLO documentation set.
+It is informed by:
+NS-FLO-007 — DATAMODEL
+NS-FLO-011 — APIMAP
+NS-FLO-012 — STATE
+NS-FLO-013 — RUNBOOK
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Canonical Data Definitions
+
+Parent / HoldCo Manager
+Status: Draft

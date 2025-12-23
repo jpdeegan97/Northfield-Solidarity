@@ -1,0 +1,163 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This runbook defines the operational procedures, controls, and recovery actions required to safely operate the Product InsightIQ Engine (PIE) in production.
+It is intended for:
+Operators
+Platform engineers
+Governance reviewers
+The runbook assumes PIE is running as a read-first, advisory system governed by GGP.
+2. Operational Objectives
+PIE operations must ensure:
+Continuous intake of signals and research
+Deterministic insight generation
+Auditability and replay readiness
+Zero execution side-effects
+Safe recovery from partial failures
+3. System Health & Readiness Checks
+3.1 Startup Checklist
+Before declaring PIE healthy:
+Signal intake connectivity to SIG verified
+Research intake connectivity to DRE verified
+Authoritative datastore reachable (read/write)
+Derived read-model store reachable
+Active scoring model loaded
+Governance control endpoints reachable
+If any item fails, PIE must remain in safe mode (publication paused).
+3.2 Safe Mode
+Safe Mode Characteristics:
+Signal and research intake continues
+Insight generation continues
+Publication and promotion are paused
+No downstream events emitted
+Safe mode may be entered:
+Automatically (on dependency failure)
+Manually (via governed control)
+4. Normal Operations
+4.1 Signal & Research Intake
+Expected behavior:
+Continuous ingestion
+Backpressure applied on burst conditions
+Monitoring:
+Intake lag
+Drop rate (by trust threshold)
+4.2 Insight Generation Pipeline
+Expected behavior:
+Deterministic generation
+Idempotent processing per evidence bundle
+Monitoring:
+Candidate insight rate
+Error rate by pipeline stage
+4.3 Scoring & Decision Evaluation
+Expected behavior:
+Active scoring model version applied
+Promotion readiness evaluated
+Monitoring:
+Score distributions
+Promotion-ready rate
+5. Governance Operations
+5.1 Promotion to GGP
+Procedure:
+Verify promotion readiness true
+Submit package to GGP
+Confirm governance receipt
+PIE must not retry submissions blindly; retries must be idempotent.
+5.2 Governance Decision Intake
+When GGP responds:
+Record state transition
+Persist governance reference ID
+Update derived read models
+6. Replay & Backfill Procedures
+6.1 Read Model Rebuild
+Use when:
+Derived models are corrupted
+Ranking logic updated
+Procedure:
+Pause publication
+Drop derived tables
+Rebuild from authoritative store
+Validate counts and checksums
+Resume publication
+6.2 Score Replay
+Use when:
+New scoring model version activated
+Procedure:
+Activate new scoring model (governed)
+Recompute scores for historical insights
+Append new scoring_result records
+Validate score distributions
+6.3 Decision Replay
+Use when:
+Promotion thresholds change
+Procedure:
+Pause promotion
+Re-evaluate promotion readiness
+Append new decision_context records
+Resume promotion
+7. Failure Scenarios & Responses
+7.1 SIG Unavailable
+Response:
+Enter safe mode
+Buffer incoming events if possible
+Alert operators
+7.2 DRE Unavailable
+Response:
+Continue signal-only insights
+Flag reduced confidence
+Alert operators
+7.3 Authoritative Store Failure
+Response:
+Halt insight generation
+Enter safe mode
+Prevent state mutation
+7.4 Derived Store Failure
+Response:
+Serve degraded read experience if possible
+Schedule rebuild
+8. Observability & Alerts
+Key metrics:
+Intake lag
+Insight generation throughput
+Promotion-ready rate
+Error rate by stage
+Replay duration
+Alerts:
+Dependency loss
+Score distribution anomalies
+Unexpected promotion spikes
+9. Security & Access Controls
+Read APIs are read-only
+Control APIs are GGP-governed
+All control actions emit auditable events
+10. Operational Invariants
+PIE never executes actions
+PIE never mutates historical records
+Publication can always be paused
+Replay never overwrites history
+11. Document Position in PIE Corpus
+This runbook is informed by:
+NS-PIE-009 — IMPL
+NS-PIE-011 — APIMAP
+NS-PIE-012 — STATE
+It precedes:
+NS-PIE-014 — DATADEF
+12. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE Operational Runbook
+
+Parent / HoldCo Manager
+Status: Draft

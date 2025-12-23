@@ -1,0 +1,171 @@
+GGP Data Contracts PE& Persistence Canonical Spec
+Purpose
+This document is the single authoritative reference for:
+  Event contracts (Kafka)
+  Postgres table definitions and relationships
+  Mongo read‑model schemas
+  Consumer idempotency + DLQ rules
+  Cross‑store data ownership boundaries
+This document exists so that data shape, ownership, and replayability are never ambiguous.
+System of record vs derived state
+Authoritative (cannot be rebuilt from events alone)
+  Postgres
+  sop
+  sop_version
+  audit_event
+  consumer\_processed\_event
+Derived / rebuildable
+  MongoDB
+  rm\_sop\_index
+  rm\_sop\_versions
+  rm\_audit\_trail
+Rule: If it would be catastrophic to lose it, it lives in Postgres.
+Canonical event envelope (Kafka)
+{
+  "event_id": "uuid",
+  "event_type": "ggp.core.sop.version_published",
+  "occurred_at": "ISO-8601 UTC",
+  "producer": "service@version",
+  "correlation_id": "uuid",
+  "causation_id": "uuid|null",
+  "actor": {
+    "type": "user|service",
+    "id": "string",
+    "display": "string|null"
+  },
+  "tenant_id": "string|null",
+  "schema_version": 1,
+  "payload": {}
+}
+Kafka topic registry (Slice #1)
+Topic
+Purpose
+ggp.core.sop.created
+SOP draft created
+ggp.core.sop.version_published
+SOP version published
+ggp.core.sop.retired
+SOP retired (reserved)
+ggp.core.dlq.projection
+Projection failures
+ggp.core.dlq.audit
+Audit failures
+Consumer groups:
+  ggp-projection-v1
+  ggp-audit-v1
+Postgres schema (authoritative)
+4.1 sop
+sop_id (PK, UUID)
+title
+status (draft|published|retired)
+tags[]
+current_version
+created_at
+updated_at
+created_by
+updated_by
+4.2 sop_version
+(sop_id, version) PK
+content_hash
+content_json
+content_ref
+published_at
+published_by
+Relationship:
+  sop 1 ──▶ N sop_version
+4.3 audit_event (append‑only)
+event_id (PK)
+event_type
+occurred_at
+producer
+correlation_id
+causation_id
+actor_type
+actor_id
+actor_display
+tenant_id
+schema_version
+payload (JSONB)
+kafka_topic
+kafka_partition
+kafka_offset
+ingested_at
+4.4 consumer\_processed\_event (idempotency ledger)
+(consumer_group, event_id) PK
+event_type
+processed_at
+kafka_topic
+kafka_partition
+kafka_offset
+Mongo read‑model schemas (derived)
+5.1 rm\_sop\_index
+{
+  "_id": "sop_id",
+  "sop_id": "uuid",
+  "title": "string",
+  "status": "draft|published|retired",
+  "tags": ["string"],
+  "current_version": 1,
+  "created_at": "date",
+  "updated_at": "date"
+}
+5.2 rm\_sop\_versions
+{
+  "_id": "sop_id:version",
+  "sop_id": "uuid",
+  "version": 1,
+  "content_hash": "sha256",
+  "content": {},
+  "content_ref": null,
+  "published_at": "date",
+  "published_by": "string|null"
+}
+5.3 rm\_audit\_trail
+{
+  "_id": "event_id",
+  "event_id": "uuid",
+  "event_type": "string",
+  "occurred_at": "date",
+  "actor": { "type": "user|service", "id": "string" },
+  "correlation_id": "uuid",
+  "entity_refs": { "sop_id": "uuid|null" },
+  "summary": "string",
+  "severity": "info|warn|high"
+}
+Postgres relationship diagram (authoritative)
+erDiagram
+    SOP ||--o{ SOP_VERSION : has
+    AUDIT_EVENT ||--|| SOP : "references (payload)"
+    CONSUMER_PROCESSED_EVENT ||--|| AUDIT_EVENT : tracks
+Mongo projection relationship diagram (derived)
+erDiagram
+    RM_SOP_INDEX ||--o{ RM_SOP_VERSIONS : projects
+    RM_AUDIT_TRAIL ||--|| RM_SOP_INDEX : references
+Cross‑store lineage diagram
+flowchart LR
+    SOP_DB[(Postgres:sop)] -->|emit events| KAFKA[(Kafka)]
+    SOP_VERSION_DB[(Postgres:sop_version)] --> KAFKA
+
+    KAFKA -->|projection| RM_INDEX[(Mongo:rm_sop_index)]
+    KAFKA -->|projection| RM_VERSIONS[(Mongo:rm_sop_versions)]
+
+    KAFKA -->|audit| AUDIT_DB[(Postgres:audit_event)]
+    KAFKA -->|audit| RM_AUDIT[(Mongo:rm_audit_trail)]
+
+    CONSUMER_LEDGER[(Postgres:consumer_processed_event)] <-- KAFKA
+Projection consumer contract (summary)
+ Validate envelope
+ Insert (consumer\_group, event\_id) into consumer\_processed\_event
+ If conflict → skip
+ Apply deterministic Mongo upserts
+ Commit Kafka offset
+Failures:
+  Transient → retry w/ backoff
+  Schema/invariant → DLQ + commit offset
+Guarantees this spec enforces
+  Deterministic replay
+  No duplicate projections
+  Full forensic audit trail
+  Clear ownership of truth vs projections
+  Safe evolution of schemas
+This document is the canonical data contract for GGP. Any change to tables, events, or projections must update this file first.

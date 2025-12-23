@@ -1,0 +1,290 @@
+Deliverable A: core/ contract
+    •   Event envelope schema (fields + types)
+        A1) Canonical event envelope (JSON)
+        Rules:
+            •   event_id is globally unique and never reused.
+            •   event_type is the full topic name (keeps it unambiguous).
+            •   correlation_id is per-request / per-run thread (propagate across services).
+            •   causation_id is “what caused this event” (previous event_id, or null for a root command).
+            •   schema_version increments only when the envelope or payload shape changes.
+        {
+        "event_id": "uuid",
+        "event_type": "ggp.core.sop.version_published",
+        "occurred_at": "2025-12-17T06:12:34.123Z",
+        "producer": "ggp-api@0.1.0",
+        "correlation_id": "uuid",
+        "causation_id": "uuid-or-null",
+        "actor": {
+            "type": "user|service",
+            "id": "string",
+            "display": "string|null"
+        },
+        "tenant_id": "string|null",
+        "schema_version": 1,
+        "payload": { }
+        }
+    •   Topic constants
+ 
+        A2) Topic registry (Slice #1)
+            Put these in core/topics.py (or equivalent):
+                ggp.core.sop.created
+                ggp.core.sop.version_published
+                ggp.core.sop.retired          (optional, keep reserved now)
+                ggp.core.dlq.projection
+                ggp.core.dlq.audit
+            Consumer groups (for later config constants):
+                ggp-projection-v1
+                ggp-audit-v1
+    •   Correlation/causation rules
+    •   Example events (JSON)
+    A3) Payload schemas (Slice #1)
+        {
+            "sop_id": "uuid",
+            "title": "string",
+            "status": "draft",
+            "tags": ["string"],
+            "created_at": "2025-12-17T06:12:34.123Z"
+        }
+        
+        ggp.core.sop.version_published payload
+        {
+            "sop_id": "uuid",
+            "version": 1,
+            "content_ref": "string|null",
+            "content": { "blocks": [] },
+            "content_hash": "sha256-hex",
+            "published_at": "2025-12-17T06:13:10.001Z"
+        }
+        Notes:
+        •   You can start with inline content JSON, but keep content_ref reserved for later (S3/minio/file store).
+        •   content_hash becomes your integrity anchor (versioning module).
+Deliverable B: Postgres schema (Alembic)
+    •   sop
+            CREATE TABLE IF NOT EXISTS sop (
+            sop_id          UUID PRIMARY KEY,
+            title           TEXT NOT NULL,
+            status          TEXT NOT NULL CHECK (status IN ('draft','published','retired')),
+            tags            TEXT[] NOT NULL DEFAULT '{}',
+            current_version INTEGER NOT NULL DEFAULT 0,
+            created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+            created_by      TEXT NULL,
+            updated_by      TEXT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_sop_status ON sop(status);
+            CREATE INDEX IF NOT EXISTS idx_sop_updated_at ON sop(updated_at DESC);
+    •   sop_version
+            CREATE TABLE IF NOT EXISTS sop_version (
+            sop_id        UUID NOT NULL REFERENCES sop(sop_id) ON DELETE CASCADE,
+            version       INTEGER NOT NULL,
+            content_hash  TEXT NOT NULL,
+            content_json  JSONB NULL,
+            content_ref   TEXT NULL,
+            published_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+            published_by  TEXT NULL,
+            PRIMARY KEY (sop_id, version)
+            );
+            CREATE INDEX IF NOT EXISTS idx_sop_version_published_at ON sop_version(published_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_sop_version_hash ON sop_version(content_hash);
+    •   audit_event
+            CREATE TABLE IF NOT EXISTS audit_event (
+            event_id      UUID PRIMARY KEY,
+            event_type    TEXT NOT NULL,
+            occurred_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+            producer      TEXT NOT NULL,
+            correlation_id UUID NULL,
+            causation_id   UUID NULL,
+            actor_type     TEXT NULL,
+            actor_id       TEXT NULL,
+            actor_display  TEXT NULL,
+            tenant_id      TEXT NULL,
+            schema_version INTEGER NOT NULL,
+            payload        JSONB NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_audit_event_type ON audit_event(event_type);
+            CREATE INDEX IF NOT EXISTS idx_audit_event_occurred_at ON audit_event(occurred_at DESC);
+    
+    •   consumer_processed_event (idempotency ledger)
+            
+            CREATE TABLE IF NOT EXISTS sop_version (
+            sop_id        UUID NOT NULL REFERENCES sop(sop_id) ON DELETE CASCADE,
+            version       INTEGER NOT NULL,
+            content_hash  TEXT NOT NULL,
+            content_json  JSONB NULL,
+            content_ref   TEXT NULL,
+            published_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+            published_by  TEXT NULL,
+            PRIMARY KEY (sop_id, version)
+            );
+            CREATE INDEX IF NOT EXISTS idx_sop_version_published_at ON sop_version(published_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_sop_version_hash ON sop_version(content_hash);
+Deliverable C: vertical slice endpoints (FastAPI)
+1) CREATE SOP 
+    1.1) POST /api/sops
+                        
+                            Behavior:
+                        •   Writes sop row in Postgres
+                        •   Emits ggp.core.sop.created to Kafka (envelope in core/)
+                        
+                            Request:
+                            {
+                            "title": "Accounts Payable Controls",
+                            "tags": ["finance", "ap", "controls"]
+                            }
+                            Response 201:
+                            {
+                            "sop_id": "uuid",
+                            "title": "Accounts Payable Controls",
+                            "status": "draft",
+                            "tags": ["finance", "ap", "controls"],
+                            "current_version": 0,
+                            "created_at": "2025-12-17T06:12:34.123Z",
+                            "updated_at": "2025-12-17T06:12:34.123Z"
+                            }
+    1.2) POST /api/sops/{id}/publish
+    
+                            Request:
+                            {
+                                "content": {
+                                    "blocks": [
+                                        { "type": "h1", "text": "Accounts Payable Controls" },
+                                        { "type": "p", "text": "All invoices must be approved…" }
+                                    ]
+                                },
+                                "message": "Initial publication"
+                    }
+                            Response 200:
+                            {
+                                "sop_id": "uuid",
+                                "version": 1,
+                                "content_hash": "sha256-hex",
+                                "published_at": "2025-12-17T06:13:10.001Z",
+                                "status": "published",
+                                "current_version": 1
+                            }
+                        
+                            Behavior:
+                            •   Computes content_hash in versioning/
+                            •   Inserts sop_version(sop_id, version, content_hash, content_json, published_at, published_by)
+                            •   Updates sop.current_version and sop.status='published'
+                            •   Emits ggp.core.sop.version_published
+                            Hard rule:
+                            •   If READ_ONLY_MODE=true, return 409 (or 503) and do not write/emit.
+    1.3) GET /api/read/sops (reads Mongo)
+            Query params:
+                •   status (optional): draft|published|retired
+                •   tag (optional)
+                •   q (optional search string; MVP can do title contains)
+                •   limit (default 50, max 200)
+                •   cursor (optional for pagination later)
+            Response:           
+        
+            {
+            "items": [
+                {
+                "sop_id": "uuid",
+                "title": "Accounts Payable Controls",
+                "status": "published",
+                "tags": ["finance", "ap", "controls"],
+                "current_version": 1,
+                "updated_at": "2025-12-17T06:13:10.001Z"
+                }   
+            ],
+            "next_cursor": null
+            }       
+            
+            Source:
+            •   Mongo rm_sop_index
+    1.4) GET /api/read/sops/{id}/versions (reads Mongo)
+        Response:
+            {
+                "sop_id": "uuid",
+                "versions": [
+                    {
+                        "version": 1,
+                        "content_hash": "sha256-hex",
+                        "published_at": "2025-12-17T06:13:10.001Z"
+                    }
+                ]
+            }   
+                        
+            Source:
+            •   Mongo rm_sop_versions (query by sop_id, sort by version desc)
+    1.5) GET /api/read/sops/{sop_id}/versions/{version}
+            Response:
+            {
+                "sop_id": "uuid",
+                "version": 1,
+                "content_hash": "sha256-hex",
+                "published_at": "2025-12-17T06:13:10.001Z",
+                "content": { "blocks": [] }
+            }
+            Source:
+                •   Mongo rm_sop_versions doc keyed by (sop_id, version)
+    1.6) GET /api/health 
+            Response:
+            {
+            "status": "ok",
+            "dependencies": {
+                "postgres": "ok",
+                "kafka": "ok",
+                "mongo": "ok",
+                "redis": "ok"
+            }
+            }
+2) Mongo read-model collections (projections)
+2.1 rm_sop_index (SOP list view)
+Purpose: fast list/filter/search for FE.
+Document shape:
+{
+  "_id": "sop_id-uuid",
+  "sop_id": "uuid",
+  "title": "string",
+  "status": "draft|published|retired",
+  "tags": ["string"],
+  "current_version": 0,
+  "created_at": "date",
+  "updated_at":
+}
+Indexes:
+    •   { status: 1, updated_at: -1 }
+    •   { tags: 1, updated_at: -1 }
+    •   Optional text index on title for q: { title: "text" }
+2.2 rm_sop_versions (versioned content)
+Purpose: serve version lists + content fast.
+Document shape: 
+{
+  "_id": "sop_id-uuid:version",
+  "sop_id": "uuid",
+  "version": 1,
+  "content_hash": "sha256-hex",
+  "content_ref": null,
+  "content": { "blocks": [] },
+  "published_at": "date",
+  "published_by": "string|null"
+}
+Indexes:
+    •   { sop_id: 1, version: -1 } (for lists)
+    •   { sop_id: 1, version: 1 } (unique)
+2.3 rm_audit_trail (FE timeline, optional but high value)
+Even though Postgres is the source, FE timelines are easiest in Mongo.
+Document shape:
+ {
+  "_id": "event_id-uuid",
+  "event_id": "uuid",
+  "event_type": "string",
+  "occurred_at": "date",
+  "actor": { "type": "user|service", "id": "string", "display": "string|null" },
+  "correlation_id": "uuid",
+  "entity_refs": { "sop_id": "uuid|null" },
+  "summary": "string",
+  "severity": "info|warn|high"
+}
+Index:
+    •   { occurred_at: -1 }
+    •   { "entity_refs.sop_id": 1, occurred_at: -1 }
+Deliverable D: runnable services
+    •   api/ (FastAPI)
+    •   audit/ (Kafka → Postgres)
+    •   (next) projection/ (Kafka → Mongo)
+    ggp-projection-v1

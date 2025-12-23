@@ -1,0 +1,101 @@
+GGE Frontend MVP – State Management Plan v0.1
+Overview
+Document Title: Governance Graph Engine – Frontend MVP State Management Plan 
+Document ID: NS-GGP-012-STATE
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: As Needed / Upon Material Change
+1. Purpose
+This document defines the state management strategy for the GGE frontend MVP. It ensures that data retrieved from APIs is properly stored, shared across screens, and updated consistently in response to user interactions or backend changes.
+2. State Management Goals
+  Provide single source of truth for Execution and SOP data
+  Enable synchronized updates across multiple screens
+  Maintain filter and selection states persistently during user session
+  Support scalability for future enhancements (dependency visualization, real-time updates)
+  Simplify integration with API endpoints and FE components
+3. State Model Overview
+3.1 Global State Structure (React Context / Redux)
+state = {
+  executionAudit: {
+    selectedExecutionId: null,
+    executionData: {},          // execution_audit_view
+    componentChanges: [],       // from execution_audit_view
+    sopVersionsUpdated: [],     // from execution_audit_view
+    filters: {
+      dateRange: {start: null, end: null},
+      triggerType: null,
+      executorRole: null,
+      materiality: null
+    },
+    loading: false,
+    error: null
+  },
+  sopVersionHistory: {
+    selectedSopId: null,
+    sopVersions: [],            // from sop_history_view
+    filters: {
+      category: null
+    },
+    loading: false,
+    error: null
+  },
+  dependencyGraph: {
+    data: null,                  // optional graph object
+    loading: false,
+    error: null
+  },
+  user: {
+    role: null,                  // role-based rendering
+    permissions: []
+  }
+}
+3.2 Local Component State
+  Temporary UI states (sorting, pagination, expanded rows)
+  Form inputs if needed in future MVP
+4. State Management Strategy
+4.1 Context / Redux Usage
+  ExecutionAuditContext: Manages state for ExecutionAuditScreen and nested components
+  SOPVersionContext: Manages state for SOPVersionHistoryScreen
+  DependencyGraphContext (optional): Manages optional dependency graph visualization
+  UserContext: Manages role and permission data
+4.2 Data Fetching and Update Flow
+ User selects execution/SOP or applies filters → dispatch action
+ Context fetches API data → stores in global state
+ Components subscribe to context → auto-render updated data
+ API errors update error state → display notification / fallback
+ Optional: real-time updates using WebSockets or polling in later iterations
+4.3 Caching & Memoization
+  Memoize API responses to avoid redundant requests
+  Store recent executions / SOPs locally for session reuse
+  Use selectors to efficiently access nested data in context/redux
+4.4 Loading & Error Handling
+  loading flags per context to show spinners / skeleton screens
+  error fields to display user-friendly messages
+  Component fallback UI if state is empty or errors occur
+5. State Synchronization Across Screens
+  Filters applied in ExecutionAuditScreen can optionally persist to SOPVersionHistoryScreen (shared context)
+  Updates from new execution runs can trigger refresh of relevant SOP versions
+  Optional dependency visualization updates when related SOPs are selected
+6. MVP Considerations
+  Read-only MVP: No edit operations in FE; backend is source of truth
+  Performance: Pagination, virtualized tables for large datasets
+  Security: Role-based conditional rendering; restricted API access
+  Future Proofing: Structure supports addition of notifications, live updates, and edit workflows
+7. Next Steps
+ Implement React Context providers and hooks for each state slice
+ Connect ExecutionAuditScreen and SOPVersionHistoryScreen to context
+ Integrate API service functions for data fetching
+ Implement loading, error, and empty states
+ Test state consistency across multiple screens and filter changes
+8. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial FE MVP State Management Plan
+Parent / HoldCo Manager
+End of Document

@@ -1,0 +1,130 @@
+NSDC Engine Charter — PIE (Product InsightIQ Engine)
+0. Overview
+System Name: Product InsightIQ Engine
+Document Title: Product InsightIQ Engine Product Charter
+Document Id: NS-GGP-000-CHARTER
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: Annual or Upon Material Change
+1. Engine Identity
+Engine Name: Product InsightIQ Engine
+Acronym: PIE
+Engine Type: Intelligence / Knowledge
+2. Mission Statement (One Sentence)
+This engine exists to consolidate, analyze, and provide structured product and market intelligence to support informed decision-making across NSDC, enabling actionable insights for product development, sourcing, and market deployment.
+3. Core Responsibilities (Allowed Actions)
+  Aggregate product and market data from internal and external sources
+  Normalize and structure product identity, attributes, and variants
+  Analyze trends, demand signals, and historical performance
+  Provide insights for product research, sourcing, and strategic decisions
+  Feed actionable intelligence to downstream engines (DAT, CDE)
+  Maintain canonical product truth and historical performance records
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Execute trades or arbitrage opportunities
+  Govern capital or risk thresholds
+  Publish content or manage attention campaigns
+  Maintain financial ledgers or accounting records
+  Directly enforce operational actions without downstream engine mediation
+PIE is the intelligence provider, not the executor or controller.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Raw product data
+External sources, suppliers
+Product specifications, SKUs, attributes
+☑
+Market data
+APIs, marketplaces, signals
+Price, inventory, trend information
+☑
+Historical performance
+PIE / internal
+Past sales, ROI, engagement data
+☑
+Governance constraints
+GGP
+Rules affecting insights or reporting
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Structured product intelligence
+DAT, CDE
+Normalized product profiles, insights
+Continuous / on update
+Market trend reports
+DAT, CDE
+Analytics for decision-making
+Scheduled / event-driven
+Sourcing recommendations
+DAT
+Supplier and logistics insights
+On request
+Canonical product records
+All engines
+Master reference for product attributes
+Continuous
+7. Authority & Decision Rights
+PIE May Decide Autonomously:
+  How to normalize, structure, and store product data
+  How to prioritize trends and insights for relevance
+PIE Must Not Decide:
+  When or where to execute trades
+  How capital is deployed
+  How content is distributed
+PIE informs decisions but does not act on them directly.
+8. Governance & Constraints
+  Must comply with GGP-defined policies on data usage and reporting
+  Ensure historical and canonical data integrity
+  Maintain versioning of insights and intelligence outputs
+  Audit-ready data pipelines and transformation processes
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Data feed interruptions
+  Normalization errors
+  Trend misinterpretation
+Worst-Case Failure:
+  Downstream engines receive incorrect intelligence leading to suboptimal execution
+Blast Radius:
+  Decision impact on DAT or CDE outcomes
+  No direct financial or compliance violation
+Containment strategy:
+  Data validation layers
+  Automated integrity checks
+  Logging and alerts
+10. Time Horizon & Optimization Target
+  Optimizes for: Accuracy, completeness, and actionable intelligence
+  Time Horizon: Continuous / strategic insight over daily and long-term horizons
+11. Interfaces & Shared Primitives
+  Product IDs and canonical references (IDN)
+  Market identifiers
+  Trend and signal schemas
+  Historical performance records
+  Governance flags and constraints (GGP)
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Aggregation and normalization of product data
+  Historical performance tracking
+  Market trend identification
+  Feeding structured insights to DAT and CDE
+MVP Excludes:
+  Predictive ML for arbitrage
+  Full automation of sourcing or content strategies
+  External API integrations beyond MVP sources
+13. Evolution Path (Conceptual Only)
+  Phase 1: Structured aggregation and canonical product records
+  Phase 2: Advanced trend analysis and predictive intelligence
+  Phase 3: Fully integrated intelligence layer for real-time decisioning across NSDC
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

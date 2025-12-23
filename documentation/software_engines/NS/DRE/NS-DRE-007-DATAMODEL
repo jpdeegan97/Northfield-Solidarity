@@ -1,0 +1,297 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the authoritative data model for the Deep Research Engine (DRE).
+It specifies:
+  canonical tables / collections
+  primary keys and relationships
+  immutability and versioning rules
+  replay and audit guarantees
+This model is optimized for evidence provenance, long-horizon knowledge retention, and governed promotion.
+2. Data Modeling Principles
+ Evidence Is Immutable — captured facts are never edited or deleted
+ Versioned Knowledge Artifacts — hypotheses, narratives, and assumptions evolve via versions
+ Append-Only Decisions — interpretation changes are recorded, not overwritten
+ Graph-First Relationships — entities and claims are linkable and time-scoped
+ Cross-Engine Stability — IDs remain stable across PIE, SIM, DAT, GGP
+3. Core Authoritative Tables (PostgreSQL)
+3.1 source
+Represents a monitored information source.
+Column
+Type
+Notes
+source_id
+UUID (PK)
+Stable identifier
+source_type
+VARCHAR
+paper / filing / forum / vendor
+publisher
+VARCHAR
+Optional
+credibility_score
+NUMERIC
+0–1
+bias_notes
+TEXT
+Optional
+first_seen_at
+TIMESTAMP
+UTC
+3.2 evidence_item
+Atomic captured evidence.
+Column
+Type
+Notes
+evidence_id
+UUID (PK)
+Immutable
+source_id
+UUID (FK)
+Source
+payload
+TEXT / JSONB
+Excerpt or data
+capture_method
+VARCHAR
+manual / crawler / agent
+captured_at
+TIMESTAMP
+UTC
+fingerprint
+VARCHAR
+Dedup hash
+3.3 citation
+Links evidence to artifacts.
+Column
+Type
+Notes
+citation_id
+UUID (PK)
+
+evidence_id
+UUID (FK)
+
+artifact_type
+VARCHAR
+hypothesis / narrative
+artifact_id
+UUID
+
+context
+TEXT
+
+4. Research Artifact Tables
+4.1 theme
+Column
+Type
+Notes
+theme_id
+UUID (PK)
+
+name
+VARCHAR
+
+description
+TEXT
+
+status
+VARCHAR
+emerging / active / declining
+created_at
+TIMESTAMP
+UTC
+4.2 hypothesis
+Column
+Type
+Notes
+hypothesis_id
+UUID (PK)
+Stable ID
+hypothesis_version
+INTEGER
+Monotonic
+statement
+TEXT
+
+confidence_score
+NUMERIC
+0–1
+state
+VARCHAR
+open / supported / contradicted / retired
+updated_at
+TIMESTAMP
+UTC
+4.3 research_narrative
+Column
+Type
+Notes
+narrative_id
+UUID (PK)
+
+narrative_version
+INTEGER
+
+scope
+VARCHAR
+theme / hypothesis
+summary
+TEXT
+
+author_id
+UUID
+IDN
+created_at
+TIMESTAMP
+UTC
+4.4 assumption
+Column
+Type
+Notes
+assumption_id
+UUID (PK)
+
+assumption_version
+INTEGER
+
+description
+TEXT
+
+confidence
+NUMERIC
+
+originating_hypothesis_id
+UUID
+
+5. Relationship & Graph Tables
+5.1 entity
+Column
+Type
+Notes
+entity_id
+UUID (PK)
+IDN canonical
+entity_type
+VARCHAR
+company / technology / regulation
+5.2 entity_relationship
+Column
+Type
+Notes
+relationship_id
+UUID (PK)
+
+subject_entity_id
+UUID
+FK
+predicate
+VARCHAR
+
+object_entity_id
+UUID
+FK
+temporal_scope
+TSRANGE
+
+confidence
+NUMERIC
+
+6. Decision & Promotion Tables
+6.1 dre_decision
+Column
+Type
+Notes
+decision_id
+UUID (PK)
+
+decision_type
+VARCHAR
+
+artifact_ref
+UUID
+
+outcome
+VARCHAR
+
+rationale
+JSONB
+
+ruleset_version
+VARCHAR
+
+decided_at
+TIMESTAMP
+
+actor_id
+UUID
+
+6.2 promotion_request
+Column
+Type
+Notes
+promotion_id
+UUID (PK)
+
+artifact_id
+UUID
+
+artifact_version
+INTEGER
+
+target_engine
+VARCHAR
+PIE / SIM / DAT
+status
+VARCHAR
+submitted / approved / rejected
+governance_ref
+VARCHAR
+
+7. Event Ledger
+7.1 dre_event
+Column
+Type
+Notes
+event_id
+UUID (PK)
+
+event_type
+VARCHAR
+
+subject_ref
+UUID
+
+payload
+JSONB
+
+occurred_at
+TIMESTAMP
+
+correlation_id
+UUID
+
+8. Referential Integrity Rules
+  evidence_item.source_id must exist
+  citations must reference valid evidence
+  promotion_request.artifact_version must match snapshot
+9. Migration & Replay Strategy
+  schema changes are additive
+  historical versions are preserved
+  projections rebuilt from events
+10. Document Position in DRE Corpus
+This data model builds upon:
+  NS-DRE-002 — TAXONOMY
+  NS-DRE-006 — VERSION
+It informs:
+  NS-DRE-008 — EEE
+  NS-DRE-014 — DATADEF
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Data Model
+Parent / HoldCo Manager
+Status: Draft

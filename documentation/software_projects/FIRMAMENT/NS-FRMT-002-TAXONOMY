@@ -1,0 +1,346 @@
+NS-FIRMAMENT-002 — TAXONOMY
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This taxonomy defines the canonical vocabulary, object classes, and relationships used by Firmament to render operations, strategy, and scenarios as layered, filterable overlays on a 3D Earth.
+
+Firmament’s taxonomy is render-first: every concept below must be representable as a layer, a feature on the globe, a drilldown panel, and/or an actionable item routed into CWP and governed by GGE.
+
+2. Primary Taxonomy Domains
+
+Firmament is organized into 8 domains:
+
+World Model (Earth, coordinates, zoom, regions)
+
+Layers & Rendering (how things appear)
+
+Entities & Relationships (who/what exists)
+
+Operations & Logistics (flows and dependencies)
+
+Time & Events (what happens when/where)
+
+Sectors & Performance (health, KPIs, heatmaps)
+
+Signals, Risks, Opportunities (what matters)
+
+Actions, Plans, Governance (what to do next)
+
+3. World Model
+
+3.1 GeoReference
+
+A canonical location reference.
+
+Types: Point, Line, Polygon, MultiPolygon
+
+Fields: lat, lon, alt (optional), geohash (optional), region_id (optional)
+
+3.2 Region
+
+Named spatial containers used for aggregation and filtering.
+
+Types: Country, State/Province, Metro, Port, TradeZone, CustomRegion
+
+Fields: region_id, name, geometry, hierarchy_path
+
+3.3 ZoomContext
+
+Defines what “level of detail” should be shown.
+
+Levels (example): Global → Continental → National → Metro → Site → Facility
+
+Behavior: layer visibility and feature density adapt by zoom.
+
+4. Layers & Rendering
+
+4.1 Layer
+
+A coherent overlay on the globe or companion panels.
+
+Layer Types:
+
+PinsLayer (points)
+
+PathsLayer (lines/flows)
+
+RegionsLayer (polygons)
+
+HeatLayer (tiles/choropleth/intensity)
+
+TreemapLayer (sector heatmap panel)
+
+TimelineLayer (time-filtered overlays)
+
+Layer Properties: visibility, filters, legend, style_rules, drilldown_schema
+
+4.2 Feature
+
+A renderable instance within a layer.
+
+Feature Types: Pin, Path, Polygon, HeatCell, TreemapTile
+
+Feature Properties: feature_id, geometry, style, payload_ref, severity (optional)
+
+4.3 StyleRule
+
+Rules mapping metrics → visual encoding.
+
+Encodings: color, size, opacity, thickness, icon, label, animation
+
+Inputs: KPI values, status, risk, time urgency, plan mode
+
+4.4 Drilldown
+
+The structured “detail view” opened from a feature/tile.
+
+Types: EntityCard, EventCard, FlowCard, SectorBrief, RiskBrief, OpportunityBrief
+
+Outputs: facts + explanation + recommended actions
+
+5. Entities & Relationships
+
+5.1 Entity
+
+A first-class actor/node from IDN that can be mapped and related.
+
+Entity Types:
+
+LegalEntity (NS, SL, subsidiaries)
+
+Site (office, warehouse, facility)
+
+Counterparty (vendor, supplier, customer, 3PL, partner)
+
+Asset (equipment, inventory pool, fleet unit)
+
+Account (bank/merchant accounts; view-only in Firmament)
+
+Core Fields: entity_id, entity_type, name, geo_ref, status, tags[]
+
+5.2 Relationship
+
+A typed edge between entities.
+
+Relationship Types:
+
+Owns, Operates, Supplies, DistributesTo, ShipsTo, ContractsWith, DependsOn
+
+Fields: from_entity, to_entity, relationship_type, strength (optional), active_window
+
+5.3 Capability
+
+What an entity/site can do.
+
+Examples: Storage, Fulfillment, Manufacturing, CustomerSupport, SalesRegionCoverage
+
+6. Operations & Logistics
+
+6.1 Flow
+
+A directional movement or dependency.
+
+Flow Types: PhysicalShipment, InformationFlow, MoneyFlow, ServiceFlow
+
+Fields: flow_id, from, to, route, carrier (optional), SLA, status
+
+6.2 Shipment (Physical Subtype)
+
+States: Planned → Booked → InTransit → Delayed → Delivered → Exception
+
+KPIs: ETA variance, cost variance, reliability score, risk score
+
+6.3 Operational State
+
+Normalized state markers for features/entities.
+
+States: Green, Watch, AtRisk, Failing, Blocked
+
+Purpose: consistent coloring/priority across layers.
+
+7. Time & Events
+
+7.1 Event
+
+A time-bounded item tied to a location and stakeholders.
+
+Event Types: Meeting, Conference, SiteVisit, ShipmentMilestone, Launch, Deadline, AuditGate
+
+Fields: event_id, time_window, geo_ref, linked_entities[], agenda/checklist_ref, readiness_state
+
+7.2 Timeline Window
+
+A filterable time scope.
+
+Modes: Now, Next 7 Days, Next 30 Days, Quarter, Custom
+
+7.3 Readiness
+
+Event preparedness scoring.
+
+States: Unplanned, Planning, OnTrack, AtRisk, Ready
+
+Computed From: checklist completion, owner assignment, dependencies cleared.
+
+8. Sectors & Performance (Heatmap Domain)
+
+8.1 Sector
+
+A canonical category for business exposure/strategy (e.g., Technology, Financial Services).
+
+Fields: sector_id, name, weight, benchmark_refs (optional)
+
+8.2 Sector Metric
+
+A metric computed per sector (Firmament can show many, not just returns).
+
+Examples: Revenue, Margin, Pipeline, DemandSignals, FulfillmentReliability, RiskExposure
+
+Field: metric_id, definition, source_engine, update_frequency
+
+8.3 Sector Health Score
+
+A normalized score for sector operating state.
+
+Range: 0–100 (or -1..+1)
+
+Inputs: weighted KPIs + signal severity + open blockers + scenario posture
+
+8.4 TreemapTile
+
+A sector’s render unit in the heatmap panel.
+
+Size Encoding: sector weight (or chosen metric)
+
+Color Encoding: selected performance metric (day/YTD/health score)
+
+8.5 Sector Operating Brief
+
+A structured drilldown product.
+
+Sections:
+
+What’s Going Well
+
+What’s Failing
+
+Root Causes (ops/finance/supply/market)
+
+Immediate Actions
+
+Strategic Moves
+
+Governance Gates
+
+Scenario Sensitivity (how slider changes priorities)
+
+9. Signals, Risks, Opportunities
+
+9.1 Signal
+
+A detected condition requiring attention (from SIG or computed).
+
+Signal Types: Disruption, Anomaly, Trend, CompetitorMove, Regulatory, SupplyShock
+
+Fields: signal_id, severity, confidence, geo_scope, sector_scope, evidence_refs[]
+
+9.2 Risk
+
+A structured threat with impact + likelihood.
+
+Risk Types: Supply, Operational, Financial, Reputational, Compliance, Security
+
+Fields: risk_id, likelihood, impact, time_horizon, mitigation_state
+
+9.3 Opportunity
+
+A structured upside path.
+
+Opportunity Types: MarketExpansion, SourcingAdvantage, NewChannel, CostReduction, ProductLaunch
+
+Fields: opp_id, expected_value, effort, time_to_value, constraints[]
+
+10. Actions, Plans, Governance
+
+10.1 ActionItem
+
+An executable unit routed to CWP (and gated by GGE when required).
+
+Fields: action_id, title, owner, due_date, impact_score, status, links[]
+
+Status: Proposed, Approved, InProgress, Blocked, Done, Abandoned
+
+10.2 PlanMode (Risk/Ambition Slider)
+
+A posture selector that changes assumptions and priorities.
+
+Modes: Conservative, Balanced, Aggressive (or continuous 0–100)
+
+Effects: KPI weighting, spending tolerance, speed vs safety, governance strictness
+
+10.3 Scenario
+
+A SIM-backed projection.
+
+Fields: scenario_id, assumptions, projected_metrics, recommended_actions, confidence_band
+
+10.4 Governance Gate
+
+A required decision checkpoint enforced by GGE.
+
+Gate Types: BudgetApproval, VendorApproval, LegalReview, SecurityReview, StrategicApproval
+
+Outputs: decision record, rationale, constraints, audit trail
+
+11. Canonical Relationships (Cross-Domain)
+
+These are the core edges Firmament must support:
+
+Layer CONTAINS Feature
+
+Feature REFERENCES (Entity | Event | Flow | Sector | Risk | Opportunity)
+
+Entity LOCATED_AT GeoReference
+
+Event OCCURS_AT GeoReference
+
+Flow CONNECTS Entity → Entity
+
+Signal AFFECTS (GeoScope, SectorScope, EntityScope)
+
+Sector HAS_METRICS SectorMetric[]
+
+Sector PRODUCES SectorOperatingBrief
+
+SectorOperatingBrief RECOMMENDS ActionItem[]
+
+ActionItem OWNED_BY CWP.Role/Actor
+
+ActionItem GOVERNED_BY GGE.Gate (optional)
+
+PlanMode MODIFIES (Scenario assumptions, Action priorities, Risk tolerances)
+
+12. Naming Conventions
+
+IDs are globally unique: firm_* optional prefix for Firmament-native objects.
+
+Use stable canonical names for sectors (source: your internal taxonomy; mapped to external standards if desired).
+
+All features must be resolvable to a payload_ref for drilldowns (no “dead geometry”).
+
+13. Taxonomy Guarantees
+
+Firmament must guarantee:
+
+Every renderable thing maps to a typed object.
+
+Every drilldown produces actions.
+
+Every important action can be governed.
+
+Every layer is filterable by time, geo, and relevance.
+
+Every sector view can shift under plan modes (slider).
+

@@ -1,0 +1,476 @@
+NS-CWP-009 — IMPL (Implementation Guidance)
+
+0. Overview
+
+This document provides practical implementation guidance for CWP (Cognitive Work Plane).
+
+CWP is the operational coordination layer that:
+
+models work as tasks/queues/playbooks
+
+assigns work to humans and AI agents
+
+supervises execution (states, SLAs, escalations)
+
+integrates with other engines (GGP/IDN/FLO/MUX/LUM)
+
+This guidance is implementation-agnostic (no vendor lock-in), but specific about boundaries and patterns.
+
+1. Implementation Goals (Non‑Negotiables)
+
+Work is structured: every meaningful operational action becomes a Work Item or Playbook Step.
+
+Accountability: every work item has an owner (human or agent) and a state.
+
+Governance-first: governed steps must call GGP before execution.
+
+Evidence discipline: steps that matter must attach evidence artifacts (links, hashes, confirmations).
+
+Correlation: every work item is tied to workflow_id and emitted to LUM.
+
+Human-in-the-loop is native: approvals and confirmations are first-class.
+
+2. Core Service Boundaries (Reference)
+
+2.1 Work Registry Service
+
+Owns
+
+Work Items (tasks)
+
+Subtasks
+
+Assignments
+
+States and transitions
+
+Key features
+
+idempotent creation
+
+state machine enforcement
+
+audit trail of changes
+
+2.2 Queue & Assignment Service
+
+Owns
+
+queues and routing rules
+
+assignment algorithms
+
+capacity/availability tracking
+
+Assignment strategies
+
+round-robin by role
+
+skill/capability matching
+
+priority + SLA first
+
+load-aware assignment
+
+2.3 Playbook (SOP) Runtime
+
+Owns
+
+playbook definitions and versions
+
+step execution model
+
+branching, retries, timeouts
+
+gating calls to GGP
+
+Step types
+
+human_action
+
+agent_action
+
+integration_call (via MUX)
+
+approval_gate (via GGP)
+
+evidence_attach
+
+2.4 Worker Registry
+
+Owns
+
+Worker profiles (human/AI/hybrid)
+
+capabilities/skills
+
+availability signals
+
+eligibility (via IDN roles)
+
+2.5 Notification & Interaction Layer
+
+Owns
+
+outbound notifications (email/chat) via MUX
+
+inbound approvals/confirmations
+
+message-to-action mapping (“approve”, “deny”, “needs changes”)
+
+2.6 Evidence & Completion Service (CWP-side)
+
+Owns
+
+evidence attachment model
+
+completion verification rules per playbook
+
+Boundary
+
+LUM stores evidence bundles; CWP attaches required references and confirms completion.
+
+3. Key Data Model Elements (Implementation Targets)
+
+3.1 WorkItem
+
+Minimum fields
+
+task_id
+
+workflow_id
+
+title
+
+description
+
+task_type
+
+priority
+
+state
+
+owner_actor_id (nullable if unassigned)
+
+queue_id
+
+sla_policy_id (optional)
+
+due_at (optional)
+
+created_at, updated_at
+
+correlation (decision_id, integration_id, entity_id)
+
+3.2 Assignment
+
+assignment_id
+
+task_id
+
+assignee_actor_id
+
+assigned_at
+
+assignment_reason (rule match, manual, escalation)
+
+3.3 Playbook
+
+playbook_id
+
+name
+
+version
+
+steps[] (typed)
+
+required_evidence[]
+
+gating_rules_refs[] (GGP)
+
+3.4 StepExecution
+
+step_execution_id
+
+task_id
+
+step_id
+
+state (pending|running|blocked|completed|failed)
+
+started_at, ended_at
+
+actor_id (who executed)
+
+evidence_refs[]
+
+3.5 SLA Policy
+
+sla_policy_id
+
+severity/priority
+
+time_to_ack
+
+time_to_complete
+
+escalation_ladder
+
+4. Core Workflows to Implement
+
+4.1 Task Creation
+
+Sources
+
+manual creation (operator)
+
+playbook instantiation
+
+inbound events (webhook/email/system event)
+
+Rules
+
+idempotent by external reference
+
+always assign workflow_id
+
+emit cwp.task.created to LUM
+
+4.2 State Transitions
+
+Canonical task states (starter)
+
+draft
+
+queued
+
+assigned
+
+in_progress
+
+awaiting_approval
+
+blocked
+
+completed
+
+cancelled
+
+Rules
+
+transitions are validated by a state machine
+
+every transition emits an event to LUM
+
+4.3 Approval Routing
+
+Process
+
+determine if approval needed (call GGP)
+
+resolve eligible approvers (IDN)
+
+create approval subtask
+
+collect approval response
+
+attach approval artifact
+
+Rules
+
+time-box approvals with SLA
+
+escalation if not responded
+
+4.4 Integration Calls (via MUX)
+
+Pattern
+
+CWP requests integration action from MUX
+
+MUX returns receipt/reference
+
+CWP attaches receipt as evidence
+
+Rules
+
+integration call must propagate correlation IDs
+
+retries are idempotent
+
+4.5 Evidence Collection
+
+Pattern
+
+playbook defines required artifacts
+
+CWP enforces completion requires artifacts
+
+artifacts are stored as references (URL/hash)
+
+If governed
+
+required evidence is validated against GGP output
+
+evidence bundle linkage stored (bundle_id)
+
+4.6 Completion Verification
+
+Pattern
+
+step completion requires checks
+
+final task completion requires:
+
+all steps completed
+
+required evidence attached
+
+governance gates satisfied
+
+5. Governance Interlock (GGP)
+
+CWP must call GGP for:
+
+approvals above thresholds
+
+high-risk automated actions
+
+policy-based evidence requirements
+
+access/permission changes
+
+Implementation requirements
+
+store decision_id on the task/workflow
+
+emit governance events to LUM
+
+never proceed past a gate without explicit approval outcome
+
+6. Observability (LUM) Requirements
+
+CWP must emit:
+
+cwp.task.created
+
+cwp.task.assigned
+
+cwp.task.state_changed
+
+cwp.step.started/completed/failed
+
+cwp.approval.requested/granted/denied
+
+cwp.sla.breached
+
+All events include
+
+workflow_id, task_id, actor_id
+
+decision_id (if governed)
+
+integration_id (if integration-related)
+
+7. Security Model (IDN)
+
+7.1 Actor identity
+
+humans, agents, and service principals all map to actor_id
+
+7.2 Authorization
+
+who can view/claim tasks
+
+who can approve tasks
+
+who can execute sensitive playbook steps
+
+CWP should use IDN claims + GGP decisions for enforcement.
+
+8. Implementation Sequence (Pragmatic Build Plan)
+
+Phase 1 — Task System MVP
+
+WorkItem CRUD
+
+queues + assignment
+
+state machine
+
+basic notifications
+
+LUM event emission
+
+Phase 2 — Playbooks MVP
+
+playbook definitions + versioning
+
+linear step execution
+
+evidence attachments
+
+simple SLA timers
+
+Phase 3 — Governance + Approvals
+
+integrate GGP gates
+
+approval routing (IDN)
+
+approval artifact capture
+
+Phase 4 — Agents + Automation
+
+worker registry for AI agents
+
+capability matching
+
+safe automation patterns (idempotency, retries)
+
+Phase 5 — Advanced Runtime
+
+branching workflows
+
+retries/timeouts
+
+exception inbox
+
+performance analytics
+
+9. Testing Strategy
+
+9.1 State machine tests
+
+invalid transitions rejected
+
+transition events always emitted
+
+9.2 Approval flow tests
+
+approver eligibility enforced
+
+timeouts and escalations work
+
+9.3 Evidence tests
+
+completion blocked if artifacts missing
+
+governed evidence requirements enforced
+
+9.4 Integration tests
+
+correlation IDs propagate end-to-end
+
+idempotent retries do not duplicate side effects
+
+10. Implementation Guardrails
+
+do not let playbooks become “freeform scripts” without versioning
+
+do not allow unbounded automation without GGP gates
+
+keep evidence attachments lightweight (refs + hashes)
+
+ensure every work item is queryable by workflow_id
+

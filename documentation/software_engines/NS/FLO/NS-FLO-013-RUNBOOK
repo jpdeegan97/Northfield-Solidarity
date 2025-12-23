@@ -1,0 +1,233 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This runbook defines the production-grade operating procedures, controls, monitoring, and recovery actions for bringing up and operating FLO safely.
+FLO is the system of financial record; operations must prioritize:
+correctness
+immutability of truth
+reconciliation reliability
+audit and replay readiness
+2. Operational Objectives
+FLO operations must ensure:
+No partial or inconsistent ledger writes
+Idempotent ingestion (no double-posting)
+Budget state is continuously derivable and visible
+Reconciliation exceptions are surfaced promptly
+All decisions and ruleset versions are inspectable
+System can rebuild derived views from ledger truth
+3. Preconditions & Dependencies
+3.1 Required Dependencies
+Postgres reachable (authoritative ledger store)
+Kafka reachable (event ingestion and state change events)
+MUX feeds reachable (external statements)
+IDN/PECA identity resolution reachable (entity/account references)
+Secrets available (DB creds, Kafka creds)
+3.2 Optional Dependencies
+Object store for evidence links (PDFs, invoices)
+Search index for fast ledger exploration
+4. Startup Procedure
+4.1 Startup Checklist
+Postgres migrations applied (additive only)
+Ledger writer healthy
+Ingestion consumers connected (but may start paused)
+Statement ingestor connected
+Budget engine enabled
+Reconciliation engine enabled (or paused intentionally)
+API healthy (read endpoints respond)
+If any critical dependency fails, FLO must enter Safe Mode.
+4.2 Safe Mode
+Safe Mode characteristics:
+Ledger reads remain available
+Ingestion paused
+Manual adjustments gate closed
+Reconciliation paused
+Safe Mode triggers:
+Postgres unstable
+Kafka unstable
+Identity resolution unavailable
+5. Normal Operations
+5.1 Internal Financial Event Ingestion
+Expected behavior:
+at-least-once consumption
+DB-enforced dedupe
+normalized_financial_event persisted
+Key metrics:
+ingestion throughput
+dedupe reject count
+ingestion lag
+5.2 Classification & Ledger Writing
+Expected behavior:
+deterministic classification
+atomic transaction writes
+no partial ledger state
+Key metrics:
+ledger write latency
+classification blocked rate
+invariant violation count
+5.3 Budget Monitoring
+Expected behavior:
+budget burn computed from ledger truth
+state transitions emitted
+Key metrics:
+budgets near_limit
+budgets exhausted
+burn computation latency
+5.4 External Statement Ingestion
+Expected behavior:
+statements stored immutably
+statement items uniquely identified
+Key metrics:
+statement import success rate
+import latency
+5.5 Reconciliation Operations
+Expected behavior:
+reconciliation records created without mutating ledger
+exceptions surfaced
+Key metrics:
+match rate
+missing count
+excess count
+disputed count
+6. Operator Controls
+All controls are auditable and require:
+operator identity
+correlation_id
+reason
+governance reference where applicable
+6.1 Pause / Resume Ingestion
+Use when:
+Kafka instability
+dedupe anomalies detected
+Procedure:
+Pause ingestion
+Confirm consumer lag stops increasing
+Investigate issue
+Resume ingestion after validation
+6.2 Pause / Resume Reconciliation
+Use when:
+external statement feed unstable
+large backfill required
+Procedure:
+Pause reconciliation
+Import/backfill data
+Resume reconciliation
+6.3 Close / Open Manual Adjustment Gate
+Use when:
+auditing or incident response
+policy changes pending
+Opening requires governance authorization.
+6.4 Trigger Read Model Rebuild
+Use when:
+derived views corrupt
+schema upgraded
+Procedure:
+Pause ingestion (recommended)
+Drop derived views
+Rebuild from ledger entries + transactions
+Emit flo.readmodel.rebuilt
+Resume ingestion
+7. Failure Scenarios & Responses
+7.1 Postgres Failure
+Response:
+Enter Safe Mode
+Pause ingestion and ledger writes
+Preserve backlog via Kafka
+Resume only after DB health restored
+7.2 Kafka Failure
+Response:
+Pause ingestion
+Continue read-only APIs
+Resume when Kafka stable
+7.3 Deduplication Failure / Double Posting
+Symptoms:
+unexpected duplicates
+Response:
+Pause ingestion
+Validate dedupe constraints
+Identify corrupted idempotency keys
+Correct forward using governed manual adjustments if needed
+7.4 Classification Ambiguity Spikes
+Response:
+Queue candidates for review
+Do not write to ledger if blocked
+Patch classification ruleset (new version)
+Replay classification on blocked candidates
+7.5 Statement Feed Inconsistency
+Response:
+Pause reconciliation
+Import stable snapshot
+Resume reconciliation
+7.6 Budget Exhaustion Events
+Response:
+Notify DAT and GGP
+Confirm budget state transitions
+Investigate unexpected spend sources
+8. Replay & Audit Procedures
+8.1 Audit Replay
+Procedure:
+Retrieve decision artifacts
+Confirm ruleset versions
+Reconstruct ledger write chain
+Validate reconciliation record outcomes
+8.2 Reconciliation Replay
+Procedure:
+Import statements
+Re-run reconciliation with specified ruleset version
+Append new reconciliation records
+Preserve prior results
+8.3 Read Model Rebuild
+Procedure:
+rebuild derived views from ledger truth
+9. Observability & Alerts
+9.1 Metrics
+ingestion lag
+ledger write latency
+invariant violation count
+budget near_limit/exhausted
+reconciliation match rate
+exception queue size
+9.2 Alerts
+Postgres unavailable
+Kafka unavailable
+ledger write failures
+classification blocked spike
+reconciliation exception spike
+budgets exhausted
+10. Security & Compliance
+Immutable ledger design
+Secrets never logged
+Strict RBAC for governed write endpoints
+All overrides require reason + governance ref
+11. Operational Invariants
+Ledger entries are immutable
+Partial writes forbidden
+Reconciliation never mutates ledger
+Budget state derived from ledger truth
+All decisions bound to ruleset versions
+12. Document Position in FLO Corpus
+This runbook is informed by:
+NS-FLO-009 — IMPL
+NS-FLO-011 — APIMAP
+NS-FLO-012 — STATE
+It precedes:
+NS-FLO-014 — DATADEF
+13. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Operational Runbook
+
+Parent / HoldCo Manager
+Status: Draft

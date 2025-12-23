@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY core /app/core
+COPY components /app/components
+
+# Only runs if KAFKA_ADMIN_ENABLE=true
+CMD ["python", "-m", "components.kafka_admin"]

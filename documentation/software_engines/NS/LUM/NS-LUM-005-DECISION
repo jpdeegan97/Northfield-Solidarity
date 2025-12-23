@@ -1,0 +1,398 @@
+NS-LUM-005 — DECISION
+
+0. Overview
+
+This document defines the decision model used by LUM (Luminance Engine).
+
+Important boundary:
+
+GGP is the authority for governance decisions (approve/deny actions, evidence requirements, access control).
+
+LUM makes operational decisions that affect observability and reliability operations (alerting, incident creation, sampling, routing), and it emits signals that inform GGP decisions.
+
+LUM decisions must be:
+
+deterministic where possible
+
+explainable (why did LUM alert, suppress, sample, or create an incident?)
+
+auditable (decision events stored and correlated)
+
+1. Decision Domains
+
+1.1 Alerting decisions
+
+Should an alert trigger?
+
+What severity should it be?
+
+Should it be deduped/grouped with an existing alert?
+
+Should it be suppressed?
+
+Who should receive it?
+
+1.2 Incident decisions
+
+Should an incident be created automatically?
+
+What incident type and severity?
+
+Should it be linked to an existing incident?
+
+When should it be escalated?
+
+1.3 Telemetry routing & retention decisions
+
+Should a signal go to hot vs warm vs archive?
+
+Should a signal be promoted to evidence tier?
+
+How long should it be retained (class assignment)?
+
+1.4 Sampling decisions (traces/logs)
+
+Should this trace be sampled?
+
+Should it be tail-sampled due to an error or important workflow?
+
+Should detailed debug logs be enabled temporarily?
+
+1.5 Integration health decisions
+
+Is an external integration degraded?
+
+Should retry strategies be adjusted (rate-limit backoff hints)?
+
+Should a “degraded mode” advisory be emitted to other engines?
+
+1.6 Evidence support decisions (non-governance)
+
+Is an evidence bundle complete enough to be marked ready_to_seal?
+
+Has integrity verification passed (hash/signature)?
+
+Sealing policy and access policy are governed by GGP; LUM only evaluates completeness/integrity and requests sealing.
+
+2. Decision Inputs (Signals)
+
+2.1 Telemetry inputs
+
+metrics (SLIs, burn rates)
+
+logs (error patterns)
+
+traces (error spans, latency)
+
+events (workflow milestones)
+
+2.2 Context inputs
+
+environment (dev/uat/prod)
+
+service criticality tier
+
+integration criticality tier
+
+maintenance windows
+
+known incidents/ongoing mitigations
+
+ownership metadata
+
+2.3 Governance inputs (references)
+
+GGP policies for:
+
+evidence retention classes
+
+sensitive field rules
+
+access constraints
+
+incident notification constraints (who can be paged)
+
+3. Decision Objects
+
+LUM produces structured decision artifacts.
+
+3.1 Alert Decision
+
+alert_decision_id
+
+decision_type = alert
+
+rule_id (or SLO id)
+
+triggered = true|false
+
+severity
+
+group_key
+
+route
+
+rationale (machine + human readable)
+
+Correlation IDs
+
+3.2 Incident Decision
+
+incident_decision_id
+
+decision_type = incident
+
+create_incident = true|false
+
+severity
+
+incident_type
+
+linked_incident_id (optional)
+
+escalation_policy_id
+
+rationale
+
+3.3 Routing Decision
+
+routing_decision_id
+
+decision_type = routing
+
+signal_type
+
+retention_class (hot|warm|cold|evidence)
+
+storage_targets[]
+
+rationale
+
+3.4 Sampling Decision
+
+sampling_decision_id
+
+decision_type = sampling
+
+sample = true|false
+
+sampling_strategy (head|tail|error_only|workflow_priority)
+
+rationale
+
+3.5 Integration Health Decision
+
+integration_decision_id
+
+decision_type = integration_health
+
+integration_id
+
+status (healthy|degraded|down)
+
+signals (metrics/events)
+
+recommended_mode (normal|degraded|pause_noncritical)
+
+rationale
+
+3.6 Evidence Completeness Decision
+
+evidence_decision_id
+
+decision_type = evidence_completeness
+
+bundle_id
+
+complete = true|false
+
+missing_requirements[]
+
+integrity_ok = true|false
+
+rationale
+
+4. Decision Rules (Deterministic Baselines)
+
+These are starter rules; tune over time.
+
+4.1 Severity assignment rule (starter)
+
+Severity is a function of impact and confidence.
+
+Impact signals:
+
+percentage of traffic affected
+
+critical workflow affected (payments, governance, identity)
+
+data integrity risk
+
+Confidence signals:
+
+sustained duration
+
+multiple corroborating signals (metric + logs + traces)
+
+provider status confirmations
+
+Suggested mapping
+
+SEV0: system-wide outage or high-confidence security breach
+
+SEV1: major outage of critical workflow or integration
+
+SEV2: significant degradation, partial traffic
+
+SEV3: localized or intermittent issue
+
+SEV4: informational
+
+4.2 SLO burn alert rule (starter)
+
+Use fast/slow burn:
+
+fast burn: pages quickly for severe degradation
+
+slow burn: tickets / lower urgency for long-term erosion
+
+Example:
+
+page if burn rate > X for Y minutes
+
+warn if burn rate > A for B hours
+
+4.3 Dedupe/grouping rule
+
+Group alerts when:
+
+same service + environment + rule_id within time window
+
+same integration_id + failure mode
+
+same workflow_id or incident_signature
+
+4.4 Suppression rule
+
+Suppress when:
+
+within declared maintenance window
+
+incident already open for same signature
+
+alert is flapping below stability threshold
+
+Suppression must emit a suppression decision event.
+
+4.5 Auto-incident creation rule
+
+Create incident when:
+
+SEV0 or SEV1 alert triggers
+
+OR N distinct services degraded simultaneously
+
+OR critical integration status becomes down
+
+Link to existing incident when:
+
+matching signature and open incident exists
+
+4.6 Evidence completeness rule
+
+Bundle is ready_to_seal when:
+
+all required artifacts present (per GGP references)
+
+integrity verified (hash/signature)
+
+final execution outcome recorded
+
+5. Decision Lifecycle
+
+All LUM decisions follow the same lifecycle.
+
+States
+
+evaluating
+
+decided
+
+executed (action taken: alert sent, incident created, route applied)
+
+revised (decision updated due to new information)
+
+expired (no longer applicable)
+
+Rules
+
+decisions are immutable as records; revisions create a new decision referencing prior decision id
+
+every decision emits an event to the LUM events pipeline
+
+6. Explainability Requirements
+
+Every decision must produce:
+
+rationale: why the decision happened
+
+inputs: which signals were used (refs)
+
+rules: which rule ids applied
+
+correlation: trace/workflow/decision/integration ids
+
+Explainability is surfaced in:
+
+alert details
+
+incident timeline
+
+sampling/routing debug views
+
+7. Interlock with GGP
+
+LUM emits signals that can inform governance but does not govern.
+
+7.1 Signals LUM can send to GGP
+
+“error budget exhausted for critical workflow”
+
+“integration degraded: recommend pause noncritical actions”
+
+“evidence bundle incomplete past SLA”
+
+“suspicious access pattern detected”
+
+7.2 Governance decisions remain in GGP
+
+gating actions based on reliability state
+
+granting evidence access
+
+altering retention requirements
+
+8. Audit & Storage
+
+All LUM decisions are stored as:
+
+decision records (structured)
+
+decision events (append-only)
+
+linked to affected alerts/incidents/bundles
+
+Minimum indexing keys
+
+decision_type
+
+service / source_engine
+
+integration_id
+
+workflow_id
+
+trace_id
+
+incident_id
+

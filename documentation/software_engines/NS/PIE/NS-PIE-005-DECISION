@@ -1,0 +1,136 @@
+
+NS-PIE-005 — DECISION
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the decision semantics used by the Product InsightIQ Engine (PIE) to evaluate, qualify, and prepare Insights for governance review.
+It formalizes:
+What PIE decides versus what it merely recommends
+How promotion readiness is determined
+How confidence, risk, and uncertainty are treated
+PIE decisioning is advisory and preparatory. All authoritative approval decisions are owned by GGP.
+2. Decision Boundary Principles
+PIE decision logic adheres to the following boundaries:
+No Authority to Act — PIE never triggers execution
+No Authority to Approve — PIE cannot self-promote insights
+Explainability Required — All decision outputs must be decomposable
+Governance Compatibility — Decisions must map cleanly to GGP review
+PIE answers whether something is worth review, not whether it should be done.
+3. Decision Objects
+3.1 Promotion Readiness
+Promotion Readiness is PIE’s primary decision output.
+It represents a structured recommendation indicating whether an Insight:
+Is ready for governance review
+Requires additional evidence
+Should be deprioritized or allowed to decay
+Promotion Readiness is binary at the interface level (ready / not-ready), but internally justified with rich context.
+3.2 Decision Context
+Each decision is evaluated within a Decision Context composed of:
+Evidence Bundle
+Scoring Model outputs
+Confidence Score
+Risk Profile
+Decay status
+Known counter-signals
+The Decision Context is immutable once evaluated.
+4. Decision Inputs
+PIE decision logic may consider the following inputs:
+Signal Strength & Diversity (from SIG)
+Research Support (from DRE)
+Confidence Score (model-derived)
+Risk Profile (explicit downside factors)
+Relevance Window (time sensitivity)
+Historical Analog Performance (if available)
+All inputs must be explicitly referenced.
+5. Decision Rules
+5.1 Confidence Thresholds
+PIE defines minimum confidence thresholds per Insight Type.
+If confidence falls below threshold:
+Promotion readiness = false
+Insight remains Proposed
+Thresholds are:
+Explicit
+Versioned
+Governed by GGP
+5.2 Risk Gating
+High-risk Insights may still be promoted if risks are explicit and bounded.
+Risk gating rules:
+No hidden risks
+No unbounded downside
+All risks must be surfaced to governance
+Risk does not veto confidence; it contextualizes it.
+5.3 Evidence Sufficiency
+An Insight must satisfy minimum evidence criteria:
+At least one high-trust signal or
+Multiple corroborating moderate-trust signals or
+Strong research artifact support
+Evidence sufficiency rules are deterministic.
+5.4 Decay Constraints
+If an Insight’s decay score crosses a defined threshold:
+Promotion readiness is automatically set to false
+Insight may still be reviewed manually
+Decay prevents stale insights from auto-escalating.
+6. Decision Outcomes
+PIE decision logic produces one of the following outcomes:
+
+
+
+Outcome
+
+Description
+
+
+Ready for Review
+
+Submit to GGP
+
+
+Not Ready
+
+Remain Proposed
+
+
+Deprioritized
+
+Allow to decay
+No decision outcome is terminal except via governance.
+7. Governance Handoff
+When Promotion Readiness = true:
+Insight is packaged with full Decision Context
+Submitted to GGP via governed interface
+PIE emits a pie.insight.ready_for_review event
+PIE does not influence review ordering or approval priority.
+8. Constraints & Invariants
+The following invariants must always hold:
+Decisions reference explicit model versions
+Decision context is immutable
+PIE decisions are non-authoritative
+All promotion decisions are auditable
+9. Document Position in PIE Corpus
+This decision document builds upon:
+NS-PIE-002 — TAXONOMY
+NS-PIE-003 — ARCHITECTURE
+NS-PIE-004 — LIFECYCLE
+It informs:
+NS-PIE-007 — DATAMODEL
+NS-PIE-008 — EEE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial Decision Semantics Definition
+
+Parent / HoldCo Manager
+Status: Draft

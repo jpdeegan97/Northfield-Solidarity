@@ -1,0 +1,134 @@
+Cognitive Work Plane (CWP)
+1. Purpose of This Document
+This document defines the versioning model for the Cognitive Work Plane (CWP).
+Versioning in CWP ensures:
+work evolution without loss of history
+reproducible operational decisions
+auditable agentic behavior
+safe change management across programs, missions, and tasks
+CWP versioning applies to work artifacts, decision logic, and operational configurations.
+2. Versioning Principles
+Append-Only History — prior versions are never mutated or deleted
+Explicit Version Increments — semantic change always creates a new version
+Separation of Work vs Rules — work artifacts and decision rules version independently
+Replayability — historical work execution can be reconstructed
+Governance Alignment — version transitions respect GGP constraints
+3. Versioned Artifact Types
+The following CWP artifacts are versioned:
+Task Definitions
+Mission Definitions
+Program Definitions
+Agent Capability Profiles
+SLA Definitions
+Decision Rulesets
+Escalation Policies
+Review Templates
+Runtime execution state is not versioned; it is event-sourced.
+4. Work Artifact Versioning
+4.1 Task Versioning
+Each task has:
+task_id (stable)
+task_version (monotonic)
+A new task version is created when:
+description changes
+inputs/outputs change
+constraints change
+acceptance criteria change
+4.2 Mission Versioning
+Missions aggregate tasks.
+New mission versions are created when:
+task composition changes
+success criteria change
+SLA or priority changes
+Existing task versions remain referenced.
+4.3 Program Versioning
+Programs represent long-running intent.
+New program versions are created when:
+strategic goals change
+governance constraints change
+cadence changes
+Programs may run multiple mission versions concurrently.
+5. Agent & Capability Versioning
+5.1 Agent Capability Profiles
+Capabilities evolve over time.
+Version triggers:
+new capability added
+trust level changes
+certification/validation updates
+Historical assignments retain original capability references.
+6. SLA & Policy Versioning
+6.1 SLA Versioning
+New SLA versions are created when:
+response time changes
+completion window changes
+quality thresholds change
+SLA versions apply prospectively, not retroactively.
+6.2 Escalation Policy Versioning
+Escalation rules are versioned independently.
+Each escalation decision references:
+escalation_policy_id
+escalation_policy_version
+7. Decision Ruleset Versioning
+CWP decision logic (assignment, escalation, closure) is versioned.
+Each decision artifact records:
+ruleset_name
+ruleset_version
+This guarantees interpretability of historical decisions.
+8. Compatibility & Replay
+Change Type
+Backward Compatible
+Requires Replay
+New task version
+Yes
+No
+Mission composition change
+No
+No
+SLA threshold change
+Yes
+No
+Decision ruleset change
+Yes
+Yes
+Escalation policy change
+Yes
+Yes
+Replay uses:
+work events
+versioned definitions
+versioned rulesets
+9. Cross-Engine Version Alignment
+Engine
+Interaction
+DRE
+Missions reference research artifact versions
+PIE
+Tasks reference insight versions
+SIM
+Missions reference scenario versions
+DAT
+Tasks reference plan versions
+GGP
+Governs promotion and constraint changes
+PTE
+Tracks outcomes by work version
+10. Failure Scenarios
+missing version reference → execution blocked
+incompatible ruleset → human review required
+retroactive SLA application → forbidden
+11. Document Position in CWP Corpus
+This versioning specification builds upon:
+NS-CWP-005 — DECISION
+It informs:
+NS-CWP-007 — DATAMODEL
+NS-CWP-013 — RUNBOOK
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CWP Versioning Specification
+Parent / HoldCo Manager
+Status: Draft

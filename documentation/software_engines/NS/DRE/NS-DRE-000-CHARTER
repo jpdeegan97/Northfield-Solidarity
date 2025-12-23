@@ -1,0 +1,230 @@
+NS-DRE-000 — CHARTER
+
+0. Overview
+
+System Name: Deep Research Engine (DRE)
+
+Document Title: DRE Charter
+
+Document Id: NS-DRE-000-CHARTER
+
+Version: 0.1
+
+Prepared By: Strategy & Governance Office
+
+Approved By: Parent / HoldCo Manager
+
+Effective Date: TBD
+
+Review Cycle: Annual or Upon Material Change
+
+1. Engine Identity
+
+1.1 Engine Name
+
+Deep Research Engine
+
+1.2 Acronym
+
+DRE
+
+1.3 Engine Type
+
+Research / Intelligence / Knowledge Acquisition
+
+1.4 Engine Role in NS
+
+DRE is the continuous research and knowledge acquisition engine for Northfield Solidarity. It discovers, tracks, and structures external information about projects, markets, technologies, competitors, and trends, and maps this intelligence into a graph-oriented knowledge model for downstream engines.
+
+2. Mission Statement (One Sentence)
+
+DRE exists to continuously collect, verify, and structure high-signal external knowledge into an evolving research graph that powers insight, decisioning, and execution across Northfield Solidarity under strict governance.
+
+3. Core Responsibilities (Allowed Actions)
+
+3.1 Continuous research acquisition
+
+Monitor predefined topics, entities, and domains (projects, products, companies, technologies, regulations, market signals).
+
+Ingest content from approved sources through MUX (APIs, feeds, datasets) and approved collection methods.
+
+Maintain freshness through scheduled refresh loops.
+
+3.2 Knowledge structuring and graph mapping
+
+Normalize extracted facts into typed entities and relations (nodes/edges) with provenance.
+
+Maintain entity resolution (dedupe, canonical IDs) in coordination with IDN where appropriate.
+
+Produce “research deltas” (what changed since last cycle) for consumption.
+
+3.3 Evidence, provenance, and attribution
+
+Store and surface source provenance for every claim (timestamp, source, confidence, extraction method).
+
+Maintain traceability from insight outputs back to source evidence.
+
+3.4 Research products and outputs
+
+Generate research dossiers, briefs, and “market maps” for PIE, SIG, SIM, and CWP.
+
+Provide query and retrieval APIs for downstream engines.
+
+Recommend follow-up research tasks to CWP when confidence is low or human review is required.
+
+3.5 Quality and confidence modeling
+
+Assign confidence scores and freshness scores to entities, relations, and claims.
+
+Detect conflicts between sources and flag them for review.
+
+3.6 Observability
+
+Emit events, metrics, and correlation IDs to LUM for end-to-end visibility and audit.
+
+4. Out of Scope (Non-Responsibilities)
+
+DRE does not:
+
+Act as a governance authority (that is GGP).
+
+Store raw secrets or manage credentials (that is MUX/secret management).
+
+Execute capital movement or accounting (that is FLO).
+
+Perform operational task coordination (that is CWP).
+
+Serve as the sole identity authority for entities/actors (that is IDN).
+
+Publish externally-facing content directly without governance gates (GGP + CDE/MUX as applicable).
+
+5. Primary Users and Stakeholders
+
+Operators/Analysts: review, refine, and curate research loops
+
+PIE: consumes research graph and dossiers for product intelligence
+
+SIG: consumes extracted signals and monitoring outputs
+
+SIM: consumes structured assumptions for scenario modeling
+
+CWP: receives research tasks for human validation and follow-ups
+
+GGP: governs source approvals, collection policies, and publication constraints
+
+LUM: observes DRE pipelines and provides audit-grade correlation
+
+6. Inputs and Outputs
+
+6.1 Inputs
+
+Approved external sources via MUX (APIs, feeds, datasets)
+
+Monitoring topics, watchlists, and research directives (from PIE/SIG/CWP)
+
+Governance constraints and policy gates (from GGP)
+
+6.2 Outputs
+
+Research graph updates (entities, relations, claim sets)
+
+Dossiers / briefs / change summaries
+
+Confidence & freshness scores
+
+Alerts on key changes or conflicts (to CWP/LUM)
+
+Evidence bundles or references for governed decisions (with GGP interlocks)
+
+7. Governance and Control (GGP Interlock)
+
+DRE must be governed by GGP policies for:
+
+source approval and prohibited sources
+
+collection methods (rate limits, terms compliance, scraping restrictions)
+
+data classification and retention
+
+publishing/export rules
+
+automation limits for outbound actions (e.g., contacting vendors)
+
+Any material governance-affecting changes (new source category, new collection mechanism, new export path, new claim-to-action automation) must be routed through GGP as a decision.
+
+8. Trust, Safety, and Compliance Principles
+
+Provenance-first: every claim must have a source reference.
+
+Separation of concerns: DRE collects/structures; it does not execute transactions.
+
+Minimize sensitive data: avoid ingesting PII unless explicitly required and approved.
+
+Redaction & secure handling: follow NS data classification; store restricted material only with access controls.
+
+Conflict handling: contradictory sources are surfaced, not hidden.
+
+9. Quality Standards (Definition of Done)
+
+A DRE output is considered “usable” when it has:
+
+a valid entity/relationship schema version
+
+provenance for each claim
+
+confidence and freshness scoring
+
+deduped/linked entities (no obvious duplicates)
+
+correlation IDs and emitted telemetry in LUM
+
+10. Engine Interfaces (High-Level)
+
+10.1 Interfaces to other engines
+
+MUX: ingestion connectors and approved source access
+
+SIG: feeds signal extraction and monitoring watchlists
+
+PIE: supplies product/market research artifacts and structured features
+
+SIM: supplies assumptions, priors, and structured evidence for scenarios
+
+CWP: creates follow-up tasks (human review, outreach, validation)
+
+GGP: policy gates and approvals
+
+IDN: entity resolution alignment where relevant
+
+LUM: observability, correlation, audit timeline
+
+10.2 Canonical correlation IDs (required)
+
+workflow_id (research run / loop)
+
+decision_id (if governed)
+
+integration_id (source/provider)
+
+entity_id (for tracked subjects)
+
+trace_id (distributed tracing)
+
+11. Success Metrics (North Star)
+
+Coverage of tracked topics/entities (breadth)
+
+Freshness (time-to-detect changes)
+
+Accuracy/confidence calibration (precision)
+
+Evidence completeness (provenance rate)
+
+Downstream adoption (PIE/SIG/SIM/CWP usage)
+
+Governance compliance (zero unauthorized sources / exports)
+
+12. Charter Summary
+
+DRE is the research substrate of Northfield Solidarity: a governed, provenance-rich engine that continuously transforms external information into a structured research graph and actionable intelligence for the rest of the NS ecosystem.
+

@@ -1,0 +1,157 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document provides an end-to-end example (EEE) for the Content Distribution Engine (CDE).
+It demonstrates:
+  creating a distribution plan for a content artifact
+  governance approval gating
+  intent materialization and per-destination fan-out
+  idempotent execution retries
+  delivery proof capture
+  feedback ingestion and forwarding to SIG
+  auditability and replay
+2. Scenario Overview
+Scenario:
+PIE produces a "top opportunity" product insight with a recommended listing package (images + description). The operator wants to:
+  distribute a listing to two destinations
+  Destination A: marketplace listing endpoint
+  Destination B: internal ops dashboard
+Governance must approve publication before anything executes.
+3. Step 1 — Content Artifact Registration
+Trigger: PIE emits a content artifact.
+Artifact:
+  content_type = ListingContent
+  content_version = PIE-INSIGHT-77:v3
+  content_id = C-3001
+CDE Actions:
+ Validate reference
+ Store metadata pointer in content_artifact
+ Emit ContentRegistered event
+Result:
+  C-3001 is available for distribution planning
+4. Step 2 — Draft Distribution Plan Creation
+Trigger: Operator creates a plan.
+Plan Draft:
+  plan_id = P-4001
+  plan_version = 1
+  destinations = {D-A, D-B}
+  schedule = immediate
+  constraints = {requires_approval: true}
+CDE Actions:
+ Validate plan schema
+ Persist distribution_plan status=draft
+ Persist distribution\_plan\_item rows
+ Emit PlanDraftCreated
+Result:
+  Plan exists but is not executable
+5. Step 3 — Governance Review and Approval
+Trigger: Plan submitted to GGP for approval.
+GGP Check Examples:
+  content class allowed for destination
+  operator authority in scope
+  timing constraints satisfied
+Outcome: approved
+CDE Actions:
+ Update plan status=approved
+ Record approval metadata
+ Emit PlanApproved event with governance_ref
+Result:
+  Plan P-4001 v1 is now eligible
+6. Step 4 — Intent Materialization
+Trigger: Approved plan reaches schedule time.
+Intent Created:
+  intent_id = I-5001
+  plan_id = P-4001
+  plan_version = 1
+  trigger_type = manual
+  actor_id = IDN:A-1001
+CDE Actions:
+ Create immutable distribution_intent
+ Emit IntentCreated
+Result:
+  I-5001 becomes the execution anchor
+7. Step 5 — Fan-Out Execution Attempts
+CDE expands intent into per-destination attempts.
+Attempts:
+  attempt_id = AT-6001 (destination D-A)
+  attempt_id = AT-6002 (destination D-B)
+Both start as status=pending.
+CDE Actions:
+ Create attempt rows
+ Emit AttemptCreated
+8. Step 6 — Execution Attempt A (Marketplace)
+First Attempt
+MUX adapter call: marketplace adapter v2.1
+Result: transient failure (HTTP 503)
+CDE Decision:
+  classify error as transient
+  schedule retry with exponential backoff
+State:
+  AT-6001 status=failed, retry_count=1
+  Decision artifact recorded
+Second Attempt
+Result: success
+Proof Captured:
+  proof_type = external_id
+  proof_value = "MKP-998877"
+State:
+  AT-6001 status=success
+  delivery_proof recorded
+9. Step 7 — Execution Attempt B (Internal Dashboard)
+MUX adapter call: internal dashboard adapter v1.4
+Result: success
+Proof Captured:
+  proof_type = url
+  proof_value = "/ops/listings/MKP-998877"
+State:
+  AT-6002 status=success
+  delivery_proof recorded
+10. Step 8 — Feedback Ingestion
+Trigger: marketplace emits metrics.
+Examples:
+  impressions=12,000
+  clicks=330
+CDE Actions:
+ Normalize payload
+ Persist to distribution_feedback
+ Emit feedback events
+ Forward performance signals to SIG
+Result:
+  SIG aggregates and trust-scores distribution signals
+11. Step 9 — Audit & Replay
+Audit Questions Answered:
+ Who approved the plan?
+  PlanApproved event includes actor_id + governance_ref
+ What was executed where?
+  intent_id links to destination attempts
+ Was retry behavior correct?
+  decision artifact references ruleset_version
+  attempt history shows backoff and retry_count
+ Can we replay?
+  replay uses the plan_version + adapter_version tuple
+  historical attempts remain immutable
+12. Invariants Demonstrated
+  no execution without approval
+  immutable plan once approved
+  intent is immutable anchor
+  idempotent attempts with safe retries
+  proofs are immutable
+  feedback signals do not mutate proofs
+  full audit trace is reconstructible
+13. Document Position in CDE Corpus
+This EEE validates:
+  NS-CDE-002 — TAXONOMY
+  NS-CDE-003 — ARCHITECTURE
+  NS-CDE-004 — LIFECYCLE
+  NS-CDE-005 — DECISION
+  NS-CDE-006 — VERSION
+  NS-CDE-007 — DATAMODEL
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE End-to-End Example
+Parent / HoldCo Manager
+Status: Draft

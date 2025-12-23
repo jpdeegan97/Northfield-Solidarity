@@ -1,0 +1,283 @@
+
+NS-INT-006 — VERSION
+
+1. Purpose
+
+This document defines the versioning strategy for Intervention (quickscope) across:
+
+the engine release train
+
+APIs
+
+canonical event envelope
+
+event schemas (payloads)
+
+projections/read models
+
+edge cache protocol
+
+The goal is safe evolution with minimal breakage while preserving replayability.
+
+2. Version Domains
+
+Intervention uses separate but related version domains:
+
+Engine Version — Intervention Core/Edge binaries
+
+API Version — public and edge-facing endpoints
+
+Envelope Version — canonical event envelope structure
+
+Schema Version — event payload schemas per event_type
+
+Projection Version — projector code + read model schema
+
+Edge Protocol Version — snapshot/stream/replay handshake semantics
+
+3. Engine Versioning (Core + Edge)
+
+3.1 Semantic Versioning
+
+Intervention Core and Edge both follow SemVer:
+
+MAJOR: breaking changes to contracts or compatibility guarantees
+
+MINOR: backward-compatible feature additions
+
+PATCH: bug fixes, performance, security patches
+
+Example: Intervention-Core 1.4.2, Intervention-Edge 1.4.2
+
+3.2 Compatibility Policy
+
+Edge and Core aim for N-1 compatibility at minimum.
+
+A new Core should support the previous Edge minor version.
+
+A new Edge should support the previous Core minor version.
+
+For MAJOR upgrades:
+
+a planned migration window is required
+
+dual-run support is preferred where feasible
+
+4. API Versioning
+
+4.1 URI Versioning
+
+All public APIs are versioned by path:
+
+/v1/events
+
+/v1/state/snapshot
+
+/v1/stream
+
+/v1/threads/{correlation_id}
+
+Edge-local APIs mirror this pattern:
+
+/v1/edge/state
+
+/v1/edge/events
+
+4.2 Backward Compatibility Rules
+
+Within an API major version:
+
+additive changes are allowed (new optional fields, new endpoints)
+
+removing or changing meaning of fields is not allowed
+
+behavior changes that break clients require major bump
+
+5. Canonical Event Envelope Versioning
+
+5.1 Envelope Version Field
+
+The canonical envelope includes:
+
+envelope_version
+
+Rules:
+
+Envelope version changes are rare.
+
+Additive fields bump minor envelope version.
+
+Structural breaking changes bump major envelope version.
+
+5.2 Envelope Compatibility
+
+Intervention Core must:
+
+accept envelope versions in an allowed range
+
+reject unknown major versions
+
+tolerate unknown fields (forward compatibility) within a major line
+
+6. Event Schema Versioning (Payload)
+
+6.1 Per-Event-Type Schema Version
+
+Each event includes:
+
+event_type
+
+schema_version
+
+schema_version is scoped to event_type.
+
+6.2 Schema Registry Discipline
+
+Every event_type has a registered schema history.
+
+Schemas are immutable once published.
+
+New schema versions are appended.
+
+6.3 Compatibility Rules
+
+Within a schema major line:
+
+Add optional fields ✅
+
+Add new enum values ✅ (if consumers are tolerant)
+
+Deprecate fields ✅ (do not remove)
+
+Breaking changes require major bump:
+
+Remove/rename fields ❌
+
+Change type semantics ❌
+
+Change meaning of a field ❌
+
+6.4 Upcasting / Translation
+
+Intervention supports translation via:
+
+Upcasters in projection runtime (preferred)
+
+Producer dual-publish during migration (optional)
+
+Goal: projections can replay historical events and still build correct state.
+
+7. Projection Versioning
+
+7.1 Projection Artifacts
+
+A projection is versioned as:
+
+projection_id
+
+projection_version
+
+read_model_schema_version
+
+7.2 Deployment States
+
+draft → staged → active → deprecated → retired
+
+7.3 Safe Cutover Pattern
+
+Run new projection in shadow mode
+
+Validate against invariants and sample queries
+
+Cut over atomically to new read model store
+
+Keep old projection available during deprecation window
+
+7.4 Rebuild Requirements
+
+Any change that affects projection outputs requires:
+
+rebuild plan (full/windowed/selective)
+
+verification plan
+
+rollback plan
+
+8. Edge Protocol Versioning
+
+8.1 Protocol Version Field
+
+Edge handshake includes:
+
+edge_protocol_version
+
+8.2 What the Protocol Covers
+
+snapshot bootstrap semantics
+
+cursor model (cursor, offset, last_event_id)
+
+replay request format
+
+subscription authorization model
+
+delta format and ordering semantics
+
+8.3 Compatibility Rules
+
+Core supports at least two minor protocol versions concurrently.
+
+Unknown major protocol versions are rejected.
+
+9. Deprecation Policy
+
+9.1 Deprecation Windows
+
+Default windows (adjustable per risk):
+
+API endpoints: 90 days
+
+Projection versions: 90–180 days
+
+Schema versions: indefinite (historical replay), but may be “discouraged”
+
+9.2 Deprecation Signaling
+
+documentation flags
+
+response headers (for APIs)
+
+control-plane notices
+
+10. Version Metadata and Traceability
+
+Intervention records version metadata in:
+
+event log (envelope_version, schema_version)
+
+projection registry (projection_version)
+
+edge status reports (edge_protocol_version)
+
+This enables:
+
+compatibility debugging
+
+reproducible replays
+
+controlled migrations
+
+11. Summary
+
+Intervention’s versioning strategy ensures:
+
+stable contracts for producers and consumers
+
+safe evolution of schemas and projections
+
+durable replay across historical timelines
+
+controlled compatibility between Core and Edge
+
+This is the backbone of long-term coherence for quickscope.
+

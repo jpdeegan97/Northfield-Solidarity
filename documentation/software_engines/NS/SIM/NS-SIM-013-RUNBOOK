@@ -1,0 +1,158 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This runbook defines the production-grade operational procedures for the Simulation & Scenario Engine (SIM).
+It covers:
+safe startup and shutdown
+normal scenario operations
+failure handling and recovery
+replay, comparison, and re-execution
+governance controls and audit readiness
+SIM operations prioritize determinism, traceability, and safety.
+2. Operational Invariants
+Operators must never:
+edit historical scenario runs
+mutate input snapshots
+overwrite outcome series
+change assumption meaning retroactively
+Remediation occurs through:
+new runs
+replay
+re-execution under new versions
+3. Startup Procedure (Cold Start)
+3.1 Preflight Checks
+Before starting SIM services:
+PostgreSQL reachable (read/write)
+Kafka reachable (if publishing enabled)
+Model registry reachable (or embedded registry loaded)
+Downstream services reachable (optional)
+Secrets and config loaded
+If any check fails → do not accept run requests.
+3.2 Startup Order
+Start persistence services (PostgreSQL)
+Start message bus (Kafka) if used
+Start sim-result-store / migrations
+Start sim-model-registry
+Start sim-snapshotter
+Start sim-scenario-builder
+Start sim-constraint-engine
+Start sim-executor
+Start sim-job-runner
+Start sim-api
+4. Normal Operations
+4.1 Creating a Scenario
+Checklist:
+Ensure PIE insight references are valid
+Confirm SIG aggregates are current
+Confirm FLO constraints are current
+Confirm chosen model package is enabled
+Seal scenario and submit run job
+4.2 Monitoring Checklist
+System-wide:
+job queue depth
+average run duration
+failure rate
+storage growth (outcomes)
+Per scenario run:
+CPU/memory usage
+constraint violation count
+time-step completion rate
+5. Incident Response Playbooks
+5.1 Run Failures (Model Error)
+Symptoms:
+run status = failed
+Actions:
+inspect failure decision artifact
+check model inputs and parameters
+re-run with corrected model version
+5.2 Snapshot Resolution Failures
+Symptoms:
+missing input references
+Actions:
+verify upstream IDs exist
+ensure version compatibility
+regenerate snapshot
+5.3 Non-Determinism Detected
+Symptoms:
+replay mismatch
+Actions:
+verify RNG seed recorded
+confirm model version pinning
+confirm snapshot hash identical
+disable problematic model version
+open incident for determinism breach
+5.4 Resource Exhaustion
+Symptoms:
+long runtimes
+worker memory pressure
+Actions:
+throttle job concurrency
+reduce horizon or time-step
+optimize outcome persistence (batch writes)
+6. Replay, Comparison, and Re-Execution
+6.1 Deterministic Replay
+Use when:
+audit verification
+rebuild derived summaries
+Steps:
+select run_id
+submit replay job with reason
+verify output hashes match
+6.2 Comparative Re-Execution
+Use when:
+model package updated
+assumption logic updated
+Steps:
+choose new model package version
+submit re-execution job
+compare outputs side-by-side
+6.3 Scenario Comparison
+Steps:
+select run_ids
+generate comparison report
+export audit pack if needed
+7. Governance & Controls
+Governed actions:
+re-execution under new models
+export audit packs
+Requirements:
+actor identity
+reason
+governance reference (if required)
+All actions logged.
+8. Backup & Disaster Recovery
+8.1 Database Recovery
+restore from backup
+verify scenario and run counts
+rebuild derived views
+8.2 Kafka Recovery (if used)
+restore Kafka
+re-publish summaries if needed
+9. Audit Readiness
+SIM must always support:
+tracing run outputs to input snapshot hashes
+identifying model versions used
+replaying runs deterministically
+explaining constraints and breakpoints
+auditing operator actions
+10. Change Management
+model packages are versioned and can be disabled
+schema changes are additive
+runbook changes are documented
+11. Document Position in SIM Corpus
+This runbook is informed by:
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-011 — APIMAP
+NS-SIM-012 — STATE
+It complements:
+NS-SIM-014 — DATADEF
+12. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Operational Runbook
+Parent / HoldCo Manager
+Status: Draft

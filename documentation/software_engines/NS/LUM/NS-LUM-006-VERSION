@@ -1,0 +1,288 @@
+NS-LUM-006 — VERSION
+
+0. Overview
+
+This document defines versioning rules for LUM (Luminance Engine) across:
+
+telemetry schemas (logs/events)
+
+correlation standards
+
+alert rules
+
+SLI/SLO definitions
+
+incident workflows/runbooks
+
+evidence bundle formats
+
+LUM APIs and SDKs
+
+Goal: changes remain traceable, reversible, and compatible across engines.
+
+1. Versioning Principles
+
+Everything versioned: schemas, rules, SLOs, runbooks, SDKs.
+
+Immutable history: published versions never mutate; changes create new versions.
+
+Compatibility by default: additive changes preferred.
+
+Deterministic replay: older telemetry remains interpretable.
+
+Governance interlock: changes affecting audit/evidence/retention require GGP gate.
+
+2. Versioning Scheme (Canonical)
+
+Use Semantic Versioning for most LUM artifacts:
+
+MAJOR.MINOR.PATCH
+
+MAJOR: breaking changes
+
+MINOR: backward-compatible additions
+
+PATCH: backward-compatible fixes
+
+For high-frequency objects (alerts, SLO tuning), allow monotonic revision IDs but still keep semver at the “policy pack” level.
+
+3. Artifact-Specific Rules
+
+3.1 Telemetry/Event Schemas
+
+Schema ID format
+
+lum.<signal_type>.<domain>.<name>
+
+e.g., lum.event.integration.webhook_received
+
+Version rules
+
+MAJOR: type change, meaning change, removal, new required field without default
+
+MINOR: new optional field, new enum value (if safely handled), new nested object
+
+PATCH: documentation clarifications, non-functional constraints, bug fix in validation
+
+Compatibility requirement
+
+Consumers must tolerate unknown fields.
+
+Producers must not rely on consumers understanding new fields during rollout.
+
+3.2 Correlation Standard
+
+Correlation standard defines required fields and propagation.
+
+Version rules
+
+MAJOR: changing required field set or semantics
+
+MINOR: adding recommended fields, adding optional fields
+
+PATCH: clarification/typos
+
+Change discipline
+
+New required correlation fields require a migration window and a GGP-approved rollout plan.
+
+3.3 Alert Rules
+
+Alert rules can be tuned frequently; versioning must preserve explainability.
+
+Rule ID format
+
+lum.alert.<domain>.<name>
+
+Version rules
+
+MAJOR: changes that alter paging semantics or severity mapping significantly
+
+MINOR: threshold tuning, added filters, improved grouping/dedupe
+
+PATCH: bug fixes, description updates
+
+Operational requirement
+
+Every fired alert must record the rule_id and rule_version.
+
+3.4 SLIs/SLOs
+
+SLO ID format
+
+lum.slo.<service_or_workflow>.<objective>
+
+Version rules
+
+MAJOR: target/window definition changes that alter historical comparability
+
+MINOR: minor tuning where comparability is preserved (or explicitly annotated)
+
+PATCH: metadata fixes
+
+Recordkeeping
+
+SLO evaluations store which SLO version applied.
+
+3.5 Incident Workflow & Templates
+
+Includes incident states, required fields, postmortem templates.
+
+Version rules
+
+MAJOR: state model changes, new required closure fields
+
+MINOR: additional optional fields/sections
+
+PATCH: formatting fixes
+
+3.6 Runbooks
+
+Runbooks are living docs but must be traceable.
+
+Version rules
+
+MAJOR: procedure changes that alter risk/impact or require new permissions
+
+MINOR: additional checks, clearer steps
+
+PATCH: typo fixes
+
+Operational requirement
+
+Incidents reference the runbook ID + version used.
+
+3.7 Evidence Bundle Format
+
+Evidence bundles are audit-adjacent and high-stakes.
+
+Version rules
+
+MAJOR: changes to sealing/integrity fields, required artifacts schema
+
+MINOR: optional metadata additions
+
+PATCH: documentation
+
+Governance requirement
+
+Any MAJOR/MINOR affecting evidence meaning or access classification must be reviewed under GGP.
+
+3.8 LUM APIs
+
+API changes must be safe for client engines.
+
+Rules
+
+Version APIs at the path or header level (e.g., /v1/…).
+
+MAJOR: breaking request/response changes
+
+MINOR: additive fields/endpoints
+
+PATCH: bug fixes
+
+Deprecation policy
+
+Maintain at least one prior major for a defined sunset window.
+
+3.9 LUM SDKs
+
+SDKs wrap logging/tracing/event emission.
+
+Rules
+
+semver required
+
+MAJOR: breaking API changes
+
+MINOR: new helpers
+
+PATCH: fixes
+
+4. Deprecation & Sunset Policy
+
+4.1 Deprecation stages
+
+announced
+
+deprecated
+
+sunset_pending
+
+retired
+
+4.2 Minimum windows (starter)
+
+Schemas: 60–180 days depending on scope
+
+APIs: 180 days for major versions
+
+Alert rules: may change faster, but must keep a revision trail
+
+4.3 Migration requirements
+
+compatibility notes
+
+rollout plan (producer-first vs consumer-first)
+
+test plan and rollback strategy
+
+5. Release Management
+
+5.1 Release units
+
+LUM Platform release (services)
+
+Telemetry standard pack (schemas + correlation + redaction policies)
+
+Alert/SLO pack (rules + objectives)
+
+5.2 Required release artifacts
+
+changelog
+
+migration notes
+
+risk assessment
+
+validation plan
+
+5.3 Rollback rules
+
+rollbacks must preserve data compatibility
+
+major schema changes require dual-write/dual-read or translation layer during transition
+
+6. Traceability Requirements
+
+Every emitted signal and operational artifact should be able to reference:
+
+schema_id + schema_version
+
+correlation_standard_version
+
+rule_id + rule_version (for alerts)
+
+slo_id + slo_version
+
+runbook_id + runbook_version
+
+bundle_format_version (for evidence)
+
+7. Governance Interlock (GGP)
+
+Changes that require a GGP gate (minimum):
+
+new required audit/evidence fields
+
+retention class changes for sensitive data
+
+access control model changes
+
+evidence bundle sealing/integrity logic changes
+
+paging/escalation policy changes that affect who gets alerted
+
+LUM records the decision_id authorizing such changes.
+

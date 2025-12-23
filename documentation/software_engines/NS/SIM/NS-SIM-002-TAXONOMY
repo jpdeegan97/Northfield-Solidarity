@@ -1,0 +1,145 @@
+
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the canonical taxonomy for the Simulation & Scenario Engine (SIM).
+The taxonomy establishes a shared vocabulary for:
+simulation artifacts
+scenario structure
+assumptions and constraints
+variables and outputs
+uncertainty and sensitivity constructs
+The goal is to ensure that all simulations are comparable, explainable, and replayable across time, engines, and operators.
+2. Taxonomy Design Principles
+Explicit Assumptions — nothing is implicit
+Separation of Reality vs Hypothesis — observed ≠ simulated
+Non-Authoritative Outputs — simulations never assert truth
+Deterministic Structure — same inputs → same outputs
+Composable Units — scenarios are built from reusable parts
+3. Core Artifact Classes
+SIM defines six primary artifact classes:
+Scenario
+Assumption Set
+Constraint Set
+Variable
+Outcome
+Sensitivity Artifact
+4. Scenario
+Definition
+A Scenario is a named, versioned container representing a modeled future.
+Attributes
+scenario_id
+scenario_type
+description
+baseline_ref
+created_at
+created_by
+ruleset_version
+Scenario Types
+baseline
+optimistic
+pessimistic
+action_driven
+stress_test
+comparative
+5. Assumption Set
+Definition
+An Assumption Set captures explicit hypotheses applied during simulation.
+Categories
+Market assumptions
+Demand assumptions
+Supply assumptions
+Execution assumptions
+Financial assumptions
+Examples
+demand_growth_rate = +12%
+conversion_rate uplift = +1.5%
+fulfillment_cost increase = +8%
+Assumptions are first-class, versioned artifacts.
+6. Constraint Set
+Definition
+A Constraint Set defines hard boundaries that simulations must respect.
+Constraint Classes
+Financial (capital limits, burn rates)
+Operational (capacity, throughput)
+Temporal (deadlines, seasonality)
+Governance (approval gates, risk limits)
+Constraints are enforced, not averaged.
+7. Variables
+Definition
+Variables are quantities that change over time during simulation.
+Variable Types
+state variables (inventory level)
+control variables (spend rate)
+exogenous variables (market demand)
+Variables reference:
+initial state
+update function
+bounds
+8. Outcomes
+Definition
+Outcomes represent modeled results produced by a simulation.
+Outcome Classes
+Financial outcomes (profit, cash flow)
+Operational outcomes (throughput, SLA)
+Risk outcomes (drawdown, failure probability)
+Performance metrics (ROI, IRR)
+Outcomes are time-series where applicable.
+9. Uncertainty Model
+Definition
+Uncertainty captures variance in assumptions or variables.
+Constructs
+probability distributions
+confidence intervals
+stochastic perturbations
+Uncertainty is explicit and never hidden.
+10. Sensitivity Artifact
+Definition
+A Sensitivity Artifact identifies which assumptions or variables most influence outcomes.
+Attributes
+input_ref
+outcome_ref
+sensitivity_score
+directionality
+Used for risk awareness and decision support.
+11. Baseline vs Variant Semantics
+Baseline scenarios reference observed reality (SIG + FLO)
+Variants override specific assumptions
+All deltas are explicit and traceable
+12. Cross-Engine References
+Engine
+Usage
+SIG
+Supplies observed signals & aggregates
+PIE
+Supplies insight candidates
+DAT
+Supplies execution parameters
+FLO
+Supplies financial constraints
+GGP
+Governs scenario usage
+PTE
+Compares outcomes vs reality
+13. What SIM Does Not Taxonomize
+SIM does not define:
+execution steps (DAT)
+approval semantics (GGP)
+accounting truth (FLO)
+SIM taxonomizes possibility, not action.
+14. Document Position in SIM Corpus
+This taxonomy builds upon:
+NS-SIM-001 — OVERVIEW
+It informs:
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Canonical Taxonomy
+Parent / HoldCo Manager
+Status: Draft

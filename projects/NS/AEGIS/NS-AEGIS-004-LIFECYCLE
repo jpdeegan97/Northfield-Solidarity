@@ -1,0 +1,281 @@
+NS-AEGIS-004 — LIFECYCLE
+
+Project: Aegis (Dependency Management Product)
+
+1) Lifecycle Purpose
+
+Aegis exists to keep dependency posture continuously correct.
+
+The lifecycle defines:
+
+How dependencies are introduced, governed, operated, and retired
+
+How signals (CVE/incident/EOL/renewal/drift) trigger state transitions
+
+How CWP agents run operational loops while GGE enforces policy gates
+
+How Aegis maintains auditability through change requests and snapshots
+
+2) Two Interlocking Lifecycles
+
+Aegis runs two lifecycles in parallel:
+
+2.1 Dependency Lifecycle (state machine)
+
+A discrete state for each Dependency and Dependency Unit (DU).
+
+2.2 Operational Loop Lifecycle (continuous)
+
+Recurring loops that keep data fresh and respond to change.
+
+3) Dependency State Machine
+
+3.1 States
+
+Proposed — requested but not approved
+
+Approved — approved for use, not yet active/observed
+
+Active — in use and monitored
+
+Constrained — allowed but gated (exceptions, compensating controls, limited scope)
+
+Deprecated — scheduled for removal; replacement path required
+
+Removed — no longer permitted/used; edges archived
+
+3.2 Allowed Transitions
+
+stateDiagram-v2
+  [*] --> Proposed
+  Proposed --> Approved: GGE approves
+  Proposed --> Removed: rejected/withdrawn
+
+  Approved --> Active: deployed/observed
+  Approved --> Constrained: policy requires limits
+  Approved --> Removed: approval revoked
+
+  Active --> Constrained: risk/compliance/reliability
+  Constrained --> Active: remediation complete
+
+  Active --> Deprecated: replacement mandated
+  Constrained --> Deprecated: migration required
+
+  Deprecated --> Removed: decommission verified
+
+  Removed --> [*]
+
+4) Lifecycle Drivers (What Causes Transitions)
+
+4.1 Governance Drivers (GGE)
+
+Risk tier change
+
+Missing or expired evidence
+
+Exception expiration
+
+Policy updates (new controls)
+
+4.2 Operational Drivers (SIG/MUX/CWP)
+
+CVE or malicious package alert
+
+Vendor incident or SLA breach
+
+End-of-life / end-of-support notice
+
+Version drift (declared vs observed)
+
+Contract renewal window
+
+Discovery of new edges (blast radius expansion)
+
+5) Change Request Lifecycle (Control Plane)
+
+Aegis treats every material change as a Change Request (CR).
+
+5.1 CR Phases
+
+Draft — creator prepares metadata, scope, intended change
+
+Submitted — enters governance flow
+
+Policy Evaluated — evidence + approvals computed (GGE)
+
+Evidence Pending — awaiting required artifacts
+
+Approvals Pending — routed approvals in progress
+
+Approved / Rejected — decision recorded
+
+Committed — Aegis applies registry/graph changes
+
+Operationalized — monitoring + loops activated
+
+Closed — CR archived; snapshot recorded
+
+5.2 CR Outcomes
+
+Approved → committed (normal)
+
+Rejected → removed/return to draft
+
+Approved with constraints (time-boxed exception; DU scope limitations)
+
+6) Operational Loop Lifecycle (Data Plane)
+
+Loops are recurring programs executed by CWP and triggered by schedule or signals.
+
+6.1 Loop Types
+
+Freshness Loop — verify ownership, scope, evidence validity, last-verified stamps
+
+Drift Loop — compare observed vs declared versions/config; raise drift signals
+
+Renewal Loop — renewals upcoming → evidence refresh → approval gates
+
+Incident Loop — signal → impact assessment → remediation plan → closure
+
+Discovery Loop — ingest new observations and edges; adjust confidence
+
+6.2 Loop Phases (generic)
+
+Trigger (schedule or signal)
+
+Collect (MUX/SIG pulls observations)
+
+Normalize & Resolve (IDN canonical IDs)
+
+Assess (graph impact; policy checks)
+
+Decide (auto-action vs propose CR)
+
+Execute (CWP tasks, evidence chasing, rollout steps)
+
+Verify (post-checks; drift cleared; evidence verified)
+
+Record (events + snapshots)
+
+7) Incident Lifecycle
+
+7.1 Incident Stages
+
+Signal Received (SIG)
+
+Mapped (Aegis resolves to dependency/DU)
+
+Impact Assessed (graph traversal → affected assets)
+
+Owner Notified (routing based on ownership)
+
+Plan Created (CWP proposes remediation/migration)
+
+Action Executing (rollout, patches, mitigations)
+
+Verified (risk reduced; drift resolved)
+
+Closed (snapshot + evidence of remediation)
+
+7.2 Emergency Exceptions
+
+Emergency exceptions are allowed only as:
+
+Time-boxed CR with:
+
+compensating controls
+
+expiry
+
+required follow-up CR to remediate
+
+8) Renewal Lifecycle
+
+8.1 Renewal Stages
+
+Window Detected (calendar/contract observation)
+
+Evidence Refresh (SOC2/ISO/DPA, etc.)
+
+Policy Evaluation (GGE)
+
+Approval
+
+Renewed (new term recorded)
+
+Post-Renewal Verification (scope still correct)
+
+8.2 Noncompliance Outcomes
+
+Evidence missing → move to Constrained
+
+Renewal missed → move to Deprecated (or emergency exception)
+
+9) Deprecation & Removal Lifecycle
+
+9.1 Deprecation Requirements
+
+When moving to Deprecated, Aegis requires:
+
+Identified replacement (target dependency)
+
+Migration plan (CWP tasks)
+
+Cutover milestones
+
+Verification criteria
+
+9.2 Removal Verification
+
+A dependency/DU can only become Removed after:
+
+No observed runtime edges in scoped environments (within a safety window)
+
+No build references (manifests/lockfiles) (within a safety window)
+
+Owner attestation and/or automated proof
+
+Snapshot recorded
+
+10) Snapshots & “As-Of” Auditability
+
+Aegis produces snapshots at:
+
+CR commit
+
+Incident closure
+
+Scheduled intervals (optional)
+
+Snapshots enable:
+
+“As-of date” dependency posture
+
+Diffing between states (what changed, why, by which CR)
+
+Audit replay
+
+11) MVP Lifecycle Cut (First Implementation Slice)
+
+MVP includes:
+
+Dependency state machine (Proposed→Approved→Active; plus Constrained/Deprecated as basic)
+
+CR lifecycle through GGE (Add Dependency, Update Version)
+
+One loop: Freshness (scheduled) + Incident (signal-triggered)
+
+Snapshot on commit and incident closure
+
+12) Lifecycle KPIs
+
+% dependencies in Active with fresh evidence
+
+Mean time from signal → impact assessment
+
+Drift detection coverage (% observed vs declared)
+
+Renewal on-time rate
+
+Deprecation throughput (deprecated → removed within target window)
+

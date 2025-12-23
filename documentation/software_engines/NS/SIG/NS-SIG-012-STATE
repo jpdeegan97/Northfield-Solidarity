@@ -1,0 +1,171 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the state model and state management semantics for the Signal Aggregation Engine (SIG).
+SIG state is designed to:
+preserve immutable signal facts
+expose operational health explicitly
+support deterministic replay and rebuild
+avoid hidden or implicit mutations
+SIG distinguishes clearly between authoritative signal state and operational control state.
+2. State Categories
+SIG maintains three distinct categories of state:
+Authoritative Signal State (Immutable)
+Source & Ingestion Operational State (Mutable, Audited)
+Processing & Job State (Mutable, Audited)
+Only the first category represents signal truth.
+3. Authoritative Signal State (Immutable)
+3.1 Canonical Signal Records
+Canonical signal rows are immutable once persisted.
+Signals do not transition through mutable states.
+Logical freshness classifications are derived:
+fresh
+decaying
+stale
+These are computed from decay parameters and current time.
+3.2 Provenance & Decision Accumulation
+Signals may acquire additional immutable references over time:
+provenance links
+dedupe references
+decision artifacts
+These additions do not alter the signal fact itself.
+4. Source & Ingestion Operational State Machine
+SIG treats each upstream source as an operational entity.
+4.1 Source States
+disabled
+enabled
+paused
+degraded
+4.2 Source State Transitions
+From
+To
+Trigger
+disabled
+enabled
+Operator/governance enables source
+enabled
+paused
+Operator pauses ingestion
+paused
+enabled
+Operator resumes ingestion
+enabled
+degraded
+Schema drift, missing data, abnormal scoring
+degraded
+enabled
+Ruleset updated + recovery
+any
+disabled
+Governance disables source
+All transitions produce a source_state_change event.
+5. Processing Pipeline State
+SIG processing stages produce outcome decisions, not mutable pipeline state.
+Stages:
+ingestion
+normalization
+scoring
+decay assignment
+deduplication
+persistence
+publication
+Each stage emits a decision artifact capturing outcome and rationale.
+6. Quarantine State Model
+Quarantine captures inputs that cannot be safely processed.
+6.1 Quarantine States
+open
+reviewed
+reprocessed
+suppressed
+6.2 Quarantine Transitions
+From
+To
+Trigger
+open
+reviewed
+Operator reviews item
+reviewed
+reprocessed
+Operator triggers reprocess
+reviewed
+suppressed
+Governance-approved suppression
+open
+reprocessed
+Automated retry after ruleset update
+Original inputs remain preserved.
+7. Replay & Rebuild Job State Machine
+SIG operational jobs are modeled explicitly.
+7.1 Job States
+queued
+running
+completed
+failed
+cancelled
+7.2 Job Transition Rules
+From
+To
+Trigger
+queued
+running
+Worker claims job
+running
+completed
+Successful completion
+running
+failed
+Error threshold exceeded
+queued
+cancelled
+Operator cancels
+running
+cancelled
+Operator cancels
+Jobs are idempotent and auditable.
+8. Aggregate & Correlation State
+Aggregates and correlation groups are derived state:
+rebuildable at any time
+versioned by logic
+not authoritative
+Derived state may be dropped without data loss.
+9. Consistency Model
+Strong consistency for canonical signal persistence
+Eventual consistency for aggregates and correlations
+At-least-once delivery for published signals
+Idempotency ensured via signal_id and dedupe rules.
+10. Late-Arriving Data Handling
+Late signals:
+create new canonical signals
+may retroactively affect aggregates
+never mutate existing signal records
+Backfill jobs may be used to fill gaps.
+11. Failure & Recovery Semantics
+Processing failures → quarantine
+Source degradation triggers alerts
+Recovery via ruleset updates and replay
+No destructive recovery actions exist.
+12. State Change Events
+SIG emits operational state events:
+sig.source.state_changed
+sig.quarantine.state_changed
+sig.job.state_changed
+sig.anomaly.detected
+All include correlation_id and actor_id (when applicable).
+13. Document Position in SIG Corpus
+This state document builds upon:
+NS-SIG-004 — LIFECYCLE
+NS-SIG-005 — DECISION
+NS-SIG-006 — VERSION
+NS-SIG-011 — APIMAP
+It informs:
+NS-SIG-013 — RUNBOOK
+NS-SIG-014 — DATADEF
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG State Model
+Parent / HoldCo Manager
+Status: Draft

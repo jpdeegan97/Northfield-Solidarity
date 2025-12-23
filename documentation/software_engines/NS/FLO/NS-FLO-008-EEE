@@ -1,0 +1,168 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document provides a concrete End-to-End Example (EEE) illustrating how the Financial Ledger Orchestrator (FLO) processes real financial activity from ingestion through reconciliation and reporting.
+The goal is to:
+Validate the FLO lifecycle and data model
+Demonstrate budget enforcement and reconciliation behavior
+Show cross-engine traceability (DAT, MUX, GGP, PTE)
+Prove audit and replay guarantees
+2. Scenario Overview
+Scenario:
+A governed execution plan incurs advertising spend, generates marketplace sales, and receives a payout — all reconciled against external processor statements.
+Assumptions:
+Budgets approved by GGP
+Execution performed by DAT
+Payments and payouts surfaced via MUX
+3. Inputs
+3.1 Governance-Approved Budget (From GGP)
+budget_id: BUD-4412
+entity_id: ENT-CORE
+scope: Advertising spend
+max_amount: $10,000 USD
+active window: 30 days
+3.2 DAT Execution Activity
+DAT executes a plan and emits:
+spend.incurred — $2,500 (ads)
+fee.charged — $75 (platform fee)
+Each event includes:
+execution_plan_id
+plan_version
+correlation_id
+3.3 External Truth (From MUX)
+MUX later provides:
+Ad platform invoice statement
+Marketplace payout report
+4. Stage-by-Stage Walkthrough
+5. Stage 1 — Event Ingestion
+FLO ingests financial events from DAT:
+Normalizes timestamps and currency
+Resolves entity/account ownership
+Performs deduplication
+Artifacts created:
+normalized_financial_event records
+6. Stage 2 — Classification
+Classification ruleset v3 applies:
+spend.incurred → advertising expense
+Debit: Advertising Expense Account
+Credit: Cash/Processor Account
+Budget reference: BUD-4412
+Transaction candidate created.
+7. Stage 3 — Ledger Write
+FLO writes:
+transaction_id: TXN-8891
+Ledger entries:
+Debit Advertising Expense: $2,500
+Credit Cash Account: $2,500
+Ledger becomes authoritative truth.
+8. Stage 4 — Budget Evaluation
+Budget Engine recomputes:
+Previous spend: $0
+New spend: $2,500
+Remaining: $7,500
+Budget state: ok
+Budget state change event emitted to DAT.
+9. Stage 5 — Additional Fees
+DAT emits:
+fee.charged — $75
+FLO classifies and writes ledger entries:
+Debit Platform Fees: $75
+Credit Cash Account: $75
+Budget updated:
+Total spend: $2,575
+10. Stage 6 — External Statement Ingestion
+MUX provides:
+Ad platform invoice ($2,575)
+Marketplace payout statement ($3,100)
+External statements stored as non-authoritative truth.
+11. Stage 7 — Reconciliation
+Reconciliation ruleset v2 executes:
+Ad invoice ↔ ledger entries → matched
+Marketplace payout ↔ no ledger entry → excess
+Reconciliation records created without mutating ledger.
+12. Stage 8 — Reporting & Attribution
+Derived views updated:
+Account balances
+Budget burn report
+Execution-attribution view
+PTE consumes:
+Revenue vs spend attribution
+ROI metrics tied to execution_plan_id
+13. Stage 9 — Audit & Replay
+An auditor can reconstruct:
+Source events
+Classification decisions and ruleset versions
+Ledger entries
+Budget enforcement timeline
+Reconciliation outcomes
+Replay scenarios:
+Rebuild reports
+Re-run reconciliation with new rules
+Ledger truth remains unchanged.
+14. Cross-Engine Traceability
+
+
+
+Engine
+
+Artifact
+
+
+DAT
+
+execution_plan_id, plan_version
+
+
+GGP
+
+budget approval decision
+
+
+MUX
+
+external statement IDs
+
+
+FLO
+
+ledger_entry_id, transaction_id
+
+
+PTE
+
+performance attribution records
+All linked via correlation_id.
+15. Validation Outcomes
+This EEE validates that:
+Ledger truth is authoritative and immutable
+Budgets are enforced continuously
+Reconciliation is non-destructive
+Financial attribution is explainable
+Full replay and audit are possible
+16. Document Position in FLO Corpus
+This EEE builds upon:
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+NS-FLO-005 — DECISION
+NS-FLO-006 — VERSION
+NS-FLO-007 — DATAMODEL
+17. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO End-to-End Example
+
+Parent / HoldCo Manager
+Status: Draft

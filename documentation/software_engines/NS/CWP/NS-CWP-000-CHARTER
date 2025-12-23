@@ -1,0 +1,240 @@
+NS-CWP-000 — CHARTER
+
+0. Overview
+
+System Name: Cognitive Work Plane (CWP)
+
+Document Title: NSDC Engine Charter — CWP (Cognitive Work Plane)
+
+Document ID: NS-CWP-000-CHARTER
+
+Version: 0.1
+
+Prepared By: Strategy & Governance Office
+
+Approved By: Parent / HoldCo Manager
+
+Effective Date: TBD
+
+Review Cycle: Annual or upon material change
+
+1. Engine Identity
+
+Engine Name: Cognitive Work Plane
+
+Acronym: CWP
+
+Engine Type: Operations / Workforce Orchestration / Agent Coordination
+
+Primary Function: Represent, coordinate, supervise, and audit agentic workers (human, AI, and hybrid) and operational work—translating intent into executable tasks and outcomes—while remaining fully governed by GGP.
+
+2. Mission Statement (One Sentence)
+
+CWP exists to turn objectives into coordinated, accountable work by organizing agentic workers, tasks, roles, and performance signals into a governed operational plane that reliably executes day-to-day operations.
+
+3. Core Responsibilities (Allowed Actions)
+
+CWP may:
+
+Model operational work as tasks, playbooks, workflows, and queues
+
+Represent workers (humans, AI agents, hybrid teams) with roles, capabilities, and assignments
+
+Coordinate execution of work across engines and systems (handoffs, dependencies, escalation)
+
+Operate work supervision: checkpoints, status tracking, exception handling, and completion verification
+
+Manage operational SOPs/playbooks (run steps, enforce required artifacts)
+
+Maintain work performance signals (throughput, cycle time, quality markers)
+
+Support approval routing and human-in-the-loop steps (as required by GGP)
+
+Emit structured operational events for telemetry and audit correlation (to LUM and GGP)
+
+CWP must NOT:
+
+Create or override governance policy (GGP is the authority)
+
+Operate as the financial ledger (FLO is the authority)
+
+Act as a general data lake/warehouse (DRE/PIE own research/analytics)
+
+4. Scope Boundaries & Interfaces
+
+4.1 What CWP owns
+
+Worker registry (agent profiles, capabilities, availability signals)
+
+Task/work item system (queues, assignments, SLAs, escalation)
+
+Workflow/playbook execution model (SOP steps, checklists, gating)
+
+Operational supervision surfaces (dashboards, work states, exception inbox)
+
+Work evidence capture for completion (artifacts, receipts, links, confirmations)
+
+4.2 What CWP depends on
+
+GGP: governance rules, approvals, constraints, evidence requirements
+
+IDN: identity, roles, permissions, entity records (who is a worker/actor)
+
+LUM: observability/telemetry correlation, incident signals, health of work execution
+
+FLO: capital/ledger actions (CWP can request; FLO records and executes under GGP)
+
+MUX: external system integrations (email, calendars, ticketing, vendor systems)
+
+4.3 Common integration surfaces
+
+GGP: evaluate decision gates before executing governed steps
+
+IDN: resolve actor identity, role-based eligibility for tasks/approvals
+
+LUM: emit work events and correlate with traces, incidents, and evidence bundles
+
+FLO: submit governed requests for payments, reimbursements, procurement events
+
+5. Core Concepts
+
+5.1 Worker
+
+A Worker is an actor capable of performing tasks.
+
+Worker types
+
+Human (employee/contractor)
+
+AI Agent (software agent operating with bounded permissions)
+
+Hybrid Unit (human + agent pair)
+
+Key attributes
+
+capabilities/skills
+
+authorization profile (derived from IDN + GGP)
+
+availability and load
+
+5.2 Work Item
+
+A Work Item is a unit of operational work tracked to completion.
+
+Examples
+
+triage inbox item
+
+vendor follow-up
+
+invoice verification
+
+publish a post (handoff to CDE)
+
+fulfill an order (handoff to DAT/FLO)
+
+5.3 Playbook (SOP)
+
+A Playbook is a structured sequence of steps that produces a consistent outcome.
+
+Playbook steps can include
+
+human actions
+
+agent actions
+
+external API calls (via MUX)
+
+approvals (via GGP)
+
+evidence collection (required artifacts)
+
+5.4 Governance Gates
+
+A Governance Gate is a required GGP decision/approval before proceeding.
+
+Examples
+
+spend threshold approval
+
+releasing a customer-facing communication
+
+modifying identity permissions
+
+executing high-risk automation
+
+5.5 Work Evidence
+
+Work Evidence is proof that a task or step was completed correctly.
+
+Examples
+
+receipt PDF
+
+signed approval
+
+vendor confirmation email
+
+screenshot/link to published artifact
+
+6. Key Outputs / Deliverables
+
+Canonical worker + task models
+
+Queue-based operational execution plane
+
+SOP/playbook library with governed gates
+
+Human-in-the-loop approval routing (when required)
+
+Standardized work event stream for correlation and audit
+
+Operational dashboards: status, throughput, exceptions, SLA risk
+
+7. Non-Goals
+
+Replacing HRIS/payroll systems
+
+Becoming a standalone project management product (unless later spun out)
+
+Serving as the single source of truth for finances (FLO) or governance policy (GGP)
+
+8. Risks & Mitigations
+
+Over-automation risk → require GGP gates for material actions; default to human confirmation
+
+Permission drift → IDN-backed roles; periodic access review via GGP policy
+
+Task sprawl / unclear ownership → explicit queues, assignment rules, escalation ladders
+
+Audit gaps → enforce required evidence and event emission for governed work
+
+Alert fatigue → route operational signals to LUM with severity taxonomy
+
+9. Initial Roadmap (MVP → v1)
+
+MVP
+
+Worker registry (humans + a small set of bounded AI agents)
+
+Work item model + queues + assignment rules
+
+Playbook runner (linear steps) with basic gating calls to GGP
+
+Evidence attachment per work item
+
+Event emission to LUM (work.started/work.completed/work.blocked)
+
+v1
+
+Advanced workflows (branching, retries, timeouts, escalations)
+
+Delegation + coverage schedules
+
+Performance signals (cycle time, quality markers, rework rate)
+
+Tight integration with external systems via MUX (email/calendar/ticketing)
+
+Built-in postmortem and continuous improvement loops (handoff to LUM + GGP)
+

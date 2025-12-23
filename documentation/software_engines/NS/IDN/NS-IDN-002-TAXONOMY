@@ -1,0 +1,100 @@
+Identity & Entity Nexus (IDN)
+1. Purpose
+The Identity & Entity Nexus (IDN) is the authoritative engine responsible for identity resolution, entity modeling, and relationship integrity across the Northfield Solidarity ecosystem.
+IDN exists to answer a foundational question:
+Who or what is acting, being acted upon, or being reasoned about — and how are those identities and entities related?
+IDN provides canonical identity truth and entity graph coherence for all other engines.
+2. Role Within Northfield Solidarity
+IDN sits at the foundational substrate layer of the system.
+All engines depend on IDN for:
+actor identity (human, system, agent)
+entity identity (product, property, account, vendor, customer)
+relationship resolution (ownership, control, attribution)
+IDN does not make decisions, execute actions, or manage workflows. It supplies trusted identity context.
+3. What IDN Produces
+IDN produces Identity and Entity Artifacts, including:
+Canonical Actor identities
+Canonical Entity records
+Relationship edges between entities
+Resolution decisions (merge, split, alias)
+Versioned identity states over time
+All outputs are:
+auditable
+versioned
+explainable
+4. What IDN Does Not Do
+To preserve clarity and safety, IDN explicitly does not:
+authenticate users (delegated to auth systems)
+authorize actions (GGP)
+execute workflows (DAT, CWP)
+store domain-specific business logic
+IDN identifies; others decide and act.
+5. Core Capabilities
+IDN provides the following core capabilities:
+Identity Resolution
+Resolve multiple identifiers to a single canonical identity.
+Entity Modeling
+Represent real-world objects as stable entities.
+Relationship Graph Management
+Maintain typed, versioned edges between entities.
+Alias & Merge Handling
+Track historical merges, splits, and aliases.
+Temporal Identity Tracking
+Preserve identity state changes over time.
+6. Identity & Entity Classes
+IDN supports multiple classes:
+Actors — humans, agents, services
+Legal Entities — companies, trusts
+Assets — products, properties, inventory units
+Accounts — financial, platform, system accounts
+Conceptual Entities — markets, regions, categories
+7. Interaction With Other Engines
+Engine
+Relationship to IDN
+GGP
+Uses identity context for governance and audit
+SIG
+Attributes signals to entities and sources
+PIE
+Groups insights by entity
+SIM
+Binds scenarios to entities
+DAT
+Executes actions on behalf of entities
+FLO
+Tracks financial state per entity
+PECA
+Creates new property/legal entities
+CWP
+Manages agentic workers and roles
+IDN is never bypassed for identity resolution.
+8. Operational Posture
+IDN is:
+Write-controlled (governed merges/splits)
+Read-heavy for downstream engines
+Strongly consistent for identity truth
+Replayable for audit
+9. Expected Outcomes
+When IDN is functioning correctly:
+Identity ambiguity is eliminated or explicit
+Entity relationships are transparent
+Audit trails are complete and explainable
+Downstream engines operate on shared truth
+IDN reduces confusion, not flexibility.
+10. Document Position in IDN Corpus
+This document provides the conceptual overview of IDN.
+It is complemented by:
+NS-IDN-000 — CHARTER
+NS-IDN-002 — TAXONOMY
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Overview
+Parent / HoldCo Manager
+Status: Draft

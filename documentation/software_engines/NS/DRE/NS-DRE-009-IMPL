@@ -1,0 +1,187 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Deep Research Engine (DRE).
+It translates DRE’s architecture, lifecycle, decisions, versioning, and data model into:
+  deployable services and responsibilities
+  module boundaries and contracts
+  evidence ingestion and provenance handling
+  synthesis and hypothesis management workflows
+  governed promotion into downstream engines
+  phased MVP → production rollout plan
+The plan is compatible with a Python/FastAPI + Docker ecosystem, while remaining tech-agnostic.
+2. Implementation Scope (MVP)
+The DRE MVP must support:
+  Source registration and monitoring configuration
+  Evidence ingestion (manual + worker-based)
+  Evidence fingerprinting/deduplication
+  Citation linking (evidence → hypothesis/narrative)
+  Theme + hypothesis CRUD with versioning
+  Confidence update decisions (ruleset-versioned)
+  Narrative drafting and acceptance
+  Promotion requests (to PIE/SIM/DAT), governed by GGP
+  Read APIs for queries (by theme, hypothesis, entity)
+  Append-only event and decision ledgers
+Out of scope (MVP):
+  fully automated topic discovery at scale
+  advanced graph analytics
+  multi-modal evidence pipelines (video/audio)
+3. Service Decomposition
+3.1 dre-api (Core Research API)
+Responsibilities:
+  manage sources, evidence, citations
+  CRUD for themes, hypotheses, narratives, assumptions
+  expose query surfaces for downstream engines
+  enforce write attribution (actor_id + reason)
+3.2 dre-ingest-worker (Evidence Ingestion Workers)
+Responsibilities:
+  crawl / fetch sources
+  extract relevant payloads
+  generate fingerprints
+  persist evidence immutably
+MVP may use a simple scheduled worker.
+3.3 dre-synth-worker (Synthesis / Clustering)
+Responsibilities:
+  propose theme clusters
+  suggest hypothesis updates
+  draft narrative summaries
+In MVP: produce suggestions for human acceptance.
+3.4 dre-promotion (Promotion Coordinator)
+Responsibilities:
+  create and manage promotion requests
+  integrate with GGP for approval
+  publish promotion snapshots downstream
+3.5 dre-projector (Read Models / Summaries)
+Responsibilities:
+  maintain derived summaries (theme dashboards)
+  rebuild from event ledger
+MVP option: compute on demand; later: materialize.
+4. Storage Strategy
+Authoritative store (MVP):
+  PostgreSQL using NS-DRE-007 — DATAMODEL
+Optional stores:
+  MongoDB for large evidence payloads / documents
+  Object storage for PDFs and datasets
+  Redis for hot caching
+  Kafka for event streaming
+The event ledger remains the source of truth for rebuilds.
+5. Evidence Ingestion Pipeline
+5.1 Ingestion Steps
+ fetch content from source
+ normalize payload
+ fingerprint (hash)
+ dedupe check
+ persist evidence
+ emit EvidenceCaptured event
+5.2 Dedup Semantics
+  if fingerprint exists → do not overwrite
+  record a new “observation” event if needed
+Evidence items remain immutable.
+6. Hypothesis & Confidence Management
+6.1 Hypothesis Versioning
+  new evidence or confidence update → new hypothesis_version
+  previous versions remain queryable
+6.2 Confidence Rulesets
+  ruleset_name + ruleset_version
+  all decisions reference ruleset_version
+MVP: simple scoring based on:
+  evidence count
+  credibility
+  recency
+  counter-evidence
+7. Narrative Workflow
+  narratives are drafted with citations
+  narratives enter draft state
+  human acceptance creates immutable accepted version
+Revisions produce new narrative versions.
+8. Promotion Workflow (Governed)
+ promotion request created (artifact_id + artifact_version)
+ sent to GGP for approval
+ if approved:
+  create promotion snapshot
+  publish to target engine (PIE/SIM/DAT)
+ if rejected:
+  remains internal to DRE
+DRE never bypasses governance.
+9. Observability
+Metrics:
+  evidence items ingested/day
+  backlog of source fetch jobs
+  hypotheses updated/week
+  promotion requests approved/rejected
+Logs:
+  correlation_id
+  source_id/evidence_id
+  artifact_id/version
+10. Security & Access
+  write endpoints require actor attribution
+  evidence ingestion workers use service identity
+  promotion requires elevated role + governance workflow
+Evidence access can be tiered by sensitivity.
+11. Suggested Module Layout
+dre/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── middleware/
+├── sources/
+│   ├── registry.py
+│   └── monitors.py
+├── evidence/
+│   ├── ingest.py
+│   ├── fingerprint.py
+│   ├── citations.py
+│   └── storage.py
+├── synthesis/
+│   ├── clustering.py
+│   ├── hypothesis.py
+│   ├── confidence.py
+│   └── narratives.py
+├── promotion/
+│   ├── requests.py
+│   ├── snapshots.py
+│   └── ggp_client.py
+├── graph/
+│   ├── entities.py
+│   └── relationships.py
+├── events/
+│   ├── ledger.py
+│   └── event_types.py
+├── projections/
+│   ├── summaries.py
+│   └── rebuild.py
+├── store/
+│   ├── models.py
+│   └── repository.py
+└── config/
+12. MVP Rollout Plan
+ Implement DB schema + migrations
+ Implement source registry + manual evidence ingest
+ Add fingerprinting + dedupe
+ Implement citations and artifact CRUD
+ Implement hypothesis versioning + confidence ruleset v1
+ Implement narrative drafting + acceptance
+ Implement promotion requests + GGP integration
+ Publish promotion snapshots to PIE/SIM/DAT
+ Add ingestion workers for scheduled monitoring
+ Add projections and dashboards
+13. Document Position in DRE Corpus
+This implementation plan builds upon:
+  NS-DRE-003 — ARCHITECTURE
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-005 — DECISION
+  NS-DRE-006 — VERSION
+  NS-DRE-007 — DATAMODEL
+  NS-DRE-008 — EEE
+It informs:
+  NS-DRE-011 — APIMAP
+  NS-DRE-013 — RUNBOOK
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE MVP Implementation Plan
+Parent / HoldCo Manager
+Status: Draft

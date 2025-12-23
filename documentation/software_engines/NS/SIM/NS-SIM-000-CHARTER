@@ -1,0 +1,122 @@
+NSDC Engine Charter — SIM (Simulation & Scenario Engine)
+1. Engine Identity
+Engine Name: Simulation & Scenario Engine
+Acronym: SIM
+Engine Type: Modeling / Forecasting / Analysis
+2. Mission Statement (One Sentence)
+This engine exists to simulate, model, and analyze potential scenarios and system behaviors within NSDC, enabling data-driven decision-making and strategic forecasting across engines and projects.
+3. Core Responsibilities (Allowed Actions)
+  Build models to simulate capital deployment, arbitrage opportunities, and market behavior
+  Run scenario analyses to forecast outcomes under different assumptions
+  Evaluate risk and performance implications of potential actions
+  Provide insights to DAT, PIE, FLO, and other engines for planning and decision-making
+  Maintain historical simulation records for backtesting and validation
+  Support stress testing of system-wide processes and governance rules
+4. Explicit Non-Responsibilities (Forbidden Actions)
+  Execute actual trades or arbitrage opportunities (DAT)
+  Govern compliance or capital thresholds (GGP)
+  Generate canonical product intelligence (PIE)
+  Publish content or manage engagement (CDE)
+  Record financial ledgers (FLO)
+SIM only simulates and analyzes; it does not perform operational actions.
+5. Inputs (What This Engine Consumes)
+Input
+Source Engine
+Description
+Required
+Product & market intelligence
+PIE
+Normalized product and market data
+☑
+Execution history & signals
+DAT, SIG
+Past actions, trades, and signal outcomes
+☑
+Governance rules
+GGP
+Policies and thresholds for scenario constraints
+☐
+Financial data
+FLO
+Capital availability, P&L data
+☐
+6. Outputs (What This Engine Produces)
+Output
+Target Engine(s)
+Description
+Frequency
+Simulation results
+DAT, PIE, FLO
+Forecasts, scenario outcomes, risk estimates
+Event-driven / scheduled
+Scenario reports
+Admin / PIE / DAT
+Strategic insights for planning and decision-making
+Scheduled
+Risk assessments
+GGP / FLO
+Stress tests and threshold impact analysis
+Event-driven
+Historical simulation archives
+All engines
+Backtesting data for validation
+Continuous
+7. Authority & Decision Rights
+SIM May Decide Autonomously:
+  How to model scenarios and parameters
+  Which scenarios to prioritize for analysis
+  Risk scoring and outcome evaluation
+SIM Must Not Decide:
+  Actual capital deployment or execution timing
+  Governance enforcement
+  Product or content strategies
+SIM is a forecasting and analysis engine, not an executor.
+8. Governance & Constraints
+  All simulation and scenario data must comply with GGP rules
+  Models must be auditable and reproducible
+  Scenario assumptions and parameters must be clearly documented
+  Outputs must not bypass governance or execution layers
+9. Failure Modes & Blast Radius
+Expected Failures:
+  Modeling inaccuracies
+  Incomplete scenario coverage
+  Data inconsistency or missing inputs
+Worst-Case Failure:
+  Downstream engines make suboptimal decisions based on flawed scenarios
+  Misestimated risk or capital exposure
+Blast Radius:
+  Primarily affects planning and decision-making outcomes; no direct operational or financial impact
+Containment strategy:
+  Versioned simulation models
+  Validation and sensitivity analysis
+  Alerts for anomalous scenario results
+10. Time Horizon & Optimization Target
+  Optimizes for: Accuracy, predictive power, and scenario coverage
+  Time Horizon: Strategic to near-term planning; real-time optional for stress testing
+11. Interfaces & Shared Primitives
+  Product and market identifiers (PIE)
+  Execution references (DAT)
+  Financial metrics and ledgers (FLO)
+  Governance flags and policies (GGP)
+  Signal datasets (SIG)
+12. MVP Boundary (Non-Negotiable)
+MVP Includes:
+  Basic scenario simulation with historical data
+  Risk evaluation and outcome reports
+  Integration with DAT, PIE, FLO for scenario inputs and outputs
+  Historical archives for backtesting
+MVP Excludes:
+  Real-time adaptive simulation with predictive AI
+  Full-scale multi-market optimization beyond MVP scope
+  Automated capital allocation or action execution
+13. Evolution Path (Conceptual Only)
+  Phase 1: Historical data-driven scenario modeling
+  Phase 2: Multi-variable and cross-engine simulations
+  Phase 3: Predictive, adaptive, and AI-assisted scenario planning
+14. Engine Status
+☑ Concept
+☐ Defined
+☐ Approved
+☐ MVP
+☐ Production
+☐ Deprecated

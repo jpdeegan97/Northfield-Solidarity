@@ -1,0 +1,796 @@
+
+NS-MUX-007 — DATAMODEL
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the authoritative data model for the Market Integration Layer (MUX).
+It specifies:
+Canonical entities used to represent external truth
+Field-level semantics and invariants
+Deduplication and integrity constraints
+Replay and audit guarantees
+Cross-engine contract boundaries
+This is the source-of-truth schema specification for MUX.
+2. Data Model Principles
+Append-Only External TruthExternal artifacts are immutable once captured.
+Separation of Raw vs CanonicalRaw captures are preserved independently of normalized artifacts.
+No Business InterpretationMUX does not classify financial or strategic meaning.
+Deterministic DeduplicationStable keys and hashes prevent double-counting.
+ReplayabilityAll data can be re-emitted without mutation.
+3. Persistence Layers
+3.1 Raw Capture Store (Untrusted Input)
+Stores the original external payload exactly as received (with redaction applied).
+3.2 Canonical Artifact Store (External Truth)
+Stores normalized, integrity-validated artifacts.
+3.3 Derived Indices (Optional)
+Search or query accelerators built from canonical artifacts.
+4. Canonical Entity Definitions
+4.1 Raw Capture Record (raw_capture_record)
+Meaning:Immutable record of an inbound external payload.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+capture_id
+
+UUID
+
+Yes
+
+Raw capture identifier
+
+
+source_system
+
+String
+
+Yes
+
+External platform
+
+
+ingestion_method
+
+Enum
+
+Yes
+
+webhook / polling / file
+
+
+received_at
+
+Timestamp
+
+Yes
+
+Ingress time
+
+
+payload
+
+JSON/BLOB
+
+Yes
+
+Raw payload (redacted)
+
+
+signature_valid
+
+Boolean
+
+No
+
+Signature check result
+
+
+integrity_hash
+
+String
+
+Yes
+
+Hash of payload
+
+
+connector_id
+
+String
+
+Yes
+
+Connector reference
+
+
+connector_config_version
+
+String
+
+Yes
+
+Config version
+Invariants:
+Raw payloads are never mutated
+4.2 Canonical Artifact (canonical_artifact)
+Meaning:Normalized representation of external truth.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+Canonical artifact identifier
+
+
+artifact_type
+
+Enum
+
+Yes
+
+platform_event / transaction / statement / fulfillment / platform_state
+
+
+source_system
+
+String
+
+Yes
+
+External platform
+
+
+external_id
+
+String
+
+No
+
+Primary external identifier
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+External occurrence time
+
+
+first_seen_at
+
+Timestamp
+
+Yes
+
+First ingestion time
+
+
+last_confirmed_at
+
+Timestamp
+
+No
+
+Last confirmation time
+
+
+integrity_hash
+
+String
+
+Yes
+
+Canonical hash
+
+
+completeness_flag
+
+Enum
+
+Yes
+
+full / partial
+
+
+trust_score
+
+Decimal
+
+No
+
+Optional confidence score
+
+
+raw_capture_ids
+
+JSON/Array
+
+Yes
+
+References to raw captures
+Invariants:
+Canonical artifacts are immutable
+4.3 Platform Event Artifact (platform_event_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+FK to canonical_artifact
+
+
+event_type
+
+String
+
+Yes
+
+Platform-defined event
+
+
+payload
+
+JSON
+
+Yes
+
+Normalized payload
+
+
+correlation_hint
+
+String
+
+No
+
+Hint for downstream linking
+4.4 Transaction / Settlement Artifact (transaction_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+FK to canonical_artifact
+
+
+transaction_type
+
+String
+
+Yes
+
+payment / refund / fee / payout
+
+
+gross_amount
+
+Decimal
+
+Yes
+
+Signed amount
+
+
+currency
+
+String
+
+Yes
+
+ISO 4217
+
+
+settlement_status
+
+String
+
+Yes
+
+pending / settled / failed
+
+
+counterparty
+
+String
+
+No
+
+Optional
+4.5 Statement Artifact (statement_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+FK to canonical_artifact
+
+
+statement_id
+
+String
+
+Yes
+
+External statement ID
+
+
+period_start
+
+Date
+
+Yes
+
+Start date
+
+
+period_end
+
+Date
+
+Yes
+
+End date
+
+
+snapshot_hash
+
+String
+
+Yes
+
+Content hash
+4.6 Statement Line Item (statement_line_item)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+line_item_id
+
+UUID
+
+Yes
+
+Line item ID
+
+
+artifact_id
+
+UUID
+
+Yes
+
+Statement artifact FK
+
+
+external_line_id
+
+String
+
+No
+
+External identifier
+
+
+amount
+
+Decimal
+
+Yes
+
+Signed amount
+
+
+currency
+
+String
+
+Yes
+
+ISO
+
+
+occurred_at
+
+Timestamp
+
+Yes
+
+External timestamp
+
+
+memo
+
+String
+
+No
+
+Optional description
+Invariants:
+(artifact_id, external_line_id) unique when external_line_id present
+4.7 Fulfillment Artifact (fulfillment_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+FK to canonical_artifact
+
+
+fulfillment_status
+
+String
+
+Yes
+
+shipped / delivered / returned
+
+
+carrier
+
+String
+
+No
+
+Optional
+
+
+tracking_ref
+
+String
+
+No
+
+Tracking identifier
+4.8 Platform State Artifact (platform_state_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+artifact_id
+
+UUID
+
+Yes
+
+FK to canonical_artifact
+
+
+state_type
+
+String
+
+Yes
+
+outage / policy / limit
+
+
+state_value
+
+String
+
+Yes
+
+Description
+
+
+detected_at
+
+Timestamp
+
+Yes
+
+Detection time
+
+
+expected_resolution
+
+Timestamp
+
+No
+
+Optional
+4.9 Deduplication Reference (artifact_dedupe_ref)
+Meaning:Links duplicate observations to a canonical artifact.
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+dedupe_id
+
+UUID
+
+Yes
+
+Reference ID
+
+
+artifact_id
+
+UUID
+
+Yes
+
+Canonical artifact
+
+
+source_system
+
+String
+
+Yes
+
+External source
+
+
+external_id
+
+String
+
+Yes
+
+External ID
+
+
+integrity_hash
+
+String
+
+Yes
+
+Hash used
+
+
+linked_at
+
+Timestamp
+
+Yes
+
+Link time
+4.10 Decision Artifact (decision_artifact)
+
+
+
+Field
+
+Type
+
+Required
+
+Description
+
+
+decision_id
+
+UUID
+
+Yes
+
+Decision identifier
+
+
+decision_type
+
+String
+
+Yes
+
+trust / normalize / dedupe / publish / replay
+
+
+outcome
+
+String
+
+Yes
+
+Result
+
+
+rationale
+
+JSON
+
+Yes
+
+Explanation
+
+
+ruleset_name
+
+String
+
+Yes
+
+Ruleset
+
+
+ruleset_version
+
+String
+
+Yes
+
+Version
+
+
+connector_id
+
+String
+
+No
+
+Connector context
+
+
+evaluated_at
+
+Timestamp
+
+Yes
+
+Decision time
+
+
+correlation_id
+
+UUID
+
+Yes
+
+Trace ID
+5. Relationship Model (Logical)
+raw_capture_record → canonical_artifact (N:1)
+canonical_artifact → typed artifact tables (1:1)
+canonical_artifact → artifact_dedupe_ref (1:N)
+canonical_artifact → decision_artifact (1:N)
+statement_artifact → statement_line_item (1:N)
+6. Cross-Engine Reference Contracts (IDs Only)
+MUX exposes references consumed by other engines:
+FLO: artifact_id, statement_id, statement_line_item_id
+DAT: artifact_id, fulfillment_status, transaction_type
+SIG: platform_event_artifact payloads
+PIE: validated transaction reality
+GGP: decision_artifact references
+MUX never interprets meaning beyond canonical shape.
+7. Replay & Audit Semantics
+MUX must support:
+Replay canonical artifacts to Kafka
+Backfill missing windows
+Reprocess raw captures with new rulesets
+All original artifacts remain preserved.
+8. Invariants & Validation Rules
+Raw captures immutable
+Canonical artifacts immutable
+Deduplication links are additive
+No destructive migrations
+All timestamps in UTC
+9. Document Position in MUX Corpus
+This DATAMODEL builds upon:
+NS-MUX-002 — TAXONOMY
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-005 — DECISION
+NS-MUX-006 — VERSION
+It informs:
+NS-MUX-008 — EEE
+NS-MUX-013 — RUNBOOK
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Canonical Data Model
+
+Parent / HoldCo Manager
+Status: Draft

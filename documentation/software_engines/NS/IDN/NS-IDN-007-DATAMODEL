@@ -1,0 +1,225 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the logical and physical data model for the Identity & Entity Nexus (IDN).
+It specifies:
+authoritative storage tables / collections
+primary keys and foreign keys
+immutability and versioning semantics
+cross-engine reference guarantees
+This model supports canonical identity truth, temporal relationships, and auditability.
+2. Data Modeling Principles
+Canonical IDs are stable forever
+Events are append-only
+Relationships are effective-dated
+Decisions are first-class records
+Projections are rebuildable
+3. Core Authoritative Tables (PostgreSQL)
+3.1 actor
+Canonical actors (humans, agents, services).
+Column
+Type
+Notes
+actor_id
+UUID (PK)
+Canonical ID
+actor_type
+VARCHAR
+human / agent / service / org
+status
+VARCHAR
+active / suspended / retired
+created_at
+TIMESTAMP
+UTC
+3.2 entity
+Canonical entities (legal, property, asset, etc.).
+Column
+Type
+Notes
+entity_id
+UUID (PK)
+Canonical ID
+entity_type
+VARCHAR
+legal / property / product / account / concept
+lifecycle_state
+VARCHAR
+proposed / active / archived
+created_at
+TIMESTAMP
+UTC
+3.3 identifier
+External/internal identifiers linked to canonicals.
+Column
+Type
+Notes
+identifier_id
+UUID (PK)
+
+identifier_type
+VARCHAR
+email / tax_id / platform_id
+identifier_value
+TEXT
+normalized
+issuing_system
+VARCHAR
+source
+confidence_score
+DECIMAL
+optional
+created_at
+TIMESTAMP
+UTC
+3.4 identity_identifier_link
+Maps identifiers to actors or entities.
+Column
+Type
+Notes
+link_id
+UUID (PK)
+
+subject_type
+VARCHAR
+actor / entity
+subject_id
+UUID
+FK to actor/entity
+identifier_id
+UUID
+FK to identifier
+linked_at
+TIMESTAMP
+UTC
+unlinked_at
+TIMESTAMP
+nullable
+3.5 relationship
+Typed, temporal edges between subjects.
+Column
+Type
+Notes
+relationship_id
+UUID (PK)
+
+source_type
+VARCHAR
+actor/entity
+source_id
+UUID
+FK
+target_type
+VARCHAR
+actor/entity
+target_id
+UUID
+FK
+relationship_type
+VARCHAR
+owns / controls / manages
+effective_from
+TIMESTAMP
+UTC
+effective_to
+TIMESTAMP
+nullable
+3.6 identity_event
+Append-only event ledger.
+Column
+Type
+Notes
+event_id
+UUID (PK)
+
+event_type
+VARCHAR
+IdentityCreated, Merge, Split
+subject_ref
+VARCHAR
+actor/entity ID
+payload
+JSONB
+event data
+ruleset_name
+VARCHAR
+
+ruleset_version
+VARCHAR
+
+occurred_at
+TIMESTAMP
+UTC
+correlation_id
+UUID
+
+3.7 idn_decision
+Records identity-related decisions.
+Column
+Type
+Notes
+decision_id
+UUID (PK)
+
+decision_type
+VARCHAR
+create/link/merge/split
+subject_ref
+VARCHAR
+
+outcome
+VARCHAR
+approved/rejected/deferred
+rationale
+JSONB
+
+ruleset_version
+VARCHAR
+
+evaluated_at
+TIMESTAMP
+UTC
+correlation_id
+UUID
+
+4. Projections & Read Models
+4.1 identifier_resolution_view
+Materialized view or table:
+identifier_value → canonical_id
+Used for fast lookup.
+4.2 entity_relationship_view
+Flattened adjacency list for queries.
+5. MongoDB / Document Stores (Optional)
+Optional document stores may hold:
+denormalized identity snapshots
+audit bundles
+They are derived, not authoritative.
+6. Referential Integrity Rules
+Canonical IDs never change
+Links and relationships reference canonicals only
+Historical rows are never deleted
+7. Cross-Engine Reference Guarantees
+Downstream engines:
+store canonical IDs only
+never store mutable identity snapshots
+IDN guarantees ID stability.
+8. Migration & Evolution Strategy
+Additive schema changes only
+Backfills via replay
+Projections rebuilt as needed
+9. Document Position in IDN Corpus
+This data model builds upon:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-006 — VERSION
+It informs:
+NS-IDN-014 — DATADEF
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Data Model
+Parent / HoldCo Manager
+Status: Draft

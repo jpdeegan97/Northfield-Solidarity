@@ -1,0 +1,244 @@
+NS-LUM-001 — OVERVIEW
+
+0. Overview
+
+Luminance Engine (LUM) is the observability and reliability platform for Northfield Solidarity. It provides standardized collection, correlation, and presentation of telemetry and evidence signals across all engines and external integrations.
+
+LUM’s goal is to make execution visible, explainable, and supportable—so incidents are detected early, resolved quickly, and audited reliably.
+
+LUM is not a governance authority. GGP defines what must be logged, what approvals exist, and who may access sensitive evidence. LUM implements the telemetry/evidence plumbing and surfaces.
+
+1. Why LUM Exists
+
+As the number of engines and integrations grows, observability must be:
+
+Consistent (shared schemas and correlation)
+
+Centralized (single place to see system health and incidents)
+
+Audit-grade (traceable actions and evidence bundles)
+
+Actionable (alerts + runbooks + incident workflows)
+
+Without LUM, each engine tends to:
+
+log differently
+
+alert inconsistently
+
+lose context across distributed workflows
+
+leave gaps in audit trails
+
+2. Core Capabilities
+
+2.1 Telemetry collection
+
+LUM ingests:
+
+Logs (structured, redacted)
+
+Metrics (SLIs: error rate, latency, throughput, saturation)
+
+Traces (distributed tracing: trace/span)
+
+Events (workflow and integration events)
+
+2.2 Correlation & context propagation
+
+LUM standardizes and enforces correlation fields so that a single action can be followed end-to-end.
+
+Minimum correlation set:
+
+request_id
+
+trace_id / span_id
+
+workflow_id
+
+decision_id (GGP)
+
+integration_id (external API integration)
+
+entity_id (IDN)
+
+job_id / task_id (CWP/CDE/DAT)
+
+2.3 Reliability management
+
+SLIs/SLOs and error budgets
+
+Alert routing and escalation policies
+
+Noise reduction (dedupe, suppression, severity thresholds)
+
+2.4 Incident lifecycle
+
+Incident creation (manual or automatic)
+
+Timeline and event stitching
+
+Runbook linkage
+
+Postmortem packet templates
+
+Action-item export/handoff to CWP
+
+2.5 Evidence support (audit-grade)
+
+LUM supports evidence by:
+
+persisting immutable-ish copies/metadata (where required)
+
+linking evidence to decisions (GGP) and ledger entries (FLO)
+
+maintaining chain-of-custody metadata
+
+LUM does not decide what evidence is required; it fulfills GGP requirements.
+
+3. LUM’s Relationship to Other Engines
+
+3.1 GGP (Governance Graph Processor)
+
+GGP defines the governance policies that require audit events/evidence.
+
+LUM enforces observability standards and stores/serves required evidence signals.
+
+3.2 IDN (Identity & Entity Nexus)
+
+IDN provides actor/entity identity for correlation and access control.
+
+LUM uses entity_id and role/claim metadata for secure evidence access.
+
+3.3 FLO (Financial Ledger Orchestrator)
+
+FLO actions must be traceable and auditable.
+
+LUM links financial events to decision_id, workflow_id, and ledger references.
+
+3.4 CWP (Cognitive Work Plane)
+
+CWP emits task/work events.
+
+LUM correlates tasks to system events, failures, and evidence bundles.
+
+3.5 MUX / SIG / DRE / CDE / DAT
+
+MUX: integration calls and webhooks (external API reliability)
+
+SIG/DRE: ingestion workflows and research pipeline observability
+
+CDE: distribution jobs and delivery receipts
+
+DAT: execution pipelines where idempotency and retries must be observable
+
+4. Operating Model
+
+4.1 What “good” looks like
+
+Every external API call is traceable to:
+
+the initiating actor/entity
+
+the governing decision (if any)
+
+the workflow/task that caused it
+
+the resulting side effect (receipt, ledger entry, published artifact)
+
+Incidents are:
+
+detected by SLIs/alerts
+
+diagnosable via correlated traces and logs
+
+resolved with a runbook
+
+closed with a postmortem packet
+
+4.2 Standard signal categories
+
+Health: service up/down, dependency health
+
+Performance: latency, throughput
+
+Correctness: error rates, schema mismatches, idempotency collisions
+
+Governance: blocked actions, missing evidence, approval timeouts
+
+Security: auth failures, key rotation failures, suspicious access patterns
+
+4.3 Storage tiers (conceptual)
+
+Hot: recent logs/metrics/traces for rapid incident response
+
+Warm: longer retention for trend analysis
+
+Evidence: immutable-ish store for governed audit bundles (access controlled)
+
+5. Key Interfaces
+
+5.1 Ingest interfaces
+
+Log shipping (structured JSON)
+
+Metrics scrape/push
+
+Trace export (OpenTelemetry-style)
+
+Event stream subscription (Pub/Sub or internal bus)
+
+5.2 Query and surfacing
+
+Dashboards by engine, integration, workflow
+
+Trace explorer
+
+Incident console
+
+Evidence viewer (policy-controlled)
+
+5.3 Alerting
+
+Severity taxonomy and routing
+
+Paging and notification connectors
+
+Automated incident creation triggers
+
+6. MVP Definition (First Shipping Slice)
+
+MVP LUM should deliver:
+
+A single normalized event schema (logs + events)
+
+Correlation ID enforcement in core services
+
+External integration dashboards for:
+
+Coinbase Commerce
+
+Google Maps Platform
+
+Alerting for:
+
+webhook failure/replay anomalies
+
+quota/rate-limit breaches
+
+elevated error rate and latency
+
+Incident record with timeline + runbook link + resolution notes
+
+7. Success Metrics
+
+Mean time to detect (MTTD) decreases
+
+Mean time to resolve (MTTR) decreases
+
+Percentage of governed actions with complete audit correlation approaches 100%
+
+Reduction in “unknown root cause” incidents
+
+Fewer false-positive alerts (alert hygiene)
+

@@ -1,0 +1,498 @@
+NS-INT-007 — DATAMODEL
+
+1. Purpose
+
+This document defines the canonical data model for Intervention (quickscope), including:
+
+the canonical event envelope
+
+core state objects and read models
+
+workflow and gating objects
+
+correlation/casuality graph structures
+
+edge cache state model
+
+Intervention’s data model is intentionally split into:
+
+Immutable Memory (event log)
+
+Authoritative Present (materialized state)
+
+Explainability Indices (threads/graphs)
+
+Edge Local Models (fast local reads)
+
+2. Canonical Event Envelope (Required)
+
+All events ingested into Intervention MUST conform to the canonical envelope.
+
+2.1 Envelope: CanonicalEvent
+
+Identity & typing
+
+event_id (UUID/ULID) — globally unique
+
+event_type (string) — taxonomy-defined
+
+engine_id (string) — producing engine
+
+envelope_version (string/int)
+
+schema_version (string/int) — scoped to event_type
+
+Target keys
+
+entity_id (string, nullable)
+
+aggregate_id (string, nullable)
+
+workflow_id (string, nullable)
+
+thread_id (string, optional alias for correlation_id)
+
+Time
+
+occurred_at (timestamp) — when it happened
+
+observed_at (timestamp) — when accepted by Intervention
+
+Threading
+
+correlation_id (string)
+
+causation_id (string, nullable)
+
+parent_event_id (string, nullable) — optional
+
+Actor
+
+actor (object)
+
+actor_type (Human|Agent|System)
+
+actor_id (string)
+
+actor_role (string, optional)
+
+auth_context_ref (string, optional)
+
+Governance & evidence pointers
+
+policy_context_ref (string, optional)
+
+decision_ref (string, optional)
+
+approval_ref (string, optional)
+
+evidence_refs (array, optional)
+
+Control & delivery metadata
+
+idempotency_key (string, optional)
+
+priority (Critical|Important|Informational|Debug)
+
+validity (Accepted|Authoritative|Quarantined|Rejected)
+
+partition_key (string, optional)
+
+tags (map<string,string>, optional)
+
+Payload
+
+payload (object) — event_type-specific
+
+3. Immutable Memory Model (Event Log)
+
+The Event Log stores CanonicalEvent records, append-only.
+
+3.1 Event Log Indexes (conceptual)
+
+By event_id
+
+By entity_id
+
+By workflow_id
+
+By correlation_id
+
+By engine_id
+
+By time window (occurred_at)
+
+3.2 Derived Links
+
+For explainability and fast threading, Intervention maintains:
+
+EventLink (optional index)
+
+from_event_id
+
+to_event_id
+
+link_type (causes|follows|gates|references)
+
+correlation_id
+
+4. Authoritative Present (Core Read Models)
+
+4.1 EntityState (canonical)
+
+Represents the current state summary for an entity/aggregate.
+
+Fields:
+
+entity_id
+
+entity_type (optional)
+
+status (string/enum)
+
+phase (optional)
+
+version (long/int; monotonic)
+
+owner_engine_id
+
+correlation_id (optional)
+
+workflow_id (optional)
+
+last_event_id
+
+last_updated_at
+
+policy_context_ref (optional)
+
+risk_level (optional)
+
+tags (map)
+
+attributes (map/object; projection-specific)
+
+4.2 WorkflowState (canonical)
+
+Represents the current state of a workflow instance.
+
+Fields:
+
+workflow_id
+
+workflow_type
+
+status (created|running|blocked|waiting_approval|waiting_data|retrying|compensating|completed|failed|cancelled)
+
+current_step_id (optional)
+
+current_gate_id (optional)
+
+version (monotonic)
+
+correlation_id
+
+started_at (timestamp)
+
+updated_at (timestamp)
+
+ended_at (timestamp, optional)
+
+owner_engine_id
+
+last_event_id
+
+block_reason (optional)
+
+timers (array)
+
+gates (array)
+
+steps (array)
+
+tags (map)
+
+4.3 ThreadState (correlation story)
+
+A correlation-centric summary view.
+
+Fields:
+
+correlation_id
+
+status (string/enum)
+
+primary_entity_id (optional)
+
+workflow_ids (array)
+
+engine_participants (array)
+
+started_at
+
+last_updated_at
+
+last_event_id
+
+headline (optional human-readable)
+
+milestones (array)
+
+tags
+
+4.4 DecisionState (reference mirror)
+
+Lightweight mirror/index of governance outcomes.
+
+Fields:
+
+decision_ref
+
+policy_context_ref
+
+decision_type (policy_check|approval|exception)
+
+outcome (allow|deny|allow_with_conditions|escalate)
+
+decided_at
+
+decider_actor (actor)
+
+conditions (optional)
+
+evidence_refs (optional)
+
+4.5 IncidentState
+
+Tracks exception/incident lifecycle for operational clarity.
+
+Fields:
+
+incident_id
+
+status (detected|triaged|mitigating|monitoring|resolved|postmortem)
+
+severity (S1-S4)
+
+correlation_id (optional)
+
+linked_entity_ids (array)
+
+opened_at
+
+updated_at
+
+closed_at (optional)
+
+summary
+
+actions (array)
+
+5. Workflow Sub-Models
+
+5.1 StepState
+
+step_id
+
+step_type
+
+status (pending|running|completed|failed|skipped)
+
+started_at (optional)
+
+ended_at (optional)
+
+owner_engine_id (optional)
+
+last_event_id
+
+5.2 GateState
+
+gate_id
+
+gate_type (policy|approval|data|time|risk|integration)
+
+status (pending|open|passed|failed|denied|escalated)
+
+required_refs (array)
+
+decision_ref (optional)
+
+opened_at (optional)
+
+resolved_at (optional)
+
+reason (optional)
+
+5.3 TimerState
+
+timer_id
+
+timer_type (sla|delay|retry_backoff|escalation)
+
+due_at
+
+status (scheduled|fired|cancelled)
+
+fired_at (optional)
+
+6. Explainability Graph Model (Firmament-Ready)
+
+Intervention maintains a visualization-friendly model for Firmament.
+
+6.1 GraphNode
+
+node_id (string)
+
+node_type (engine|entity|workflow|decision|incident|external)
+
+label
+
+status (optional)
+
+last_updated_at
+
+attributes (map)
+
+6.2 GraphEdge
+
+edge_id
+
+from_node_id
+
+to_node_id
+
+edge_type (causes|depends_on|approved_by|triggered|contains|emits|consumes)
+
+correlation_id (optional)
+
+weight (optional)
+
+last_event_id (optional)
+
+6.3 Pulse (delta visualization primitive)
+
+pulse_id
+
+pulse_type (event|state_change|alert)
+
+timestamp
+
+correlation_id
+
+source_node_id
+
+target_node_id (optional)
+
+event_id (optional)
+
+intensity (optional)
+
+7. Edge Local Data Model
+
+7.1 EdgeStatus
+
+edge_id
+
+host_engine_id (or ui_id)
+
+sync_state (cold_start|bootstrapping|in_sync|degraded|stale|reconciling)
+
+last_cursor
+
+last_event_id
+
+lag_ms (optional)
+
+last_sync_at
+
+protocol_version
+
+7.2 EdgeCacheEntry
+
+cache_key (entity_id/workflow_id/correlation_id)
+
+cache_type (EntityState|WorkflowState|ThreadState|GraphView)
+
+version
+
+value (object)
+
+updated_at
+
+8. Delta Model
+
+Deltas are streamed to edges and UIs.
+
+8.1 StateDelta
+
+delta_id
+
+delta_type (entity|workflow|thread|graph)
+
+target_id (entity_id/workflow_id/correlation_id)
+
+from_version (optional)
+
+to_version
+
+cursor
+
+event_id (source)
+
+timestamp
+
+patch (RFC6902 JSON Patch or domain patch)
+
+summary (optional)
+
+9. Indexing & Query Shapes (Conceptual)
+
+Intervention must support efficient queries for:
+
+current state by key (entity/workflow/correlation)
+
+timeline by key (events)
+
+correlation story view (thread)
+
+graph view for Firmament by scope (global, region, engine, workflow)
+
+time travel (state at time T)
+
+10. Minimal Required Objects for MVP
+
+MVP requires:
+
+CanonicalEvent
+
+EntityState
+
+WorkflowState (even if simple)
+
+ThreadState (basic)
+
+StateDelta
+
+EdgeStatus
+
+Everything else can be staged.
+
+11. Summary
+
+Intervention’s data model is built around:
+
+immutable canonical events
+
+deterministic projections into authoritative state
+
+explicit workflow and gating sub-models
+
+correlation/causation threading
+
+visualization-ready graph objects for Firmament
+
+edge-local caches for performance and resilience
+
+This model is the backbone of “quickscope” coherence.
+

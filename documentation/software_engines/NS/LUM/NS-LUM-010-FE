@@ -1,0 +1,400 @@
+NS-LUM-010 — FE (Operator UI)
+
+0. Overview
+
+This document defines the optional Front-End (FE) Operator UI for LUM (Luminance Engine).
+
+The LUM UI is the operational cockpit for:
+
+system and integration health
+
+alert triage and routing
+
+incident response and timelines
+
+trace exploration and correlation
+
+evidence bundle viewing (policy-controlled)
+
+This UI does not replace GGP approval workflows; it surfaces governance references (decision_id) and enforces access rules.
+
+1. User Roles & Access
+
+1.1 Roles (conceptual)
+
+Operator: triage alerts, view dashboards, create incidents
+
+Incident Commander (IC): manage incidents, assign mitigations
+
+Engineer/Responder: deep trace/log inspection for assigned services
+
+Auditor/Reviewer: view evidence bundles and access logs (time-boxed, GGP-authorized)
+
+Admin: manage routing policies, SLO definitions, integrations (as allowed)
+
+1.2 Access model
+
+Identity: via IDN
+
+Authorization: via GGP decisions/policies
+
+Evidence access: always requires a decision_id authorizing access
+
+2. Core UI Areas
+
+2.1 Home Dashboard
+
+Purpose: one-glance system health.
+
+Widgets
+
+overall health summary (green/yellow/red)
+
+open incidents by severity
+
+open alerts by severity
+
+key SLO burn indicators
+
+top degraded integrations
+
+Primary interactions
+
+click into Incident Console
+
+click into Alerts Inbox
+
+quick search by correlation ID
+
+2.2 Alerts Inbox
+
+Purpose: triage and route alerts.
+
+Table columns
+
+severity
+
+alert summary
+
+service / engine
+
+environment
+
+first triggered / last updated
+
+group key / dedupe
+
+status (open/acked/resolved)
+
+linked incident
+
+Actions
+
+ack / unack
+
+suppress (time-boxed)
+
+escalate
+
+create/link incident
+
+open correlation view (workflow_id/trace_id)
+
+Required explainability
+
+show: rule_id + version, condition, rationale, top signals
+
+2.3 Incident Console
+
+Purpose: run incident response.
+
+Incident page sections
+
+header: title, severity, status, owner IC
+
+impact summary
+
+timeline (auto + manual entries)
+
+linked alerts
+
+correlated traces/logs/events
+
+mitigation actions list
+
+runbook attachment
+
+communications notes
+
+closure checklist
+
+Actions
+
+change state (triaging → mitigating → monitoring → resolved)
+
+add timeline note
+
+add mitigation action
+
+generate postmortem draft packet
+
+export action items to CWP
+
+2.4 Trace Explorer
+
+Purpose: follow execution end-to-end.
+
+Core features
+
+search by trace_id, workflow_id, request_id, decision_id
+
+service map (spans by service)
+
+waterfall view (spans timeline)
+
+error span highlighting
+
+attributes viewer (redacted)
+
+Shortcuts
+
+“show logs for selected span”
+
+“show events correlated to this trace”
+
+2.5 Correlation View (the “single pane of glass”)
+
+Purpose: stitch all signal types into a single narrative.
+
+Inputs (any)
+
+workflow_id
+
+decision_id
+
+integration_id
+
+entity_id (policy controlled)
+
+Outputs
+
+ordered event stream
+
+associated traces
+
+top logs and errors
+
+metrics for the timeframe
+
+evidence bundle link (if any)
+
+2.6 Integration Health
+
+Purpose: monitor external providers (Coinbase, Maps, etc.).
+
+Integration page sections
+
+status (healthy/degraded/down)
+
+request success rate
+
+latency p95/p99
+
+quota consumption (if available)
+
+top error codes
+
+webhook verification failures
+
+retry and idempotency collision rates
+
+Actions
+
+open related incidents
+
+open recent correlation views
+
+emit “degraded mode advisory” event (informational)
+
+2.7 SLO/SLI Studio
+
+Purpose: define and manage SLIs/SLOs.
+
+Features
+
+list SLOs with status and burn-rate indicators
+
+edit SLO targets/window (gated if it impacts automation)
+
+view historical attainment
+
+map SLOs to alert policies
+
+2.8 Alert Policy & Routing Manager
+
+Purpose: manage alert rules and routing.
+
+Features
+
+policy list with versions
+
+staging vs enabled
+
+preview/test against historical telemetry
+
+dedupe key templates
+
+routing rules and escalation steps
+
+suppression rules with audit logs
+
+2.9 Evidence Viewer (Policy-Controlled)
+
+Purpose: browse evidence bundles and artifacts.
+
+Requirements
+
+show access authorization decision_id
+
+immutable view for sealed bundles
+
+artifact integrity hashes
+
+chain-of-custody: access log
+
+Views
+
+bundle overview: type, decision_id, workflow_id, sealed_at
+
+artifact list with storage refs and hashes
+
+audit events list
+
+access log list (who/when/purpose)
+
+Actions
+
+request access (creates a GGP decision request)
+
+export bundle summary (redacted)
+
+2.10 Search
+
+Purpose: fast navigation.
+
+Search keys
+
+trace_id
+
+workflow_id
+
+decision_id
+
+incident_id
+
+alert_id
+
+integration_id
+
+entity_id (only if authorized)
+
+3. Global UI Conventions
+
+3.1 Severity design
+
+SEV0/SEV1 visually dominant
+
+SEV2/SEV3 reduced emphasis
+
+SEV4 informational
+
+3.2 Explainability everywhere
+
+Every alert/incident page must show:
+
+what triggered
+
+which rule/version
+
+which signals supported the decision
+
+correlation IDs
+
+3.3 Time controls
+
+global time range selector
+
+“jump to incident window” button
+
+timezone display
+
+3.4 Redaction UX
+
+sensitive fields masked by default
+
+reveal requires explicit access decision
+
+all reveals logged
+
+4. Primary Navigation (Suggested)
+
+Home
+
+Alerts
+
+Incidents
+
+Traces
+
+Correlation
+
+Integrations
+
+SLOs
+
+Policies
+
+Evidence
+
+Admin
+
+5. MVP UI Scope
+
+MVP should ship:
+
+Home Dashboard
+
+Alerts Inbox
+
+Incident Console
+
+Correlation View (by workflow_id)
+
+Integration Health (Coinbase + Maps)
+
+Defer to v1:
+
+SLO studio
+
+Policy manager preview/testing
+
+Full evidence viewer workflows
+
+6. Security & Audit Requirements
+
+all UI actions emit audit logs (viewed evidence, suppressed alert, changed routing)
+
+evidence screens require authorization decision references
+
+role-based feature visibility enforced by IDN + GGP
+
+7. UX Notes (Operator Ergonomics)
+
+minimize clicks: one-click “create incident”
+
+incident timeline autogenerates as much as possible
+
+deep links: shareable URLs for trace/workflow/incident
+
+quick filters: service, environment, severity, integration
+

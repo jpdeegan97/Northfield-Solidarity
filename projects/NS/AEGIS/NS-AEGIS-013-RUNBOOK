@@ -1,0 +1,382 @@
+NS-AEGIS-013 — RUNBOOK
+
+Project: Aegis (Dependency Management Product)
+
+1) Runbook Purpose
+
+This runbook describes how to operate Aegis in production:
+
+Normal operations (daily/weekly/monthly)
+
+Handling incidents and degradations
+
+Data consistency and recovery
+
+Connector health and ingestion coverage
+
+Governance workflow failures (GGE) and loop failures (CWP)
+
+2) Operating Model
+
+2.1 Primary Operators
+
+Aegis Operator (Platform): service health, data integrity, connectors, backups
+
+Governance Operator: policy set rollout coordination (GGE alignment)
+
+Security Operator: signal triage + incident workflow correctness
+
+2.2 Always-On Dependencies
+
+Registry DB
+
+Graph Store
+
+Evidence Object Store
+
+Event Bus
+
+Integrations: GGE, CWP, SIG, IDN, MUX
+
+3) Standard Operating Procedures (SOP)
+
+3.1 Daily SOP
+
+Check service health dashboard (healthy/degraded/down)
+
+Check event bus lag and consumer health (Aegis, CWP, connectors)
+
+Review high severity signals (high/critical)
+
+Review tier_3 evidence expirations within 30 days
+
+Verify connector coverage is not dropping unexpectedly
+
+3.2 Weekly SOP
+
+Review drift summary (if enabled): top drifting dependencies
+
+Review expired evidence counts by tier
+
+Review open CRs stuck in evidence_pending/approvals_pending
+
+Review snapshot creation rate (commits + incident closures)
+
+3.3 Monthly SOP
+
+Review policy baselines (GGE policy set version changes)
+
+Review top tier_3 dependencies and validate ownership
+
+Review connector contract versions (N-1 compatibility)
+
+Validate retention policies for evidence and snapshots
+
+4) Health Checks & SLOs
+
+4.1 Health Endpoints
+
+/health — liveness
+
+/ready — readiness (DB + graph + object store reachable)
+
+/metrics — operational telemetry
+
+4.2 Recommended SLOs (initial)
+
+API availability: 99.9%
+
+Graph impact query p95: < 2s (prod scope)
+
+CR commit latency p95: < 60s after final approval
+
+Signal mapping latency p95: < 60s for high/critical
+
+5) Incident Response (Aegis Service)
+
+5.1 Severity Levels
+
+SEV1: Aegis down or cannot commit governed changes
+
+SEV2: Graph queries failing or inconsistent, ingestion stalled
+
+SEV3: Partial connector outages, evidence store degradation, elevated latency
+
+5.2 First Response Checklist
+
+Confirm service state: healthy/degraded/down
+
+Check Registry DB connectivity and error rate
+
+Check Graph store connectivity and query error rate
+
+Check object store access for evidence operations
+
+Check event bus lag and consumer offsets
+
+Check integration health: GGE, IDN, SIG, CWP, MUX
+
+6) Failure Modes & Playbooks
+
+6.1 Registry DB Down
+
+Symptoms
+
+5xx on registry endpoints
+
+CR creation/commit failing
+
+Immediate actions
+
+Fail reads to cached/indexed results if available (degraded mode)
+
+Pause commits (protect invariants)
+
+Restore DB connectivity / failover
+
+Recovery
+
+Validate schema migration state
+
+Run consistency check against last snapshot
+
+6.2 Graph Store Down
+
+Symptoms
+
+Impact queries failing
+
+Graph view unavailable
+
+Immediate actions
+
+Degrade: allow registry operations but flag “impact unavailable”
+
+Block high-risk changes that require impact confirmation (tier_2/tier_3)
+
+Recovery
+
+Restore graph store
+
+Rebuild graph from registry + event log (if needed)
+
+6.3 Evidence Object Store Issues
+
+Symptoms
+
+Evidence uploads fail
+
+Evidence retrieval fails
+
+Immediate actions
+
+Block approvals that require evidence attachment (tier_2/tier_3)
+
+Allow read-only CR views
+
+Recovery
+
+Validate object store credentials + encryption settings
+
+Reconcile evidence metadata against object store inventory
+
+6.4 Event Bus Lag / Outage
+
+Symptoms
+
+Connector observations not applied
+
+CWP loops not executing
+
+Signal processing delayed
+
+Immediate actions
+
+Switch to “stale mode” banner in UI
+
+Freeze confidence decay timers (optional) to avoid false posture degradation
+
+Recovery
+
+Restart consumers; verify offsets
+
+Reprocess backlog with idempotency
+
+6.5 GGE Unavailable (Governance Path Broken)
+
+Symptoms
+
+CRs stuck in submitted or policy_evaluated
+
+Approvals not updating
+
+Immediate actions
+
+Continue allowing draft CR creation
+
+Pause submit or flag as “governance unavailable”
+
+For SEV1 emergency only: allow time-boxed local “hold” without commit
+
+Recovery
+
+Once GGE is back, re-run policy evaluation for impacted CRs
+
+Ensure no commits occurred without audit refs
+
+6.6 IDN Unavailable (Identity Resolution Broken)
+
+Symptoms
+
+Cannot resolve canonical IDs
+
+New dependency creation blocked
+
+Immediate actions
+
+Allow CR drafts with temporary local IDs (NOT committable)
+
+Recovery
+
+Backfill canonical IDs once IDN returns
+
+6.7 SIG Unavailable (Signals Missing)
+
+Symptoms
+
+No new signals ingested
+
+Incident response pipeline silent
+
+Immediate actions
+
+Display warning: “signals delayed”
+
+Keep existing signals visible
+
+Recovery
+
+Backfill signals from SIG backlog (if supported)
+
+6.8 CWP Unavailable (Loops Not Running)
+
+Symptoms
+
+Evidence chasing stalled
+
+Freshness loop not updating
+
+Remediation plans not generated
+
+Immediate actions
+
+Raise posture banner: “agentic ops degraded”
+
+Route evidence requests to humans (manual fallback)
+
+Recovery
+
+Re-run missed loop schedules
+
+Reconcile loop outcomes with Aegis state
+
+7) Consistency & Reconciliation
+
+7.1 Registry vs Graph Divergence
+
+Detection
+
+Consistency state: in_sync | lagging | diverged
+
+Reconciliation steps
+
+Compare last committed CRs to graph edge presence
+
+Reapply event stream (idempotent)
+
+If needed: rebuild graph from registry export
+
+7.2 Snapshot Verification
+
+Validate snapshot creation at CR commit and incident closure
+
+Spot-check exports for completeness
+
+8) Security Operations
+
+Rotate credentials for:
+
+DB
+
+graph store
+
+object store
+
+event bus
+
+Ensure evidence access policies enforce least privilege
+
+Audit approval records include gge_audit_ref
+
+9) Backup & Recovery
+
+9.1 Backup Policy
+
+Registry DB: daily full + point-in-time if supported
+
+Graph store: periodic export or rebuild plan
+
+Evidence store: bucket replication/versioning (as available)
+
+Snapshots: retention tiers (recent vs archive)
+
+9.2 Restore Procedure (High-level)
+
+Restore registry DB
+
+Restore evidence metadata pointers
+
+Rebuild graph from registry + event log/snapshots
+
+Verify CR and approval integrity
+
+10) Deployment & Rollout
+
+Use progressive rollout (canary) for Aegis service
+
+Gate migrations behind readiness checks
+
+Validate:
+
+policy contract tests
+
+graph query golden tests
+
+event contract compatibility
+
+11) Operator Queries (Quick Commands / Questions)
+
+“Are we ingesting observations from all connectors?”
+
+“Is event lag within bounds?”
+
+“Do we have tier_3 dependencies with expired evidence?”
+
+“Are any CRs stuck due to governance outages?”
+
+“Are snapshots being created at every commit?”
+
+12) MVP Runbook Cut
+
+MVP runbook must support:
+
+Basic service health and SLO checks
+
+Failure handling for DB/graph/object store/event bus
+
+Integration failure handling for GGE/CWP/SIG/IDN
+
+Registry↔graph reconciliation guidance
+
+Backup and restore at a high level
+

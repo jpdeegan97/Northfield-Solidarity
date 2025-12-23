@@ -1,0 +1,242 @@
+NS-FIRMAMENT-006 — VERSION
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines the versioning system for Firmament across:
+
+product releases (UI + services),
+
+layer schemas and rendering contracts,
+
+projection/data models,
+
+decision/brief templates,
+
+and compatibility with upstream engines (MUX/IDN/FLO/SIG/SIM/CWP/GGE).
+
+The goal is to allow rapid iteration without breaking live layers.
+
+2. Versioning Strategy
+
+Firmament uses SemVer (MAJOR.MINOR.PATCH) at the product level, plus independent versions for:
+
+Layer definitions
+
+Projection schema
+
+API contracts
+
+Brief templates
+
+2.1 Product SemVer
+
+MAJOR: breaking changes to public APIs, layer contracts, or data model
+
+MINOR: new features, new layers, new metrics (backward compatible)
+
+PATCH: bug fixes, performance improvements, non-breaking tweaks
+
+Example: 1.3.2
+
+3. Versioned Artifacts
+
+3.1 Firmament Release
+
+Represents the deployable bundle (UI + backend services).
+
+firmament_release_version: SemVer
+
+includes: UI build + service images + migrations
+
+3.2 API Version
+
+Firmament APIs are versioned explicitly.
+
+public endpoints: /api/v1/...
+
+introduce /api/v2/... only for breaking changes
+
+3.3 Layer Definition Version
+
+Each layer definition is independently versioned.
+
+layer_id
+
+layer_version
+
+schema_version
+
+style_version
+
+Rule: A layer’s schema_version cannot change without either:
+
+adding optional fields (compatible), or
+
+bumping layer major version (breaking)
+
+3.4 Projection Schema Version
+
+Projection DB schema is versioned as:
+
+projection_schema_version
+
+migration-managed
+
+Rule: Historical snapshots must remain readable across minor/patch updates.
+
+3.5 Brief Template Version
+
+Briefs are generated from templates.
+
+brief_template_id
+
+brief_template_version
+
+Rule: Old briefs must continue rendering even if templates evolve.
+
+3.6 Scenario Contract Version (SIM)
+
+Scenario requests/responses are versioned.
+
+sim_contract_version
+
+Rule: Firmament must support at least one prior SIM contract version during migrations.
+
+4. Compatibility Matrix (Required)
+
+Firmament maintains a compatibility declaration for each release.
+
+4.1 Engine Compatibility
+
+For each Firmament release:
+
+supported MUX connector contract versions
+
+supported IDN entity schema versions
+
+supported FLO metric schema versions
+
+supported SIG signal schema versions
+
+supported SIM scenario contract versions
+
+supported CWP task contract versions
+
+supported GGE gate/decision packet contract versions
+
+4.2 UI ↔ API Compatibility
+
+UI build declares required api_major
+
+API declares supported ui_major
+
+Rule: UI and API major versions must match.
+
+5. Deprecation Policy
+
+5.1 Deprecation Window
+
+MINOR releases may deprecate old fields/endpoints
+
+deprecated artifacts remain supported for N releases (default: 2 minor releases)
+
+5.2 Deprecation Signals
+
+responses include Deprecation metadata
+
+UI shows warnings only in admin/dev mode
+
+5.3 Removal
+
+removals only occur in MAJOR releases
+
+6. Migration Policy
+
+6.1 Database Migrations
+
+forward-only migrations in production
+
+every migration has a rollback plan (even if “restore snapshot”)
+
+6.2 Layer Migrations
+
+prefer “dual publish” during migration:
+
+publish old and new layer versions in parallel
+
+allow UI to switch per user/tenant
+
+6.3 Projection Rebuilds
+
+when projection schema changes, Projection Builder supports:
+
+backfill job for historical snapshots
+
+incremental rebuild for current-state tables
+
+7. Release Channels
+
+Firmament supports release channels for safe iteration:
+
+dev (daily)
+
+staging (weekly)
+
+prod (controlled cadence)
+
+Each channel maintains:
+
+a pinned Firmament release version
+
+pinned layer registry versions
+
+8. Version Metadata (Required Fields)
+
+Every generated artifact includes:
+
+generated_at
+
+firmament_release_version
+
+api_version
+
+layer_version (if applicable)
+
+projection_schema_version
+
+brief_template_version (if applicable)
+
+sim_contract_version (if applicable)
+
+source_engine_versions[] (when available)
+
+9. v0 Baseline Versions
+
+Initial baseline (recommended):
+
+Firmament release: 0.1.0
+
+API: v1
+
+Projection schema: 0.1
+
+Layer schemas: 0.1 per layer
+
+Brief templates: 0.1
+
+10. Definition of Done (Versioning v0)
+
+Versioning is “done” when:
+
+every layer is versioned independently,
+
+APIs are versioned and documented,
+
+projection schema is migration-controlled,
+
+brief templates are versioned and render old outputs,
+
+and each release publishes a compatibility matrix against upstream engines.
+

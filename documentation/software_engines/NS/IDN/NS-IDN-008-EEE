@@ -1,0 +1,127 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document provides a concrete end-to-end example (EEE) demonstrating how identities and entities flow through the Identity & Entity Nexus (IDN).
+The example validates:
+canonical identity creation
+identifier resolution and conflict handling
+relationship modeling with temporal semantics
+governed merge operations
+auditability and replay
+2. Scenario Overview
+Scenario:
+A new property investment initiative is initiated by an internal agent. The system must:
+create actor and entity identities
+resolve overlapping identifiers
+establish ownership and management relationships
+detect and resolve a duplicate entity
+preserve full audit history
+3. Step 1 — Actor Creation (Agent Provisioning)
+Trigger: CWP provisions a new agent.
+Input:
+actor_type = agent
+external_id = cwp-agent-042
+IDN Actions:
+Validate request
+Create canonical actor_id = A-1001
+Link identifier (cwp_agent_id:cwp-agent-042)
+Emit IdentityCreated event
+Result:
+Actor A-1001 exists
+Identifier linked with confidence = 1.0
+4. Step 2 — Entity Creation (Property via PECA)
+Trigger: PECA creates a new property entity.
+Input:
+entity_type = property
+address = "123 Market St"
+county_id = CNTY-7788
+IDN Actions:
+Validate entity attributes
+Create canonical entity_id = E-2001
+Link identifiers (address hash, county ID)
+Emit EntityCreated event
+Result:
+Property entity E-2001 created
+5. Step 3 — Relationship Creation
+Trigger: DAT assigns management responsibility.
+Input:
+relationship_type = manages
+source = actor A-1001
+target = entity E-2001
+IDN Actions:
+Validate actor/entity existence
+Validate relationship type
+Create relationship edge with effective_from = now
+Emit RelationshipAdded event
+Result:
+A-1001 manages E-2001
+6. Step 4 — Identifier Conflict Detection
+Trigger: SIG ingests a signal referencing property with same county ID but different address spelling.
+Input:
+identifier_type = county_id
+identifier_value = CNTY-7788
+IDN Actions:
+Detect identifier collision
+Flag ambiguity
+Create conflict decision artifact
+Quarantine linking
+Result:
+No silent reassignment
+Merge evaluation required
+7. Step 5 — Governed Merge Operation
+Trigger: Human review confirms entities are the same.
+Input:
+entities: E-2001 and E-2009
+governance_ref = GGP-APR-556
+IDN Actions:
+Validate merge request
+Record merge decision artifact
+Emit IdentityMerged event
+Redirect E-2009 → E-2001
+Preserve historical references
+Result:
+Single canonical entity E-2001
+E-2009 remains as alias
+8. Step 6 — Projection Updates
+Actions:
+Update identifier → canonical lookup
+Update relationship adjacency view
+Projections reflect new canonical truth.
+9. Step 7 — Downstream Consumption
+SIM binds scenarios to E-2001
+FLO accounts financials under E-2001
+PIE groups insights by E-2001
+GGP audits merge rationale
+No downstream engine stores identity snapshots.
+10. Step 8 — Replay & Audit
+Audit Query:
+Why does identifier CNTY-7788 map to E-2001?
+Answer via IDN:
+IdentifierLinked event
+ConflictDetected decision
+Merge decision artifact
+Governance reference
+Replay yields identical state.
+11. Invariants Demonstrated
+Canonical IDs are stable
+No silent identity mutation
+Temporal relationships preserved
+Merge history retained
+Deterministic replay supported
+12. Document Position in IDN Corpus
+This EEE validates:
+NS-IDN-002 — TAXONOMY
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-005 — DECISION
+NS-IDN-006 — VERSION
+NS-IDN-007 — DATAMODEL
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN End-to-End Example
+Parent / HoldCo Manager
+Status: Draft

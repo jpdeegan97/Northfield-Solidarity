@@ -1,0 +1,131 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the versioning rules and semantics for the Digital Arbitrage Tooling (DAT) engine.
+It ensures that:
+Execution Plans evolve safely and predictably
+Historical executions remain reproducible
+Downstream engines (FLO, PTE) can correctly attribute outcomes
+Governance decisions remain auditable over time
+Versioning in DAT is strict, explicit, and append-only.
+2. Versioning Principles
+DAT versioning follows these principles:
+Semantic Changes Require New Versions
+If execution meaning changes, a new version is created.
+Execution Pins Versions
+An executing plan is pinned to a specific version and cannot mutate.
+Append-Only History
+No version is ever overwritten or deleted.
+Downstream Attribution
+All financial and performance outcomes reference the exact plan version executed.
+Governance Visibility
+Version changes are reviewable and governed.
+3. Canonical Versioned Identifiers
+3.1 execution_plan_id vs plan_version
+execution_plan_id — stable identifier across the life of a plan
+plan_version — monotonic integer representing semantic versions
+All authoritative DAT artifacts are keyed by:
+(execution_plan_id, plan_version)
+4. What Triggers a New Plan Version
+A new plan_version MUST be created when any of the following changes:
+Step Graph Changes
+Steps added, removed, reordered
+Action Changes
+Action type changes
+Action parameters change meaningfully
+Constraint Changes (Material)
+Budget caps change
+Time window changes
+Risk thresholds change
+Rollback Policy Changes
+Rollback type changes
+Compensating steps modified
+Connector Target Changes
+Different external system
+Different integration endpoint
+Insight Pin Change
+Linked (insight_id, insight_version) changes
+5. What Does NOT Trigger a New Plan Version
+The following do not require a new plan_version:
+Derived Read Model Updates
+Dashboard rebuilds
+Execution State Changes
+draft → approved → executing → completed
+Telemetry Emission
+Execution and financial events
+Retry Attempts
+Step retries using same idempotency key
+Non-Semantic Metadata Updates
+Labels, tags, comments
+6. Sub-Artifact Versioning
+6.1 Step Versioning
+Steps are versioned implicitly through plan_version.
+Rule:
+Any step change → new plan_version
+6.2 Action Versioning
+Actions are versioned implicitly via plan_version.
+Rule:
+Action parameter meaning change → new plan_version
+6.3 Constraint Snapshots
+Constraints are snapshotted per plan_version.
+Rule:
+Constraint enforcement always references the snapshot tied to the executing version
+6.4 Budget Versioning
+Budgets are versioned implicitly via plan_version.
+Rule:
+Budget consumption events reference the executing plan_version
+6.5 Rollback Policy Versioning
+Rollback policies are versioned implicitly via plan_version.
+Rule:
+Rollback behavior during execution must match the versioned policy
+7. Execution-Time Version Guarantees
+Once a plan enters executing state:
+plan_version is locked
+No plan artifacts may change
+Admission, constraint checks, and rollback all reference the same snapshot
+If changes are required mid-run:
+Execution must be aborted
+A new plan_version must be created and re-approved
+8. Replay & Historical Reconstruction
+DAT supports full replay:
+Plan Replay
+Reconstruct step graph and parameters from plan_version
+Execution Replay
+Reconstruct execution timeline from telemetry events
+Financial Replay
+Reconcile spend via FLO events tied to plan_version
+Replay never mutates history.
+9. Downstream Compatibility
+Downstream engines must treat DAT versions as pin-able:
+FLO attributes financial records to plan_version
+PTE attributes performance metrics to plan_version
+Governance reviews reference exact versions approved
+Version supersession does not invalidate historical outcomes.
+10. Document Position in DAT Corpus
+This versioning document builds upon:
+NS-DAT-002 — TAXONOMY
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+It informs:
+NS-DAT-007 — DATAMODEL
+NS-DAT-008 — EEE
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Versioning Semantics
+
+Parent / HoldCo Manager
+Status: Draft

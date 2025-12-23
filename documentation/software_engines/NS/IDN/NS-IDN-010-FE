@@ -1,0 +1,148 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the optional frontend (FE) / operator UI for the Identity & Entity Nexus (IDN).
+The IDN operator UI exists to:
+search and resolve identities and entities
+inspect identifier mappings and confidence
+view and edit relationships (governed)
+manage merge and split requests (governed)
+support audit-grade visibility into identity history
+IDN FE is a truth-inspection surface with guarded mutation controls.
+2. FE Design Principles
+Search First — identity lookup is the primary workflow
+No Silent Mutations — merge/split/link changes require explicit actions
+Temporal Clarity — relationships show effective windows
+Auditability — every change includes actor + reason
+Governed Operations — merge/split requires approval reference when configured
+3. Primary Personas
+Operator — resolves identity ambiguity, links identifiers
+Auditor — verifies provenance and rationale
+Governance Reviewer — reviews merge/split requests (GGP-linked)
+System Engineer — manages projections, rulesets (optional)
+4. Canonical Screens (MVP)
+4.1 Global Search
+Goal: find actors/entities quickly.
+Search inputs:
+canonical ID
+identifier (email, platform_id, tax_id)
+name / label
+Results:
+canonical record preview
+best-match confidence
+4.2 Actor Detail
+Goal: view actor identity truth.
+Displays:
+actor_id, type, status
+identifiers (with issuing system + confidence)
+relationship edges (owns/manages/etc.)
+event history timeline
+Actions (guarded):
+link new identifier
+deprecate identifier (rare)
+4.3 Entity Detail
+Goal: view entity truth and relationships.
+Displays:
+entity_id, type, lifecycle state
+identifiers
+related entities/actors
+temporal relationship history
+Actions (guarded):
+add/update relationship (effective date)
+4.4 Identifier Inspector
+Goal: resolve the “why does this map here?” question.
+Displays:
+identifier type/value
+current canonical mapping
+history of links/unlinks
+conflict flags
+Actions:
+propose reassignment (creates request, not direct mutation)
+4.5 Relationship Graph View
+Goal: visualize ownership/control networks.
+Features:
+adjacency visualization
+filters by relationship type
+time slider (effective dates)
+4.6 Conflict & Quarantine Queue
+Goal: manage ambiguous identifiers and collisions.
+Displays:
+collision cases
+affected canonicals
+evidence summary
+Actions (governed):
+approve link
+reject link
+open merge evaluation
+4.7 Merge / Split Workbench (Governed)
+Goal: safely propose and execute merge/split operations.
+Merge Workbench:
+select canonicals
+view overlap evidence (identifiers, relationships)
+choose survivor canonical
+attach rationale
+governance reference (optional/required)
+Split Workbench:
+define resulting canonicals
+allocate identifiers
+allocate relationships
+attach rationale
+4.8 Audit Timeline
+Goal: show the identity story end-to-end.
+Displays:
+identity events (created, linked, merged, split)
+decision artifacts with rationale
+correlation IDs
+Export:
+audit pack JSON/PDF
+5. Component Inventory (Suggested)
+GlobalSearchBar
+SearchResultsTable
+CanonicalHeaderCard
+IdentifierList
+IdentifierConflictBadge
+RelationshipTable (effective dated)
+RelationshipGraphPanel
+EventTimeline
+ConflictQueueTable
+MergeWorkbench
+SplitWorkbench
+GovernedActionModal (actor + reason + governance_ref)
+AuditPackExporter
+6. Data Requirements (API Needs)
+Read:
+search by identifier/name
+resolve identifier → canonical
+get actor/entity detail
+list relationships (current + historical)
+get event history and decisions
+list conflict/quarantine items
+Write (guarded):
+create actor/entity
+link identifier
+add/update relationship
+propose merge/split
+execute merge/split (if permitted)
+7. Non-Functional Requirements
+Performance: fast identifier resolution (hot path)
+Security: RBAC on all write paths
+Auditability: all actions require reason
+Clarity: explicit survivor and redirect semantics for merges
+8. Document Position in IDN Corpus
+This FE document is informed by:
+NS-IDN-003 — ARCHITECTURE
+NS-IDN-004 — LIFECYCLE
+NS-IDN-007 — DATAMODEL
+NS-IDN-008 — EEE
+It complements:
+NS-IDN-011 — APIMAP
+NS-IDN-012 — STATE
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN Operator UI Spec
+Parent / HoldCo Manager
+Status: Draft

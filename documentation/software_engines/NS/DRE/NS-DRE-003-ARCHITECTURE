@@ -1,0 +1,119 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the architecture of the Deep Research Engine (DRE).
+It describes:
+  major components and services
+  data flow between ingestion, synthesis, and promotion
+  interaction with other Northfield Solidarity engines
+  design choices that ensure provenance, replayability, and governance
+2. Architectural Principles
+ Evidence-Centric Design — all claims originate from evidence
+ Append-Only Knowledge Graph — history is never erased
+ Human + Agent Collaboration — agents assist, humans curate
+ Governed Promotion — downstream usage is explicitly approved
+ Replayable Research — syntheses can be reconstructed
+3. High-Level Architecture
+DRE is composed of five logical layers:
+ Collection & Ingestion Layer
+ Evidence Store & Knowledge Graph
+ Synthesis & Reasoning Layer
+ Governance & Promotion Layer
+ Query & Export Layer
+4. Component Breakdown
+4.1 Collection & Ingestion Layer
+Responsibilities:
+  crawl, scrape, and ingest sources
+  accept manual uploads and notes
+  timestamp and fingerprint evidence
+Components:
+  source monitors
+  crawler/agent workers
+  manual ingest API
+Outputs immutable Evidence Items.
+4.2 Evidence Store & Knowledge Graph
+Responsibilities:
+  persist evidence, citations, entities, and relationships
+  maintain temporal and confidence annotations
+  serve as canonical research memory
+Storage:
+  relational store for artifacts
+  graph store or graph overlay for relationships
+4.3 Synthesis & Reasoning Layer
+Responsibilities:
+  cluster evidence into themes and subthemes
+  maintain hypotheses and confidence updates
+  generate research narratives
+Components:
+  hypothesis manager
+  confidence updater
+  narrative composer (human or agent-assisted)
+4.4 Governance & Promotion Layer
+Responsibilities:
+  manage promotion requests
+  integrate with GGP for approval
+  version research artifacts
+No research flows downstream without approval.
+4.5 Query & Export Layer
+Responsibilities:
+  serve structured queries to PIE, SIM, DAT
+  export research briefs and evidence packs
+  support audit and replay
+5. Data Flow Overview
+ Sources change or are discovered
+ Evidence is ingested and stored immutably
+ Citations link evidence to artifacts
+ Hypotheses update confidence
+ Narratives are produced
+ Promotion requests are submitted
+ GGP approves or rejects promotion
+ Approved artifacts flow downstream
+6. Cross-Engine Integration
+Engine
+Interaction
+SIG
+Seeds research threads with signals
+PIE
+Consumes themes, hypotheses, narratives
+SIM
+Consumes assumptions and drivers
+DAT
+Consumes sourcing and constraint research
+GGP
+Governs promotion and versioning
+IDN
+Provides entity and actor resolution
+CWP
+Schedules agentic research programs
+7. Deployment Topology (Logical)
+  DRE API service
+  ingestion workers (scalable)
+  synthesis workers
+  promotion coordinator
+  read-only query service
+Components may be deployed independently.
+8. Failure & Degradation Modes
+  ingestion outage → synthesis continues
+  governance outage → promotion paused
+  query outage → research continues
+Evidence capture is prioritized over synthesis.
+9. Security & Access Control
+  evidence write access restricted
+  promotion actions require actor attribution
+  read access tiered by role
+10. Document Position in DRE Corpus
+This architecture document builds upon:
+  NS-DRE-002 — TAXONOMY
+It informs:
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-007 — DATAMODEL
+  NS-DRE-009 — IMPL
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE Architecture
+Parent / HoldCo Manager
+Status: Draft

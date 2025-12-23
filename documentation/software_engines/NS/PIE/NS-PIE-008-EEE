@@ -1,0 +1,147 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document provides a complete end-to-end example illustrating how the Product InsightIQ Engine (PIE) operates in practice.
+The goal is to:
+Validate consistency across PIE documents (001–007)
+Demonstrate replayability and auditability
+Show clean interaction boundaries with SIG, DRE, SIM, DAT, GGP, and PTE
+This example is illustrative but structurally accurate.
+2. Scenario Overview
+Scenario: Identification of a potential high-margin consumer product opportunity in a niche home category.
+Context:
+Emerging demand signals detected online
+Limited but growing competitive presence
+No execution decision yet made
+PIE’s role is to surface, qualify, and contextualize the opportunity — not to act on it.
+3. Phase 1 — Signal & Research Intake
+3.1 Signals from SIG
+SIG emits the following normalized signals:
+Signal A: Increased search volume for a specific product attribute
+Signal B: Sustained social media mentions with positive sentiment
+Signal C: Marketplace listings showing rising sell-through
+Each signal includes:
+signal_id
+Trust score
+Timestamp
+PIE ingests signals via the Signal Intake Adapter.
+3.2 Research from DRE
+DRE provides a research artifact:
+Artifact R1: Long-horizon analysis indicating category growth driven by demographic shifts
+Artifact includes:
+artifact_id
+Confidence annotation
+Version
+4. Phase 2 — Context Assembly
+PIE assembles a Context Snapshot:
+Groups Signals A, B, C
+Links Research Artifact R1
+Associates known constraints (e.g., regulatory considerations)
+An Evidence Bundle is created:
+bundle_id = EB-001
+References all signal and artifact IDs
+Evidence Bundle is persisted and replayable.
+5. Phase 3 — Insight Proposal
+Using the Evidence Bundle, PIE generates an Insight:
+insight_id = INS-042
+insight_version = 1
+Opportunity Statement:“There may be an opportunity to enter the niche home category focused on [specific attribute], given rising consumer demand and limited competition.”
+Insight state:
+Status = Proposed
+Decay and relevance windows are assigned.
+6. Phase 4 — Scoring & Risk Annotation
+6.1 Scoring
+PIE applies Scoring Model v1.3:
+Confidence Score: 0.74
+Supporting score breakdown stored in scoring_result
+6.2 Risk Profiling
+Risk Profile identifies:
+Moderate execution complexity
+Supply chain uncertainty
+Risk Profile attached without changing insight_version.
+7. Phase 5 — Decision & Governance Handoff
+7.1 Promotion Readiness Evaluation
+Decision Context snapshot created:
+Confidence above threshold
+Risks explicit and bounded
+Evidence sufficient
+Promotion Readiness = true
+7.2 Submission to GGP
+PIE submits the Insight to GGP with:
+Evidence Bundle
+Narrative explanation
+Decision Context
+Event emitted:
+pie.insight.ready_for_review
+8. Phase 6 — Governance Review Outcome
+GGP reviews the Insight:
+Outcome: Approved for downstream analysis
+Governance decision recorded
+PIE records state transition:
+Proposed → Approved
+9. Phase 7 — Downstream Consumption
+9.1 SIM
+SIM consumes INS-042 v1 to:
+Run downside scenarios
+Identify sensitivity to demand assumptions
+9.2 DAT
+DAT consumes INS-042 v1 for planning only:
+No execution triggered
+PIE remains passive.
+10. Phase 8 — Feedback & Observation
+Execution planning later yields metrics:
+Performance signals routed to PTE
+Financial outcomes routed to FLO
+PTE associates results with:
+insight_id = INS-042
+insight_version = 1
+PIE does not mutate the original Insight.
+11. Phase 9 — Decay & Expiry
+After several months:
+No new corroborating signals
+Decay threshold crossed
+PIE emits:
+pie.insight.expired
+Insight state transitions:
+Approved → Expired
+Insight remains queryable as historical context.
+12. Replay & Audit Demonstration
+An auditor replays the Insight:
+Reconstructs Evidence Bundle from IDs
+Re-runs Scoring Model v1.3
+Confirms decision thresholds at the time
+Result:
+Original outcome is reproducible
+13. Cross-Document Validation
+This example validates:
+NS-PIE-002 (Taxonomy primitives)
+NS-PIE-003 (Architectural stages)
+NS-PIE-004 (Lifecycle states)
+NS-PIE-005 (Decision semantics)
+NS-PIE-006 (Versioning rules)
+NS-PIE-007 (Data model & replay)
+14. Document Position in PIE Corpus
+This EEE document is used to:
+Validate conceptual correctness
+Surface edge cases
+Anchor implementation discussions
+15. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE End-to-End Example
+
+Parent / HoldCo Manager
+Status: Draft

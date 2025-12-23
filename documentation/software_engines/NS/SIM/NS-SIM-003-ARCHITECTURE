@@ -1,0 +1,129 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the logical and operational architecture of the Simulation & Scenario Engine (SIM).
+SIM architecture is designed to:
+consume governed inputs from upstream engines
+construct deterministic, versioned scenarios
+execute simulations under explicit constraints
+produce replayable, explainable scenario artifacts
+remain strictly isolated from execution and authorization paths
+2. Architectural Principles
+Isolation from Execution — SIM cannot trigger real-world actions
+Determinism — identical inputs and versions produce identical outputs
+Replayability — all simulations can be re-run for audit and comparison
+Explainability — every output traces to assumptions, constraints, and inputs
+Composable Models — scenarios are built from reusable, versioned components
+3. High-Level Architecture
+SIM is composed of six logical layers:
+Input Assembly Layer
+Scenario Construction Layer
+Simulation Execution Layer
+Constraint & Risk Evaluation Layer
+Result Packaging & Storage Layer
+Distribution & Query Layer
+Each layer is independently testable, versioned, and replay-safe.
+4. Input Assembly Layer
+Responsibilities:
+Collect governed inputs from upstream engines
+Resolve IDs, versions, and effective timestamps
+Freeze a deterministic simulation input snapshot
+Primary Inputs:
+SIG — signals and aggregates (observed reality)
+PIE — insight artifacts
+DAT — execution parameters and cost models
+FLO — financial constraints and capital state
+All inputs are referenced by ID + version, never copied blindly.
+5. Scenario Construction Layer
+Responsibilities:
+Build baseline scenario from observed reality
+Apply assumption sets and scenario variants
+Attach constraint sets
+Artifacts produced:
+scenario_definition
+assumption_set
+constraint_set
+Once execution begins, these artifacts are immutable.
+6. Simulation Execution Layer
+Responsibilities:
+Execute forward simulations
+Advance time in discrete or continuous steps
+Update variables according to model logic
+Execution characteristics:
+Batch-oriented by default
+Supports deterministic stochasticity (seeded RNG)
+Produces no external side effects
+Execution models may include:
+rule-based projections
+equation-based models
+discrete-event simulations
+7. Constraint & Risk Evaluation Layer
+Responsibilities:
+Enforce hard constraints during execution
+Detect constraint violations and breakpoints
+Quantify risk exposure and failure modes
+Outputs:
+constraint violation annotations
+failure mode markers
+risk exposure metrics
+Constraints alter simulation paths, never reality.
+8. Result Packaging & Storage Layer
+Responsibilities:
+Package execution outputs into immutable artifacts
+Persist time-series outcome data
+Store uncertainty bands and sensitivity artifacts
+Stored entities:
+scenario_run
+outcome_series
+uncertainty_artifact
+sensitivity_artifact
+All results are version-bound and append-only.
+9. Distribution & Query Layer
+Responsibilities:
+Expose read-only query APIs
+Publish scenario summaries (optional, governed)
+Support comparison and replay workflows
+Primary consumers:
+GGP — governance and approval context
+DAT — execution planning refinement
+Humans — strategic and risk analysis
+10. Replay & Determinism Model
+SIM supports:
+Full scenario replay using stored input snapshots
+Re-execution under updated model versions
+Replay never mutates historical results. New runs produce new artifacts.
+11. Persistence Strategy
+Authoritative storage:
+PostgreSQL for scenario definitions and results
+Optional optimizations:
+columnar or time-series store for large outcome sets
+Derived views are rebuildable at any time.
+12. Security & Governance Boundaries
+SIM has no write access to execution systems
+All control endpoints are governed
+Scenario usage may require approval via GGP
+13. Observability Requirements
+Metrics:
+simulation runtime
+success / failure rates
+constraint violation frequency
+Logs:
+input snapshot hashes
+model and ruleset versions used
+14. Document Position in SIM Corpus
+This architecture builds upon:
+NS-SIM-001 — OVERVIEW
+NS-SIM-002 — TAXONOMY
+It informs:
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+NS-SIM-007 — DATAMODEL
+15. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Architecture
+Parent / HoldCo Manager
+Status: Draft

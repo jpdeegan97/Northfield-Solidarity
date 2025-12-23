@@ -1,0 +1,346 @@
+NS-FIRMAMENT-005 — DECISION
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This document defines how Firmament supports and enforces decision-making across Northfield Solidarity by:
+
+turning observations (layers/heatmaps/signals) into decision candidates,
+
+routing meaningful moves through GGE governance gates,
+
+assigning execution through CWP,
+
+and maintaining a complete decision trace (inputs → rationale → approval → execution → outcome).
+
+Firmament is a decision cockpit, not a governance authority. GGE remains authoritative.
+
+2. Decision Philosophy
+
+Firmament decisions follow four principles:
+
+Observe → Explain → Act: no action without a clear brief.
+
+Gates scale with impact: higher impact = higher governance.
+
+Every decision is traceable: inputs and rationale are always recorded.
+
+Outcomes close the loop: decisions are evaluated and feed future recommendations.
+
+3. Decision Classes
+
+Firmament classifies decisions to determine workflow, required evidence, and gating.
+
+3.1 Class A — Routine Operational
+
+Examples: minor reroutes, small procurement, schedule adjustments
+
+GGE Gate: optional (policy-based)
+
+Owner: CWP operator
+
+Evidence: minimal (context + reason)
+
+3.2 Class B — Material Operational
+
+Examples: switching 3PL, rebalancing inventory posture, changing supplier terms
+
+GGE Gate: required if above thresholds
+
+Owner: assigned role + reviewer
+
+Evidence: brief + constraints + risk assessment
+
+3.3 Class C — Strategic Move
+
+Examples: entering a new region, launching a product line, major partnership
+
+GGE Gate: required
+
+Owner: leadership role(s)
+
+Evidence: scenario comparison + financial exposure + risk controls
+
+3.4 Class D — Emergency / Incident
+
+Examples: disruption response, supply shock, compliance incident
+
+GGE Gate: expedited gate (emergency policy)
+
+Owner: incident commander (CWP)
+
+Evidence: signal bundle + mitigation plan + postmortem requirement
+
+4. Decision Triggers (How a Decision Starts)
+
+A decision candidate can be created from:
+
+4.1 User Trigger
+
+clicking a sector tile in the heatmap
+
+selecting an alert hotspot
+
+opening an event readiness panel
+
+focusing a region and requesting “recommended actions”
+
+4.2 System Trigger
+
+SIG severity crossing threshold
+
+sector health score drop
+
+repeated SLA breaches on a flow
+
+budget exposure crossing bounds (FLO)
+
+scenario drift against plan
+
+5. Decision Artifacts
+
+Firmament produces structured artifacts (Firmament-native) which are then handed off to GGE/CWP.
+
+5.1 Context Selection
+
+Defines the scope of the decision.
+
+geo_scope (viewport/region/site)
+
+time_window
+
+sector_scope
+
+entities_in_scope[]
+
+signals_in_scope[]
+
+5.2 Operating Brief
+
+Explains the situation.
+
+what’s going well / failing
+
+root causes (ops/finance/supply/market)
+
+constraints (budget, capacity, policy)
+
+confidence + staleness
+
+5.3 Action Candidates
+
+Ranked list of potential moves.
+
+impact score
+
+urgency
+
+dependencies
+
+cost estimate + risk estimate
+
+recommended owner role
+
+recommended gate type
+
+5.4 Decision Packet (for GGE)
+
+The canonical unit submitted to GGE.
+
+title + description
+
+decision class
+
+scope + assumptions
+
+evidence bundle
+
+scenario comparison (if applicable)
+
+requested approvals (gate)
+
+rollback plan (required for higher classes)
+
+6. Governance Gates (GGE Integration)
+
+Firmament never “approves” decisions. It routes decisions into GGE.
+
+6.1 Gate Selection Rules
+
+Gate selection is determined by:
+
+action impact score
+
+dollar exposure (FLO)
+
+compliance/security flags
+
+strategic category
+
+plan mode aggressiveness
+
+6.2 Common Gate Types
+
+BudgetApproval
+
+VendorApproval
+
+LegalReview
+
+SecurityReview
+
+StrategicApproval
+
+EmergencyApproval
+
+6.3 Gate SLA
+
+Each gate has an expected SLA and escalation path. Firmament must display:
+
+current gate state
+
+reviewers
+
+time remaining
+
+blockers
+
+7. Ownership and Execution (CWP Integration)
+
+Every approved decision must translate to execution:
+
+7.1 Task Instantiation
+
+each action becomes one or more CWP tasks
+
+tasks must include: owner, due date, dependencies, success criteria
+
+7.2 Accountability Views
+
+Firmament shows:
+
+who owns what
+
+what is blocked
+
+what is overdue
+
+readiness scores (for events and missions)
+
+8. Plan Slider as Decision Modifier
+
+The Risk ↔ Ambition slider changes:
+
+KPI weighting
+
+acceptable risk tolerance
+
+speed vs certainty preference
+
+governance strictness (more aggressive often implies more gating)
+
+8.1 Scenario Bundle
+
+When SIM is available, Firmament attaches:
+
+scenario assumptions
+
+projected outcomes
+
+confidence band
+
+sensitivity (what variables change the result)
+
+If SIM is unavailable, Firmament still provides:
+
+policy-weighted ranking changes
+
+explicit “scenario unavailable” marker
+
+9. Decision Traceability (Audit Model)
+
+Firmament maintains links (not authority) to ensure trace completeness.
+
+9.1 Required Trace Fields
+
+source_feature_id / sector_id
+
+input_refs[] (signals, KPIs, events, flows)
+
+brief_id
+
+plan_mode
+
+scenario_id (optional)
+
+action_ids[]
+
+cwp_task_ids[]
+
+gge_decision_id (optional/required)
+
+outcome_metrics[]
+
+9.2 Trace Completeness Score
+
+Firmament displays a score for every major move:
+
+missing evidence
+
+missing owner
+
+missing gate
+
+missing success criteria
+
+missing verification
+
+10. Verification and Post-Decision Review
+
+After execution, Firmament triggers review:
+
+10.1 Outcome Check
+
+KPI deltas vs baseline
+
+risk reduction achieved?
+
+cost variance vs estimate
+
+timeliness (met SLA?)
+
+10.2 Postmortem Requirements
+
+For Class C/D moves, a postmortem is required:
+
+what happened
+
+what we learned
+
+what to change in rules/models
+
+11. Failure Modes and Safeguards
+
+Stale inputs: decision packet must include staleness flags
+
+Over-automation: high-impact actions cannot auto-execute; must gate
+
+Ambiguous ownership: no action can leave Firmament without a proposed owner or explicit “unassigned” reason
+
+SIM drift: scenario outputs must be dated and tied to assumptions
+
+12. Definition of Done (Decision System v0)
+
+Firmament decision support is “done” when:
+
+every sector drilldown generates a brief + ranked actions,
+
+actions above thresholds route into GGE as decision packets,
+
+approved actions instantiate CWP tasks,
+
+Firmament can show decision status + execution progress,
+
+and the decision trace can be audited end-to-end.
+

@@ -1,0 +1,133 @@
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the end-to-end lifecycle of simulations within the Simulation & Scenario Engine (SIM).
+It specifies how scenarios are:
+initiated
+constructed
+executed
+evaluated
+persisted
+reviewed
+replayed
+The SIM lifecycle is designed to be deterministic, auditable, and governance-aware, while remaining isolated from execution.
+2. High-Level Lifecycle Stages
+Scenario Initiation
+Input Snapshot Assembly
+Scenario Construction
+Simulation Execution
+Constraint & Risk Evaluation
+Outcome Packaging
+Governance Review & Consumption
+Replay, Comparison, and Re-Execution
+3. Stage 1 — Scenario Initiation
+A simulation begins with a scenario initiation request.
+Initiators may include:
+Human operators
+GGP-governed automation
+Downstream engines (request-only)
+Initiation requires:
+scenario intent
+reference insight(s) (PIE)
+target decision context
+No simulation begins implicitly.
+4. Stage 2 — Input Snapshot Assembly
+SIM assembles a frozen input snapshot, including:
+SIG signal and aggregate references
+PIE insight artifacts
+DAT execution parameters
+FLO financial constraints
+All inputs are captured by ID and version.
+The snapshot is immutable and hash-addressed.
+5. Stage 3 — Scenario Construction
+SIM constructs the scenario artifacts:
+baseline scenario (observed reality)
+assumption sets (explicit deltas)
+constraint sets (hard limits)
+scenario variants
+All assumptions and overrides are explicit.
+6. Stage 4 — Simulation Execution
+SIM executes the simulation:
+advances time in discrete or continuous steps
+updates variables according to models
+applies deterministic stochastic elements (seeded)
+Execution produces time-series state trajectories.
+SIM never performs side effects.
+7. Stage 5 — Constraint & Risk Evaluation
+During execution, SIM evaluates:
+constraint violations
+resource exhaustion
+failure modes
+Outcomes:
+annotate scenarios with breakpoints
+compute risk exposure metrics
+Constraints affect simulation paths, not reality.
+8. Stage 6 — Outcome Packaging
+SIM packages results into immutable artifacts:
+scenario_run
+outcome_series
+uncertainty bands
+sensitivity artifacts
+Each artifact references:
+input snapshot hash
+model versions
+execution parameters
+9. Stage 7 — Governance Review & Consumption
+Completed scenarios are:
+surfaced to humans
+provided to GGP for approval context
+consumed by DAT for planning refinement
+SIM outputs do not authorize execution.
+10. Stage 8 — Replay, Comparison, and Re-Execution
+SIM supports:
+Replay
+re-run scenario with identical inputs
+verify determinism
+Comparison
+compare multiple scenarios side-by-side
+Re-Execution
+re-run with updated model versions
+New runs produce new artifacts; originals remain preserved.
+11. Failure Handling
+Failures may occur due to:
+invalid inputs
+model errors
+constraint conflicts
+Failure handling:
+mark scenario_run as failed
+preserve partial outputs
+record rationale and logs
+Failures do not impact other scenarios.
+12. Cross-Engine Lifecycle Coordination
+Engine
+Interaction
+PIE
+Supplies insights for scenario initiation
+SIG
+Supplies observed data for baselines
+DAT
+Supplies execution parameters
+FLO
+Supplies financial constraints
+GGP
+Governs scenario usage
+PTE
+Compares outcomes vs reality
+13. Document Position in SIM Corpus
+This lifecycle document builds upon:
+NS-SIM-001 — OVERVIEW
+NS-SIM-002 — TAXONOMY
+NS-SIM-003 — ARCHITECTURE
+It informs:
+NS-SIM-005 — DECISION
+NS-SIM-006 — VERSION
+NS-SIM-007 — DATAMODEL
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM End-to-End Lifecycle
+Parent / HoldCo Manager
+Status: Draft

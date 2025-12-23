@@ -1,0 +1,191 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the logical architecture of the Signal Aggregation Engine (SIG).
+SIG is responsible for:
+ingesting raw inputs (external + internal)
+normalizing them into canonical signal types
+assigning trust/confidence and decay semantics
+aggregating and correlating signals into derived views
+publishing signals to the internal event fabric
+supporting replay for model evolution and audit
+This document focuses on components, interfaces, and control surfaces.
+2. Architectural Overview
+SIG is organized into six logical layers:
+Ingress Layer
+Normalization Layer
+Scoring Layer
+Signal Store & Index Layer
+Aggregation & Correlation Layer
+Distribution & Query Layer
+SIG must preserve:
+source attribution
+deterministic processing (by ruleset version)
+replayability
+3. Core Components
+3.1 Input Adapters (Ingress)
+Responsibility:
+Connect to upstream data sources and ingest raw inputs.
+Primary adapters:
+Kafka consumer for MUX artifact topics
+Kafka consumer for internal telemetry topics (DAT, FLO, infra)
+Optional HTTP ingestion endpoint for batch imports
+Ingress adapters should be stateless and horizontally scalable.
+3.2 Raw Signal Capture Store
+Responsibility:
+Store raw inputs as immutable capture records (for replay and forensics)
+Raw capture includes:
+source_system
+raw_ref (MUX artifact_id or internal event id)
+received_at
+payload hash
+This store is optional for MVP but recommended for audit.
+3.3 Normalization Engine
+Responsibility:
+Map raw inputs into canonical signal types per NS-SIG-002.
+Enforce schema normalization:
+timestamps → UTC
+currency units
+numeric normalization
+Normalization rules are versioned.
+Outputs:
+canonical_signal candidate
+3.4 Trust & Confidence Scoring Engine
+Responsibility:
+Assign:
+trust_score (source reliability + integrity)
+confidence_score (measurement quality + completeness)
+Inputs to scoring:
+source_system class (MUX vs internal vs vendor)
+integrity metadata
+staleness/latency
+historical source reliability
+Scoring rules are versioned.
+3.5 Decay Engine
+Responsibility:
+Assign decay semantics:
+decay_model (exponential, linear, step)
+half-life / TTL
+Decay is recorded as parameters; “fresh/decaying/stale” is derived.
+3.6 Dedupe & Consistency Engine
+Responsibility:
+Prevent double-counting by:
+stable keys (source_system, signal_type, observed_at, subject_ref)
+hash-based checks
+Outcomes:
+accept_new
+link_existing
+No destructive deletes.
+3.7 Canonical Signal Store (Authoritative)
+Responsibility:
+Persist canonical signals append-only
+Enforce immutability constraints
+Provide indexes for query and aggregation
+Recommended persistence:
+Postgres for canonical signal facts
+Optional Mongo/Elastic for fast search
+3.8 Aggregation Engine
+Responsibility:
+Compute derived signals and rollups:
+time-window aggregates
+source-weighted aggregates
+confidence-weighted aggregates
+Derived signals are stored separately and rebuildable.
+3.9 Correlation Engine
+Responsibility:
+Group signals by shared correlation hints:
+product
+market
+channel
+campaign
+entity
+Produces correlation groups used by PIE and DRE.
+Correlation does not assert causality; it asserts linkage.
+3.10 Publisher (Signal Emission)
+Responsibility:
+Publish canonical and derived signals to Kafka
+Use stable signal identifiers
+Attach provenance and scoring metadata
+3.11 SIG Query API
+Responsibility:
+Provide read surfaces for:
+signal lookup/filter
+aggregates
+correlation groups
+source reliability status
+Write surfaces (if any) are governed.
+4. Data & Event Flows
+4.1 External Signal Flow (From MUX)
+MUX publishes canonical artifact
+SIG ingress consumes artifact event
+Raw capture stored (optional)
+Normalize into signal type
+Score trust/confidence
+Assign decay model
+Deduplicate
+Store canonical signal
+Publish signal to Kafka
+Aggregation/correlation updated
+4.2 Internal Telemetry Flow
+DAT/FLO/Infra emits telemetry event
+SIG ingests
+Normalization and scoring applied
+Signal stored and published
+4.3 Vendor Feed Flow
+Batch import or scheduled pull
+Raw capture stored
+Normalize, score, decay, dedupe
+Store and publish
+5. Persistence Strategy
+SIG maintains:
+Raw Capture (Optional)
+immutable input store
+Canonical Signal Facts (Authoritative)
+append-only signals
+Derived Aggregates & Correlation Tables (Rebuildable)
+rollups and groupings
+All derived data is disposable and rebuildable.
+6. Control Surfaces
+SIG exposes operator/governance controls:
+enable/disable ingestion per source
+adjust source reliability weights (governed)
+trigger replay of raw inputs
+trigger rebuild of aggregates/correlation
+All control actions are auditable.
+7. Observability Requirements
+Per source:
+ingestion rate
+backlog/lag
+normalization error rate
+scoring error rate
+dedupe rate
+System:
+write latency
+query latency
+aggregate rebuild times
+Alerts:
+schema drift
+missing data windows
+abnormal trust-score shifts
+8. Security Model
+Strict RBAC on raw payload access
+Secrets never stored in signal payloads
+Input validation for all write endpoints
+Governance required for scoring policy overrides
+9. Document Position in SIG Corpus
+This architecture document builds upon:
+NS-SIG-001 — OVERVIEW
+NS-SIG-002 — TAXONOMY
+It is complemented by:
+NS-SIG-004 — LIFECYCLE
+NS-SIG-005 — DECISION
+NS-SIG-007 — DATAMODEL
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Logical Architecture
+Parent / HoldCo Manager
+Status: Draft

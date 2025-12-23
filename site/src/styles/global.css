@@ -1,0 +1,744 @@
+/* =========================================
+   Northfield Solidarity - Global Design System
+   ========================================= */
+
+:root {
+    /* -- Palette: Water -- */
+    --c-bg: #fff;
+    --c-text: #1a1a1a;
+    --c-text-sub: #555;
+    --c-brand: #0052cc;
+    --c-brand-light: #e6f0ff;
+    --c-accent: #00b8d9;
+    --c-border: #e0e0e0;
+    --c-surface: #f7f9fa;
+    --c-card-bg: #fff;
+
+    /* -- Spacing -- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --space-5: 2rem;
+    --space-6: 3rem;
+    --space-8: 4rem;
+
+    /* -- Radius -- */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-pill: 9999px;
+
+    /* -- Font -- */
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+    /* -- Shadows -- */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-hero: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="water"] {
+    --c-bg: #0f172a;
+    --c-text: #f8fafc;
+    --c-text-sub: #7dd3fc;
+    --c-brand: #38bdf8;
+    --c-brand-light: #0ea5e920;
+    --c-accent: #22d3ee;
+    --c-border: #1e293b;
+    --c-surface: #1e293b50;
+    --c-card-bg: #1e293b;
+
+    /* Apply the theme vars to this container immediately so it covers the white body */
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="green"] {
+    --c-bg: #050f05;
+    /* Deep Green-Black */
+    --c-text: #f0fdf4;
+    /* Pale Green-White */
+    --c-text-sub: #86efac;
+    /* Soft Green */
+    --c-brand: #22c55e;
+    /* Vibrant Green */
+    --c-brand-light: #22c55e20;
+    /* Low Opacity Green */
+    --c-accent: #4ade80;
+    /* Brighter Green */
+    --c-border: #14532d;
+    /* Dark Green Border */
+    --c-surface: #14532d40;
+    /* Transparent Dark Green Surface */
+    --c-card-bg: #052e16;
+    /* Dark Green Card */
+
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================
+   Reset & Base
+   ========================================= */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+figure,
+blockquote,
+dl,
+dd {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    border: none;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    color: inherit;
+}
+
+/* =========================================
+   Layout Structure
+   ========================================= */
+
+.siteLayout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.siteHeader {
+    border-bottom: 1px solid var(--c-border);
+    position: sticky;
+    top: 0;
+    background-color: transparent;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    /* Create a gradient overlay for subtle premium feel */
+    background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.6));
+}
+
+[data-theme="water"] .siteHeader {
+    background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75));
+    border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+}
+
+.headerInner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    height: 72px;
+    /* Slightly taller for elegance */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brandArea {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1;
+}
+
+.brandTitle {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--c-brand-light) 0%, #fff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* Fallback */
+    color: var(--c-text);
+}
+
+[data-theme="water"] .brandTitle {
+    /* Ensure gradient works on dark mode */
+    background: linear-gradient(90deg, #fff, var(--c-brand));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brandTagline {
+    font-size: 0.75rem;
+    color: var(--c-text-sub);
+    font-weight: 500;
+    margin-top: 4px;
+    opacity: 0.8;
+    letter-spacing: 0.02em;
+}
+
+.siteNav {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.navLink {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--c-text-sub);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-pill);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.navLink:hover {
+    color: var(--c-brand);
+    background: var(--c-brand-light);
+    transform: translateY(-1px);
+}
+
+.navLink:active,
+.navLink.active {
+    transform: translateY(0);
+    color: var(--c-brand);
+    background: var(--c-brand-light);
+}
+
+.navDivider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--c-border);
+    margin: 0 var(--space-1);
+    opacity: 0.5;
+}
+
+.siteMain {
+    flex: 1;
+}
+
+.siteFooter {
+    border-top: 1px solid var(--c-border);
+    padding: var(--space-6) 0;
+    margin-top: var(--space-8);
+    background-color: var(--c-surface);
+}
+
+.footerInner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    text-align: center;
+}
+
+.footerLine {
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+}
+
+.footerNote {
+    color: var(--c-text-sub);
+    font-size: 0.875rem;
+}
+
+/* =========================================
+   Components: Hero
+   ========================================= */
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-8) 0;
+    background: radial-gradient(circle at top, var(--c-brand-light), transparent 60%);
+    text-align: center;
+}
+
+.heroInner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.heroCopy {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.kicker {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--c-brand);
+    margin-bottom: var(--space-3);
+}
+
+.h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-4);
+    background: linear-gradient(135deg, #fff 30%, var(--c-brand));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lead {
+    font-size: 1.25rem;
+    color: var(--c-text-sub);
+    max-width: 600px;
+    margin: 0 auto var(--space-6);
+    line-height: 1.6;
+}
+
+/* Hide heroPanel in centered layout or make it centered too if needed. 
+   For now, we'll keep it but make it centered if it exists. */
+.heroPanel {
+    background: var(--c-card-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-hero);
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+}
+
+.heroPanelTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--c-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.heroPanelBig {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--c-brand);
+    line-height: 1;
+    margin: var(--space-2) 0;
+    font-family: var(--font-mono);
+}
+
+.heroPanelSub {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.heroPanelLine {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--c-border);
+    color: var(--c-text-sub);
+    font-size: 0.875rem;
+}
+
+/* =========================================
+   Components: Section & Callouts
+   ========================================= */
+
+.section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sectionHead {
+    max-width: 700px;
+    margin-bottom: var(--space-6);
+    text-align: center;
+}
+
+.eyebrow {
+    color: var(--c-brand);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-2);
+}
+
+.h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: var(--space-3);
+    text-align: center;
+}
+
+.sub {
+    font-size: 1.125rem;
+    color: var(--c-text-sub);
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.twoCol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    width: 100%;
+    max-width: 900px;
+}
+
+.callout {
+    background: var(--c-surface);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--c-border);
+    text-align: left;
+    /* Keep card content left aligned for readability usually, but user asked for center. Let's force center? No, usually cards are left aligned internally. But let's center title inside. */
+}
+
+.callout .h3 {
+    text-align: center;
+}
+
+.h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+}
+
+.list {
+    padding-left: 1.25rem;
+    text-align: left;
+    /* Lists look bad centered usually */
+}
+
+.list li {
+    margin-bottom: var(--space-2);
+}
+
+/* =========================================
+   Components: Engine Grid & Cards
+   ========================================= */
+
+.engineWrap {
+    margin-top: var(--space-4);
+    width: 100%;
+}
+
+.engineControls {
+    display: flex;
+    justify-content: center;
+    /* Center these controls */
+    align-items: center;
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.pillRow {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+}
+
+.pill {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--c-border);
+    background: var(--c-card-bg);
+    transition: all 0.2s ease;
+}
+
+.pill:hover {
+    border-color: var(--c-brand);
+    color: var(--c-brand);
+}
+
+.pill.active {
+    background: var(--c-brand);
+    color: #fff;
+    border-color: var(--c-brand);
+}
+
+.search {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--c-border);
+    background: var(--c-card-bg);
+    color: var(--c-text);
+    min-width: 240px;
+    text-align: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+}
+
+/* Force grid items to be centered if there are few? No, grid handles that. 
+   But the content inside cards? */
+.card {
+    background: var(--c-card-bg);
+    border: 1px solid var(--c-border);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    /* Center text inside cards too per request */
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--c-brand);
+}
+
+.cardTop {
+    display: flex;
+    justify-content: center;
+    /* Center top elements */
+    align-items: center;
+    margin-bottom: var(--space-3);
+    width: 100%;
+}
+
+.engineCode {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--c-brand);
+    background: var(--c-brand-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--c-text-sub);
+    letter-spacing: 0.05em;
+}
+
+.cardTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.cardBody {
+    font-size: 0.9375rem;
+    color: var(--c-text-sub);
+    flex: 1;
+}
+
+/* =========================================
+   Buttons & Links
+   ========================================= */
+
+.ctaRow {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    justify-content: center;
+    /* Center buttons */
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    background-color: var(--c-brand);
+    color: #fff;
+    transition: filter 0.2s;
+}
+
+.btn:hover {
+    filter: brightness(1.1);
+}
+
+.btn.ghost {
+    background-color: transparent;
+    color: var(--c-text);
+    border: 1px solid currentColor;
+}
+
+.btn.ghost:hover {
+    border-color: var(--c-brand);
+    color: var(--c-brand);
+    background-color: rgba(56, 189, 248, 0.1);
+}
+
+/* =========================================
+   Ecosystem
+   ========================================= */
+
+.ecosystem {
+    margin-top: var(--space-4);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.ecosystemCard {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: center;
+    /* Center content */
+    text-align: center;
+    max-width: 600px;
+}
+
+.ecosystemTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.ecosystemBody {
+    max-width: 500px;
+    color: var(--c-text-sub);
+}
+
+.docsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.docCard {
+    padding: var(--space-3);
+    background: var(--c-card-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Center text */
+    text-align: center;
+}
+
+/* =========================================
+   Documentation Styles
+   ========================================= */
+.docs-category {
+    margin-bottom: var(--space-8);
+    width: 100%;
+}
+
+.docs-category .h3 {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Center headers in docs */
+    gap: var(--space-2);
+    color: var(--c-brand);
+}
+
+.doc-link-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.doc-link-card:hover .cardTitle {
+    color: var(--c-brand);
+}
+
+.steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.steps li {
+    position: relative;
+    padding-left: var(--space-8);
+    text-align: left;
+    /* Steps usually need left alignment for readability, but block centered */
+}
+
+.steps li::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2rem;
+    height: 2rem;
+    background: var(--c-surface);
+    color: var(--c-brand);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 2rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* =========================================
+   Mobile
+   ========================================= */
+@media (max-width: 768px) {
+    .twoCol {
+        grid-template-columns: 1fr;
+    }
+}

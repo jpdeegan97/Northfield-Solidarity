@@ -1,0 +1,212 @@
+NS-FLO-006 — VERSION
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the versioning semantics used by the Financial Ledger Orchestrator (FLO).
+Because FLO is a system of financial record, versioning must preserve:
+Historical truth
+Auditability
+Deterministic replay
+Safe evolution of classification and reconciliation logic
+Versioning in FLO applies to rules, schemas, and interpretations — never to historical ledger facts.
+2. Versioning Principles
+Ledger Immutability
+Ledger entries, once written, are never versioned, edited, or deleted.
+Ruleset Versioning
+Interpretation logic evolves via versioned rulesets.
+Schema Evolution Without Mutation
+Data schemas may evolve forward without invalidating historical records.
+Replay With Context
+Replays must reference the ruleset version active at the time of decision.
+Explicit Version Binding
+Every decision artifact records the ruleset version used.
+3. Versioned Objects in FLO
+The following objects are explicitly versioned:
+
+
+
+Object
+
+Versioned?
+
+Notes
+
+
+Ledger Entry
+
+❌
+
+Immutable, non-versioned
+
+
+Transaction
+
+❌
+
+Immutable grouping
+
+
+Normalization Ruleset
+
+✅
+
+Versioned
+
+
+Classification Ruleset
+
+✅
+
+Versioned
+
+
+Budget Definition
+
+✅
+
+Governed by GGP
+
+
+Allocation Definition
+
+✅
+
+Governed by GGP
+
+
+Reconciliation Ruleset
+
+✅
+
+Versioned
+
+
+Manual Adjustment Policy
+
+✅
+
+Governed
+
+
+Read Model Schema
+
+✅
+
+Rebuildable
+4. Ruleset Versioning Model
+4.1 Ruleset Identifier
+Each ruleset is identified by:
+ruleset_name
+ruleset_version (monotonic integer or semantic version)
+Examples:
+classification_ruleset_v3
+reconciliation_ruleset_v2
+4.2 Ruleset Lifecycle
+
+
+
+State
+
+Description
+
+
+draft
+
+Under development/testing
+
+
+approved
+
+Approved for production use
+
+
+active
+
+Actively used for decisions
+
+
+deprecated
+
+No longer used for new decisions
+
+
+retired
+
+Archived, replay-only
+Only active rulesets may be used for new decisions.
+5. Decision Version Binding
+Every FLO Decision Artifact must record:
+ruleset_name
+ruleset_version
+evaluated_at timestamp
+This ensures:
+Deterministic audit
+Correct replay semantics
+6. Schema Evolution
+6.1 Authoritative Stores
+Rules:
+Additive schema changes only
+No destructive migrations
+Deprecated fields remain readable
+6.2 Read Models
+Rules:
+Read models may change freely
+Must be rebuildable from ledger truth
+Versioned by build version
+7. Budget & Allocation Versioning
+Budgets and allocations:
+Are versioned governance artifacts
+Approved and activated via GGP
+Referenced by ledger entries via stable IDs
+Historical ledger entries always reference the budget version active at time of spend.
+8. Reconciliation Versioning
+Reconciliation rules may change over time.
+Rules:
+Reconciliation records store ruleset version
+Re-running reconciliation does not overwrite prior results
+Multiple reconciliation outcomes may coexist for the same ledger entry
+9. Manual Adjustments & Corrections
+Corrections are handled by:
+Creating new ledger entries
+Binding to a governed adjustment policy version
+Historical truth is preserved; net position is corrected forward.
+10. Replay Semantics
+Replay scenarios:
+Read Model Rebuild
+Uses latest schema and logic
+Audit Replay
+Uses original ruleset versions
+What-If Replay
+Uses alternative ruleset versions without mutating truth
+11. Version Compatibility Guarantees
+FLO guarantees:
+Ledger truth is always interpretable
+Historical decisions remain explainable
+New rules never silently reinterpret old truth
+12. Document Position in FLO Corpus
+This versioning document builds upon:
+NS-FLO-004 — LIFECYCLE
+NS-FLO-005 — DECISION
+It informs:
+NS-FLO-007 — DATAMODEL
+NS-FLO-008 — EEE
+13. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Versioning Semantics
+
+Parent / HoldCo Manager
+Status: Draft

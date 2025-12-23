@@ -1,0 +1,176 @@
+Identity & Entity Nexus (IDN)
+1. Purpose of This Document
+This document defines the canonical API map for the Identity & Entity Nexus (IDN).
+It maps:
+IDN Operator UI screens (NS-IDN-010)
+downstream engine consumption (GGP, SIG, PIE, SIM, DAT, FLO, PECA, CWP)
+governed controls (identifier linking, relationship changes, merges/splits)
+The APIMAP ensures fast identity read surfaces and safe, auditable identity mutations.
+2. API Design Principles
+Read-Optimized — resolution and lookup are hot paths
+Write-Guarded — linking, merges, and relationship changes are controlled
+No Silent Reassignment — collisions create quarantine items
+Temporal Correctness — relationships are effective-dated
+Idempotency — write endpoints accept idempotency keys
+3. API Surface Groups
+Search & Resolution
+Canonical Registry (Actors/Entities)
+Identifiers
+Relationships
+Conflicts & Quarantine
+Merge/Split Governance
+Events & Decisions
+Export & Audit Packs
+4. FE Screen → API Mapping
+4.1 Global Search
+GET /search?q=
+Returns:
+actors[]
+entities[]
+identifier_matches[]
+GET /resolve/identifier
+Params:
+identifier_type
+identifier_value
+issuing_system (optional)
+4.2 Actor Detail
+GET /actors/{actor_id}
+GET /actors/{actor_id}/identifiers
+GET /actors/{actor_id}/relationships?as=source|target|both
+GET /actors/{actor_id}/events
+GET /actors/{actor_id}/decisions
+Guarded actions:
+POST /actors/{actor_id}/identifiers/link
+POST /actors/{actor_id}/identifiers/deprecate (rare)
+4.3 Entity Detail
+GET /entities/{entity_id}
+GET /entities/{entity_id}/identifiers
+GET /entities/{entity_id}/relationships?as=source|target|both&at_time=
+GET /entities/{entity_id}/events
+GET /entities/{entity_id}/decisions
+Guarded actions:
+POST /entities/{entity_id}/relationships/add
+POST /entities/{entity_id}/relationships/update (implemented as close+open)
+4.4 Identifier Inspector
+GET /identifiers/lookup
+Params:
+identifier_type
+identifier_value
+GET /identifiers/{identifier_id}
+GET /identifiers/{identifier_id}/history
+Propose reassignment (creates request):
+POST /identifiers/{identifier_id}/propose-reassignment
+4.5 Relationship Graph View
+GET /graph/neighborhood
+Params:
+subject_type
+subject_id
+depth
+relationship_types[]
+at_time (optional)
+4.6 Conflict & Quarantine Queue
+GET /conflicts
+Filters:
+status
+conflict_type
+GET /conflicts/{conflict_id}
+Actions (guarded):
+POST /conflicts/{conflict_id}/resolve
+Outcomes:
+approve_link
+reject_link
+open_merge_case
+4.7 Merge / Split Workbench (Governed)
+POST /merge/cases
+Body:
+subject_ids[]
+evidence
+actor_id
+reason
+GET /merge/cases
+GET /merge/cases/{case_id}
+Execute merge (governed):
+POST /merge/cases/{case_id}/execute
+Body:
+survivor_id
+governance_ref (optional/required)
+actor_id
+reason
+idempotency_key
+Split (phase 2 in many MVPs):
+POST /split/cases
+GET /split/cases/{case_id}
+POST /split/cases/{case_id}/execute
+4.8 Audit Timeline
+GET /events?subject_ref=
+GET /decisions?subject_ref=
+4.9 Export & Audit Packs
+POST /export/audit-pack
+Body:
+subject_type
+subject_id
+format (json/pdf)
+Returns:
+export artifact reference
+5. Downstream Engine Consumption Surfaces
+5.1 GGP
+GET /actors/{actor_id}
+GET /entities/{entity_id}
+GET /resolve/identifier
+GET /events?subject_ref=
+GET /decisions?subject_ref=
+Optional push:
+Kafka events: idn.identity.changed
+5.2 SIG
+GET /resolve/identifier
+GET /entities/{entity_id}
+GET /graph/neighborhood
+5.3 PIE
+GET /entities/{entity_id}
+GET /graph/neighborhood
+5.4 SIM
+GET /entities/{entity_id}
+GET /relationships?subject_ref=&at_time=
+5.5 DAT
+GET /resolve/identifier
+GET /entities/{entity_id}
+GET /relationships?subject_ref=
+5.6 FLO
+GET /entities/{entity_id}
+GET /relationships?subject_ref=
+5.7 PECA
+POST /entities (guarded service-to-service)
+POST /entities/{entity_id}/identifiers/link
+5.8 CWP
+POST /actors (guarded service-to-service)
+POST /actors/{actor_id}/identifiers/link
+6. Canonical Response Envelope
+All endpoints return:
+success
+data
+error_code (nullable)
+message (nullable)
+correlation_id
+7. Error & Security Semantics
+RBAC by endpoint group
+governed endpoints require actor_id + reason
+merge/split requires governance_ref when configured
+validation failures never mutate state
+8. Document Position in IDN Corpus
+This APIMAP is informed by:
+NS-IDN-009 — IMPL
+NS-IDN-010 — FE
+NS-IDN-007 — DATAMODEL
+It informs:
+NS-IDN-012 — STATE
+NS-IDN-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial IDN API Mapping
+Parent / HoldCo Manager
+Status: Draft

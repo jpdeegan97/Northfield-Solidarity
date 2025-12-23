@@ -1,0 +1,176 @@
+
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the end-to-end lifecycle of financial data as it flows through the Financial Ledger Orchestrator (FLO).
+It describes how financial truth is:
+Ingested
+Normalized and classified
+Written to the canonical ledger
+Reconciled against external truth
+Exposed to downstream engines and humans
+The FLO lifecycle is designed to be append-only, replayable, and audit-safe.
+2. Lifecycle Stages (High Level)
+FLO processes financial data through the following stages:
+Financial Event Occurs
+Ingestion & Deduplication
+Normalization
+Classification
+Ledger Write
+Budget & Allocation Evaluation
+Reconciliation
+Reporting & Consumption
+Archival & Replay
+Each stage produces immutable artifacts and emits traceable events.
+3. Stage 1 — Financial Event Occurs
+Financial-impacting activity originates from:
+DAT (execution spend, refunds, fees)
+MUX (processor charges, payouts, bank transfers)
+Manual Adjustments (governed exceptions)
+At this stage, data is not yet authoritative.
+4. Stage 2 — Ingestion & Deduplication
+4.1 Ingestion
+Events are ingested via:
+Kafka topics (engine events)
+Batch imports (statements)
+APIs (manual adjustments)
+4.2 Deduplication
+Deduplication keys may include:
+source_system
+external_event_id
+correlation_id
+Duplicate events are ignored but recorded for audit.
+5. Stage 3 — Normalization
+Raw inputs are normalized into canonical form:
+Currency normalization
+Timestamp normalization (UTC)
+Counterparty identification
+Entity/account resolution (via IDN/PECA)
+Output:
+normalized_financial_event (non-authoritative)
+6. Stage 4 — Classification
+Normalized events are classified into:
+Transaction type (sale, fee, refund, payout)
+Debit/credit direction
+Target accounts
+Budget/allocation references (if applicable)
+Output:
+transaction_candidate
+Classification rules are versioned and auditable.
+7. Stage 5 — Ledger Write (System of Record)
+Transaction candidates are converted into:
+One or more ledger entries
+Grouped into a transaction
+Rules:
+Ledger writes are append-only
+Each ledger entry has a source attribution
+Balanced transaction rules enforced (if double-entry)
+At this point, financial data becomes authoritative truth.
+8. Stage 6 — Budget & Allocation Evaluation
+After ledger write:
+Budget Engine recomputes spend
+Allocation utilization is updated
+Budget state transitions evaluated:ok → near_limit → exhausted
+Budget state change events are emitted for downstream consumers (e.g., DAT).
+9. Stage 7 — Reconciliation
+Ledger truth is compared to external statements:
+Bank statements
+Processor statements
+Marketplace reports
+Reconciliation outcomes:
+matched
+missing
+excess
+disputed
+Reconciliation produces reconciliation records without mutating ledger entries.
+10. Stage 8 — Reporting & Consumption
+Derived read models are updated:
+Account balances
+P&L summaries
+Budget burn reports
+Execution-attribution reports
+Consumers include:
+PTE (portfolio tracking)
+GGP (governance review)
+Humans (finance ops, tax)
+11. Stage 9 — Archival & Replay
+All FLO artifacts are retained:
+Ledger entries
+Transactions
+Normalized events
+Reconciliation records
+Replay scenarios:
+Rebuild read models
+Re-run classification with new rules
+Re-run reconciliation
+Replay never mutates historical ledger truth.
+12. Failure Handling & Recovery
+12.1 Ingestion Failures
+Retry with backoff
+Dead-letter events preserved
+12.2 Ledger Write Failures
+Fail fast
+Do not partially write transactions
+12.3 Reconciliation Failures
+Mark records as pending
+Retry once external data available
+13. Cross-Engine Lifecycle Coordination
+
+
+
+Engine
+
+Lifecycle Interaction
+
+
+DAT
+
+Emits events → receives budget state
+
+
+MUX
+
+Supplies external truth
+
+
+GGP
+
+Governs budget creation
+
+
+PTE
+
+Consumes derived metrics
+
+
+IDN / PECA
+
+Resolves entity/account ownership
+14. Document Position in FLO Corpus
+This lifecycle document builds upon:
+NS-FLO-001 — OVERVIEW
+NS-FLO-002 — TAXONOMY
+NS-FLO-003 — ARCHITECTURE
+It informs:
+NS-FLO-005 — DECISION
+NS-FLO-007 — DATAMODEL
+15. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO End-to-End Lifecycle
+
+Parent / HoldCo Manager
+Status: Draft

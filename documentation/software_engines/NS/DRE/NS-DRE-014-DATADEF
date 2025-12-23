@@ -1,0 +1,840 @@
+NS-DRE-014 — DATADEF
+
+0. Overview
+
+This document defines field-level data definitions, enums, validation constraints, and redaction rules for DRE (Deep Research Engine).
+
+DRE stores:
+
+research directives and watchlists
+
+source profiles (approved sources + access metadata)
+
+loop schedules and loop runs
+
+collected documents/snapshots and parsed representations
+
+extraction jobs and extracted claims
+
+entity graph (entities + relations)
+
+dossiers/briefs and “research deltas”
+
+exports/handoffs to PIE/SIG/SIM/CWP
+
+Governance note:
+
+GGP governs allowed sources, collection methods, export/publishing constraints, and data classification.
+
+MUX executes external access; DRE stores only references to credentials.
+
+LUM observes and correlates every run.
+
+1. Canonical Field Dictionary (Cross-Cutting)
+
+1.1 Identifiers
+
+directive_id — string; research directive id; immutable.
+
+loop_id — string; schedule/plan id; immutable.
+
+run_id — string; per-execution id; immutable.
+
+source_id — string; source profile id; immutable.
+
+provider_id — string; external provider identifier (maps to MUX integration/provider).
+
+integration_id — string; MUX integration profile reference.
+
+document_id — string; collected artifact id.
+
+snapshot_id — string; structured snapshot id.
+
+extraction_job_id — string.
+
+claim_id — string.
+
+entity_id — string; canonical graph entity id.
+
+relation_id — string; canonical graph edge id.
+
+dossier_id — string.
+
+export_id — string.
+
+Cross-engine identifiers
+
+decision_id — string; GGP decision reference (required when governed).
+
+task_id — string; CWP task ref when human review is spawned.
+
+actor_id — string; human/agent/service principal.
+
+Correlation identifiers
+
+workflow_id — string; correlates a loop run end-to-end.
+
+request_id — string.
+
+trace_id — string.
+
+Constraints
+
+IDs MUST be non-empty.
+
+IDs SHOULD be URL-safe.
+
+IDs MUST be immutable once written.
+
+1.2 Timestamps
+
+created_at, updated_at — RFC3339 timestamp.
+
+scheduled_for — RFC3339; loop run schedule time.
+
+started_at, ended_at — RFC3339; runtime bounds.
+
+collected_at — RFC3339; source fetch time.
+
+observed_at — RFC3339; event/claim “as-of” time (may differ from collected_at).
+
+Constraints
+
+ended_at >= started_at.
+
+updated_at >= created_at.
+
+1.3 Environment & origin
+
+environment — enum: dev|uat|prod
+
+source_engine — constant: DRE (for DRE-owned records)
+
+collector_version — string (semver)
+
+extractor_version — string (semver)
+
+schema_id, schema_version — strings
+
+1.4 Classification & retention
+
+classification — enum: public|internal|confidential|restricted
+
+retention_class — enum: hot|warm|cold|evidence
+
+Rules
+
+restricted requires stronger access controls and stricter redaction.
+
+evidence implies governed access patterns (GGP/IDN/LUM interlocks).
+
+2. Provenance & Evidence Definitions
+
+Provenance is mandatory for DRE claims and derived graph assertions.
+
+2.1 EvidenceRef
+
+A pointer to a source artifact.
+
+Fields
+
+evidence_ref_id — string
+
+source_id — string
+
+document_id — string (nullable)
+
+snapshot_id — string (nullable)
+
+storage_ref — string (URI/path; may be encrypted)
+
+checksum — string (hash)
+
+collected_at — timestamp
+
+excerpt_ref — string (pointer to a redacted excerpt/segment)
+
+license_terms_ref — string (optional)
+
+notes — string (optional)
+
+Constraints
+
+At least one of document_id or snapshot_id must be present.
+
+checksum required if stored artifact is immutable.
+
+2.2 SourceAttribution
+
+A normalized attribution object for a claim.
+
+Fields
+
+source_id
+
+source_title (optional)
+
+source_url (optional)
+
+publisher (optional)
+
+published_at (optional)
+
+collected_at
+
+collector_version
+
+evidence_refs[]
+
+2.3 Confidence & Freshness
+
+DRE attaches quality metadata.
+
+Fields
+
+confidence_score — number (0..1)
+
+freshness_score — number (0..1)
+
+coverage_score — number (0..1; optional)
+
+conflict_score — number (0..1; optional)
+
+Constraints
+
+scores must be bounded within 0..1.
+
+3. Research Directive Definitions
+
+3.1 ResearchDirective
+
+Fields (required)
+
+directive_id
+
+name
+
+description
+
+status enum: draft|proposed|approved|active|paused|deprecated|retired
+
+scope object (see below)
+
+priority enum: p0|p1|p2|p3
+
+created_at, updated_at
+
+Fields (optional)
+
+owner_actor_id
+
+decision_id (required if approval gated)
+
+tags[]
+
+risk_tier enum: tier0|tier1|tier2 (optional)
+
+export_constraints_ref (optional)
+
+3.2 DirectiveScope
+
+Defines what is being tracked.
+
+Fields
+
+entity_watchlist[] array of:
+
+entity_type (company|product|person|project|topic|regulation|other)
+
+seed_terms[] (strings)
+
+external_ids[] (optional; e.g., ticker, repo, org id)
+
+topic_queries[] (strings)
+
+geo_scope (optional)
+
+language_scope[] (optional)
+
+Constraints
+
+seed_terms[] must be non-empty for each watch entry.
+
+3.3 RefreshPolicy
+
+Fields
+
+refresh_mode enum: continuous|daily|weekly|monthly|event_driven
+
+min_interval_minutes (int; optional)
+
+max_interval_minutes (int; optional)
+
+backoff_policy_ref (optional)
+
+4. Source Profile Definitions
+
+4.1 SourceProfile
+
+Fields (required)
+
+source_id
+
+name
+
+source_type enum: api|feed|dataset|website|document_repository|other
+
+provider_id (string)
+
+integration_id (string; MUX integration reference)
+
+status enum: candidate|under_review|approved|active|degraded|suspended|deprecated|retired
+
+risk_tier enum: tier0|tier1|tier2
+
+allowed_methods[] enum array: api|rss|download|scrape|manual_import
+
+rate_limit_policy_ref (optional)
+
+terms_ref (optional)
+
+classification_default enum
+
+created_at, updated_at
+
+Fields (optional)
+
+domains[] (for websites)
+
+endpoint_catalog_ref (for APIs)
+
+credential_ref (string; pointer only, never raw secret)
+
+Constraints
+
+allowed_methods must align with governance policy.
+
+credential_ref must never contain raw secrets.
+
+4.2 QuotaSnapshot (optional)
+
+Fields
+
+quota_snapshot_id
+
+source_id
+
+captured_at
+
+quota_remaining (number)
+
+quota_reset_at (timestamp; optional)
+
+top_methods[] (optional)
+
+5. Loop & Run Definitions
+
+5.1 ResearchLoop
+
+Fields
+
+loop_id
+
+directive_id
+
+status enum: configured|enabled|disabled|archived
+
+schedule string (cron or RRULE)
+
+sources[] array of source_id
+
+refresh_policy (object)
+
+created_at, updated_at
+
+5.2 LoopRun
+
+Fields (required)
+
+run_id
+
+loop_id
+
+directive_id
+
+workflow_id
+
+status enum: queued|running|completed|completed_with_warnings|failed_transient|failed_terminal|cancelled
+
+scheduled_for
+
+started_at, ended_at (nullable)
+
+run_manifest_ref (pointer)
+
+Fields (optional)
+
+warning_codes[]
+
+failure_code (string)
+
+failure_details_ref (pointer)
+
+decision_id (if this run required a governance gate)
+
+Constraints
+
+workflow_id required for every run.
+
+5.3 RunManifest (recommended)
+
+Fields
+
+run_id
+
+directive_version (optional)
+
+collector_version
+
+extractor_version
+
+schema_version
+
+source_ids[]
+
+parameters object
+
+created_at
+
+6. Document & Snapshot Definitions
+
+6.1 CollectedDocument
+
+Fields (required)
+
+document_id
+
+run_id
+
+source_id
+
+collected_at
+
+status enum: collected|stored|parsed|quarantined|expired|deleted
+
+content_type string (mime)
+
+storage_ref string
+
+checksum string
+
+classification enum
+
+Fields (optional)
+
+url (optional)
+
+title (optional)
+
+published_at (optional)
+
+language (optional)
+
+parse_ref (pointer)
+
+redaction_status enum: redacted|n/a
+
+Constraints
+
+storage_ref must be non-empty.
+
+checksum required for stored immutable artifacts.
+
+6.2 StructuredSnapshot
+
+Fields
+
+snapshot_id
+
+run_id
+
+source_id
+
+observed_at
+
+schema_id, schema_version
+
+record_count (int)
+
+payload_ref (pointer)
+
+checksum (optional)
+
+classification enum
+
+7. Extraction & Claim Definitions
+
+7.1 ExtractionJob
+
+Fields
+
+extraction_job_id
+
+run_id
+
+status enum: pending|running|completed|failed|replayed
+
+extractor_version
+
+started_at, ended_at (nullable)
+
+inputs[] (document_id/snapshot_id refs)
+
+outputs_ref (pointer)
+
+failure_code (optional)
+
+7.2 Claim (Atomic assertion)
+
+A claim is the smallest unit of asserted knowledge.
+
+Fields (required)
+
+claim_id
+
+run_id
+
+claim_type string (namespaced)
+
+subject object (entity ref or external key)
+
+predicate string
+
+object object (value, entity ref, or structured)
+
+observed_at (timestamp)
+
+status enum: extracted|normalized|validated|conflicted|approved|rejected|superseded
+
+confidence_score (0..1)
+
+freshness_score (0..1)
+
+attribution (SourceAttribution)
+
+Fields (optional)
+
+normalization_notes (string)
+
+validation_errors[] (array)
+
+conflict_set_id (string; optional)
+
+superseded_by_claim_id (string; optional)
+
+Constraints
+
+attribution.evidence_refs[] must be non-empty for approved claims.
+
+If status=approved, validated must have occurred historically.
+
+7.3 Claim Subject/Object shapes
+
+Subject options
+
+{ "entity_id": "…", "entity_type": "company" }
+
+{ "external_key": "…", "namespace": "github" }
+
+Object options
+
+{ "value": "…", "value_type": "string|number|boolean|date|json" }
+
+{ "entity_id": "…" }
+
+{ "ref": "storage_ref" } (discouraged; use evidence refs)
+
+8. Graph Entity & Relation Definitions
+
+8.1 GraphEntity
+
+Fields (required)
+
+entity_id
+
+entity_type enum: company|product|person|project|topic|regulation|dataset|other
+
+canonical_name string
+
+status enum: candidate|resolved|active|contested|deprecated|archived
+
+created_at, updated_at
+
+Fields (optional)
+
+aliases[] (strings)
+
+external_ids[] array of { namespace, value }
+
+attributes object (schema-governed)
+
+replaced_by_entity_id (if deprecated)
+
+resolution_confidence (0..1)
+
+Constraints
+
+attributes must be schema-validated; no unbounded arbitrary keys.
+
+8.2 GraphRelation
+
+Fields
+
+relation_id
+
+relation_type string (namespaced)
+
+from_entity_id
+
+to_entity_id
+
+status enum: asserted|validated|active|contested|retracted
+
+created_at, updated_at
+
+supporting_claim_ids[]
+
+confidence_score (0..1)
+
+Constraints
+
+supporting_claim_ids[] must be non-empty for active relations.
+
+8.3 EntityResolutionRecord (recommended)
+
+Fields
+
+resolution_id
+
+entity_id
+
+candidate_ids[] (merged)
+
+method enum: rules|embedding|human_review|hybrid
+
+actor_id (nullable)
+
+created_at
+
+confidence_score
+
+evidence_refs[] (optional)
+
+9. Dossier / Brief Definitions
+
+9.1 Dossier
+
+Fields (required)
+
+dossier_id
+
+directive_id (optional)
+
+primary_entity_id (optional)
+
+title
+
+status enum: draft|review_pending|published|updated|deprecated|retired
+
+version semver
+
+created_at, updated_at
+
+Fields (optional)
+
+summary (string)
+
+sections[] (array)
+
+citations[] (evidence refs)
+
+confidence_score (0..1)
+
+freshness_score (0..1)
+
+review_required (bool)
+
+review_task_id (CWP task ref; optional)
+
+9.2 DossierSection
+
+Fields
+
+section_id
+
+heading
+
+body_ref (pointer to redacted text)
+
+claim_refs[] (claim_ids)
+
+evidence_refs[]
+
+Constraints
+
+published dossiers must include citations/evidence.
+
+10. Research Delta / Change Summary Definitions
+
+10.1 ResearchDelta
+
+Fields
+
+delta_id
+
+run_id
+
+scope enum: directive|entity|topic|source
+
+summary string
+
+changed_entities[] (entity_id)
+
+changed_relations[] (relation_id)
+
+new_claims[] (claim_id)
+
+retracted_claims[] (claim_id)
+
+conflicts_detected (int)
+
+created_at
+
+11. Export / Handoff Definitions
+
+11.1 ExportPayload
+
+Fields
+
+export_id
+
+run_id (optional)
+
+target_engine enum: PIE|SIG|SIM|CWP|OTHER
+
+payload_type enum: graph_delta|dossier|dataset_slice|alert|task_seed
+
+status enum: prepared|policy_check_required|approved|delivered|failed|revoked
+
+classification enum
+
+decision_id (required when policy_check_required or approved by governance)
+
+payload_ref (pointer)
+
+created_at, delivered_at (nullable)
+
+failure_code (optional)
+
+Constraints
+
+If classification=restricted, exports must be gated and audited.
+
+11.2 Downstream links
+
+to CWP: include task_seed objects containing recommended task templates.
+
+to PIE/SIG/SIM: include citations, confidence, and freshness.
+
+12. Error & Warning Taxonomy
+
+12.1 ErrorRecord
+
+Fields
+
+error_id
+
+run_id
+
+source_id (nullable)
+
+error_class enum: transient|terminal|policy|quality|security
+
+error_code string
+
+message string (redacted)
+
+details_ref (pointer)
+
+occurred_at
+
+12.2 Common error codes (starter)
+
+ERR_RATE_LIMITED
+
+ERR_QUOTA_EXHAUSTED
+
+ERR_SOURCE_UNAVAILABLE
+
+ERR_PARSE_FAILED
+
+ERR_SCHEMA_INVALID
+
+ERR_POLICY_BLOCKED
+
+ERR_EXTRACTION_FAILED
+
+ERR_CONFLICT_SPIKE
+
+13. Redaction & Sensitive Data Rules
+
+13.1 Never store (in plain text)
+
+API keys, secrets, tokens, session cookies
+
+credentials, private keys
+
+13.2 Avoid collecting
+
+personal data (PII) unless explicitly required and approved via GGP
+
+13.3 Store as references
+
+raw provider payloads should be stored as encrypted blobs with storage_ref
+
+store only hashes + minimal metadata in DRE records
+
+13.4 Field allowlist approach
+
+per schema_id define allowed fields
+
+drop or hash everything else
+
+14. High-Cardinality Guardrails
+
+Avoid:
+
+unbounded attributes keys
+
+free-form tags that explode search indexes
+
+Prefer:
+
+controlled vocabularies and enums
+
+alias tables / external_id tables
+
+correlation IDs for linking instead of embedding huge payloads
+
+15. Minimum Required Fields by Context (Quick Reference)
+
+Any loop run: run_id, loop_id, workflow_id, status, timestamps
+
+Any collected document: document_id, run_id, source_id, storage_ref, checksum, collected_at
+
+Any approved claim: claim_id, subject, predicate, object, observed_at, confidence/freshness, evidence refs
+
+Any active relation: relation_id, from/to entities, supporting claims
+
+Any restricted export: classification=restricted + decision_id + audited delivery
+

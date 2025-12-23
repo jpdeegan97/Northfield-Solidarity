@@ -1,0 +1,174 @@
+🔴 Red-Team Fork Template
+
+(Adversarial Stress Test — v1.0)
+
+Use this template to actively try to break an idea, design, or decision.
+This fork assumes the role of a hostile environment, not a collaborator.
+
+Fork Header
+
+Fork Name: RT-<short name>
+
+Target Artifact: <idea / design / assumption / plan>
+
+Based on Snapshot: <canonical snapshot version or none>
+
+Red-Team Goal:
+What failure are we trying to surface?
+(e.g., hidden assumptions, fragility, over-complexity, false confidence)
+
+Attack Posture
+
+Select one or more:
+
+☐ Logical inconsistency
+
+☐ Hidden assumptions
+
+☐ Edge-case failure
+
+☐ Human misuse / misunderstanding
+
+☐ Operational brittleness
+
+☐ Scaling collapse
+
+☐ Reversibility failure
+
+☐ Cognitive bias exploitation
+
+☐ Over-engineering / under-engineering
+
+Canonical Claims Under Attack
+
+List claims as assertions, not descriptions.
+
+C1: <assertion>
+
+C2: <assertion>
+
+C3: <assertion>
+
+If a claim cannot be stated crisply, it is already suspect.
+
+Adversarial Scenarios
+
+For each claim, attempt to force failure.
+
+Scenario A
+
+Trigger: <what changes or goes wrong>
+
+Failure Mode: <how the system breaks>
+
+Why This Was Missed: <bias, assumption, blind spot>
+
+Scenario B
+
+Trigger: …
+
+Failure Mode: …
+
+Why This Was Missed: …
+
+Assumption Extraction
+
+List unstated assumptions the system relies on.
+
+A1: This assumes that <thing> will always be true
+
+A2: This assumes that <actor> behaves rationally
+
+A3: This assumes that <constraint> never tightens
+
+Mark each:
+
+☐ Explicit
+
+☐ Implicit
+
+☐ Wishful
+
+Reversibility Test
+
+Answer honestly:
+
+Can this be undone without damage?
+
+What is the cost of rollback?
+
+What becomes harder after committing?
+
+If rollback requires heroics → fail.
+
+Simplification Attack
+
+What can be removed without losing the core benefit?
+
+What exists only to support another fragile component?
+
+Is this solving a real problem or an anticipated one?
+
+Abuse & Misuse Cases
+
+Assume:
+
+Users misunderstand
+
+You forget context
+
+Future-you is rushed or tired
+
+How does this break?
+
+Outcome Classification
+
+Choose one:
+
+✅ Survives intact
+
+🟡 Survives with constraints
+
+🔧 Requires redesign
+
+❌ Fundamentally flawed
+
+Required Changes (If Any)
+
+<change 1>
+
+<change 2>
+
+Red-Team Verdict
+
+One paragraph. No hedging.
+
+“This fails because…”
+or
+“This survives because…”
+
+Merge Guidance
+
+☐ Do not merge
+
+☐ Merge as cautionary notes
+
+☐ Merge with changes
+
+☐ Promote redesigned version
+
+Assistant Instruction
+
+Be adversarial, not polite.
+Prefer uncomfortable truths over elegance.
+Assume optimism is a bug.
+
+🧠 When to Use This
+
+Before committing to architecture
+
+Before adding complexity
+
+When something feels “too clean”
+
+When confidence is high but evidence is thin

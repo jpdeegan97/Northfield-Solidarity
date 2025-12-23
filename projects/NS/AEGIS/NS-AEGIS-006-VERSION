@@ -1,0 +1,302 @@
+NS-AEGIS-006 — VERSION
+
+Project: Aegis (Dependency Management Product)
+
+1) Versioning Intent
+
+Aegis must support project evolution without breaking:
+
+Operator workflows
+
+Downstream consumers (APIs, other engines)
+
+Governance/audit replay (“as-of” correctness)
+
+This document defines versioning for:
+
+Product releases
+
+APIs
+
+Data model + migrations
+
+Policies and controls
+
+Graph snapshots and evidence artifacts
+
+Documentation
+
+2) Version Domains
+
+Aegis uses multiple version domains, each with its own rules:
+
+Product Version — the deployed Aegis release
+
+API Version — external and internal contract boundaries
+
+Schema Version — Registry schema + Graph schema
+
+Policy Version — GGE control sets consumed by Aegis
+
+Snapshot Version — immutable posture snapshots
+
+Evidence Version — evidence artifacts and verification results
+
+Connector Version — MUX connector contracts producing observations
+
+Document Version — NS-AEGIS documentation set
+
+3) Product Versioning (Release SemVer)
+
+3.1 Format
+
+SemVer: MAJOR.MINOR.PATCH (e.g., 1.2.3)
+
+3.2 Meaning
+
+MAJOR: breaking changes across any public contract (API/behavior) or major posture semantics
+
+MINOR: backward-compatible feature additions
+
+PATCH: backward-compatible fixes
+
+3.3 Release Channels (optional)
+
+alpha → rapid iteration, internal-only
+
+beta → stabilized but not hardened
+
+stable → production expectation
+
+Example: 1.3.0-beta.2
+
+4) API Versioning
+
+Aegis exposes two API surfaces:
+
+Public/Product API (UI clients, external consumers)
+
+Internal Engine API (NS engines, CWP agents, connector ingestion)
+
+4.1 Version Strategy
+
+Use explicit API versioning (/v1/...) for any API intended to live beyond MVP.
+
+Maintain one active major + one deprecated major during migrations.
+
+4.2 Breaking Change Policy
+
+A change is breaking if it:
+
+Removes/renames fields
+
+Changes field meaning/units
+
+Changes required fields
+
+Changes default behavior that impacts approvals, state transitions, or graph traversal semantics
+
+4.3 Deprecation Windows
+
+Default deprecation window: 90 days (internal) / 180 days (externalized product)
+
+Deprecations are announced via:
+
+Changelog
+
+API response headers (if applicable)
+
+UI banners for operator-impacting changes
+
+5) Schema Versioning (Registry + Graph)
+
+5.1 Registry Schema
+
+Migration-managed (forward migrations only)
+
+Every deployment includes a migration step gated by rollout policy.
+
+5.2 Graph Schema
+
+Graph model changes are versioned as:
+
+node/edge type additions
+
+qualifier additions
+
+constraint changes
+
+Changes that impact traversal answers require either:
+
+snapshot version bump, or
+
+query engine compatibility layer
+
+5.3 Compatibility Rules
+
+Additive changes are preferred.
+
+Destructive changes require:
+
+dual-write period, or
+
+backfill job + snapshot boundary, plus
+
+explicit MAJOR version bump if public semantics change.
+
+6) Policy Versioning (GGE-aligned)
+
+Aegis consumes policy from GGE as versioned control sets.
+
+6.1 Policy Identifiers
+
+policy_set_id
+
+policy_set_version (monotonic)
+
+6.2 Policy Evolution Rules
+
+Policy changes must be traceable for audit replay.
+
+Every CR stores:
+
+inputs used for evaluation
+
+policy_set_id + policy_set_version
+
+the evaluation output (required evidence, approvals, constraints)
+
+6.3 Backtesting & Safe Rollout
+
+New policy versions should be:
+
+simulated on recent CRs/snapshots (impact preview)
+
+rolled out per-risk tier (tier_0 first)
+
+7) Snapshot Versioning (Audit Correctness)
+
+Snapshots are immutable records of dependency posture.
+
+7.1 Snapshot Identity
+
+snapshot_id
+
+snapshot_schema_version
+
+graph_semantics_version
+
+policy_set_id + policy_set_version reference (where relevant)
+
+7.2 When Snapshot Versions Bump
+
+Bump graph_semantics_version when:
+
+edge type semantics change
+
+confidence weighting changes in a way that affects query answers
+
+lifecycle transition rules change in a way that alters posture meaning
+
+8) Evidence Versioning
+
+Evidence is treated as a first-class, versioned artifact.
+
+8.1 Artifact Identity
+
+evidence_id
+
+evidence_type
+
+evidence_revision (monotonic)
+
+8.2 Verification State as Versioned Output
+
+Verification produces a result object with:
+
+verification_revision
+
+verification_status (pending/verified/expired/failed)
+
+verification_method (manual/automated)
+
+verified_at + expires_at
+
+9) Connector Versioning (MUX Contract)
+
+Connectors emit observations and edges.
+
+9.1 Connector Contract Version
+
+connector_name
+
+connector_version
+
+event_contract_version
+
+9.2 Backward Compatibility
+
+Aegis ingestion must support the last N-1 contract versions.
+
+If an event contract changes:
+
+introduce new event type or new payload version
+
+keep old version for a deprecation window
+
+10) Documentation Versioning
+
+Aegis docs follow the canonical NS template (000–014) and evolve as:
+
+Document version in the header or as a changelog section
+
+Major structural changes are recorded in NS-AEGIS-005 — DECISION
+
+11) Release Management
+
+11.1 Release Artifacts
+
+Each release includes:
+
+Product version
+
+Migration bundle versions
+
+Policy set versions deployed
+
+Changelog entries
+
+11.2 Changelog Categories
+
+Added
+
+Changed
+
+Deprecated
+
+Removed
+
+Fixed
+
+Security
+
+11.3 Rollback Expectations
+
+Code rollback must be safe when:
+
+migrations are backward compatible, or
+
+migrations are gated behind feature flags with dual-write.
+
+12) MVP Version Commitments
+
+For MVP, Aegis commits to:
+
+v1 API namespace for core surfaces (registry, graph queries, CRs)
+
+Additive-only schema changes wherever possible
+
+Snapshot creation on CR commit and incident closure with recorded policy version
+
+Simple SemVer release cadence with a complete changelog
+

@@ -1,0 +1,146 @@
+NS-AEGIS-001 — OVERVIEW
+
+Project: Aegis (Dependency Management Product)
+
+1) What Aegis Is
+
+Aegis is Northfield Solidarity’s dependency lifecycle, risk, and governance product.
+
+It provides a system-of-record and graph view of dependencies across:
+
+Software (packages, images, runtimes, libraries)
+
+Vendors / SaaS services
+
+Infrastructure components (clusters, queues, gateways, registries)
+
+Data sources / pipelines / external feeds
+
+Aegis is designed to stay accurate through agentic operations via CWP and to remain policy-governed by GGE.
+
+2) Why It Exists
+
+As NS scales, dependency failure modes become one of the fastest ways to lose velocity or incur risk:
+
+“Unknown” or unowned dependencies accumulate silently.
+
+Version drift and EOL events become chronic.
+
+Security signals (CVEs/incidents) don’t map cleanly to your real blast radius.
+
+Renewals, attestations, and evidence collection become ad hoc.
+
+Aegis exists to make dependency posture:
+
+Knowable (inventory + ownership)
+
+Queryable (graph impact)
+
+Governed (policy gates + audit trail)
+
+Operable (CWP agents keep it current)
+
+3) Core Concept: Dependency-as-a-Living-Asset
+
+Aegis treats every dependency as a living asset with:
+
+A lifecycle state (proposed → approved → active → constrained → deprecated → removed)
+
+A risk profile (criticality, data sensitivity, trust tier, exposure)
+
+Evidence (SBOMs, attestations, SOC2/ISO, security reviews)
+
+A relationship position in the dependency graph (upstream/downstream)
+
+Freshness (last verified, drift status, renewal windows, EOL timers)
+
+4) Product Shape
+
+Aegis has three product surfaces:
+
+Registry — canonical dependency records + ownership + lifecycle + metadata
+
+Graph — relationships and impact analysis (transitive + environment-aware)
+
+Workflow & Monitoring — governed change requests + continuous alerts + playbooks
+
+5) Primary User Journeys
+
+A) Add a Dependency (Governed Onboarding)
+
+Builder proposes dependency → risk tier assigned → required evidence auto-scoped
+
+GGE routes approvals based on policy
+
+Upon approval, dependency becomes Active and joins monitoring loops
+
+B) Update / Upgrade / Replace
+
+Proposed version change or vendor change is submitted as a Change Request
+
+Impact analysis identifies affected components/projects/environments
+
+Approvals + rollout plan + rollback plan are required based on risk tier
+
+C) Vulnerability / Incident Response
+
+SIG surfaces a CVE/vendor incident
+
+Aegis maps signal → affected nodes → downstream blast radius
+
+CWP generates remediation plan and tracks execution through closure
+
+D) Renewal & Evidence Refresh
+
+Renewal windows trigger evidence refresh and review
+
+CWP agents chase artifacts / attestations and validate completeness
+
+GGE signs off; lifecycle stays Active or becomes Constrained if noncompliant
+
+6) How Aegis Integrates with the NS Engine Stack
+
+GGE: policy definitions, approval routing, immutable audit trail
+
+CWP: agentic loops (discovery, validation, evidence chasing, remediation planning)
+
+IDN: canonical identity for vendors/packages/services; stable identifiers
+
+SIG: vulnerability + incident + drift signals
+
+MUX: integration connectors (repos, registries, SaaS, ticketing, CMDB-ish sources)
+
+FLO (optional): renewal/cost-center linkage (Aegis is not accounting)
+
+7) MVP Focus (Wedge)
+
+Aegis MVP is anchored around a tight wedge:
+
+One canonical registry
+
+A dependency graph with impact queries
+
+Two governed workflows (Add Dependency, Update Dependency)
+
+One monitoring path (SBOM/CVE or vendor incident → impacted graph)
+
+One scheduled freshness loop executed by CWP
+
+8) What Success Looks Like
+
+Every critical dependency has an owner, risk tier, lifecycle state, and evidence baseline.
+
+“What breaks if X fails?” becomes a fast query, not a meeting.
+
+Vulnerability signals map to real impact with minimal manual triage.
+
+Renewals and evidence refresh are proactive and policy-consistent.
+
+9) Non-Goals (for clarity)
+
+Full procurement/finance replacement (handled by FLO and related workflows)
+
+Full GRC platform replacement (Aegis provides dependency-centric governance)
+
+Perfect discovery across all surfaces from day one (expand connectors iteratively)
+

@@ -1,0 +1,510 @@
+NS-DRE-004 — LIFECYCLE
+
+0. Overview
+
+This document defines the canonical lifecycle models for DRE (Deep Research Engine): how research is initiated, executed, refreshed, quality-controlled, and retired.
+
+DRE lifecycle is expressed across multiple objects:
+
+Research Directives (what to track)
+
+Source Profiles (where to fetch)
+
+Research Loops / Runs (how often + what happened)
+
+Documents / Snapshots (what was collected)
+
+Extractions / Claims (what was asserted)
+
+Entities / Relations (how knowledge is structured)
+
+Dossiers / Briefs (human-facing outputs)
+
+Exports / Handoffs (downstream delivery)
+
+Governance note:
+
+GGP governs allowed sources, collection methods, and export/publishing constraints.
+
+MUX executes external access (DRE does not hold provider secrets).
+
+LUM observes and correlates every loop/run.
+
+CWP receives human-review tasks when needed.
+
+1. Lifecycle Overview (High-Level)
+
+1.1 End-to-end cycle
+
+Define / update Research Directive
+
+Approve/maintain Sources (policy)
+
+Schedule and execute Research Loop Run
+
+Collect Documents/Snapshots
+
+Extract Facts/Claims + provenance
+
+Resolve/merge into Entity Graph
+
+Validate / conflict-check
+
+Publish updates (graph deltas + dossiers)
+
+Notify downstream engines / create CWP tasks
+
+Refresh continuously; retire when no longer relevant
+
+2. Research Directive Lifecycle
+
+A Research Directive is the “contract” for a topic/entity watch.
+
+2.1 Directive states
+
+draft — being authored
+
+proposed — ready for review
+
+approved — allowed to execute (may reference GGP decision)
+
+active — scheduled and running
+
+paused — temporarily halted
+
+deprecated — replaced by a newer directive
+
+retired — no longer executed
+
+2.2 Transitions
+
+draft → proposed (submit)
+
+proposed → approved (review + governance gate if needed)
+
+approved → active (enabled)
+
+active → paused → active (temporary stop/resume)
+
+active → deprecated → retired (replacement sunset)
+
+2.3 Governance gates (typical)
+
+new source category or collection method
+
+export of restricted outputs
+
+automation that triggers outbound actions
+
+3. Source Profile Lifecycle
+
+A Source Profile describes an allowed source and how to access it (via MUX).
+
+3.1 SourceProfile states
+
+candidate — identified but not approved
+
+under_review — policy review in progress
+
+approved — allowed for use
+
+active — currently used in at least one directive
+
+degraded — temporarily failing (rate limits/outage)
+
+suspended — temporarily disabled (policy or reliability)
+
+deprecated — being phased out
+
+retired — permanently disabled
+
+3.2 Transitions
+
+candidate → under_review → approved
+
+approved → active (referenced by an active directive)
+
+active ↔ degraded (health-based)
+
+active|degraded → suspended (manual/policy)
+
+active → deprecated → retired
+
+3.3 Compliance rules
+
+All sources must have: terms/risk tier, allowed methods, rate limits, and data classification constraints.
+
+DRE must not directly store raw credentials; it stores only credential_ref handled by MUX.
+
+4. Research Loop Lifecycle
+
+A Research Loop is a scheduled execution plan tied to a directive (e.g., hourly/daily/weekly).
+
+4.1 Loop states
+
+configured — schedule + parameters set
+
+enabled — eligible to run
+
+disabled — not eligible to run
+
+archived — historical only
+
+4.2 LoopRun states (per execution)
+
+queued — scheduled
+
+running — collection + processing underway
+
+completed — run finished successfully
+
+completed_with_warnings — finished, but quality issues flagged
+
+failed_transient — failed (retryable)
+
+failed_terminal — failed (non-retryable)
+
+cancelled — stopped intentionally
+
+4.3 Transitions
+
+queued → running → completed
+
+running → completed_with_warnings
+
+running → failed_transient → queued (retry policy)
+
+running → failed_terminal (requires review)
+
+queued|running → cancelled
+
+4.4 Required outputs per run
+
+run_manifest (inputs, sources, versions)
+
+collection_receipts (MUX)
+
+delta_summary (what changed)
+
+LUM events correlated by workflow_id
+
+5. Document / Snapshot Lifecycle
+
+A Document is a collected artifact or a structured snapshot (page, API response, dataset slice).
+
+5.1 Document states
+
+collected — retrieved from source
+
+stored — saved (or referenced) with checksum
+
+parsed — converted into normalized text/records
+
+quarantined — blocked (malformed, suspicious, policy violation)
+
+expired — retention period ended
+
+deleted — removed
+
+5.2 Transitions
+
+collected → stored → parsed
+
+collected|stored → quarantined (policy or corruption)
+
+parsed → expired → deleted
+
+5.3 Constraints
+
+Every document must have provenance: source_id, collected_at, collector_version, checksum.
+
+Restricted documents may require encryption-at-rest and access gating.
+
+6. Extraction and Claim Lifecycle
+
+DRE turns documents into extracted claims with provenance.
+
+6.1 ExtractionJob states
+
+pending
+
+running
+
+completed
+
+failed
+
+replayed (optional; for reprocessing with a new extractor)
+
+6.2 Claim states
+
+extracted — machine-extracted from a specific source
+
+normalized — mapped into canonical schema
+
+validated — passes validation checks
+
+conflicted — contradicts other claims
+
+approved — human/auto-approved for graph integration
+
+rejected — invalid / unreliable
+
+superseded — replaced by newer, better evidence
+
+6.3 Transitions (typical)
+
+extracted → normalized → validated → approved
+
+validated → conflicted (conflict detection)
+
+conflicted → approved|rejected (after resolution)
+
+approved → superseded (newer claim wins)
+
+6.4 Confidence and freshness
+
+Each claim carries:
+
+confidence_score (0–1)
+
+freshness_score (0–1)
+
+evidence_refs[] (source pointers)
+
+7. Entity & Relation Lifecycle
+
+Entities and relations form the DRE research graph.
+
+7.1 Entity states
+
+candidate — discovered but not resolved
+
+resolved — canonicalized (deduped)
+
+active — in-use and updated
+
+contested — identity ambiguous or conflicting
+
+deprecated — replaced (merge target exists)
+
+archived — no longer updated but retained
+
+7.2 Relation states
+
+asserted — proposed based on claims
+
+validated — passes constraints
+
+active — accepted into graph
+
+contested — conflicting relations exist
+
+retracted — removed from active graph
+
+7.3 Key transitions
+
+candidate → resolved → active
+
+active → contested → active|archived (after resolution)
+
+entity merge: active → deprecated with replaced_by_entity_id
+
+7.4 Entity resolution checkpoints
+
+When ambiguity is high:
+
+create a CWP task: “Resolve entity identity”
+
+block promotion to active until resolved
+
+8. Dossier / Brief Lifecycle
+
+Dossiers are human-readable research products.
+
+8.1 Dossier states
+
+draft — assembling
+
+review_pending — awaiting human review
+
+published — available to downstream engines
+
+updated — newer edition published
+
+deprecated — replaced
+
+retired — no longer used
+
+8.2 Transitions
+
+draft → review_pending → published
+
+published → updated (new version)
+
+published → deprecated → retired
+
+8.3 Review requirements (recommended)
+
+Trigger review when:
+
+confidence below threshold
+
+high-risk domain (regulatory/financial)
+
+export outside NS boundary
+
+9. Export / Handoff Lifecycle
+
+Exports are deliveries to PIE/SIG/SIM/CWP (and rarely, external publication via other engines).
+
+9.1 Export states
+
+prepared — payload assembled
+
+policy_check_required — gated by GGP
+
+approved — permitted to ship
+
+delivered — delivered to target
+
+failed — delivery failed
+
+revoked — delivery invalidated (rare)
+
+9.2 Transitions
+
+prepared → policy_check_required → approved → delivered
+
+approved → failed → approved (retry)
+
+delivered → revoked (if needed)
+
+9.3 Targets
+
+PIE: candidate enrichment and product intelligence
+
+SIG: monitoring and signal aggregation
+
+SIM: assumptions and scenario inputs
+
+CWP: human follow-ups and operational tasks
+
+10. Refresh, Drift, and Retirement Policies
+
+10.1 Refresh categories
+
+continuous — near real-time feeds
+
+daily
+
+weekly
+
+monthly
+
+event_driven — triggered by external change signals
+
+10.2 Drift detection
+
+Detect drift in:
+
+entity attributes (leadership, pricing, status)
+
+source behavior (format changes)
+
+extractor performance (precision drop)
+
+Drift responses
+
+degrade the directive
+
+flag for human review (CWP)
+
+roll extractor version
+
+10.3 Retirement triggers
+
+directive no longer relevant
+
+source permanently unavailable or prohibited
+
+data quality persistently below threshold
+
+11. Incident and Degraded Mode Behavior
+
+11.1 Degraded mode triggers
+
+widespread source outages
+
+rate-limit/quota exhaustion
+
+extraction pipeline errors
+
+quality regression (conflict spike)
+
+11.2 Degraded mode actions
+
+reduce crawl frequency
+
+narrow to high-value sources
+
+increase caching and reuse
+
+pause exports that require high confidence
+
+11.3 Mandatory logging
+
+All degraded mode transitions emit events to LUM:
+
+dre.loop.degraded
+
+dre.source.degraded
+
+dre.export.paused
+
+12. Lifecycle Event Emission (LUM)
+
+At minimum, emit:
+
+dre.directive.approved|activated|paused|retired
+
+dre.looprun.started|completed|failed
+
+dre.document.collected|quarantined
+
+dre.claim.conflicted|approved|rejected
+
+dre.entity.resolved|merged|contested
+
+dre.dossier.published|updated
+
+dre.export.delivered|failed
+
+Every event includes correlation:
+
+workflow_id (loop run)
+
+integration_id (source)
+
+decision_id (when governed)
+
+entity_id (when applicable)
+
+13. Quick Reference State Machines
+
+13.1 Directive
+
+draft → proposed → approved → active → (paused ↔ active) → deprecated → retired
+
+13.2 LoopRun
+
+queued → running → completed | completed_with_warnings | failed_transient | failed_terminal
+
+13.3 Claim
+
+extracted → normalized → validated → approved (with conflicted branch)
+
+13.4 Dossier
+
+draft → review_pending → published → updated → deprecated → retired
+

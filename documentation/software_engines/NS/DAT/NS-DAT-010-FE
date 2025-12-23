@@ -1,0 +1,159 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the frontend (FE) / operator UI specification for DAT.
+DAT is an execution engine with real external side effects; therefore the FE must be:
+Control-focused (visibility, gating, intervention)
+Audit-friendly (immutable timelines, evidence trails)
+Safety-first (no accidental execution)
+This document defines canonical screens, components, interactions, and data requirements, independent of any UI framework.
+2. FE Design Principles
+No Accidental Execution
+No one-click destructive actions
+Two-step confirmation for any control action
+Kill switch always visible and protected
+Version-Pinned Visibility
+Every view shows plan_id + plan_version
+All metrics and logs tied to the same version
+Progressive Disclosure
+Simple overview first
+Drill down into steps, constraints, events
+Explainability for Operators
+Operators must see why admission was denied
+Operators must see constraint and budget violations
+Replay / Audit Readiness
+Timeline view is immutable
+Ability to export execution timeline for audit
+3. Primary User Personas
+Operator — monitors execution runs, intervenes on failures
+Planner — drafts plans, runs staging, submits to GGP
+Governance Reviewer — inspects plan package and constraints (may live in GGP UI)
+4. Canonical Screens (MVP)
+4.1 Plan Registry (List View)
+Goal: Provide a searchable list of plans and their current states.
+Core Elements:
+Plan cards/rows:execution_plan_idplan_versionlinked insight reference (insight_id, insight_version)statuscreated_at / updated_atbudget cap + spentlast execution outcome (if any)
+Key Interactions:
+Filter by status (draft/approved/executing/etc.)
+Filter by connector target
+Open Plan Detail
+4.2 Plan Detail (Plan + Constraints + Rollback)
+Goal: Inspect what will be executed (or was executed) for a specific plan version.
+Sections:
+Summary Headerplan_id, plan_versionlinked insightstatusgovernance decision reference (if approved)
+Step Graphordered stepsaction type + target systempreconditions/postconditions (if captured)
+Constraint Panelhard vs softtime windowquantity caps
+Budget Panelbudget capspend so farremaining
+Rollback Coveragerollback type per stepcompensating actions
+Submission Historyreadiness reportsubmitted timestamp
+4.3 Staging / Admission View
+Goal: Provide transparency into staging results and admission checks.
+Sections:
+Connector health status
+Validation outputs
+Admission decisionpass/failviolations list
+Governance gate status
+Key Interactions:
+Request re-run of staging checks (governed)
+Request admission re-check (governed)
+4.4 Execution Run Detail (Timeline)
+Goal: Provide a step-by-step immutable execution view.
+Core Elements:
+Execution timeline:step.startedstep.completedstep.failedstep.rolled_backplan.aborted/completed
+Step drill-down:request/response metadata (redacted)idempotency keyretry countfailure cause classification
+Key Interactions:
+Expand/collapse steps
+Export timeline
+4.5 Kill Switch & Controls Panel
+Goal: Provide safe intervention without ambiguity.
+Controls (Governed):
+Pause execution plane
+Abort a running plan
+Disable a connector (circuit breaker)
+Safety Requirements:
+Two-step confirmation
+Require explicit reason
+Emit auditable control events
+5. Cross-Engine Visibility Requirements
+DAT FE must surface external references:
+PIE: insight reference that caused plan creation
+GGP: approval decision reference
+FLO: spend events (linked, not duplicated)
+PTE: performance metrics references
+Prefer link-outs rather than embedding external truth.
+6. Component Inventory (Suggested)
+PlanRow / PlanCard
+StatusBadge
+BudgetMeter
+ConstraintBadge (Hard/Soft)
+StepGraph
+StepRow
+RollbackBadge
+AdmissionPanel
+ConnectorHealthPanel
+ExecutionTimeline
+EventRow
+ControlActionModal (confirm + reason)
+KillSwitchWidget
+7. Data Requirements (API Needs)
+7.1 Plan Registry
+Required fields:
+execution_plan_id
+plan_version
+linked insight reference
+status
+created_at / updated_at
+budget cap
+budget spent
+last_execution_outcome
+7.2 Plan Detail
+Required fields:
+plan artifact (steps/actions)
+constraint snapshot
+budget snapshot
+rollback policy
+governance decision reference
+readiness report
+7.3 Execution Timeline
+Required fields:
+execution events stream
+step states
+retry metadata
+rollback results
+7.4 Controls
+Required fields:
+control endpoints (pause/abort/disable connector)
+last control actions + reasons
+8. Non-Functional Requirements
+Audit grade: stable identifiers and immutable views
+Fast search: plan registry must be responsive
+Role-based safety: only approved operators can trigger controls
+Redaction: connector secrets never appear
+9. Document Position in DAT Corpus
+This FE document is informed by:
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+NS-DAT-007 — DATAMODEL
+It complements:
+NS-DAT-011 — APIMAP
+NS-DAT-012 — STATE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT FE / Operator UI Specification
+
+Parent / HoldCo Manager
+Status: Draft

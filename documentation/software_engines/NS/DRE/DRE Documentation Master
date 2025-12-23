@@ -1,0 +1,155 @@
+Deep Research Engine (DRE)
+Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for DRE, strictly aligned to the existing NS-GGP document structure (000–014).
+DRE is the long-horizon, deep synthesis research engine for Northfield Solidarity. It is designed to explore complex domains over time, connect weak signals, map emerging trends, and generate structured research artifacts rather than immediate execution opportunities.
+DRE complements PIE:
+PIE = fast, market-facing, opportunity-oriented
+DRE = slow, deep, exploratory, systems-oriented
+DRE does not execute actions (DAT), publish content (CDE), or govern approvals (GGP).
+
+DRE Documentation Index (Canonical)
+
+NS-DRE-000 — CHARTER
+Purpose: Define why DRE exists
+Scope:
+Mission of DRE
+Why deep research must be separated from execution
+DRE’s role in long-term strategy and discovery
+Explicit non-goals (execution, governance, rapid arbitrage)
+Mirrors: NS-GGP-000
+
+NS-DRE-001 — OVERVIEW
+Purpose: High-level conceptual framing
+Scope:
+What DRE produces (research graphs, thematic maps, hypotheses)
+Difference between DRE outputs and PIE insights
+Primary consumers: GGP, PIE, SIG, human operators
+Mirrors: NS-GGP-001
+
+NS-DRE-002 — TAXONOMY
+Purpose: Define DRE’s atomic research concepts
+Scope:
+Research Topic
+Source Corpus
+Hypothesis
+Finding
+Research Graph
+Confidence Annotation
+Mirrors: NS-GGP-002
+
+NS-DRE-003 — ARCHITECTURE
+Purpose: Logical deep research architecture
+Scope:
+Corpus ingestion
+Knowledge extraction
+Graph construction
+Iterative synthesis
+Output publication
+Logical design only (not infra).
+Mirrors: NS-GGP-003
+
+NS-DRE-004 — LIFECYCLE
+Purpose: End-to-end research lifecycle
+Scope:
+Topic definition
+Source acquisition
+Iterative analysis
+Hypothesis refinement
+Research publication
+Mirrors: NS-GGP-004
+
+NS-DRE-005 — DECISION
+Purpose: Research decision semantics
+Scope:
+When a finding is considered credible
+When hypotheses are promoted or discarded
+Human vs automated judgment boundaries
+DRE decisions inform strategy; GGP governs action.
+Mirrors: NS-GGP-005
+
+NS-DRE-006 — VERSION
+Purpose: Research artifact versioning
+Scope:
+Versioning of research graphs
+Hypothesis evolution
+Reproducibility guarantees
+Mirrors: NS-GGP-006
+
+NS-DRE-007 — DATAMODEL
+Purpose: Research persistence and contracts
+Scope:
+Corpus storage
+Graph representations
+Finding metadata
+Replay and regeneration assumptions
+Mirrors: NS-GGP-007
+
+NS-DRE-008 — EEE (End-to-End Example)
+Purpose: Validate deep research flow
+Scope:
+Topic selection
+Multi-source ingestion
+Hypothesis formation
+Downstream use by PIE or GGP
+Mirrors: NS-GGP-008
+
+NS-DRE-009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+MVP research pipelines
+Graph construction services
+Human-in-the-loop tooling
+Mirrors: NS-GGP-009
+
+NS-DRE-010 — FE / VISUALIZATION
+Purpose: Research exploration UX
+Scope:
+Knowledge graphs
+Timeline views
+Hypothesis navigation
+Mirrors: NS-GGP-010
+
+NS-DRE-011 — APIMAP
+Purpose: API → research surface mapping
+Scope:
+Topic submission APIs
+Research retrieval APIs
+Graph query endpoints
+Mirrors: NS-GGP-011
+
+NS-DRE-012 — STATE
+Purpose: Research state semantics
+Scope:
+In-progress research
+Archived topics
+Consistency guarantees
+Mirrors: NS-GGP-012
+
+NS-DRE-013 — RUNBOOK
+Purpose: Operational research controls
+Scope:
+Long-running job management
+Resource throttling
+Safe interruption
+Mirrors: NS-GGP-013
+
+NS-DRE-014 — DATADEF
+Purpose: Canonical research data definitions
+Scope:
+Corpus schemas
+Graph schemas
+Finding schemas
+Mirrors: NS-GGP-014
+
+Cross-Engine Dependencies
+DRE integrates with but does not own:
+SIG — raw signal feeds
+PIE — downstream insight extraction
+GGP — governance over actionability
+CDE — research publication (if externalized)
+
+Completion Criteria
+DRE documentation is complete when:
+NS-DRE-000 → NS-DRE-014 exist
+Research artifacts are reproducible and explainable
+Long-horizon insights do not leak into execution without governance

@@ -1,0 +1,491 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the end-to-end execution lifecycle of the Digital Arbitrage Tooling (DAT) engine.
+It specifies:
+How execution plans are created, approved, staged, executed, and retired
+The state machines for Plans and Steps
+How constraints, budgets, and rollback operate across lifecycle phases
+The event emissions required for audit and replay
+DAT lifecycle is designed to be safe, governed, observable, and reversible.
+2. Lifecycle Design Principles
+Plan-First Execution — actions must be packaged into a plan before any execution
+Governed Transitions — approval gates are explicit and auditable
+Checkpointed Execution — every step has a defined pre/post state
+Rollback-Ready — failures do not “hang”; they resolve to a known state
+Deterministic Replay — lifecycle history can be reconstructed from events
+3. High-Level Lifecycle Flow
+Insight Intake (approved input)
+Plan Drafting
+Governance Approval
+Staging / Dry Run
+Execution Admission Checks
+Step Execution
+Completion or Abort
+Post-Execution Reconciliation
+Archival
+4. Execution Plan State Machine
+4.1 Plan States
+draft
+submitted_for_approval
+approved
+staged
+executing
+completed
+aborted
+archived
+4.2 Allowed Plan Transitions
+
+
+
+From
+
+To
+
+Initiator
+
+Notes
+
+
+draft
+
+submitted_for_approval
+
+DAT
+
+Packages for GGP
+
+
+submitted_for_approval
+
+approved
+
+GGP
+
+Governance gate
+
+
+submitted_for_approval
+
+aborted
+
+GGP / Human
+
+Rejected/withdrawn
+
+
+approved
+
+staged
+
+DAT
+
+Dry-run preparation
+
+
+staged
+
+executing
+
+DAT
+
+Admission checks pass
+
+
+executing
+
+completed
+
+DAT
+
+All steps complete
+
+
+executing
+
+aborted
+
+DAT / Human
+
+Kill switch or failure
+
+
+completed
+
+archived
+
+DAT
+
+End-of-life
+
+
+aborted
+
+archived
+
+DAT
+
+End-of-life
+Forbidden:
+archived → any
+aborted → executing (requires new plan_version)
+5. Step State Machine
+5.1 Step States
+pending
+running
+completed
+failed
+rolled_back
+5.2 Allowed Step Transitions
+
+
+
+From
+
+To
+
+Notes
+
+
+pending
+
+running
+
+Orchestrator begins step
+
+
+running
+
+completed
+
+Action success
+
+
+running
+
+failed
+
+Action failure
+
+
+failed
+
+rolled_back
+
+Rollback succeeds
+Notes:
+A failed step must either rollback or explicitly mark plan aborted.
+Steps cannot be skipped once plan is executing.
+6. Lifecycle Phase Detail
+6.1 Phase 1 — Approved Insight Intake
+Trigger:
+PIE Insight is approved (via GGP)
+DAT Behavior:
+Pins input to (insight_id, insight_version)
+Captures constraints templates
+Output:
+Plan draft process initiated
+6.2 Phase 2 — Plan Drafting
+Activities:
+Build Execution Plan
+Define Steps and Actions
+Attach Constraints, Budget, Rollback policies
+Result:
+plan state = draft
+6.3 Phase 3 — Governance Approval Gate
+Activities:
+Submit plan package to GGP
+Wait for approval decision
+Result:
+plan state transitions to approved or aborted
+DAT cannot execute without approved state.
+6.4 Phase 4 — Staging / Dry Run
+Activities:
+Validate connectors
+Validate parameters
+Optionally run dry-run (no external side effects)
+Result:
+plan state = staged
+6.5 Phase 5 — Execution Admission Checks
+Activities:
+Constraint Engine evaluates:time windowscapsrisk thresholds
+Budget Tracker verifies available budget
+If any hard constraint fails:
+plan remains staged
+operator notified
+6.6 Phase 6 — Step Execution
+Loop: for each step in order
+Mark step running
+Execute action via connector
+Emit telemetry (started/completed)
+Emit financial events to FLO if applicable
+Commit checkpoint
+Failure Handling:
+On step failure:emit step.failedinvoke rollback policyemit rolled_back or abort plan
+6.7 Phase 7 — Completion / Abort
+Completion Conditions:
+All steps completed
+No open rollbacks
+Abort Conditions:
+Kill switch invoked
+Hard constraint violated mid-run
+Unrecoverable connector failure
+Plan state transitions:
+executing → completed or aborted
+6.8 Phase 8 — Post-Execution Reconciliation
+Activities:
+Validate spend vs budget
+Validate external system states
+Emit reconciliation telemetry
+This phase ensures FLO and PTE can trust the run outcomes.
+6.9 Phase 9 — Archival
+Activities:
+Freeze execution artifacts
+Mark plan archived
+Retain audit logs
+7. Event Emissions
+Lifecycle events (immutable):
+dat.plan.drafted
+dat.plan.submitted_for_approval
+dat.plan.approved
+dat.plan.staged
+dat.plan.execution_started
+dat.step.started
+dat.step.completed
+dat.step.failed
+dat.step.rolled_back
+dat.plan.completed
+dat.plan.aborted
+dat.plan.archived
+All events include:
+plan_id
+plan_version
+step_id (if applicable)
+correlation_id
+timestamp
+8. Invariants & Constraints
+No plan executes without GGP approval
+Every step is idempotent or compensatable
+Budget checks occur before and during execution
+Rollback is mandatory for failure states
+Execution is always traceable to a plan_version and insight_version
+9. Cross-Engine Responsibilities
+
+
+
+Engine
+
+Responsibility
+
+
+PIE
+
+Provide approved insights
+
+
+GGP
+
+Approve plans and constraints
+
+
+DAT
+
+Execute within bounds
+
+
+FLO
+
+Record financial truth
+
+
+PTE
+
+Track performance outcomes
+10. Document Position in DAT Corpus
+This lifecycle document builds upon:
+NS-DAT-001 — OVERVIEW
+NS-DAT-002 — TAXONOMY
+NS-DAT-003 — ARCHITECTURE
+It informs:
+NS-DAT-005 — DECISION
+NS-DAT-007 — DATAMODEL
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Lifecycle Definition
+
+Parent / HoldCo Manager
+Status: Draft
+NS-DAT-005 — DECISION
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the decision semantics used by DAT to:
+Determine whether a draft plan is ready for governance submission
+Gate execution at runtime via admission control
+Decide when to pause, abort, or rollback
+DAT decisioning is operational and bounded. It does not replace governance authority (GGP) and does not invent opportunities (PIE).
+2. Decision Boundary Principles
+DAT decision logic obeys strict boundaries:
+DAT may decide operationally (how to execute safely)
+DAT may not decide strategically (whether to pursue an opportunity)
+DAT may not approve (GGP is the authority)
+DAT must be explainable (all decisions are attributable)
+DAT answers:
+“Is this plan safe and complete to submit?”
+“Is it safe to execute right now?”
+“How do we respond to failure?”
+3. Decision Objects
+3.1 Plan Readiness
+Definition:
+A structured recommendation indicating that a plan is complete and internally consistent for governance submission.
+Outputs:
+ready_for_approval = true/false
+readiness_reasons (structured)
+3.2 Execution Admission Decision
+Definition:
+A runtime allow/deny decision made immediately before a plan begins executing.
+Outputs:
+admission_allowed = true/false
+violations (if any)
+3.3 Step Continuation Decision
+Definition:
+A per-step decision made after each step finishes (success/failure) to determine next action.
+Outputs:
+continue
+retry
+rollback
+abort
+3.4 Rollback Activation Decision
+Definition:
+A decision to initiate rollback policies based on failure conditions or constraint violations.
+4. Decision Inputs
+DAT decision logic may consider:
+Plan structure validity (steps/actions complete)
+Constraint definitions (hard vs soft)
+Budget availability and burn rate
+Connector health (circuit breakers)
+External system responses
+Governance approval state (GGP)
+Time window and scheduling constraints
+All inputs must be explicit and logged.
+5. Decision Rules
+5.1 Plan Readiness Rules (Pre-GGP)
+A plan is ready for governance submission only if:
+Input Pinning
+Linked to (insight_id, insight_version)
+Complete Step Graph
+Steps are ordered, no gaps
+Each step has exactly one Action
+Constraint Completeness
+Budget constraint present
+Time window present (if applicable)
+Risk constraints included where required
+Rollback Coverage
+Each step has rollback policy or compensating action
+Connector Eligibility
+All target connectors exist and are enabled
+If any rule fails:
+ready_for_approval = false
+reasons returned
+5.2 Admission Control Rules (Pre-Execution)
+Execution admission is allowed only if:
+Plan state = approved AND staged
+All hard constraints pass
+Budget is available
+Required connectors are healthy
+Kill switch is not active
+If admission fails:
+plan remains staged
+violation events emitted
+5.3 Constraint Violation Rules (Runtime)
+If a hard constraint is violated during execution:
+Pause execution immediately
+Initiate rollback according to policy
+Abort plan if rollback completes or is not possible
+If a soft constraint is violated:
+Continue execution but emit warning
+Mark for governance/operator review
+5.4 Retry Rules (Per Step)
+Retries are allowed only if:
+Step is idempotent OR connector supports idempotency keys
+Retry count < configured max
+Constraint checks still pass
+Retries must:
+Use the same idempotency key
+Be logged with correlation_id
+5.5 Abort Rules
+Abort may be triggered by:
+Manual kill switch
+Unrecoverable connector failure
+Persistent constraint violations
+Budget exhaustion
+Abort must:
+Emit abort event
+Transition plan to aborted
+Invoke rollback if configured
+6. Decision Outputs & Artifacts
+DAT decisioning produces append-only artifacts:
+plan_readiness_report
+admission_decision_record
+step_decision_record
+rollback_activation_record
+These artifacts are required for audit and replay.
+7. Governance Handoff Semantics
+DAT submits plans to GGP with:
+Plan version
+Constraint snapshot
+Budget snapshot
+Rollback coverage report
+Plan readiness report
+GGP returns:
+approval/rejection decision
+constraint/budget modifications (if required)
+DAT stores GGP decision references and never executes outside approved scope.
+8. Invariants & Safety Constraints
+No plan executes without GGP approval
+Admission control is mandatory (cannot be bypassed)
+All retries are bounded and idempotent
+Hard constraint violations trigger rollback/abort
+All decisions are explainable and logged
+9. Document Position in DAT Corpus
+This decision document builds upon:
+NS-DAT-002 — TAXONOMY
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+It informs:
+NS-DAT-007 — DATAMODEL
+NS-DAT-008 — EEE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Decision Semantics Definition
+
+Parent / HoldCo Manager
+Status: Draft

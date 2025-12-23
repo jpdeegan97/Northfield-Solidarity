@@ -1,0 +1,298 @@
+Signal Aggregation Engine (SIG)
+1. Purpose of This Document
+This document defines the authoritative data model for the Signal Aggregation Engine (SIG).
+It specifies:
+Canonical signal entities and schemas
+Immutable storage rules
+Derived aggregate and correlation structures
+Decision and provenance linkage
+Cross-engine data contracts
+This document is the single source of truth for how signals are persisted and referenced.
+2. Data Model Principles
+Signals Are Immutable — once written, never edited or deleted
+Append-Only Processing — new facts create new rows
+Explicit Provenance — every signal links to its source artifacts
+Derived ≠ Authoritative — aggregates are rebuildable
+Version-Bound Semantics — ruleset versions always recorded
+3. Persistence Layers
+3.1 Raw Signal Capture Store (Optional)
+Used for replay and forensics.
+3.2 Canonical Signal Store (Authoritative)
+Stores normalized, trust-scored signals.
+3.3 Derived Stores (Rebuildable)
+Stores aggregates, correlation groups, and indices.
+4. Canonical Entity Definitions
+4.1 Canonical Signal (signal)
+Meaning: Atomic, time-bound observation.
+Field
+Type
+Required
+Description
+signal_id
+UUID
+Yes
+Signal identifier
+signal_type
+String
+Yes
+Canonical signal type
+signal_class
+Enum
+Yes
+market / demand / supply / execution / financial / system
+source_system
+String
+Yes
+Source identifier
+observed_at
+Timestamp
+Yes
+When observed externally
+received_at
+Timestamp
+Yes
+When ingested
+value
+JSON
+Yes
+Normalized value
+unit
+String
+No
+Unit of measure
+trust_score
+Decimal
+Yes
+0–1 reliability
+confidence_score
+Decimal
+Yes
+0–1 completeness
+decay_model
+String
+Yes
+Decay model name
+decay_params
+JSON
+Yes
+Half-life / TTL
+normalization_ruleset
+String
+Yes
+Ruleset name
+normalization_version
+String
+Yes
+Ruleset version
+scoring_ruleset
+String
+Yes
+Scoring ruleset
+scoring_version
+String
+Yes
+Scoring version
+dedupe_ruleset
+String
+Yes
+Dedupe ruleset
+dedupe_version
+String
+Yes
+Dedupe version
+correlation_hints
+JSON
+No
+Correlation metadata
+created_at
+Timestamp
+Yes
+Persistence time
+4.2 Raw Signal Capture (signal_raw_capture)
+Field
+Type
+Required
+Description
+capture_id
+UUID
+Yes
+Capture identifier
+source_system
+String
+Yes
+Source
+raw_ref
+String
+Yes
+Upstream artifact or event ID
+payload_hash
+String
+Yes
+Hash
+received_at
+Timestamp
+Yes
+Ingress time
+4.3 Signal Provenance (signal_provenance)
+Links signals to upstream artifacts.
+Field
+Type
+Required
+Description
+signal_id
+UUID
+Yes
+Signal
+source_type
+Enum
+Yes
+mux / telemetry / vendor
+source_ref
+String
+Yes
+artifact_id or event_id
+4.4 Deduplication Reference (signal_dedupe_ref)
+Field
+Type
+Required
+Description
+dedupe_id
+UUID
+Yes
+Reference ID
+signal_id
+UUID
+Yes
+Canonical signal
+dedupe_key
+String
+Yes
+Stable dedupe key
+linked_at
+Timestamp
+Yes
+Link time
+4.5 Decision Artifact (signal_decision)
+Field
+Type
+Required
+Description
+decision_id
+UUID
+Yes
+Decision ID
+decision_type
+String
+Yes
+admit / normalize / score / dedupe / control
+subject_ref
+String
+Yes
+signal_id or source
+outcome
+String
+Yes
+Result
+rationale
+JSON
+Yes
+Explanation
+ruleset_name
+String
+Yes
+Ruleset
+ruleset_version
+String
+Yes
+Version
+evaluated_at
+Timestamp
+Yes
+Time
+correlation_id
+UUID
+Yes
+Trace
+5. Derived Entities (Rebuildable)
+5.1 Signal Aggregate (signal_aggregate)
+Field
+Type
+Description
+aggregate_id
+UUID
+Aggregate identifier
+aggregate_type
+String
+windowed / weighted
+signal_type
+String
+Canonical type
+window
+String
+Time window
+value
+JSON
+Aggregate value
+aggregation_version
+String
+Logic version
+5.2 Correlation Group (signal_correlation_group)
+Field
+Type
+Description
+group_id
+UUID
+Group ID
+correlation_key
+String
+Shared key
+signal_ids
+Array<UUID>
+Member signals
+correlation_version
+String
+Logic version
+6. Relationships (Logical)
+signal_raw_capture → signal (N:1)
+signal → signal_provenance (1:N)
+signal → signal_dedupe_ref (1:N)
+signal → signal_decision (1:N)
+signal → signal_aggregate (N:M via logic)
+signal → signal_correlation_group (N:M)
+7. Cross-Engine Data Contracts
+Engine
+References
+PIE
+signal_id, signal_type, scores
+SIM
+signal_id, aggregates
+DAT
+execution signal_id
+FLO
+financial signal_id
+GGP
+signal_decision
+Signals are referenced by ID only.
+8. Invariants & Constraints
+signal rows are immutable
+derived tables are disposable
+every signal has at least one provenance link
+all decisions are recorded
+9. Document Position in SIG Corpus
+This data model builds upon:
+NS-SIG-002 — TAXONOMY
+NS-SIG-003 — ARCHITECTURE
+NS-SIG-006 — VERSION
+It informs:
+NS-SIG-008 — EEE
+NS-SIG-013 — RUNBOOK
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIG Canonical Data Model
+Parent / HoldCo Manager
+Status: Draft

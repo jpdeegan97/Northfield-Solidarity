@@ -1,0 +1,524 @@
+NS-CWP-012 — STATE
+
+0. Overview
+
+This document defines the canonical runtime states and state transitions for CWP (Cognitive Work Plane) objects.
+
+CWP is a stateful coordination engine. Its state machines must be:
+
+deterministic and enforceable
+
+auditable (every transition recorded)
+
+correlation-aware (workflow_id, task_id, decision_id)
+
+compatible with governance interlocks (GGP) and identity constraints (IDN)
+
+1. Core State Machines
+
+1.1 WorkItem (Task) State Model
+
+1.1.1 Canonical task states
+
+draft — created but not yet ready for routing
+
+queued — available in a queue for assignment
+
+assigned — has an owner but not yet started
+
+in_progress — being actively worked
+
+awaiting_approval — blocked behind an approval gate (GGP-driven)
+
+blocked — blocked for non-approval reasons (dependency, missing info)
+
+completed — finished and verified (evidence requirements satisfied)
+
+cancelled — intentionally stopped
+
+Optional extensions (only if needed)
+
+on_hold — paused intentionally (time-boxed)
+
+failed — irrecoverable failure requiring follow-up task
+
+1.1.2 Primary transitions
+
+draft → queued (submit for routing)
+
+queued → assigned (assignment/claim)
+
+assigned → in_progress (worker starts)
+
+in_progress → awaiting_approval (approval required)
+
+awaiting_approval → in_progress (approval granted)
+
+awaiting_approval → blocked (approval denied; requires rework)
+
+in_progress → blocked (dependency or missing info)
+
+blocked → in_progress (unblocked)
+
+in_progress → completed (all steps done + evidence verified)
+
+* → cancelled (authorized cancellation)
+
+Reopen patterns (controlled)
+
+completed → in_progress (reopen due to defect; creates audit record)
+
+1.1.3 Transition constraints
+
+draft → queued requires: title, task_type, priority, queue_id.
+
+queued → assigned requires: assignee eligibility (IDN) and capacity.
+
+in_progress → completed requires:
+
+all required steps completed OR task is non-playbook
+
+required evidence attached
+
+any governed gates satisfied (decision_id present when required)
+
+1.1.4 Transition events (to LUM)
+
+cwp.task.created
+
+cwp.task.queued
+
+cwp.task.assigned
+
+cwp.task.started
+
+cwp.task.state_changed
+
+cwp.task.blocked
+
+cwp.task.completed
+
+cwp.task.cancelled
+
+cwp.task.reopened
+
+1.2 StepExecution State Model (Playbook Steps)
+
+1.2.1 Canonical step states
+
+pending — created, not started
+
+running — executing
+
+blocked — waiting on dependency or input
+
+awaiting_approval — waiting on approval gate
+
+completed — done
+
+failed — failed; may allow retry
+
+skipped — intentionally bypassed (must be justified)
+
+1.2.2 Primary transitions
+
+pending → running
+
+running → completed
+
+running → blocked
+
+blocked → running
+
+running → awaiting_approval
+
+awaiting_approval → running (approval granted)
+
+awaiting_approval → failed|blocked (approval denied; depends on playbook)
+
+running → failed
+
+failed → running (retry)
+
+pending|running → skipped (authorized skip)
+
+1.2.3 Constraints
+
+A step marked completed must attach its required evidence (if any).
+
+skipped requires:
+
+actor authorization
+
+recorded justification
+
+optional GGP decision if step is governed
+
+1.2.4 Step events (to LUM)
+
+cwp.step.created
+
+cwp.step.started
+
+cwp.step.blocked
+
+cwp.step.awaiting_approval
+
+cwp.step.completed
+
+cwp.step.failed
+
+cwp.step.skipped
+
+1.3 Approval State Model
+
+Approvals are CWP-managed workflows that produce or reference a GGP decision_id.
+
+1.3.1 Approval states
+
+pending — requested, awaiting response
+
+approved — approved (decision recorded)
+
+denied — denied (decision recorded)
+
+changes_requested — needs more info / rework
+
+expired — timed out (SLA)
+
+cancelled — withdrawn by requester
+
+1.3.2 Transitions
+
+pending → approved
+
+pending → denied
+
+pending → changes_requested
+
+pending → expired
+
+pending → cancelled
+
+changes_requested → pending (resubmitted)
+
+1.3.3 Constraints
+
+approved|denied must include:
+
+decision_id (GGP)
+
+approver actor_id
+
+timestamp
+
+expired triggers escalation ladder.
+
+1.3.4 Approval events (to LUM)
+
+cwp.approval.requested
+
+cwp.approval.granted
+
+cwp.approval.denied
+
+cwp.approval.changes_requested
+
+cwp.approval.expired
+
+cwp.approval.cancelled
+
+1.4 Evidence Attachment State Model
+
+Evidence in CWP is typically a reference (URL/path/hash) and may link to a LUM Evidence Bundle.
+
+1.4.1 EvidenceArtifact states
+
+attached — reference captured and linked to task/step
+
+validated — hash/availability checked (optional)
+
+rejected — invalid (broken link, wrong file, missing hash)
+
+superseded — replaced by a newer artifact
+
+1.4.2 Transitions
+
+attached → validated
+
+attached|validated → rejected
+
+attached|validated → superseded (new artifact replaces)
+
+1.4.3 Constraints
+
+Required evidence must reach attached (and optionally validated) before task completion.
+
+Sensitive artifacts require correct classification and must never include secrets in metadata.
+
+1.4.4 Evidence events (to LUM)
+
+cwp.evidence.attached
+
+cwp.evidence.validated
+
+cwp.evidence.rejected
+
+cwp.evidence.superseded
+
+2. Operational State Models
+
+2.1 Queue State Model
+
+2.1.1 Queue states
+
+active
+
+paused (no new routing/assignment)
+
+archived
+
+Transitions
+
+active → paused → active
+
+active|paused → archived
+
+Constraints
+
+Pausing requires a reason; may be gated if it impacts critical workflows.
+
+2.2 Assignment State Model
+
+2.2.1 Assignment states
+
+proposed (optional; before confirmation)
+
+active
+
+released (unassigned)
+
+transferred (reassigned)
+
+Transitions
+
+proposed → active
+
+active → released
+
+active → transferred
+
+Constraints
+
+Assignee must satisfy IDN eligibility and capacity limits.
+
+2.3 SLA / Timer State Model
+
+2.3.1 SLA evaluation states (derived)
+
+on_track
+
+due_soon
+
+breached
+
+Events
+
+cwp.sla.due_soon
+
+cwp.sla.breached
+
+cwp.sla.recovered (optional)
+
+Constraints
+
+SLA breaches trigger escalation if configured.
+
+2.4 Escalation State Model
+
+2.4.1 Escalation states
+
+not_started
+
+in_progress
+
+escalated
+
+acknowledged
+
+resolved
+
+Transitions
+
+not_started → in_progress (breach detected)
+
+in_progress → escalated (step N)
+
+escalated → acknowledged (someone picks up)
+
+acknowledged → resolved (task stabilized)
+
+Events
+
+cwp.escalation.started
+
+cwp.escalation.escalated
+
+cwp.escalation.acknowledged
+
+cwp.escalation.resolved
+
+3. Worker State Models
+
+3.1 Worker Availability State
+
+Applies to both humans and agents.
+
+States
+
+available
+
+busy
+
+offline
+
+disabled (admin)
+
+Transitions
+
+available ↔ busy
+
+available|busy → offline → available
+
+* → disabled → available (if re-enabled)
+
+Constraints
+
+Disabled workers cannot receive assignments.
+
+3.2 Agent Execution State (for AI workers)
+
+States
+
+idle
+
+running
+
+waiting_input
+
+error
+
+paused
+
+Transitions
+
+idle → running → idle
+
+running → waiting_input → running
+
+running → error → idle (after remediation)
+
+* → paused → idle
+
+Events
+
+cwp.agent.started
+
+cwp.agent.waiting_input
+
+cwp.agent.error
+
+cwp.agent.paused
+
+4. Playbook Definition State Model
+
+4.1 Playbook states
+
+draft
+
+published
+
+deprecated
+
+retired
+
+Transitions
+
+draft → published
+
+published → deprecated
+
+deprecated → retired
+
+Constraints
+
+Published playbooks are immutable; changes require a new version.
+
+Events
+
+cwp.playbook.published
+
+cwp.playbook.deprecated
+
+cwp.playbook.retired
+
+5. Notification State Model (Via MUX)
+
+CWP requests notifications; delivery is tracked.
+
+5.1 Notification states
+
+queued
+
+sent
+
+delivered (if feedback available)
+
+failed
+
+Transitions
+
+queued → sent → delivered
+
+queued|sent → failed (retry optional)
+
+Events
+
+cwp.notification.queued
+
+cwp.notification.sent
+
+cwp.notification.delivered
+
+cwp.notification.failed
+
+6. State Transition Logging Requirements
+
+Every state transition MUST record:
+
+object type and id (task_id, step_id, approval_id, etc.)
+
+from_state, to_state
+
+actor_id (human/agent/service principal)
+
+occurred_at
+
+rationale/notes (recommended)
+
+correlation: workflow_id + (decision_id if governed)
+
+For governed transitions (approval decisions, break-glass, sensitive actions):
+
+include decision_id authorizing the change
+
+7. Invalid Transitions (Examples)
+
+completing a task while required evidence is missing
+
+approving an approval without issuing/reference a GGP decision_id
+
+skipping a governed step without authorization
+
+assigning a task to a disabled/offline worker
+

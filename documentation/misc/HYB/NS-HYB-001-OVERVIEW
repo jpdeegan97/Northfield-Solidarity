@@ -1,0 +1,388 @@
+NS-HYB-001 — Boundary Spec (Python ↔ C++ Native Lane)
+
+0. Purpose
+
+Define the authoritative boundary contract between the Python orchestration lane and the C++ native acceleration lane for Northfield Solidarity.
+
+This spec is designed to keep the system:
+
+Fast (contiguous buffers, minimal copies)
+
+Safe (clear ownership + validation)
+
+Operable (versioned interfaces, observable calls)
+
+Evolvable (capabilities + ABI rules)
+
+1. Boundary Modes
+
+Mode A — In-process (FFI / Python Extension)
+
+Python imports a compiled module (e.g., pybind11).
+
+Lowest overhead; recommended for pure compute kernels.
+
+Mode B — Out-of-process (Native Service)
+
+Python calls C++ over RPC.
+
+Recommended for isolation, independent scaling, long-lived stateful native systems.
+
+This document covers both, with Mode A as default.
+
+2. Contract Surface
+
+2.1 Public Entities
+
+Kernel: a native function implementing a stable operation.
+
+Example: graph_score(), topk_select(), parse_lines().
+
+Buffer: a contiguous region of memory with typed metadata.
+
+Descriptor: metadata describing input/output buffers + parameters.
+
+Result: status + outputs + metrics.
+
+2.2 Canonical Kernel Signature (Concept)
+
+A kernel call must be representable as:
+
+inputs: Buffer[]
+
+params: dict (scalar-only)
+
+outputs: OutputSpec[] (or allocated by kernel)
+
+options: CallOptions (timeouts, threads, determinism)
+
+returns KernelResult
+
+3. Data Formats
+
+3.1 Allowed Buffer Types (Mode A)
+
+Preferred order:
+
+Arrow (PyArrow) arrays/tables for columnar, schemaful bulk data.
+
+NumPy arrays for dense numeric kernels.
+
+Python buffer protocol / memoryview for generic bytes.
+
+Disallowed across the boundary:
+
+Python dict/list trees (object graphs)
+
+Python objects per element (boxing)
+
+Arbitrary callbacks into Python from C++ (unless explicitly designed)
+
+3.2 Allowed Buffer Types (Mode B)
+
+Control plane: gRPC protobuf messages (small payloads, metadata, commands)
+
+Data plane: Arrow IPC / Arrow Flight (bulk)
+
+4. Memory Ownership & Lifetime Rules
+
+4.1 Fundamental Principle
+
+Ownership must be unambiguous. For every buffer we define:
+
+allocator: {Python, C++}
+
+owner: {Python, C++}
+
+lifetime: {caller scope, result scope, pooled}
+
+mutability: {read-only, write-only, read-write}
+
+4.2 Zero-copy Policy
+
+Zero-copy is preferred but not mandatory.
+
+Copying is allowed when:
+
+alignment requirements fail
+
+non-contiguous inputs
+
+safety isolation required
+
+small payload (copy cheaper than complexity)
+
+4.3 Allocation Strategies
+
+Strategy A: Caller-allocated outputs (preferred for tight loops)
+
+Python allocates output buffers.
+
+C++ writes into them.
+
+No allocation inside kernel hot path.
+
+Strategy B: Kernel-allocated outputs (allowed)
+
+C++ allocates and returns a buffer.
+
+Python receives a view (NumPy/Arrow wrapper) that owns a shared handle.
+
+4.4 Ownership Diagram
+
+flowchart LR
+  P[Python] -->|provides input view| C[C++ Kernel]
+  C -->|writes into| O1[Caller-allocated Output]
+  C -->|may allocate| O2[Kernel-allocated Output]
+
+  subgraph Ownership
+    O1:::p
+    O2:::c
+  end
+
+  classDef p fill:#eef,stroke:#88a;
+  classDef c fill:#efe,stroke:#8a8;
+
+4.5 Lifetime Rules (Mode A)
+
+Input buffers passed from Python must remain valid for the duration of the call.
+
+Kernel-allocated outputs must be returned as objects whose destructors free native memory exactly once.
+
+No raw pointer is ever returned without a managed owner.
+
+4.6 Memory Pools (Optional, later)
+
+A per-process native arena/pool may be used for repeated allocations.
+
+Pool behavior must be observable (bytes allocated, peak, fragmentation estimate).
+
+5. Mutability & Aliasing
+
+5.1 Read/Write Contracts
+
+Each buffer descriptor declares mutability:
+
+READ_ONLY: kernel must not mutate.
+
+WRITE_ONLY: kernel must not read existing data (except initialization rules).
+
+READ_WRITE: kernel may mutate.
+
+5.2 Aliasing
+
+Aliasing between input and output buffers is forbidden by default.
+
+If permitted for a specific kernel, it must be explicitly declared as ALLOW_ALIASING.
+
+6. Threading, Concurrency, and the GIL (Mode A)
+
+6.1 Rule
+
+The native kernel should release the Python GIL during compute.
+
+Kernel must be thread-safe for concurrent calls unless explicitly labeled otherwise.
+
+6.2 CallOptions
+
+threads: desired worker threads (0=auto)
+
+deterministic: boolean
+
+timeout_ms: integer
+
+6.3 Determinism
+
+If deterministic=true:
+
+kernel must produce identical outputs given identical inputs
+
+any parallel reductions must use deterministic algorithms
+
+7. Error Semantics
+
+7.1 No Exceptions Across Boundary
+
+C++ exceptions must be caught and mapped to structured errors.
+
+Python receives a consistent error object.
+
+7.2 Error Structure
+
+KernelError fields:
+
+code: stable enum (e.g., INVALID_ARGUMENT, OUT_OF_MEMORY, INTERNAL, TIMEOUT)
+
+message: short human-readable text
+
+details: optional structured map (small)
+
+kernel: kernel name
+
+version: native module version
+
+trace_id: correlation id (if available)
+
+7.3 Error Flow Diagram
+
+sequenceDiagram
+  participant P as Python Caller
+  participant M as Native Module
+  participant K as C++ Kernel
+
+  P->>M: invoke(kernel, inputs, params)
+  M->>K: execute
+  alt success
+    K-->>M: status=OK + outputs
+    M-->>P: outputs
+  else error
+    K-->>M: status=ERR + KernelError
+    M-->>P: raise NativeKernelError(KernelError)
+  end
+
+8. Input Validation & Safety
+
+8.1 Validation Tiers
+
+Tier 0 (always): null checks, shape checks, dtype checks, bounds for params.
+
+Tier 1 (debug/CI): deep validation (monotonicity, schema constraints, checksum where needed).
+
+Tier 2 (paranoid mode): full validation + copy-on-write isolation.
+
+8.2 Param Rules
+
+Params are scalar-only types:
+
+int, float, bool, string, enum
+
+arrays are allowed only if fixed-size and explicitly documented
+
+8.3 Security Posture
+
+Reject untrusted schemas/formats by default.
+
+Avoid parsing complex untrusted formats in-process unless hardened.
+
+For risky parsing kernels, prefer Mode B (process isolation) or use sandboxed parsing.
+
+9. Performance Rules
+
+9.1 Copy Budget
+
+Each kernel must declare one of:
+
+COPY_BUDGET=0 (must be zero-copy in steady state)
+
+COPY_BUDGET=LOW (one copy allowed)
+
+COPY_BUDGET=FLEX (copying acceptable)
+
+9.2 Metrics (Required)
+
+Emit at least:
+
+kernel_calls_total
+
+kernel_latency_ms (histogram)
+
+bytes_in, bytes_out
+
+copies_count
+
+alloc_bytes, alloc_peak_bytes
+
+10. Observability & Correlation
+
+10.1 Trace Context
+
+Python provides a trace_id/span_id in CallOptions.
+
+C++ attaches it to metrics/logs/errors.
+
+10.2 Logging Policy
+
+No per-element logs.
+
+Only log on:
+
+boundary validation failures
+
+internal kernel faults
+
+timeout / OOM
+
+11. Versioning & Compatibility
+
+11.1 Versions Exposed
+
+Native module must expose:
+
+module_version: semver
+
+abi_version: int
+
+capabilities: string[]
+
+11.2 Compatibility Rules
+
+Python requires abi_version match (or fall within allowed range if explicitly configured).
+
+Feature negotiation uses capabilities.
+
+11.3 Deprecation
+
+Deprecations must:
+
+remain available for N releases
+
+emit warnings in Python
+
+be removable only after documented migration
+
+12. Mode B (Service) Addendum
+
+12.1 Control vs Data Plane
+
+Control: gRPC request includes kernel name, params, schemas, trace context.
+
+Data: bulk Arrow stream for inputs/outputs.
+
+12.2 Idempotency
+
+Requests include request_id.
+
+Service must handle safe retries where possible.
+
+13. Canonical Kernel Manifest
+
+Every kernel must appear in a manifest with:
+
+name
+
+version
+
+input_specs (dtype, shape, mutability)
+
+output_specs
+
+params_schema
+
+copy_budget
+
+thread_safety (SAFE | SINGLE_THREADED)
+
+determinism (DETERMINISTIC | NONDETERMINISTIC)
+
+14. Acceptance Checklist (Boundary Compliance)
+
+A kernel is “boundary compliant” when:
+
+
+
+15. Next Docs
+
+NS-HYB-002 — Repo & CI Plan (build matrix, wheel builds, sanitizers, benchmark gates)
+
+NS-HYB-003 — Kernel 1 Proposal (select first native kernel and define its manifest)
+

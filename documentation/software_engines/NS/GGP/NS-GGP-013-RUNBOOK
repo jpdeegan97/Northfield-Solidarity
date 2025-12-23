@@ -1,0 +1,182 @@
+GGP Production Startup & Control Runbook
+This document formalizes the production-grade startup, control, and operating procedures for bringing up, validating, and operating the GGP platform on a PowerEdge host using Docker Compose.
+It is written as a runbook + control framework, not just a technical how-to.
+Operating principles (non-negotiable)
+These principles drive every control below:
+ Infrastructure before applications
+  Data and event backbone must be healthy before apps start.
+ Deterministic startup
+  Same steps, same order, every time.
+ Read-only safety by default
+  Ability to pause writes and workflows without stopping the system.
+ Idempotency everywhere
+  Any step may be retried without corrupting state.
+ Observability is mandatory
+  No blind startups; metrics, logs, and traces must be visible before declaring “up”.
+ Fail closed, not open
+  If a dependency is unhealthy, downstream services must not silently proceed.
+Environment tiers (single-host aware)
+Even on one PowerEdge, treat environments distinctly:
+  LOCAL – laptop/dev machine
+  STAGE – same topology as prod, smaller data
+  PROD – PowerEdge canonical instance
+Controls must assume PROD discipline, even if STAGE runs on the same hardware.
+Pre-start controls (gate 0)
+3.1 Host integrity checks
+Operator checklist (manual or scripted):
+  Disk free space > 25% on /data/ggp
+  Docker daemon running
+  System clock synced (chrony)
+  No degraded RAID state
+  CPU load < 70% sustained
+  Memory headroom > 20%
+Control: startup must abort if any hard threshold fails.
+3.2 Configuration integrity
+  .env file present
+  .env permissions = 600
+  Required variables set (fail fast):
+  DB credentials
+  Kafka bootstrap
+  Domain + ACME email
+  OTel endpoint
+Control: preflight script validates env before Compose is invoked.
+Startup sequence (authoritative order)
+Phase 1 — Infrastructure bring-up
+docker compose -f compose.infra.yml up -d
+Required health gates:
+Component
+Gate condition
+Traefik
+container running
+Postgres
+pg_isready = OK
+Mongo
+ping = OK
+Redis
+PING = PONG
+Kafka
+broker + controller healthy
+Control:
+  Do not proceed until all gates pass
+  Kafka UI must show broker online
+Phase 2 — Observability bring-up
+docker compose -f compose.obs.yml up -d
+Required health gates:
+Component
+Gate condition
+Prometheus
+targets visible
+Loki
+receiving logs
+Tempo
+accepting traces
+Grafana
+dashboards accessible
+Control:
+  No apps start until observability is live
+Phase 3 — Database migration gate
+docker compose -f compose.apps.yml up ggp-migrator
+Rules:
+  Migrations run once per deploy
+  Failure halts startup
+  No API starts if migrations fail
+Control:
+  Migration container must exit 0
+Phase 4 — Application startup
+docker compose -f compose.apps.yml up -d
+Startup order (implicit via dependencies):
+ API
+ Projection consumer
+ Audit consumer
+ Workflow consumer
+ Scheduler
+ Frontend
+Application-level safety controls
+5.1 Write control (kill switch)
+The API must support:
+  READ\_ONLY\_MODE=true
+When enabled:
+  All write endpoints return 503 or 409
+  Events are not emitted
+  Consumers continue to drain
+Use cases:
+  Hotfix deployment
+  Projection rebuild
+  Incident containment
+5.2 Workflow control
+Workflow consumer must support:
+  WORKFLOWS_ENABLED=false
+When disabled:
+  Commands are acknowledged
+  No side effects occur
+  Audit still records receipt
+5.3 Consumer idempotency
+Mandatory rules:
+  Every consumer records processed event_id
+  Replays must not duplicate writes
+  Mongo writes are upserts only
+Observability acceptance criteria
+System is considered UP only when:
+  API /health returns healthy
+  Kafka consumer lag < defined threshold
+  Mongo projection counts are non-zero
+  Audit table receiving events
+  No sustained error spikes in logs
+Control:
+  “Up” declaration is a conscious operator action
+Replay & recovery controls
+7.1 Projection rebuild
+Allowed only when:
+  API in read-only mode
+  Workflows disabled
+Procedure:
+ Stop projection consumer
+ Drop or version read-model collections
+ Reset consumer offsets
+ Start projection consumer in replay mode
+ Verify counts + dashboards
+ Re-enable writes/workflows
+7.2 DLQ reprocessing
+  DLQ topics are never auto-consumed
+  Replays are explicit operator actions
+  Replayed events are tagged with replayed=true
+Change management controls
+8.1 Deployment rules
+  Infra changes ≠ app changes
+  One change class per deploy
+  Rollback plan defined before deploy
+8.2 Versioning
+  Containers are versioned (ggp-api:0.x.y)
+  No latest in PROD
+  Schema version increments are explicit
+Backup & data safety
+9.1 Backup guarantees
+  Postgres: daily logical backups
+  Mongo: daily dumps
+  Retention: minimum 14 days
+Control:
+  Backup success metrics scraped by Prometheus
+Incident response (minimal but real)
+Severity levels
+  SEV-1: data corruption, Kafka loss
+  SEV-2: API unavailable
+  SEV-3: degraded performance
+Immediate actions
+  Enable read-only mode
+  Freeze workflows
+  Preserve logs + metrics
+Shutdown procedure (clean)
+docker compose -f compose.apps.yml down
+docker compose -f compose.obs.yml down
+docker compose -f compose.infra.yml down
+Never reverse this order.
+Control checklist (operator sign-off)
+Before declaring PROD live:
+
+Future hardening (tracked separately)
+  mTLS between services
+  Secrets manager
+  Multi-node Kafka
+  Postgres replication
+  Automated drift detection
+This runbook is the authoritative startup and control contract for GGP.

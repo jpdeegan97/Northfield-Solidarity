@@ -1,0 +1,366 @@
+NS-CWP-008 — EEE (End-to-End Example)
+
+0. Overview
+
+This End-to-End Example (EEE) demonstrates the Cognitive Work Plane (CWP) operating as the operational coordination layer for Northfield Solidarity.
+
+Scenario theme:
+
+A vendor invoice arrives by email. NS must validate it, obtain governance approval if needed, pay it, and archive evidence — with CWP coordinating humans/agents and integrating with GGP, IDN, FLO, MUX, and LUM.
+
+This example shows both:
+
+a happy path (invoice valid, approved, paid)
+
+a failure path (invoice discrepancy triggers escalation)
+
+1. Actors & Systems
+
+1.1 Engines
+
+CWP — work orchestration (tasks, playbooks, assignment, supervision)
+
+GGP — policy/approval gates and evidence requirements
+
+IDN — identity and role resolution (who can approve? who is vendor entity?)
+
+FLO — payment execution and ledger recording
+
+MUX — external integrations (email ingestion, document storage, vendor systems)
+
+LUM — observability and audit correlation
+
+1.2 Actors
+
+AP Clerk (Human) — reviews invoice and confirms match
+
+Approver (Human) — approves spend above threshold
+
+AP Agent (AI) — extracts invoice fields, validates totals, flags anomalies
+
+Service Principals — CWP/MUX/FLO/GGP system actors
+
+2. Canonical IDs for the Scenario
+
+CWP ensures every step is correlated end-to-end.
+
+workflow_id = WF-AP-2025-12-22-0042
+
+task_id = CWP-T-88401 (root work item)
+
+job_id = MUX-J-12992 (email/doc ingest job)
+
+request_id = REQ-1b7d…
+
+trace_id = TR-09a2…
+
+decision_id = GGP-D-33019…
+
+entity_id_vendor = IDN-E-V-5512…
+
+entity_id_company = IDN-E-NS-0001…
+
+bundle_id = EVD-B-7710…
+
+3. Playbook: “Process Vendor Invoice”
+
+CWP runs a playbook with governed gates.
+
+Playbook steps (high level)
+
+Ingest invoice email + attachments (MUX)
+
+Extract invoice fields (AI agent)
+
+Resolve vendor entity (IDN)
+
+Validate invoice vs PO/contract rules (AI + human confirm)
+
+Evaluate governance gate (GGP)
+
+Request approval if required (CWP approval routing)
+
+Execute payment (FLO)
+
+Collect evidence bundle (LUM + storage)
+
+Close work item + record outcome
+
+4. Step-by-Step Flow (Happy Path)
+
+Step 1 — Invoice arrives and is ingested
+
+A vendor sends an invoice to the AP inbox.
+
+MUX
+
+pulls email and attachment
+
+stores the PDF in document storage
+
+emits an ingestion event
+
+CWP
+
+creates a root work item: task_id = CWP-T-88401
+
+sets workflow_id
+
+assigns initial owner to AP Agent (AI)
+
+LUM signals
+
+workflow.task.created
+
+integration.email.ingested
+
+Step 2 — AI agent extracts invoice fields
+
+AP Agent (AI)
+
+extracts: vendor name, invoice number, amount, due date, line items
+
+computes totals and checks for basic anomalies
+
+CWP updates
+
+attaches extracted fields to task context
+
+marks step as complete
+
+LUM signals
+
+workflow.step.completed (extract)
+
+logs/traces correlated by workflow_id
+
+Step 3 — Vendor entity resolution
+
+CWP requests vendor resolution.
+
+IDN
+
+matches vendor name/email to vendor entity record
+
+returns entity_id_vendor
+
+CWP
+
+attaches vendor entity to task
+
+Step 4 — Validation (AI + human confirmation)
+
+CWP requires human confirmation for payment accuracy.
+
+AP Agent (AI)
+
+checks invoice against PO/contract references (if available)
+
+flags “no discrepancies”
+
+AP Clerk (Human)
+
+reviews invoice and confirms
+
+attaches confirmation note
+
+CWP
+
+records evidence of review completion
+
+Step 5 — Governance gate evaluation
+
+CWP calls GGP to evaluate:
+
+spend threshold (is approval required?)
+
+vendor risk tier
+
+required evidence artifacts
+
+GGP output
+
+returns decision_id
+
+outcome: require_approval = true if amount > threshold
+
+evidence requirements: invoice PDF hash, approver identity, ledger entry ref
+
+CWP
+
+transitions task state to awaiting_approval
+
+creates approval subtask(s)
+
+Step 6 — Approval routing
+
+IDN
+
+resolves who can approve based on role and limits
+
+CWP
+
+creates approval task for approver
+
+sets SLA
+
+sends notifications (via MUX)
+
+Approver (Human)
+
+approves via UI or message-based approval flow
+
+CWP
+
+records approval artifact
+
+transitions task state back to in_progress
+
+Step 7 — Execute payment via FLO
+
+CWP requests payment through FLO (does not pay directly).
+
+FLO
+
+executes payment per governed constraints
+
+records ledger entry
+
+returns ledger_entry_id
+
+CWP
+
+attaches ledger reference
+
+confirms payment completion
+
+Step 8 — Evidence bundle assembly and sealing
+
+Based on GGP evidence requirements:
+
+LUM / Evidence Service
+
+opens bundle_id
+
+attaches artifacts:
+
+invoice PDF hash + storage ref
+
+approval record
+
+ledger entry ref
+
+When complete:
+
+bundle becomes ready_to_seal
+
+seal event recorded
+
+Step 9 — Close out the work item
+
+CWP
+
+marks root task as completed
+
+records cycle time and outcome
+
+emits final event
+
+LUM
+
+shows end-to-end narrative by workflow_id
+
+5. Failure Path Example (Discrepancy Detected)
+
+Failure trigger
+
+AI agent detects discrepancy:
+
+line items don’t match PO
+
+totals inconsistent
+
+vendor entity mismatch
+
+CWP response
+
+marks task as blocked
+
+creates an exception subtask: “Resolve invoice discrepancy”
+
+escalates to AP lead
+
+GGP
+
+may require additional approval/evidence
+
+FLO
+
+payment is not initiated
+
+LUM
+
+emits governance/operational alert if SLA breached
+
+Resolution options
+
+request corrected invoice (via MUX email)
+
+update vendor record (IDN) if mismatch
+
+override (break-glass) only if GGP allows and evidence is recorded
+
+6. What You Can Query in CWP After the Scenario
+
+6.1 Work item view
+
+search by task_id
+
+see playbook steps, owners, timestamps, evidence attachments
+
+6.2 Workflow view
+
+search by workflow_id
+
+see cross-engine timeline stitched from events
+
+6.3 Governance view
+
+search by decision_id
+
+see why approval was required, and the approval artifact
+
+7. Outputs / Artifacts Produced
+
+7.1 CWP
+
+root task + subtasks
+
+playbook execution record
+
+approval routing record
+
+completion evidence
+
+7.2 GGP
+
+decision record (approval requirement + evidence requirements)
+
+7.3 FLO
+
+payment record + ledger entry reference
+
+7.4 LUM
+
+correlated telemetry, traceability, and evidence bundle
+
+8. Key Takeaways
+
+CWP turns an objective (“pay this invoice”) into accountable, supervised work.
+
+CWP does not replace governance; it calls GGP for gates and evidence requirements.
+
+CWP does not hold money; FLO executes payments.
+
+LUM makes the workflow visible and audit-grade end-to-end.
+

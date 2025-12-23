@@ -1,0 +1,242 @@
+NS-INT-000 — CHARTER
+
+1. Identity
+
+Project / Engine Name: Intervention
+
+Nickname: quickscope
+
+Domain: System-wide state, context, and real-time coherence layer for Northfield Solidarity (NS)
+
+Owner Engine Class: Core platform engine (first-class NS engine)
+
+Primary Consumers: GGP, Firmament, all NS engines, operator UIs, observability tooling
+
+2. Mission
+
+Intervention exists to provide a single, authoritative, replayable, real-time state context for the entire NS ecosystem—so every engine and UI can reliably answer:
+
+What is true now?
+
+How did it become true?
+
+Who/what changed it?
+
+What is the current process state of long-running work?
+
+Intervention turns NS into a coherent, stateful “beast” with shared context, causal chains, and durable memory.
+
+3. Problem Statement
+
+As NS grows into many engines (SIG, DAT, PIE, SIM, IDN, FLO, MUX, CWP, Firmament, etc.), state tends to fragment:
+
+Each engine invents its own lifecycle semantics
+
+UIs reconcile “truth” inconsistently
+
+Cross-engine workflows lose correlation and causal provenance
+
+Debugging becomes archaeology
+
+Governance evidence becomes scattered
+
+Without a unified state fabric, NS cannot scale reliably, explainably, or in real time.
+
+4. Scope
+
+4.1 In Scope (What Intervention is)
+
+Intervention is the State Fabric + Context Plane for NS. It provides:
+
+Immutable Event Log (System Memory)
+
+Append-only record of state changes across engines
+
+Idempotent ingest and deduplication guarantees
+
+Schema/version evolution controls
+
+Materialized State Views (System Present)
+
+Queryable “current state” projections derived from events
+
+Domain-agnostic canonical projections (e.g., entity status, workflow status, request status)
+
+Engine-specific projections when needed, using standard projector patterns
+
+Time Travel, Replay, and Reconstruction (System Forensics)
+
+Rebuild any view at time T
+
+Replay event streams into sandboxes / simulators
+
+Support audits, debugging, and retrospective governance
+
+Real-Time Deltas and Subscriptions (System Nervous System)
+
+Stream deltas to Firmament and operator surfaces
+
+Topic routing by entity, engine, workflow, and correlation IDs
+
+Backpressure-aware fanout and resumable subscriptions
+
+Cross-Engine Correlation and Causality (System Threading)
+
+Correlation IDs unify multi-engine work
+
+Causation IDs link “what triggered what”
+
+Traceable actor identity for human/agent/system actions
+
+Edge State Caches (Local Coherence)
+
+Lightweight local cache clients (sidecars/SDK) for engines and UIs
+
+Low-latency reads and offline-tolerant behavior
+
+Standard sync/resync and conflict-handling protocol
+
+4.2 Out of Scope (What Intervention is not)
+
+Not a governance authority: It does not decide what is allowed (GGP does).
+
+Not a monolithic OLTP replacement: It does not replace domain databases.
+
+Not a data lake / analytics warehouse: It is for state coherence, not BI.
+
+Not “just UI state”: Frontend local state remains a separate concern.
+
+5. Principles
+
+Event-first truth: state is derived from events, not edited in place.
+
+Explainability by default: every state change has provenance.
+
+Replayability: any state can be reconstructed.
+
+Contractual interoperability: engines integrate via a canonical envelope.
+
+Governance-gated transitions: protected state transitions consult GGP.
+
+Edge-first performance: reads should be fast where work happens.
+
+6. Success Criteria
+
+Intervention is successful when:
+
+Firmament can render global NS state in real time (snapshot + deltas)
+
+Any operator can answer “why is this stuck?” with causal chain + evidence
+
+Cross-engine workflows have a single correlated thread end-to-end
+
+Audits can reconstruct the exact state at any time
+
+Engines integrate without inventing bespoke state conventions
+
+7. Core Interfaces (Charter-Level)
+
+7.1 Canonical Event Envelope (Minimum Contract)
+
+All NS engines emit events using a canonical envelope:
+
+event_id
+
+event_type
+
+engine_id
+
+entity_id (or aggregate_id)
+
+occurred_at (when it happened)
+
+observed_at (when received)
+
+correlation_id (thread)
+
+causation_id (trigger)
+
+actor (human/agent/system)
+
+schema_version
+
+policy_context_ref (governance context pointer)
+
+payload (domain-specific)
+
+7.2 Subscription Channels (High-Level)
+
+Intervention exposes stream subscriptions keyed by:
+
+engine
+
+entity / aggregate
+
+workflow instance
+
+correlation_id
+
+event_type
+
+8. Governance Relationship to GGP
+
+Intervention enforces structural validity (schema, versioning, idempotency).
+
+GGP enforces semantic legitimacy (policy, approvals, permissioned transitions).
+
+Intervention consults GGP for protected transitions (configurable event types).
+
+9. Risks and Mitigations
+
+Scope creep into “do everything data platform” → hard boundaries + projection patterns.
+
+Event schema chaos → canonical envelope + schema registry + version gates.
+
+Hot partitions / fanout overload → partitioning strategy + backpressure + edge caches.
+
+Governance bottlenecks → asynchronous gating options with clear state semantics.
+
+10. Roadmap (Charter-Level)
+
+Phase 0 — Contract + Spine
+
+Canonical envelope, schema/versioning rules
+
+Ingest + immutable log
+
+Basic projector framework
+
+Phase 1 — Read Models + Firmament Integration
+
+Snapshot API + delta streams
+
+Firmament state channels
+
+Edge cache client for UI
+
+Phase 2 — Workflow State + Correlation
+
+Workflow instance state model
+
+Correlation/causation query and visualization hooks
+
+Phase 3 — Advanced “quickscope” Extensions
+
+Time-travel UX primitives
+
+Replay-to-sandbox pipelines
+
+Predictive state hints (optional)
+
+11. Definition of Done (for Engine Acceptance)
+
+Intervention is “live” when:
+
+At least 3 NS engines publish canonical envelope events
+
+Snapshot + delta stream works for Firmament
+
+Correlation threading works end-to-end for a representative workflow
+
+GGP gating for at least one protected transition class is operational
+

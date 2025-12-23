@@ -1,0 +1,500 @@
+NS-LUM-013 — RUNBOOK
+
+0. Overview
+
+This runbook defines the operational procedures for LUM (Luminance Engine). It covers:
+
+on-call expectations and incident workflow
+
+common failure modes and troubleshooting
+
+evidence-access and sealing operational steps
+
+integration monitoring (Coinbase, Google APIs)
+
+recovery and integrity validation
+
+LUM is the observability platform; it must be reliable itself.
+
+1. On-Call & Support Model
+
+1.1 Roles
+
+LUM On-Call: primary responder for LUM platform issues
+
+Platform Operator: can change routing/policies under controls
+
+Incident Commander (IC): for SEV0–SEV1
+
+1.2 Severity guidance
+
+SEV0: LUM down + org blind; evidence access compromised
+
+SEV1: LUM ingest broken for prod or paging broken
+
+SEV2: partial degradation (missing one signal type, delayed indexing)
+
+SEV3: minor UI issues, delayed dashboards
+
+SEV4: informational/maintenance
+
+1.3 First response checklist (any alert)
+
+Confirm environment (prod vs non-prod).
+
+Confirm blast radius (all services vs subset).
+
+Open LUM dashboards:
+
+Ingest health
+
+Storage health
+
+Alert engine health
+
+Check current incidents (avoid duplicate response).
+
+If SEV0/SEV1, create/confirm incident and assign IC.
+
+2. Core Dashboards (Minimum)
+
+2.1 LUM Platform Health
+
+ingest request rate, p95 latency, errors
+
+queue depth / backpressure
+
+normalization failures (schema invalid, redaction violations)
+
+storage write failures
+
+2.2 Telemetry Coverage
+
+logs ingestion rate by service
+
+traces sampled rate
+
+events ingestion rate
+
+metrics ingestion rate
+
+2.3 Alerting & Paging Health
+
+alert evaluations per minute
+
+alert delivery success
+
+dedupe effectiveness
+
+escalation queue
+
+2.4 Evidence Health
+
+bundles opened/sealed per day
+
+sealing failures
+
+access requests pending
+
+access grants and expirations
+
+2.5 Integration Health (External)
+
+Coinbase webhook success/verification failures
+
+Google API error rate and quota consumption
+
+3. Common Failure Modes & Playbooks
+
+3.1 Ingest Down (Logs/Events/Traces not arriving)
+
+Symptoms
+
+sudden drop to ~0 ingestion rate
+
+producers report 5xx/timeout
+
+Immediate checks
+
+Check ingest gateway availability (service status, pods, load balancer).
+
+Check auth failures (expired certs/tokens).
+
+Check backpressure/queue saturation.
+
+Check DNS and network policies.
+
+Mitigations
+
+scale ingest gateway horizontally
+
+temporarily relax sampling (reduce load)
+
+enable buffering on producers (if supported)
+
+Validation
+
+ingestion rate returns
+
+sample record appears in logs search
+
+Escalation
+
+if prod ingest outage > N minutes → SEV1
+
+3.2 Schema Validation Spike / Quarantine Storm
+
+Symptoms
+
+high ERR_SCHEMA_INVALID
+
+quarantine rate spikes
+
+certain services missing from dashboards
+
+Immediate checks
+
+Identify top offending schema_id/service.
+
+Determine if a new producer version deployed.
+
+Compare schema_version emitted vs registry.
+
+Mitigations
+
+roll back producer change
+
+publish compatible schema (if safe)
+
+temporarily route invalid payloads to quarantine only (avoid pipeline poisoning)
+
+Validation
+
+quarantine rate drops
+
+dashboards repopulate
+
+3.3 Redaction Policy Violations (PII/Secrets)
+
+Symptoms
+
+ERR_REDACTION_REQUIRED spikes
+
+LUM flags secrets present
+
+Immediate checks
+
+Identify service/component emitting violations.
+
+Confirm whether payload contains tokens, keys, PII.
+
+Mitigations
+
+stop or throttle offending producer
+
+patch producer logging to remove fields
+
+ensure normalization redaction is operating (belt-and-suspenders)
+
+Validation
+
+violations stop
+
+verify no sensitive payload stored
+
+Governance note
+
+If exposure risk exists, notify GGP and follow incident protocol.
+
+3.4 Storage Pressure / Indexing Delay
+
+Symptoms
+
+dashboards stale
+
+query latency high
+
+write errors or queue growth
+
+Immediate checks
+
+Storage health metrics (disk, CPU, IO).
+
+Indexing backlog.
+
+Hot tier retention too high?
+
+Mitigations
+
+scale storage/indexing
+
+reduce trace sampling rate temporarily
+
+shorten hot retention temporarily (under policy)
+
+Validation
+
+backlog drains
+
+query latency returns to normal
+
+3.5 Alert Engine Not Firing / Paging Broken
+
+Symptoms
+
+known bad condition but no alerts
+
+alerts exist but not delivered
+
+Immediate checks
+
+Alert engine health and evaluation loop.
+
+Policy status: enabled vs suppressed.
+
+Notification connector health.
+
+Dedupe rules overly aggressive?
+
+Mitigations
+
+restart alert engine workers
+
+temporarily route alerts to fallback channel
+
+re-enable critical policies
+
+Validation
+
+test alert fires (synthetic check)
+
+delivery receipts confirm
+
+3.6 Incident Console / UI Down
+
+Symptoms
+
+operators cannot view incidents or traces
+
+Mitigations
+
+use Query API directly as fallback
+
+rely on raw dashboards backend
+
+prioritize restore (SEV2 if data plane ok)
+
+3.7 Evidence Sealing Failures
+
+Symptoms
+
+bundles stuck in ready_to_seal
+
+integrity hash missing
+
+Immediate checks
+
+Identify bundle_id and missing artifacts.
+
+Check object store availability.
+
+Check hashing/verifier workers.
+
+Mitigations
+
+re-run integrity computation
+
+attach missing artifacts
+
+if policy requires, request GGP review before sealing
+
+Validation
+
+bundle transitions to sealed
+
+sealing event recorded
+
+3.8 Evidence Access Not Working
+
+Symptoms
+
+authorized user can’t access
+
+access grants not expiring
+
+Immediate checks
+
+Confirm IDN identity resolution.
+
+Confirm GGP decision_id validity.
+
+Confirm LUM access policy enforcement.
+
+Mitigations
+
+re-sync IDN claims
+
+re-request access (new decision)
+
+revoke stuck grants and re-issue
+
+Validation
+
+access logs show correct grant/deny
+
+time-box expiration works
+
+4. External Integration-Specific Runbooks
+
+4.1 Coinbase Commerce — Webhook Failures
+
+Symptoms
+
+webhook success rate drops
+
+invalid signature spikes
+
+settlement latency increases
+
+Checks
+
+Verify webhook receiver uptime (MUX).
+
+Confirm secret is current (rotation?)
+
+Inspect top error codes.
+
+Check idempotency collisions.
+
+Mitigations
+
+rotate webhook secret
+
+adjust retry/backoff
+
+temporarily require manual confirmation (GGP gate)
+
+Validation
+
+verification success returns
+
+webhook processing SLO recovers
+
+4.2 Google APIs — Quota / Rate Limit
+
+Symptoms
+
+429s increase
+
+quota remaining near 0
+
+Checks
+
+Identify which API and method is consuming quota.
+
+Confirm caching is enabled where allowed.
+
+Confirm exponential backoff.
+
+Mitigations
+
+throttle noncritical workloads
+
+increase cache hits
+
+request quota increase (governed)
+
+Validation
+
+429 rate drops
+
+quota usage stabilizes
+
+5. Recovery & Integrity Procedures
+
+5.1 Restore from outage
+
+Restore ingest gateway
+
+Restore pipelines and storage
+
+Confirm data plane recovery (logs/events/traces/metrics)
+
+Confirm alert engine recovery
+
+Confirm incident console + query API
+
+5.2 Data integrity checks
+
+verify schema registry consistency
+
+verify evidence bundles sealed have integrity hashes
+
+verify access logs are append-only
+
+5.3 Backfill strategy (optional)
+
+if producers buffer, re-emit missing windows
+
+mark backfilled signals to prevent confusion
+
+6. Synthetic Checks (Recommended)
+
+Run continuous synthetic probes:
+
+ingest a known event every minute
+
+query it back
+
+ensure alert engine can fire on synthetic thresholds
+
+ensure evidence bundle open/seal path works in non-prod
+
+7. Escalation & Communication
+
+7.1 Escalation triggers
+
+SEV0 immediately
+
+SEV1 if prod blind > N minutes
+
+evidence integrity concerns escalate to GGP
+
+7.2 Comms template (starter)
+
+What happened
+
+Impact
+
+Current status
+
+Next update time
+
+Owner/IC
+
+8. Postmortem Requirements
+
+For SEV0–SEV2:
+
+timeline with key signals
+
+root cause
+
+contributing factors
+
+action items assigned to CWP
+
+follow-up verification steps
+
+9. Quick Reference Commands (Conceptual)
+
+search recent ingest errors by service
+
+list open incidents
+
+list open alerts
+
+pull correlation view by workflow_id
+
+(Exact commands depend on chosen backend; implement as scripts once stack is selected.)
+

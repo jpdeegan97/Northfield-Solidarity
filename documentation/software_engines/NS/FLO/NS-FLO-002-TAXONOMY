@@ -1,0 +1,186 @@
+Financial Ledger Orchestrator (FLO)
+1. Purpose of This Document
+This document defines the canonical taxonomy for the Financial Ledger Orchestrator (FLO).
+The taxonomy establishes the atomic financial primitives used to:
+Represent financial truth consistently across engines
+Enforce budgets, allocations, and constraints
+Enable reconciliation, audit, and downstream performance attribution
+This taxonomy is the shared financial language for FLO, DAT, MUX, GGP, PTE, and human operators.
+2. Taxonomy Design Principles
+Ledger-First Truth — all financial facts resolve to ledger entries
+Append-Only Semantics — financial history is never overwritten
+Event-Derived Accounting — ledger entries are derived from source events
+Version & Source Attribution — every amount ties to a cause and authority
+Entity-Centric Accounting — money always belongs to an entity and account
+3. Core Financial Primitives
+3.1 Financial Event
+Definition:
+A raw or normalized event that indicates a potential financial impact.
+Examples:
+spend.incurred
+refund.received
+fee.charged
+payout.received
+Financial events are inputs, not authoritative truth.
+3.2 Ledger Entry
+Definition:
+The canonical, authoritative record of a financial fact.
+Characteristics:
+Append-only
+Immutable
+Derived from one or more financial events
+Examples:
+debit: advertising expense
+credit: marketplace payout
+3.3 Transaction
+Definition:
+A logical grouping of ledger entries that represent a single financial action.
+Examples:
+Marketplace sale
+Supplier purchase
+Refund issuance
+Transactions ensure ledger balance and explainability.
+3.4 Account
+Definition:
+A logical container representing where money is held or tracked.
+Examples:
+Bank account
+Payment processor balance
+Accrued fees
+Accounts belong to entities and are typed.
+3.5 Entity
+Definition:
+A legal or logical owner of financial activity.
+Examples:
+Holding company
+Subsidiary
+Vendor
+Customer
+Entity identity is sourced from IDN / PECA.
+3.6 Budget
+Definition:
+A governed financial limit applied to activities, plans, or time windows.
+Characteristics:
+Approved by GGP
+Enforced continuously
+Referenced by DAT execution plans
+3.7 Allocation
+Definition:
+A subdivision of a budget or pool of funds.
+Examples:
+Campaign allocation
+Product-line allocation
+Allocations allow granular spend tracking.
+3.8 Balance
+Definition:
+A derived value representing the net sum of ledger entries for an account.
+Balances are never authoritative; they are computed from ledger entries.
+4. Evidence & Traceability Primitives
+4.1 Evidence Artifact
+Definition:
+A reference to external proof supporting a ledger entry.
+Examples:
+Receipt ID
+Invoice PDF
+Processor transaction ID
+Evidence is linked, not embedded.
+4.2 Source Attribution
+Definition:
+Metadata identifying why a ledger entry exists.
+Examples:
+DAT execution_plan_id + plan_version
+MUX processor event ID
+Manual adjustment reference
+5. Reconciliation Primitives
+5.1 External Statement
+Definition:
+A record from an external system (bank, processor, marketplace).
+Used to reconcile against internal ledger.
+5.2 Reconciliation Record
+Definition:
+A record describing the comparison between ledger and external statement.
+Outcomes:
+matched
+missing
+excess
+disputed
+6. Financial State Concepts
+Although FLO is append-only, it exposes financial state concepts:
+Budget state (available / near_limit / exhausted)
+Allocation state
+Reconciliation state
+These states are derived, not stored as truth.
+7. Relationships Between Primitives
+Financial Event → Ledger Entry
+Ledger Entry → Transaction
+Transaction → Account
+Account → Entity
+Ledger Entry → Budget / Allocation (optional)
+Ledger Entry → Evidence Artifact (optional)
+8. Cross-Engine Alignment
+
+
+
+Engine
+
+Interaction with FLO
+
+
+DAT
+
+Emits financial-impacting events
+
+
+MUX
+
+Supplies external payment/payout events
+
+
+GGP
+
+Governs budgets and approvals
+
+
+PTE
+
+Consumes ledger-derived performance metrics
+
+
+IDN / PECA
+
+Supplies entity/account identity
+FLO primitives must be referenced—not reimplemented—by other engines.
+9. Invariants & Safety Rules
+Ledger entries are immutable
+Every ledger entry has a source
+Budgets are enforced against ledger truth
+Balances are derived, never authoritative
+Reconciliation never mutates ledger history
+10. Document Position in FLO Corpus
+This taxonomy document builds upon:
+NS-FLO-001 — OVERVIEW
+It informs:
+NS-FLO-003 — ARCHITECTURE
+NS-FLO-004 — LIFECYCLE
+NS-FLO-007 — DATAMODEL
+11. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial FLO Canonical Taxonomy
+
+Parent / HoldCo Manager
+Status: Draft

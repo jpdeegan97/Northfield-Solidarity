@@ -1,0 +1,52 @@
+Prop Entity Creation Automation (PECA)
+1. Engine Identity
+Engine Name: Prop Entity Creation Automation
+Engine Type: Entity Formation / Automation
+2. Mission Statement
+Automate the creation of property-holding entities and link them to NSDC governance and identity systems.
+3. Core Responsibilities
+  Automatically create property entities (LLCs, sub-entities)
+  Assign canonical IDs via IDN
+  Log entity creation and notify GGP for compliance
+  Maintain entity lifecycle audit trails
+4. Non-Responsibilities
+  Track financial performance (PTE, FLO)
+  Make investment or acquisition decisions
+  Publish content or perform market research
+5. Inputs
+Input
+Source Engine
+Description
+Entity templates
+Admin
+Legal and structural templates for entities
+Governance rules
+GGP
+Rules for formation and approvals
+Identity reference
+IDN
+Canonical entity and owner references
+6. Outputs
+Output
+Target
+Description
+Newly created entities
+PTE, Admin
+Fully registered property entities
+Audit logs
+GGP
+Record of creation, assignment, and approvals
+Notifications
+Admin / Governance
+Alerts for compliance tracking
+7. Authority & Decision Rights
+  Autonomously create new property entities per rules
+  Cannot make investment, financial, or operational decisions
+8. Governance & Constraints
+  Must comply with GGP and SL-specific entity rules
+  Maintain immutable logs
+  Ensure correct IDN references
+9. MVP Scope
+  Automate entity creation for standard property LLCs
+  Assign canonical IDs
+  Audit logging and notification to governance

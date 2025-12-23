@@ -1,0 +1,176 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the canonical taxonomy for the Market Integration Layer (MUX).
+The taxonomy establishes:
+The atomic external artifacts MUX recognizes
+How external truth is categorized and normalized
+The boundary between raw external data and interpreted meaning
+This taxonomy prevents downstream engines from inventing inconsistent interpretations of external reality.
+2. Taxonomy Principles
+External Truth FirstMUX represents what the external system asserts — not what it means internally.
+Append-Only ArtifactsExternal artifacts are immutable snapshots of observed reality.
+Source-Specific, Canonical ShapeRaw source formats are normalized into canonical artifact types.
+No Financial or Strategic InterpretationClassification and valuation are delegated to FLO, PIE, DAT.
+Provenance Is MandatoryEvery artifact must record origin, integrity, and completeness.
+3. Primary Taxonomy Categories
+MUX recognizes five primary classes of external artifacts:
+Platform Events
+Transaction & Settlement Artifacts
+Statement & Snapshot Artifacts
+Fulfillment & Logistics Artifacts
+Platform State & Meta Artifacts
+4. Platform Event Artifacts
+Meaning:Discrete events emitted by an external platform.
+Examples:
+Ad click
+Listing created
+Order placed
+Refund issued
+Canonical Fields:
+source_system
+external_event_id
+event_type
+occurred_at
+payload (raw or lightly normalized)
+integrity_hash
+correlation_hint (if available)
+These events may be incomplete or later superseded by statements.
+5. Transaction & Settlement Artifacts
+Meaning:External confirmations of financial movement.
+Examples:
+Payment captured
+Refund settled
+Fee assessed
+Payout initiated
+Canonical Fields:
+source_system
+external_transaction_id
+transaction_type
+gross_amount
+currency
+occurred_at
+settlement_status
+integrity_hash
+These artifacts represent external financial assertions, not internal ledger truth.
+6. Statement & Snapshot Artifacts
+Meaning:Periodic authoritative snapshots from an external system.
+Examples:
+Monthly bank statement
+Marketplace payout report
+Ad platform invoice
+Canonical Fields:
+source_system
+statement_id
+period_start / period_end
+imported_at
+snapshot_hash
+completeness (full / partial)
+Statements supersede individual events for reconciliation.
+7. Fulfillment & Logistics Artifacts
+Meaning:External assertions about delivery or fulfillment status.
+Examples:
+Shipment dispatched
+Delivered
+Returned
+Lost
+Canonical Fields:
+source_system
+external_fulfillment_id
+fulfillment_status
+occurred_at
+carrier
+tracking_ref
+Consumed primarily by DAT and PTE.
+8. Platform State & Meta Artifacts
+Meaning:Signals describing the state or reliability of an external system.
+Examples:
+API outage
+Rate limit enforced
+Policy change notice
+Canonical Fields:
+source_system
+state_type
+state_value
+detected_at
+expected_resolution
+Used for operational awareness and governance.
+9. Trust & Integrity Metadata (Cross-Cutting)
+Every artifact must include:
+source_system
+ingestion_method (api, webhook, file)
+integrity_hash
+completeness_flag
+latency_ms
+first_seen_at
+last_confirmed_at
+Trust metadata allows consumers to assess reliability.
+10. Deduplication Semantics
+Artifacts are deduplicated by:
+(source_system, external_id)
+integrity_hash
+Duplicates are retained as references, not discarded.
+11. Cross-Engine Consumption Mapping
+
+
+
+Artifact Class
+
+Primary Consumers
+
+
+Platform Events
+
+SIG, DAT
+
+
+Transaction Artifacts
+
+FLO, DAT
+
+
+Statements
+
+FLO
+
+
+Fulfillment Artifacts
+
+DAT, PTE
+
+
+Platform State
+
+GGP, Ops
+12. What This Taxonomy Enables
+Deterministic reconciliation in FLO
+Execution verification in DAT
+Signal validation in PIE/SIG
+Audit-ready provenance in GGP
+13. Document Position in MUX Corpus
+This taxonomy builds upon:
+NS-MUX-001 — OVERVIEW
+It informs:
+NS-MUX-003 — ARCHITECTURE
+NS-MUX-004 — LIFECYCLE
+NS-MUX-007 — DATAMODEL
+14. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial MUX Taxonomy
+
+Parent / HoldCo Manager
+Status: Draft

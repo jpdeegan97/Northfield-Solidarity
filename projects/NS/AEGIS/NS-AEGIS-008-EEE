@@ -1,0 +1,352 @@
+NS-AEGIS-008 — EEE (End-to-End Example)
+
+Project: Aegis (Dependency Management Product)
+
+1) Scenario
+
+Northfield Solidarity wants to onboard Stripe as a payment processor for a production service (FLO-API).
+
+Goals:
+
+Onboard Stripe as a Vendor/SaaS dependency
+
+Ensure governance via GGE (approvals + evidence)
+
+Establish the dependency relationships in the graph
+
+Turn on monitoring for vendor incidents + contract renewal windows
+
+Demonstrate an incident signal (vendor incident) → impact assessment → remediation plan
+
+2) Actors
+
+Operator (Builder): creates the onboarding request
+
+Approver(s): governance/security/owner approvals (policy-driven)
+
+Aegis: registry + graph + workflow surface
+
+GGE: policy evaluation + approvals + audit
+
+CWP: agentic loops (evidence chasing, discovery, incident response)
+
+IDN: canonical identity for Stripe
+
+SIG: vendor incident + reliability signals
+
+MUX: connectors (contract calendar, vendor evidence fetch, runtime observation)
+
+3) Step-by-Step Flow
+
+3.1 Create a Change Request: add_dependency
+
+Operator action (Aegis UI/API):
+
+Create CR to add Stripe in scope of prod/us-east-1/FLO.
+
+CR (minimal shape):
+
+{
+  "cr_type": "add_dependency",
+  "subject_type": "dependency",
+  "proposed": {
+    "class": "vendor",
+    "subclass": "saas_payments",
+    "display_name": "Stripe",
+    "initial_scope": {
+      "environment": "prod",
+      "region": "us-east-1",
+      "system_boundary": "FLO"
+    },
+    "data_sensitivity": "regulated",
+    "criticality": "high"
+  },
+  "justification": "Primary payments provider for FLO customer checkouts."
+}
+
+3.2 Resolve Canonical Identity (IDN)
+
+Aegis → IDN: resolve or create canonical identifier.
+
+Result (canonical dependency_id):
+
+aegis:vendor:saas:stripe
+
+Aegis stores:
+
+dependency_id
+
+aliases: Stripe Payments, stripe.com
+
+3.3 Policy Evaluation (GGE)
+
+Aegis → GGE: send context for policy evaluation.
+
+Policy inputs (example):
+
+class: vendor
+
+environment: prod
+
+data_sensitivity: regulated
+
+criticality: high
+
+Policy outputs (example):
+
+risk_tier: tier_3
+
+approvals required:
+
+FLO owner
+
+Security
+
+Privacy/Compliance
+
+required evidence:
+
+soc2_report
+
+dpa/privacy_terms
+
+incident_history_summary
+
+security_questionnaire
+
+Aegis transitions CR state:
+
+submitted → policy_evaluated → evidence_pending
+
+3.4 Evidence Collection (CWP Loop)
+
+CWP receives event: evidence_required for Stripe CR.
+
+CWP executes a playbook:
+
+Request SOC2 report from vendor portal (or upload request to operator)
+
+Collect DPA/privacy terms
+
+Collect incident history summary
+
+Run internal security questionnaire workflow
+
+Attach artifacts to Aegis evidence service
+
+Evidence artifacts (Aegis):
+
+Evidence revisioned, hash stored, freshness windows applied.
+
+CR state:
+
+evidence_pending → approvals_pending
+
+3.5 Approvals (GGE)
+
+Approvers review:
+
+Evidence artifacts
+
+Scope and constraints
+
+Data sent to Stripe
+
+Compensating controls
+
+Decision: Approved
+
+Aegis transitions CR state:
+
+approvals_pending → approved → committed
+
+Aegis commits:
+
+Registry dependency record for Stripe
+
+DU record for prod/us-east-1/FLO
+
+3.6 Graph Construction
+
+Aegis adds nodes:
+
+DependencyNode(aegis:vendor:saas:stripe)
+
+DependencyUnitNode(aegis:vendor:saas:stripe :: prod/us-east-1/FLO)
+
+Aegis adds edges (using TAXONOMY §4):
+
+FLO-API calls Stripe  (calls)
+
+FLO-API authenticates_via Stripe (if applicable)
+
+FLO-API writes_to Stripe (money movement events, tokens, etc.)
+
+Edge qualifiers:
+
+environment: prod
+
+confidence: declared initially
+
+3.7 Turn On Monitoring
+
+Aegis registers monitoring baselines derived from the policy profile:
+
+vendor incident watch
+
+renewal window (e.g., 90/60/30 day alerts)
+
+SLA breach threshold (if available)
+
+MUX connector begins emitting:
+
+renewal_window
+
+evidence_observed (updated SOC2 when available)
+
+CWP Freshness Loop schedules:
+
+monthly evidence freshness checks for tier_3 vendors
+
+4) “Day 30” Event: Vendor Incident Signal
+
+SIG emits a vendor incident signal:
+
+{
+  "signal_type": "vendor_incident",
+  "severity": "high",
+  "confidence": "confirmed",
+  "subject_hint": {"vendor": "Stripe"},
+  "payload": {"summary": "Elevated error rates for API requests in us-east-1."}
+}
+
+4.1 Aegis Maps Signal → Dependency
+
+Maps to aegis:vendor:saas:stripe
+
+Maps to DU scope(s) that match prod/us-east-1
+
+Signal status:
+
+received → mapped
+
+4.2 Impact Assessment (Graph Traversal)
+
+Aegis runs the graph query:
+
+Downstream: all services/projects that have edges calls/depends_on to Stripe in prod
+
+Result (example):
+
+FLO-API (customer checkout)
+
+FLO-WEB (checkout UI)
+
+Order-Service (payment confirmation)
+
+Signal status:
+
+mapped → assessed
+
+4.3 Create an Incident Case
+
+Aegis opens an incident case and routes the owner:
+
+Owner: idn:team:payments
+
+On-call: payments rotation
+
+4.4 CWP Incident Loop Executes
+
+CWP generates a remediation plan:
+
+Enable degraded mode: queue payment intents, retry with backoff
+
+Switch traffic routing if multi-region fallback exists
+
+Communicate customer impact via status page
+
+CWP posts plan back to Aegis:
+
+incident case moves: open → planned → executing
+
+4.5 Verification and Closure
+
+When Stripe restores service:
+
+Aegis monitors signal resolution
+
+CWP verifies:
+
+error rates normalized
+
+queued payments drained
+
+no drift in constraints
+
+Aegis:
+
+closes incident
+
+creates a snapshot (incident closure)
+
+5) What Aegis Captured (Artifacts)
+
+5.1 Registry
+
+Stripe dependency record (status: active, tier_3)
+
+DU record for prod/us-east-1/FLO
+
+Owner + steward assignments
+
+5.2 Evidence
+
+SOC2 report + verification timestamps
+
+DPA/privacy terms
+
+questionnaire record
+
+freshness windows + expiry
+
+5.3 Governance
+
+CR with policy decision record:
+
+policy_set_id + policy_set_version
+
+approval chain
+
+final decision
+
+5.4 Graph
+
+Service→vendor edges with qualifiers
+
+Environment-scoped impact query results
+
+5.5 Operations
+
+Monitoring baseline turned on
+
+Incident loop executed
+
+Snapshot stored for audit replay
+
+6) Why This EEE Matters
+
+This E2E example demonstrates the Aegis thesis:
+
+Truth: registry + evidence
+
+Impact: dependency graph traversal
+
+Action: workflow + loops
+
+Governance: GGE
+
+Operations: CWP
+
+…and shows how Aegis stays durable as the system evolves.
+

@@ -1,0 +1,347 @@
+
+NS-INT-010 — FE (Operator UI)
+
+1. Purpose
+
+This document defines the frontend (FE) surfaces for Intervention (quickscope).
+
+Intervention FE has two primary categories:
+
+Operator Console (2D) — investigation, control, governance traceability
+
+Firmament (3D) — real-time system visualization (covered primarily in Firmament docs; referenced here as a consumer)
+
+This doc focuses on the Intervention Operator Console while defining the standard FE integration pattern (snapshot + deltas).
+
+2. FE Goals
+
+The Intervention FE exists to make the system legible and operable:
+
+show what is happening now
+
+show why (causality + provenance)
+
+show where it is stuck (workflow gates)
+
+allow safe operational actions (rebuild, resync, quarantine review)
+
+support fast debugging (time travel + replay initiation)
+
+3. Primary FE Surfaces
+
+3.1 Intervention Operator Console (Web)
+
+A web UI for state inspection and control.
+
+Key capabilities:
+
+Live Feed: real-time deltas across the system
+
+Entity Explorer: current state + timeline
+
+Workflow Explorer: steps, gates, timers, retries, compensation
+
+Thread Viewer: correlation-centric story (what happened end-to-end)
+
+Decision & Evidence Panel: links to GGP decisions and evidence refs
+
+Edge Fleet Monitor: sync state across edges
+
+Projection Monitor: lag, health, rebuild controls
+
+Quarantine Review (if enabled): approve/deny/resolution workflow
+
+3.2 Firmament (3D Visualization)
+
+Firmament consumes Intervention as:
+
+snapshot provider
+
+real-time delta stream
+
+graph projections
+
+Intervention FE does not replace Firmament; it complements it.
+
+4. FE Architecture Pattern
+
+4.1 Data Acquisition Model
+
+All FE state is derived from:
+
+Snapshot (initial truth)
+
+Delta Stream (continuous updates)
+
+Pattern:
+
+Load snapshot via Query API
+
+Subscribe to SSE/WebSocket stream with cursor
+
+Apply deltas to FE store
+
+4.2 FE State Store
+
+Recommended:
+
+a single FE store with slices:
+
+liveFeed
+
+entities
+
+workflows
+
+threads
+
+graph
+
+edges
+
+projections
+
+incidents
+
+Local FE store is not authoritative; it is a rendering cache.
+
+5. Core Pages (MVP)
+
+5.1 Dashboard
+
+Widgets:
+
+ingest rate, projection lag, stream fanout
+
+edges in sync vs degraded
+
+active workflows by status
+
+incident count by severity
+
+5.2 Live Feed
+
+stream of StateDelta and/or events
+
+filters:
+
+engine_id
+
+event_type
+
+status
+
+correlation_id
+
+entity_id / workflow_id
+
+“pin thread” action (follow a correlation)
+
+5.3 Entity Detail
+
+summary: status, version, last_updated
+
+timeline: events by occurred_at
+
+linked workflows and threads
+
+evidence refs (links)
+
+5.4 Workflow Detail
+
+status + current step/gate
+
+steps list with timestamps
+
+gates list (policy/approval/data/time/etc)
+
+timers and retry schedule
+
+correlation thread jump
+
+5.5 Thread Viewer (Correlation Story)
+
+timeline across engines
+
+causal chain view (parent/causation)
+
+participants list
+
+milestones
+
+export story to report (later)
+
+5.6 Edge Fleet Monitor
+
+table of edges:
+
+engine/ui id
+
+sync state
+
+lag
+
+last cursor
+
+last sync time
+
+actions:
+
+request resync (soft)
+
+request rebootstrapping (hard)
+
+5.7 Projection Monitor
+
+projector registry
+
+lag per projector
+
+last rebuild time
+
+action: rebuild (with guardrails)
+
+6. Optional Pages (Phase 2+)
+
+6.1 Time Travel
+
+choose entity/workflow/thread
+
+choose timestamp T
+
+view state “as of T”
+
+diff vs now
+
+6.2 Replay / Sandbox Launch
+
+select correlation thread
+
+choose replay window
+
+launch replay into SIM or sandbox environment
+
+6.3 Quarantine Review
+
+list quarantined events
+
+show gating reason
+
+resolution actions (via GGP)
+
+7. UX Patterns
+
+7.1 Drilldown Flow
+
+Dashboard → Live Feed → Thread Viewer → Entity/Workflow Detail
+
+7.2 Explainability First
+
+Every page should expose:
+
+correlation_id
+
+causation links
+
+policy_context_ref
+
+decision_ref / approval_ref
+
+evidence_refs
+
+7.3 “Follow the Thread” Interaction
+
+A persistent “Follow correlation_id” mode:
+
+keeps user scoped to a thread
+
+auto-filters live feed
+
+highlights related entities/workflows
+
+8. Integration Endpoints (FE-facing)
+
+8.1 Snapshots
+
+GET /v1/state/entity/{entity_id}
+
+GET /v1/state/workflow/{workflow_id}
+
+GET /v1/threads/{correlation_id}
+
+GET /v1/events?... (timeline)
+
+8.2 Streams
+
+GET /v1/stream/global?cursor=...
+
+GET /v1/stream/entity/{entity_id}?cursor=...
+
+GET /v1/stream/workflow/{workflow_id}?cursor=...
+
+GET /v1/stream/correlation/{correlation_id}?cursor=...
+
+9. Security Model (FE)
+
+Auth via IDN
+
+Role-based access enforced by GGP/IDN:
+
+view-only operators
+
+incident responders
+
+governance reviewers
+
+platform admins
+
+Stream subscription authorization:
+
+topic-level permissions
+
+10. FE Tech Orientation
+
+Consistent with your preference:
+
+React (not TypeScript)
+
+Vite
+
+Component library optional (shadcn/ui or similar)
+
+SSE client for streaming
+
+11. MVP Acceptance Criteria
+
+MVP FE is complete when:
+
+Operator can:
+
+view live feed
+
+inspect entity + workflow detail
+
+follow a correlation thread
+
+view edge fleet sync states
+
+view projector lag and trigger rebuild (guarded)
+
+FE survives disconnect/reconnect by:
+
+reloading snapshot
+
+resubscribing with cursor
+
+12. Summary
+
+Intervention FE is the human-facing control and explainability surface for quickscope:
+
+snapshot + deltas as the universal integration pattern
+
+drilldown from global to correlation to entity/workflow
+
+explicit governance provenance everywhere
+
+Firmament is the cinematic view; the Operator Console is the scalpel.
+

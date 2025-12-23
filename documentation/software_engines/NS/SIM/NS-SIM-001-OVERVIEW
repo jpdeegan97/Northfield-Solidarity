@@ -1,0 +1,108 @@
+
+Simulation & Scenario Engine (SIM)
+1. Purpose
+The Simulation & Scenario Engine (SIM) is responsible for executing counterfactual reasoning, forward simulations, and scenario stress testing across the Northfield Solidarity ecosystem.
+SIM exists to answer a core class of questions:
+If we take a particular action (or take no action), what are the plausible outcomes across time, uncertainty, and constraints?
+SIM does not decide what should be done and does not execute actions. Its sole responsibility is to model possible futures, make assumptions explicit, and quantify uncertainty so that humans and downstream engines can reason safely.
+2. Role Within Northfield Solidarity
+SIM sits between insight generation and execution.
+It primarily consumes:
+PIE insights (candidate opportunities)
+SIG signals and aggregates (observed reality)
+FLO financial constraints and capital state
+DAT execution parameters (channels, timing, costs)
+It produces scenario artifacts consumed by:
+GGP for governance review and approval gating
+DAT for execution planning refinement
+Humans for strategic and risk-aware decision-making
+SIM converts opportunity into understood risk.
+3. What SIM Produces
+SIM produces Scenario Artifacts, which are structured, versioned representations of modeled futures.
+Each scenario includes:
+A clearly defined baseline
+One or more variants (actions or shocks)
+Modeled outcomes over time
+Explicit uncertainty bands
+Sensitivity analysis highlighting key drivers
+Identified failure modes and breakpoints
+SIM outputs are:
+Non-authoritative
+Explainable
+Deterministic given identical inputs and versions
+4. What SIM Does Not Do
+To preserve system safety and clarity, SIM explicitly does not:
+Approve actions or override governance (GGP)
+Execute trades, listings, or campaigns (DAT)
+Allocate or move capital (FLO)
+Generate insights from raw data (PIE, SIG)
+Manage identities, permissions, or entities (IDN, PECA)
+SIM models possibilities — it does not choose or act.
+5. Core Capabilities
+SIM provides the following core capabilities:
+Counterfactual Simulation
+Evaluate alternative decisions against a shared baseline.
+Scenario Construction
+Combine signals, insights, and constraints into coherent futures.
+Time-Series Projection
+Project outcomes across configurable time horizons.
+Uncertainty & Sensitivity Analysis
+Quantify variance and identify critical assumptions.
+Constraint Enforcement
+Respect financial, operational, temporal, and governance limits.
+Explainable Results
+Every output includes assumptions, drivers, and confidence bounds.
+6. Scenario Classes
+SIM supports multiple scenario classes:
+Baseline — continuation of observed reality
+Optimistic / Pessimistic — bounded outcome extremes
+Action-Driven — explicit execution proposals
+Stress Test — adverse shocks and constraint pressure
+Comparative — side-by-side evaluation of alternatives
+7. Interaction With Other Engines
+Engine
+Relationship to SIM
+SIG
+Supplies observed signals and aggregates
+PIE
+Supplies insight candidates
+DAT
+Supplies execution parameters and costs
+FLO
+Supplies financial constraints and exposure
+GGP
+Governs scenario usage and approval
+PTE
+Compares simulated outcomes vs reality
+SIM never bypasses governance or execution controls.
+8. Operational Posture
+SIM is:
+Compute-heavy, write-light
+Often batch-oriented, with optional on-demand runs
+Replayable and deterministic
+Suitable for both human-in-the-loop and automated pipelines
+9. Expected Outcomes
+When SIM is functioning correctly:
+Risk is surfaced before capital is committed
+Downside scenarios are explicit rather than implicit
+Sensitivity and uncertainty are understood
+Governance discussions are faster and better informed
+SIM reduces surprise, not ambition.
+10. Document Position in SIM Corpus
+This document provides the conceptual overview of SIM.
+It is complemented by:
+NS-SIM-000 — CHARTER
+NS-SIM-002 — TAXONOMY
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-004 — LIFECYCLE
+NS-SIM-005 — DECISION
+11. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Overview
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,642 @@
+NS-LUM-014 — DATADEF
+
+0. Overview
+
+This document defines field-level data definitions, validation constraints, enums, and redaction rules for LUM (Luminance Engine).
+
+LUM stores both:
+
+Telemetry (logs/metrics/traces/events)
+
+Evidence-support artifacts (bundles, artifacts, access logs)
+
+Governance note:
+
+GGP defines authoritative policy for evidence retention/access.
+
+LUM enforces these requirements and records the authorizing decision_id when applicable.
+
+1. Canonical Field Dictionary (Cross-Cutting)
+
+1.1 Identifiers
+
+signal_id — string; globally unique; immutable.
+
+event_id — string; globally unique; immutable.
+
+trace_id — string; W3C-compatible allowed.
+
+span_id — string.
+
+request_id — string.
+
+workflow_id — string; cross-engine workflow boundary.
+
+task_id — string; CWP work item identifier.
+
+job_id — string; executor job identifier (CDE/DAT).
+
+decision_id — string; GGP decision reference.
+
+integration_id — string; external integration identifier.
+
+entity_id — string; IDN entity reference.
+
+actor_id — string; human/agent/service principal identifier.
+
+incident_id — string.
+
+alert_id — string.
+
+bundle_id — string.
+
+artifact_id — string.
+
+Constraints
+
+IDs MUST be non-empty.
+
+IDs SHOULD be URL-safe.
+
+IDs MUST be immutable once written.
+
+1.2 Timestamps
+
+occurred_at — RFC3339 timestamp; when it happened at source.
+
+received_at — RFC3339 timestamp; when LUM received it.
+
+created_at, updated_at, resolved_at, sealed_at, closed_at — RFC3339.
+
+Constraints
+
+received_at >= occurred_at (allow clock skew tolerance).
+
+1.3 Environment & source
+
+environment — enum: dev|uat|prod
+
+source_engine — enum-like string: GGP|FLO|IDN|CWP|SIG|MUX|DRE|CDE|DAT|LUM|OTHER
+
+service — string; required for telemetry.
+
+component — string; optional.
+
+region — string; optional.
+
+cluster — string; optional.
+
+1.4 Classification & retention
+
+classification — enum: public|internal|confidential|restricted
+
+retention_class — enum: hot|warm|cold|evidence
+
+Constraints
+
+restricted implies stricter access logging.
+
+evidence retention_class requires GGP policy reference for access controls.
+
+2. Correlation Object (Canonical)
+
+2.1 correlation object
+
+Fields (all optional, but required by context):
+
+request_id
+
+trace_id
+
+span_id
+
+workflow_id
+
+task_id
+
+job_id
+
+decision_id
+
+integration_id
+
+entity_id
+
+actor_id
+
+session_id (optional)
+
+tenant_id (optional)
+
+Validation rules
+
+If span_id is present, trace_id MUST be present.
+
+If signal is category=audit, decision_id SHOULD be present.
+
+If signal is integration-related, integration_id MUST be present.
+
+3. Telemetry Signal Definitions
+
+3.1 SignalRecord (Base)
+
+Required fields
+
+signal_id
+
+signal_type (enum: log|metric|trace|event)
+
+occurred_at
+
+received_at
+
+environment
+
+source_engine
+
+service
+
+correlation (object)
+
+schema_id, schema_version
+
+Optional fields
+
+component
+
+severity (used mostly for events)
+
+classification
+
+retention_class
+
+payload_redacted
+
+payload_ref
+
+Constraints
+
+payload_redacted and payload_ref MAY co-exist (small inline + full ref).
+
+payload_redacted MUST be redacted.
+
+3.2 LogRecord
+
+Required fields
+
+all SignalRecord required fields
+
+log_level enum: debug|info|warn|error|fatal
+
+category enum: audit|security|application|integration|system
+
+message string (<= 4096 recommended)
+
+Optional
+
+attributes object (redacted)
+
+error object
+
+error_type string
+
+error_code string
+
+stack_ref (pointer)
+
+Constraints
+
+No secrets/credentials in message.
+
+attributes keys should be limited to avoid high cardinality.
+
+3.3 Metric sample
+
+Two levels:
+
+MetricSeries definition
+
+MetricSample ingestion
+
+MetricSeries fields
+
+metric_id string
+
+name string (snake_case recommended)
+
+metric_type enum: counter|gauge|histogram|summary
+
+unit string
+
+labels_schema array of allowed label keys
+
+MetricSample fields
+
+name
+
+labels object (keys constrained by labels_schema)
+
+timestamp
+
+value number
+
+Constraints
+
+label cardinality must be controlled (no free-form IDs unless hashed/truncated).
+
+3.4 Trace
+
+Trace fields
+
+trace_id
+
+root_span_id
+
+started_at, ended_at
+
+duration_ms integer
+
+status enum: ok|error
+
+sampling_strategy enum: head|tail|error_only|priority
+
+correlation object
+
+Span fields
+
+span_id
+
+trace_id
+
+parent_span_id (nullable)
+
+name string
+
+service, component (optional)
+
+started_at, ended_at, duration_ms
+
+status enum: ok|error
+
+attributes object (redacted)
+
+Constraints
+
+spans must reference existing trace_id
+
+duration_ms must be non-negative
+
+3.5 DomainEvent
+
+Required
+
+event_id
+
+event_type string (namespace recommended)
+
+occurred_at
+
+source_engine
+
+correlation
+
+schema_id, schema_version
+
+Optional
+
+payload_redacted
+
+payload_ref
+
+severity enum: sev0|sev1|sev2|sev3|sev4 (optional)
+
+Event type naming (recommended)
+
+integration.*
+
+workflow.*
+
+decision.*
+
+job.*
+
+evidence.*
+
+4. Reliability Object Definitions
+
+4.1 SLI
+
+sli_id string
+
+name string
+
+description string
+
+signal_source (metric/query ref)
+
+calculation (definition)
+
+owner (actor_id or team)
+
+status enum: draft|validated|active|deprecated
+
+version semver string
+
+4.2 SLO
+
+slo_id string
+
+name string
+
+objective_target number (0–100 or 0–1; choose one standard)
+
+window string (e.g., 7d, 30d)
+
+sli_id string
+
+alert_policy_ids[]
+
+status enum: draft|approved|active|tuned|deprecated
+
+version semver string
+
+4.3 AlertPolicy
+
+policy_id string
+
+name string
+
+policy_type enum: threshold|anomaly|slo_burn|quota
+
+condition object/string (backend-specific)
+
+severity_mapping object
+
+dedupe_key_template string
+
+routing_policy_id string
+
+status enum: draft|staged|enabled|suppressed|retired
+
+version semver string
+
+4.4 AlertInstance
+
+alert_id string
+
+policy_id string
+
+policy_version string
+
+triggered_at timestamp
+
+resolved_at timestamp (nullable)
+
+current_state enum: open|acked|resolved
+
+severity enum: sev0|sev1|sev2|sev3|sev4
+
+group_key string
+
+summary string
+
+details_ref (pointer)
+
+correlation object
+
+linked_incident_id (nullable)
+
+lum_decision_id string (nullable)
+
+5. Incident Object Definitions
+
+5.1 Incident
+
+incident_id string
+
+title string
+
+incident_type enum: availability|degradation|data|security|integration
+
+severity enum: sev0|sev1|sev2|sev3|sev4
+
+state enum: detected|triaging|mitigating|monitoring|resolved|closed
+
+created_at, updated_at
+
+resolved_at, closed_at (nullable)
+
+owner_ic actor_id
+
+participants[] actor_id
+
+primary_engine string
+
+primary_service string (optional)
+
+integration_id (nullable)
+
+summary_ref (pointer)
+
+postmortem_id (nullable)
+
+5.2 IncidentTimelineEntry
+
+entry_id string
+
+incident_id string
+
+occurred_at timestamp
+
+entry_type enum: alert|signal|note|action|status_change
+
+ref_id string (nullable)
+
+message string
+
+actor_id (nullable)
+
+6. Evidence Support Definitions
+
+6.1 EvidenceBundle
+
+bundle_id string
+
+bundle_type enum: payment|publication|permission_change|release|other
+
+state enum: open|collecting|ready_to_seal|sealed|expired|deleted
+
+created_at, sealed_at (nullable)
+
+decision_id string (GGP)
+
+workflow_id string
+
+integration_id (nullable)
+
+entity_id (nullable)
+
+artifacts[] artifact_id
+
+audit_events[] audit_event_id
+
+integrity_hash string (nullable)
+
+format_version semver string
+
+access_policy_ref string
+
+Constraints
+
+sealing requires integrity_hash.
+
+6.2 EvidenceArtifact
+
+artifact_id string
+
+artifact_type enum: receipt|invoice|webhook_payload|signature_record|approval|delivery_receipt|log_extract|other
+
+storage_ref string
+
+hash string
+
+created_at timestamp
+
+captured_by actor_id/service
+
+classification enum
+
+redaction_status enum: redacted|n/a
+
+6.3 AuditEvent (stored copy/reference)
+
+audit_event_id string
+
+action_type string
+
+occurred_at timestamp
+
+actor_id string
+
+entity_id (nullable)
+
+decision_id string
+
+workflow_id string
+
+integration_id (nullable)
+
+inputs_ref, outputs_ref (pointers)
+
+schema_version string
+
+6.4 EvidenceAccessLog
+
+access_log_id string
+
+bundle_id string
+
+actor_id string
+
+access_type enum: view|export|download|share
+
+accessed_at timestamp
+
+decision_id string (GGP)
+
+purpose string (optional)
+
+client_context object (redacted)
+
+7. Integration Health Definitions
+
+7.1 IntegrationProfile
+
+integration_id string
+
+provider string
+
+category enum: payments|maps|workspace|other
+
+criticality enum: tier0|tier1|tier2
+
+baseline_slo_ids[]
+
+quota_limits object (optional)
+
+owner string
+
+7.2 IntegrationStatusSnapshot
+
+snapshot_id string
+
+integration_id string
+
+captured_at timestamp
+
+status enum: healthy|degraded|down
+
+error_rate number
+
+latency_p95 number
+
+quota_remaining number (optional)
+
+top_error_codes[] array
+
+lum_decision_id string (optional)
+
+8. Redaction & Sensitive Data Rules
+
+8.1 Never store
+
+raw API keys, secrets, tokens
+
+full credit card/bank details
+
+full government IDs
+
+8.2 Store only as hash/token
+
+customer emails/phone numbers (hash if needed for join)
+
+provider webhook payloads (store hash + storage_ref to encrypted blob)
+
+8.3 Field allowlist approach
+
+define per schema_id allowed fields
+
+drop everything else
+
+8.4 Evidence viewer reveal controls
+
+UI reveals require GGP authorization
+
+all reveals logged to EvidenceAccessLog
+
+9. High-Cardinality Guardrails
+
+Disallow or constrain:
+
+free-form IDs as metric labels
+
+unbounded tag sets
+
+Preferred
+
+hash/truncate identifiers
+
+use correlation IDs in events/logs rather than metric labels
+
+10. Minimum Required Fields by Context (Quick Table)
+
+Any signal: occurred_at, environment, source_engine, service, schema_id, schema_version
+
+Integration signal: correlation.integration_id
+
+Governed/audit signal: correlation.decision_id (recommended) + actor_id
+
+Trace span: trace_id required if span_id present
+
+Evidence access log: decision_id required
+

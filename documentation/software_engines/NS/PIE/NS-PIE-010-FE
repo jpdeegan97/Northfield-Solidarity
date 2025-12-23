@@ -1,0 +1,131 @@
+Product InsightIQ Engine (PIE)
+1. Purpose of This Document
+This document defines the frontend (FE) / visualization layer for PIE.
+The FE layer exists to provide:
+Human-readable insight exploration
+Transparent evidence and reasoning inspection
+Workflow-aligned review and handoff visibility
+This document does not prescribe a specific UI framework; it defines canonical screens, components, interactions, and data needs.
+2. FE Design Principles
+Explainability FirstEvery insight must show “why” (evidence + reasoning), not just “what.”
+Progressive DisclosureSummaries first, drill-down on demand.
+Governance AwarenessApproval status and governance outcomes must be visible.
+Replay & History VisibilityVersion history is a first-class view.
+Operational SafetyFE surfaces do not execute actions; they only reveal and route.
+3. Primary User Personas
+Operator / Strategist — reviews ranked insights and selects candidates for governance review
+Analyst — inspects evidence quality, model outputs, and counter-signals
+Governance Reviewer — reviews the package that would be approved in GGP
+4. Canonical Screens (MVP)
+4.1 Insight Feed (Ranked List)
+Goal: Rapid triage of the current insight universe.
+Core Elements:
+Ranking list with:Opportunity StatementConfidence ScoreRisk BandRelevance Window / decay indicatorStatus badge (Proposed / Under Review / Approved / Rejected / Expired)
+Key Interactions:
+Filter by status, type, time window
+Sort by confidence, risk, freshness
+Click to open Insight Detail
+4.2 Insight Detail (Explainability View)
+Goal: Full transparency into what PIE is claiming and why.
+Sections:
+Summary headerOpportunity StatementType, status, versionConfidence and risk summary
+Evidence BundleSignals (SIG IDs, trust scores, timestamps)Research artifacts (DRE IDs, confidence)Evidence grouping and corroboration
+Scoring & BreakdownScoring model versionFeature contributions (breakdown)
+Risks & Counter-signalsRisk flagsExplicit counter evidence
+Decay & RelevanceRelevance windowDecay rationale
+Governance PanelPromotion readinessGGP decision linkage (if applicable)
+4.3 Version History (Per Insight)
+Goal: Allow auditors and operators to see how an Insight evolved.
+Core Elements:
+List of versions with:Version numberTimestampReason for change (evidence/model/governance)Key deltas (statement/risk/confidence)
+Key Interactions:
+Compare versions side-by-side
+Pin a version for downstream reference
+4.4 Evidence Source Explorer (Optional MVP)
+Goal: Inspect signal sources for quality and noise.
+Core Elements:
+Source health panel (SIG)
+Trust score distributions
+Noise / decay tracking
+This view may be deferred if SIG provides its own visibility.
+5. Cross-Engine Visibility Requirements
+PIE FE must surface upstream and downstream links:
+SIG: show signal IDs and trust scores
+DRE: show artifact IDs and confidence annotations
+GGP: show governance decision ID and outcome
+SIM: show scenario analysis linkage (if available)
+PTE: show performance trajectories tied to an approved insight version
+PIE FE may link out to these systems, but does not replace them.
+6. Component Inventory (Suggested)
+InsightCard
+StatusBadge
+ConfidenceMeter
+RiskBadge
+FreshnessIndicator
+EvidenceList
+SignalRefRow
+ArtifactRefRow
+ScoreBreakdownPanel
+RiskPanel
+DecayPanel
+GovernanceLinkPanel
+VersionTimeline
+7. Data Requirements (API Needs)
+7.1 Insight Feed
+Required fields:
+insight_id
+current_version
+opportunity_statement
+confidence_score
+risk_band
+status
+relevance_window_end
+updated_at
+7.2 Insight Detail
+Required fields:
+Insight record (versioned)
+Evidence bundle items
+Scoring results + breakdown
+Risk profile
+Narrative
+Decay model
+Governance linkage
+7.3 Version History
+Required fields:
+List of versions
+Delta metadata
+Transition history
+8. Non-Functional Requirements
+Fast read performance (ranked list must be instant)
+Traceability (every displayed claim links to evidence)
+Audit friendliness (stable IDs, version pins)
+No execution affordances (no “run” buttons)
+9. Document Position in PIE Corpus
+This FE document is informed by:
+NS-PIE-001 — OVERVIEW
+NS-PIE-002 — TAXONOMY
+NS-PIE-007 — DATAMODEL
+It complements:
+NS-PIE-011 — APIMAP
+NS-PIE-012 — STATE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial PIE FE / Visualization Specification
+
+Parent / HoldCo Manager
+Status: Draft

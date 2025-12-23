@@ -1,0 +1,157 @@
+Financial Ledger Orchestrator (FLO)
+Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for FLO, strictly aligned to the existing NS-GGP document structure (000–014).
+FLO is the financial system of record and reconciliation engine for Northfield Solidarity. It does not execute trades(DAT), does not generate insights (PIE), and does not govern policy (GGP). FLO records, reconciles, attributes, and explains financial reality.
+This master plan ensures:
+Financial truth is centralized
+Execution outcomes are reconciled
+Governance and auditability extend into money flows
+
+FLO Documentation Index (Canonical)
+
+NS-FLO-000 — CHARTER
+Purpose: Define why FLO exists
+Scope:
+Mission of FLO
+Why financial truth must be centralized
+FLO’s role within the NS engine ecosystem
+Explicit non-goals (execution, governance, forecasting)
+Mirrors: NS-GGP-000
+
+NS-FLO-001 — OVERVIEW
+Purpose: High-level conceptual framing
+Scope:
+What FLO records (transactions, balances, attribution)
+Relationship to DAT (execution outcomes)
+Relationship to GGP (audit & controls)
+Mirrors: NS-GGP-001
+
+NS-FLO-002 — TAXONOMY
+Purpose: Define FLO’s atomic financial concepts
+Scope:
+Ledger
+Transaction
+Account
+Balance
+Attribution
+Adjustment
+Mirrors: NS-GGP-002
+
+NS-FLO-003 — ARCHITECTURE
+Purpose: Logical financial architecture
+Scope:
+Ingestion of financial events
+Normalization
+Ledger posting
+Reconciliation
+Reporting outputs
+Logical design only (not infra).
+Mirrors: NS-GGP-003
+
+NS-FLO-004 — LIFECYCLE
+Purpose: End-to-end financial lifecycle
+Scope:
+Transaction ingestion
+Validation
+Posting
+Reconciliation
+Adjustment
+Close
+Mirrors: NS-GGP-004
+
+NS-FLO-005 — DECISION
+Purpose: Financial decision semantics
+Scope:
+When automated posting is allowed
+When manual review is required
+Adjustment and correction decisions
+All financial decisions are auditable and policy-bounded.
+Mirrors: NS-GGP-005
+
+NS-FLO-006 — VERSION
+Purpose: Ledger and record versioning
+Scope:
+Immutable ledger principles
+Adjustment vs overwrite semantics
+Historical correctness
+Mirrors: NS-GGP-006
+
+NS-FLO-007 — DATAMODEL
+Purpose: Financial persistence and contracts
+Scope:
+Ledger tables
+Transaction schemas
+Attribution models
+Replay safety
+Mirrors: NS-GGP-007
+
+NS-FLO-008 — EEE (End-to-End Example)
+Purpose: Validate financial coherence
+Scope:
+Execution via DAT
+Financial recording via FLO
+Governance visibility via GGP
+Mirrors: NS-GGP-008
+
+NS-FLO-009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+MVP ledger services
+Integration points
+Reconciliation jobs
+Mirrors: NS-GGP-009
+
+NS-FLO-010 — FE / VISUALIZATION
+Purpose: Financial visibility UX
+Scope:
+Ledger views
+Balance summaries
+Attribution dashboards
+Mirrors: NS-GGP-010
+
+NS-FLO-011 — APIMAP
+Purpose: API → financial surface mapping
+Scope:
+Ingestion APIs
+Query APIs
+Audit endpoints
+Mirrors: NS-GGP-011
+
+NS-FLO-012 — STATE
+Purpose: Financial state semantics
+Scope:
+Balance derivation
+Consistency guarantees
+Eventual vs strong consistency
+Mirrors: NS-GGP-012
+
+NS-FLO-013 — RUNBOOK
+Purpose: Operational financial controls
+Scope:
+Startup
+Reconciliation cycles
+Incident handling
+Correction procedures
+Mirrors: NS-GGP-013
+
+NS-FLO-014 — DATADEF
+Purpose: Canonical financial data definitions
+Scope:
+Ledger schemas
+Transaction schemas
+Attribution contracts
+Mirrors: NS-GGP-014
+
+Cross-Engine Dependencies
+FLO integrates with but does not own:
+DAT — execution outcomes
+GGP — audit and governance
+SIM — scenario financial modeling
+MUX — external payment rails
+
+Completion Criteria
+FLO documentation is complete when:
+NS-FLO-000 → NS-FLO-014 exist
+Financial truth is singular and auditable
+No execution or governance logic leaks into FLO
+

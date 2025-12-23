@@ -1,0 +1,268 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document defines the authoritative data model for the Content Distribution Engine (CDE).
+It specifies:
+core tables / collections
+primary and foreign keys
+immutability and versioning semantics
+relationships between plans, intents, executions, proofs, and feedback
+This model prioritizes auditability, replay, and deterministic execution.
+2. Data Modeling Principles
+Append-Only Execution History — attempts and proofs are never overwritten
+Plan–Intent–Attempt Separation — intent is never conflated with execution
+Explicit Versioning — every mutable concept is versioned
+Foreign Keys Over Copies — reference, don’t duplicate
+Cross-Engine ID Stability — IDN canonical IDs only
+3. Core Authoritative Tables (PostgreSQL)
+3.1 content_artifact
+Represents distributable content references.
+Column
+Type
+Notes
+content_id
+UUID (PK)
+Canonical content ID
+content_type
+VARCHAR
+listing / media / document / notification
+source_engine
+VARCHAR
+PIE / DRE / external
+content_version
+VARCHAR
+External or internal
+created_at
+TIMESTAMP
+UTC
+3.2 distribution_plan
+Defines governed distribution intent.
+Column
+Type
+Notes
+plan_id
+UUID (PK)
+
+plan_version
+INTEGER
+
+status
+VARCHAR
+draft / approved / rejected / archived
+actor_id
+UUID
+IDN canonical
+created_at
+TIMESTAMP
+UTC
+approved_at
+TIMESTAMP
+nullable
+3.3 distribution_plan_item
+Associates content with target destinations.
+Column
+Type
+Notes
+plan_item_id
+UUID (PK)
+
+plan_id
+UUID
+FK
+content_id
+UUID
+FK
+destination_id
+UUID
+FK
+3.4 distribution_intent
+Materialized execution intent.
+Column
+Type
+Notes
+intent_id
+UUID (PK)
+
+plan_id
+UUID
+FK
+plan_version
+INTEGER
+
+trigger_type
+VARCHAR
+manual / scheduled / event
+actor_id
+UUID
+IDN canonical
+triggered_at
+TIMESTAMP
+UTC
+3.5 execution_attempt
+Single execution attempt per destination.
+Column
+Type
+Notes
+attempt_id
+UUID (PK)
+
+intent_id
+UUID
+FK
+destination_id
+UUID
+FK
+status
+VARCHAR
+pending / running / success / failed
+retry_count
+INTEGER
+
+started_at
+TIMESTAMP
+UTC
+completed_at
+TIMESTAMP
+nullable
+adapter_name
+VARCHAR
+
+adapter_version
+VARCHAR
+
+ruleset_version
+VARCHAR
+
+correlation_id
+UUID
+
+3.6 delivery_proof
+Immutable proof of successful distribution.
+Column
+Type
+Notes
+proof_id
+UUID (PK)
+
+attempt_id
+UUID
+FK
+proof_type
+VARCHAR
+external_id / url / receipt
+proof_value
+TEXT
+
+recorded_at
+TIMESTAMP
+UTC
+3.7 distribution_event
+Append-only event ledger.
+Column
+Type
+Notes
+event_id
+UUID (PK)
+
+event_type
+VARCHAR
+PlanApproved / AttemptFailed
+subject_ref
+VARCHAR
+plan_id / intent_id / attempt_id
+payload
+JSONB
+
+occurred_at
+TIMESTAMP
+UTC
+correlation_id
+UUID
+
+3.8 cde_decision
+Decision artifacts.
+Column
+Type
+Notes
+decision_id
+UUID (PK)
+
+decision_type
+VARCHAR
+
+subject_ref
+VARCHAR
+
+outcome
+VARCHAR
+
+rationale
+JSONB
+
+ruleset_version
+VARCHAR
+
+evaluated_at
+TIMESTAMP
+UTC
+correlation_id
+UUID
+
+4. Feedback & Signal Tables
+4.1 distribution_feedback
+Captured feedback signals.
+Column
+Type
+Notes
+feedback_id
+UUID (PK)
+
+content_id
+UUID
+FK
+destination_id
+UUID
+FK
+signal_type
+VARCHAR
+impressions / clicks / rejection
+value
+NUMERIC
+
+observed_at
+TIMESTAMP
+UTC
+Feedback forwarded to SIG.
+5. Projections & Read Models
+plan_execution_summary
+destination_success_rate
+content_distribution_history
+Rebuildable from event ledger.
+6. Referential Integrity Rules
+plan_version must match intent.plan_version
+attempts reference immutable intents
+proofs reference successful attempts only
+7. Cross-Engine References
+actor_id resolved via IDN
+content_id sourced from PIE/DRE
+destination_id resolved via MUX
+8. Migration & Evolution Strategy
+additive schema changes only
+backfill via replay
+projection rebuilds as needed
+9. Document Position in CDE Corpus
+This data model builds upon:
+NS-CDE-002 — TAXONOMY
+NS-CDE-003 — ARCHITECTURE
+NS-CDE-006 — VERSION
+It informs:
+NS-CDE-014 — DATADEF
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE Data Model
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,154 @@
+Signal Aggregation Engine (SIG)
+Documentation Master Plan (Aligned to NS-GGP Canonical Template)
+PurposeThis document defines the authoritative documentation master plan for SIG, strictly aligned to the existing NS-GGP document structure (000–014).
+SIG is the signal intake, normalization, and trust-scoring engine for Northfield Solidarity. It collects raw signals from many sources and produces clean, provenance-aware, trust-scored signals for downstream engines. SIG does not generate insights (PIE), execute actions (DAT), or govern decisions (GGP).
+
+SIG Documentation Index (Canonical)
+
+NS-SIG-000 — CHARTER
+Purpose: Define why SIG exists
+Scope:
+Mission of SIG
+Why signal aggregation must be centralized
+SIG’s role as the entry point for market intelligence
+Explicit non-goals (insight synthesis, execution, governance)
+Mirrors: NS-GGP-000
+
+NS-SIG-001 — OVERVIEW
+Purpose: High-level conceptual framing
+Scope:
+What constitutes a signal
+Types of signal sources (market, social, pricing, ops)
+Downstream consumers: PIE, DAT, SIM, GGP (audit)
+Mirrors: NS-GGP-001
+
+NS-SIG-002 — TAXONOMY
+Purpose: Define SIG’s atomic signal concepts
+Scope:
+Raw Signal
+Source
+Provenance
+Trust Score
+Noise / Decay
+These primitives define what SIG produces.
+Mirrors: NS-GGP-002
+
+NS-SIG-003 — ARCHITECTURE
+Purpose: Logical signal architecture
+Scope:
+Ingestion adapters
+Normalization pipelines
+Trust scoring
+Deduplication
+Output emission
+Logical design only (not infra).
+Mirrors: NS-GGP-003
+
+NS-SIG-004 — LIFECYCLE
+Purpose: End-to-end signal lifecycle
+Scope:
+Signal arrival
+Validation
+Normalization
+Trust scoring
+Decay and retirement
+Mirrors: NS-GGP-004
+
+NS-SIG-005 — DECISION
+Purpose: Signal acceptance & suppression logic
+Scope:
+When signals are accepted
+When signals are suppressed or down-weighted
+Automated vs manual overrides
+SIG decisions affect trust, not execution.
+Mirrors: NS-GGP-005
+
+NS-SIG-006 — VERSION
+Purpose: Signal version semantics
+Scope:
+Source schema changes
+Trust model updates
+Backward compatibility
+Mirrors: NS-GGP-006
+
+NS-SIG-007 — DATAMODEL
+Purpose: Signal persistence and contracts
+Scope:
+Raw signal storage
+Normalized signal records
+Provenance tracking
+Replay assumptions
+Mirrors: NS-GGP-007
+
+NS-SIG-008 — EEE (End-to-End Example)
+Purpose: Validate signal coherence
+Scope:
+Signal from external source
+Normalization and trust scoring
+Consumption by PIE and DAT
+Mirrors: NS-GGP-008
+
+NS-SIG-009 — IMPL
+Purpose: Implementation blueprint
+Scope:
+Ingestion workers
+Normalization services
+Trust scoring components
+Mirrors: NS-GGP-009
+
+NS-SIG-010 — FE / VISUALIZATION
+Purpose: Signal observability UX
+Scope:
+Signal dashboards
+Trust score inspection
+Source health views
+Mirrors: NS-GGP-010
+
+NS-SIG-011 — APIMAP
+Purpose: API → signal surface mapping
+Scope:
+Ingestion APIs
+Query APIs
+Event outputs
+Mirrors: NS-GGP-011
+
+NS-SIG-012 — STATE
+Purpose: Signal state semantics
+Scope:
+Deduplication state
+Decay state
+Consistency guarantees
+Mirrors: NS-GGP-012
+
+NS-SIG-013 — RUNBOOK
+Purpose: Operational signal controls
+Scope:
+Ingestion throttling
+Source disablement
+Data poisoning response
+Mirrors: NS-GGP-013
+
+NS-SIG-014 — DATADEF
+Purpose: Canonical signal data definitions
+Scope:
+Signal schema
+Provenance schema
+Trust score schema
+Mirrors: NS-GGP-014
+
+Cross-Engine Dependencies
+SIG integrates with but does not own:
+MUX — external data access
+PIE — insight synthesis
+DAT — execution signals
+SIM — scenario analysis
+GGP — audit and governance
+
+Completion Criteria
+SIG documentation is complete when:
+NS-SIG-000 → NS-SIG-014 exist
+Signal trust and provenance are explicit
+Noise and poisoning are detectable
+Downstream engines can reason about signal quality
+
+Next engine to generate:➡️ SIM — Simulation & Scenario Engine

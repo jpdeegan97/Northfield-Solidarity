@@ -1,0 +1,197 @@
+Content Distribution Engine (CDE)
+1. Purpose of This Document
+This document provides a concrete implementation blueprint for the Content Distribution Engine (CDE).
+It translates CDE’s architecture, lifecycle, decisions, versioning, and data model into:
+  runnable service components and responsibilities
+  module boundaries and interfaces
+  persistence and projection strategy
+  idempotency, retries, and DLQ patterns
+  phased MVP → production rollout plan
+This plan is compatible with a Python/FastAPI + Docker ecosystem, while remaining tech-agnostic.
+2. Implementation Scope (MVP)
+The CDE MVP must support:
+  Register distributable content artifacts (references)
+  Create/approve distribution plans (governed gate via GGP)
+  Materialize intents on schedule/trigger
+  Fan-out per-destination execution attempts
+  Execute via MUX adapters
+  Capture immutable delivery proofs
+  Classify and ingest feedback signals (forward to SIG)
+  Provide operational read APIs (plans/intents/attempts/proofs)
+  Deterministic audit trail (events + decisions)
+Out of scope (MVP):
+  advanced multi-step workflows per channel
+  complex content transformation pipeline
+  automated cross-destination optimization
+3. Service Decomposition
+3.1 cde-api (Plan & Audit API)
+Responsibilities:
+  create and manage plan drafts
+  submit plans for approval
+  surface execution status and audit timelines
+  provide read endpoints for operators and auditors
+Write endpoints are guarded and audited.
+3.2 cde-orchestrator (Intent Materializer)
+Responsibilities:
+  watch for approved plans reaching schedule time
+  create immutable intents
+  expand intents into per-destination execution attempts
+Can run as:
+  a cron-like loop (MVP)
+  an event-driven consumer (later)
+3.3 cde-dispatcher (Execution Dispatcher)
+Responsibilities:
+  claim pending attempts
+  enforce concurrency and throttling per channel
+  invoke MUX adapters
+  apply retry/backoff policy
+  emit events and decisions
+3.4 cde-feedback (Feedback Ingest)
+Responsibilities:
+  accept feedback payloads from adapters / platforms
+  normalize and persist feedback
+  forward structured signals to SIG
+3.5 cde-projector (Read Models)
+Responsibilities:
+  build read-optimized summaries
+  maintain dashboards (plan execution summary, success rates)
+MVP option: build on-demand queries; later: materialized projections.
+4. Storage & Data Access
+Authoritative store:
+  PostgreSQL tables from NS-CDE-007 — DATAMODEL
+Optional performance stores:
+  Redis (hot attempt state, rate limiter tokens)
+  Kafka (event distribution)
+Repository patterns:
+  immutable write methods for events/proofs
+  transactional integrity for plan approval → intent creation
+5. Execution Model
+5.1 Attempt Claiming
+To prevent double-execution:
+  dispatcher claims attempts using a transaction with row locking
+  sets status to running
+5.2 Adapter Invocation
+CDE calls MUX adapters using:
+  request envelope (content_ref + destination + idempotency key)
+  strict timeout and retry policy
+5.3 Idempotency Contract
+Every attempt has an idempotency key derived from:
+  content_id
+  content_version
+  destination_id
+  plan_id
+  plan_version
+Adapters must accept this key.
+6. Retry, Backoff, and DLQ
+6.1 Error Classification
+CDE classifies errors as:
+  transient (timeouts, 5xx)
+  permanent (validation, policy rejection)
+  credential (auth failure)
+6.2 Retry Policy
+  transient → retry with exponential backoff
+  permanent → stop and escalate
+  credential → stop and open incident
+6.3 DLQ Strategy
+When an attempt exhausts retries:
+  mark attempt failed
+  emit AttemptDLQd event
+  create operator queue item
+DLQ is logical (table-backed) in MVP; can become Kafka DLQ later.
+7. Governance Integration (GGP)
+Plan approval flow:
+ plan draft created
+ plan submitted with:
+  actor_id
+  reason
+  content refs
+ cde-api calls GGP to evaluate release eligibility
+ on approval:
+  plan status becomes approved
+  governance_ref recorded
+Execution requires:
+  approved plan
+  unexpired window
+8. Observability
+Metrics:
+  attempts/sec per channel
+  success/failure rate per destination
+  mean time to proof
+  retry counts
+Logs:
+  correlation_id
+  plan_id / intent_id / attempt_id
+  adapter response code
+Tracing:
+  correlation propagated from plan submission through attempt execution
+9. Security & Secrets
+  adapter credentials stored in vault / secrets manager (not in CDE DB)
+  service-to-service auth for:
+  GGP approval checks
+  MUX adapter calls
+  SIG feedback forwarding
+All writes require actor attribution (human or service).
+10. Suggested Module Layout
+cde/
+├── api/
+│   ├── routes/
+│   ├── schemas/
+│   └── middleware/
+├── planning/
+│   ├── plans.py
+│   └── approval.py
+├── orchestration/
+│   ├── intents.py
+│   └── scheduler.py
+├── execution/
+│   ├── dispatcher.py
+│   ├── retries.py
+│   ├── idempotency.py
+│   └── mux_client.py
+├── proofs/
+│   └── recorder.py
+├── feedback/
+│   ├── ingest.py
+│   └── sig_forwarder.py
+├── events/
+│   ├── ledger.py
+│   └── event_types.py
+├── projections/
+│   ├── views.py
+│   └── summaries.py
+├── store/
+│   ├── models.py
+│   └── repository.py
+└── config/
+11. MVP Rollout Plan
+ Implement DB schema + migrations
+ Implement content registration + plan drafts
+ Implement GGP approval integration
+ Implement orchestrator (approved plan → intent → attempts)
+ Implement dispatcher (claim + adapter call + proof record)
+ Implement retry/backoff + logical DLQ table
+ Implement feedback ingestion + SIG forwarding
+ Implement operational read endpoints and summaries
+ Add Kafka event publication (optional)
+ Harden runbook and alerting
+12. Document Position in CDE Corpus
+This implementation plan builds upon:
+  NS-CDE-003 — ARCHITECTURE
+  NS-CDE-004 — LIFECYCLE
+  NS-CDE-005 — DECISION
+  NS-CDE-006 — VERSION
+  NS-CDE-007 — DATAMODEL
+  NS-CDE-008 — EEE
+It informs:
+  NS-CDE-011 — APIMAP
+  NS-CDE-013 — RUNBOOK
+13. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial CDE MVP Implementation Plan
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,433 @@
+Market Integration Layer (MUX)
+1. Purpose of This Document
+This document defines the canonical data definitions for the Market Integration Layer (MUX).
+It is the single authoritative reference for:
+  Field-level semantics of all MUX entities
+  Invariants and validation rules
+  Provenance and integrity guarantees
+  Cross-engine data contracts
+MUX DATADEF intentionally avoids business interpretation and preserves external truth as asserted.
+2. Data Definition Principles
+ External Truth Preservation — represent what the source asserts
+ Append-Only Records — no destructive updates
+ Separation of Capture vs Canonical — raw ≠ normalized
+ Deterministic Deduplication — stable keys and hashes
+ Audit Completeness — provenance is mandatory
+3. Identifier Conventions
+  capture_id (UUID): raw inbound payload
+  artifact_id (UUID): canonical external artifact
+  external_id (String): source identifier
+  connector_id (String): integration identifier
+  decision_id (UUID): decision artifact
+  job_id (UUID): replay/backfill job
+  correlation_id (UUID): end-to-end trace ID
+All timestamps are UTC.
+4. Canonical Entity Definitions
+4.1 Raw Capture Record (raw\_capture\_record)
+Meaning: Immutable record of an inbound external payload.
+Field
+Type
+Required
+Description
+capture_id
+UUID
+Yes
+Raw capture identifier
+connector_id
+String
+Yes
+Connector
+source_system
+String
+Yes
+External platform
+ingestion_method
+Enum
+Yes
+webhook / polling / batch
+received_at
+Timestamp
+Yes
+Ingress time
+payload
+JSON/BLOB
+Yes
+Raw payload (redacted)
+signature_valid
+Boolean
+No
+Signature check result
+integrity_hash
+String
+Yes
+Payload hash
+schema_version
+String
+No
+Detected schema version
+outcome
+Enum
+Yes
+accepted / rejected / quarantined
+Invariants:
+  Raw payload is never mutated
+4.2 Canonical Artifact (canonical_artifact)
+Meaning: Normalized representation of external truth.
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+Canonical artifact ID
+artifact_type
+Enum
+Yes
+platform_event / transaction / statement / fulfillment / platform_state
+source_system
+String
+Yes
+External platform
+external_id
+String
+No
+Primary external identifier
+occurred_at
+Timestamp
+Yes
+External time
+first_seen_at
+Timestamp
+Yes
+First ingestion
+last_confirmed_at
+Timestamp
+No
+Last confirmation
+integrity_hash
+String
+Yes
+Canonical hash
+completeness
+Enum
+Yes
+full / partial
+trust_metadata
+JSON
+Yes
+Integrity, latency, confidence
+capture_ids
+Array
+Yes
+Linked raw captures
+Invariants:
+  Canonical artifacts are immutable
+4.3 Platform Event Artifact (platform\_event\_artifact)
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+FK to canonical_artifact
+event_type
+String
+Yes
+Platform event type
+payload
+JSON
+Yes
+Normalized payload
+correlation_hint
+String
+No
+Downstream hint
+4.4 Transaction Artifact (transaction_artifact)
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+FK to canonical_artifact
+transaction_type
+String
+Yes
+charge / refund / payout / fee
+gross_amount
+Decimal
+Yes
+Signed amount
+currency
+String
+Yes
+ISO 4217
+settlement_status
+String
+Yes
+pending / settled / failed
+counterparty
+String
+No
+Optional
+4.5 Statement Artifact (statement_artifact)
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+FK
+statement_id
+String
+Yes
+External statement ID
+period_start
+Date
+Yes
+Start
+period_end
+Date
+Yes
+End
+snapshot_hash
+String
+Yes
+Snapshot integrity hash
+4.6 Statement Line Item (statement\_line\_item)
+Field
+Type
+Required
+Description
+line_item_id
+UUID
+Yes
+Line item ID
+artifact_id
+UUID
+Yes
+Statement FK
+external_line_id
+String
+No
+External identifier
+amount
+Decimal
+Yes
+Signed amount
+currency
+String
+Yes
+ISO
+occurred_at
+Timestamp
+Yes
+External time
+memo
+String
+No
+Description
+Constraints:
+  (artifact_id, external_line_id) unique when present
+4.7 Fulfillment Artifact (fulfillment_artifact)
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+FK
+fulfillment_status
+String
+Yes
+shipped / delivered / returned
+carrier
+String
+No
+Optional
+tracking_ref
+String
+No
+Optional
+4.8 Platform State Artifact (platform\_state\_artifact)
+Field
+Type
+Required
+Description
+artifact_id
+UUID
+Yes
+FK
+state_type
+String
+Yes
+outage / policy / rate_limit
+state_value
+String
+Yes
+Description
+detected_at
+Timestamp
+Yes
+Detection time
+expected_resolution
+Timestamp
+No
+Optional
+4.9 Deduplication Reference (artifact\_dedupe\_ref)
+Field
+Type
+Required
+Description
+dedupe_id
+UUID
+Yes
+Reference ID
+artifact_id
+UUID
+Yes
+Canonical artifact
+source_system
+String
+Yes
+Source
+external_id
+String
+Yes
+External ID
+integrity_hash
+String
+Yes
+Hash
+linked_at
+Timestamp
+Yes
+Link time
+4.10 Decision Artifact (decision_artifact)
+Field
+Type
+Required
+Description
+decision_id
+UUID
+Yes
+Decision ID
+decision_type
+String
+Yes
+trust / normalize / dedupe / publish / replay
+outcome
+String
+Yes
+Result
+rationale
+JSON
+Yes
+Explanation
+ruleset_name
+String
+Yes
+Ruleset
+ruleset_version
+String
+Yes
+Version
+connector_id
+String
+No
+Context
+evaluated_at
+Timestamp
+Yes
+Time
+correlation_id
+UUID
+Yes
+Trace
+5. Job Entities
+5.1 Replay / Backfill Job (job_record)
+Field
+Type
+Required
+Description
+job_id
+UUID
+Yes
+Job ID
+job_type
+Enum
+Yes
+replay / backfill / reprocess
+scope
+JSON
+Yes
+Job scope definition
+state
+Enum
+Yes
+queued / running / completed / failed / cancelled
+requested_by
+String
+Yes
+Actor
+reason
+String
+Yes
+Justification
+governance_ref
+String
+No
+Optional
+created_at
+Timestamp
+Yes
+Creation time
+completed_at
+Timestamp
+No
+Completion time
+6. Relationship Summary
+  raw_capture_record → canonical_artifact (N:1)
+  canonical_artifact → typed artifacts (1:1)
+  canonical_artifact → artifact_dedupe_ref (1:N)
+  canonical_artifact → decision_artifact (1:N)
+  statement_artifact → statement_line_item (1:N)
+7. Cross-Engine Data Contracts (ID Only)
+Engine
+References
+FLO
+artifact_id, statement_id, line_item_id
+DAT
+artifact_id, transaction_type, fulfillment_status
+SIG
+platform_event_artifact
+PIE
+validated transaction artifacts
+GGP
+decision_artifact, job_record
+8. Invariants & Validation Rules
+  No mutation of raw or canonical records
+  Deduplication is additive only
+  All artifacts traceable to raw captures
+  All decisions traceable to ruleset versions
+9. Document Position in MUX Corpus
+This DATADEF completes the MUX documentation set.
+Informed by:
+  NS-MUX-007 — DATAMODEL
+  NS-MUX-012 — STATE
+  NS-MUX-013 — RUNBOOK
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial MUX Canonical Data Definitions
+Parent / HoldCo Manager
+Status: Draft

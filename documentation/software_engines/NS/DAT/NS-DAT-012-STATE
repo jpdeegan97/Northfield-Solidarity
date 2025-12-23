@@ -1,0 +1,355 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose of This Document
+This document defines the state model and state management semantics for DAT.
+It formalizes:
+Authoritative state machines for Execution Plans, Steps, and Runs
+Orthogonal sub-states (admission, constraints, connector health)
+Derived read-model semantics
+Consistency, idempotency, and late-arriving event handling
+The DAT state model is designed for safe external side-effects, strong auditability, and deterministic replay.
+2. State Categories
+DAT maintains three categories of state:
+Authoritative Plan StatePlan versions and lifecycle status
+Authoritative Execution State (Runs)Runtime state, checkpoints, step progress
+Derived StateDashboards, summaries, search indexes
+Authoritative state is append-only. Derived state is rebuildable.
+3. Plan State Machine (Authoritative)
+3.1 Canonical Plan Status Values
+draft
+submitted_for_approval
+approved
+staged
+executing
+completed
+aborted
+archived
+These align with NS-DAT-004.
+3.2 Plan Transition Rules
+
+
+
+From
+
+To
+
+Who Initiates
+
+Notes
+
+
+draft
+
+submitted_for_approval
+
+DAT
+
+Requires readiness report
+
+
+submitted_for_approval
+
+approved
+
+GGP
+
+Governance gate
+
+
+submitted_for_approval
+
+aborted
+
+GGP / Human
+
+Rejected/withdrawn
+
+
+approved
+
+staged
+
+DAT
+
+Staging validations completed
+
+
+staged
+
+executing
+
+DAT
+
+Admission checks pass
+
+
+executing
+
+completed
+
+DAT
+
+All steps completed
+
+
+executing
+
+aborted
+
+DAT / Human
+
+Kill switch / failure
+
+
+completed
+
+archived
+
+DAT
+
+Finalize and freeze
+
+
+aborted
+
+archived
+
+DAT
+
+Finalize and freeze
+Forbidden:
+archived → any
+aborted → executing without new plan_version
+4. Run State Machine (Authoritative)
+Execution of a plan_version produces one or more Runs.
+4.1 Run Status Values
+requested
+admission_denied
+running
+paused
+completed
+aborted
+failed
+Notes:
+Run state is separate from Plan state.
+A plan may be approved/staged but a run may be denied.
+4.2 Run Transition Rules
+
+
+
+From
+
+To
+
+Notes
+
+
+requested
+
+admission_denied
+
+Admission check failed
+
+
+requested
+
+running
+
+Admission passed
+
+
+running
+
+paused
+
+Pause control invoked
+
+
+paused
+
+running
+
+Resume invoked
+
+
+running
+
+completed
+
+All steps complete
+
+
+running
+
+aborted
+
+Abort invoked
+
+
+running
+
+failed
+
+Unrecoverable failure
+
+
+failed
+
+aborted
+
+Rollback/cleanup completed
+5. Step State Machine (Authoritative)
+5.1 Step States
+pending
+running
+completed
+failed
+rolled_back
+5.2 Step Transition Rules
+
+
+
+From
+
+To
+
+Notes
+
+
+pending
+
+running
+
+Orchestrator starts
+
+
+running
+
+completed
+
+Action success
+
+
+running
+
+failed
+
+Action failure
+
+
+failed
+
+rolled_back
+
+Rollback succeeds
+Rules:
+Steps execute in strict order
+A step cannot transition backward
+6. Orthogonal Sub-States (Operational)
+These sub-states influence decisions but are not primary statuses.
+6.1 Admission State
+admission_allowed = true/false
+admission_violations = []
+Admission is evaluated per run request.
+6.2 Constraint State
+constraint_state = ok | soft_violation | hard_violation
+Rules:
+Hard violations trigger rollback/abort
+Soft violations produce warnings and may continue
+6.3 Budget State
+budget_state = ok | near_limit | exhausted
+Rules:
+Exhausted budget is a hard stop
+6.4 Connector Health State
+connector_state = healthy | degraded | down | disabled
+Rules:
+Disabled connector blocks admission and execution
+Down connector may trigger retries or aborts depending on policy
+6.5 Kill Switch State
+execution_plane_paused = true/false
+Rules:
+If paused, new runs cannot start
+Running runs may pause at checkpoint boundaries
+7. Versioned State Semantics
+Plan state is tied to (execution_plan_id, plan_version)
+Execution (run) state references a specific plan_version
+Rules:
+A new plan_version can be created while an older version remains archived
+A running plan_version cannot be mutated
+8. Consistency & Idempotency
+8.1 Consistency Model
+DAT is event-driven and eventually consistent between:
+plan registry
+run state
+derived dashboards
+Authoritative state updates must be ordered per (plan_id, plan_version).
+8.2 Idempotency Requirements
+Plan submission is idempotent
+Execution start is idempotent
+Step execution uses idempotency keys
+Control actions must be idempotent (pause/resume/abort)
+9. Late-Arriving Data Handling
+9.1 Late Connector Callbacks
+External systems may callback late.
+Rules:
+Late success after rollback is recorded as an anomaly event
+No retroactive mutation of step status
+Operators notified
+9.2 Late Financial Events
+Rules:
+Late charges are recorded and sent to FLO
+Budget reconciliation updates are append-only
+9.3 Late Governance Decisions
+Rules:
+A plan cannot move to executing without approved state
+Late approvals update plan state; runs must be re-requested
+10. Derived Read Model Semantics
+Derived models include:
+plan registry view
+run summary view
+connector health dashboards
+Rules:
+Derived models can be rebuilt from authoritative events
+Rebuild emits dat.readmodel.rebuilt
+11. State Change Events (Canonical)
+dat.plan.state_changed
+dat.run.state_changed
+dat.step.state_changed
+dat.constraint.violation
+dat.budget.state_changed
+dat.connector.state_changed
+dat.control.action
+dat.readmodel.rebuilt
+All include:
+correlation_id
+actor_type
+timestamp
+12. Document Position in DAT Corpus
+This state document builds upon:
+NS-DAT-004 — LIFECYCLE
+NS-DAT-005 — DECISION
+NS-DAT-006 — VERSION
+NS-DAT-011 — APIMAP
+It informs:
+NS-DAT-013 — RUNBOOK
+NS-DAT-014 — DATADEF
+13. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT State Semantics Specification
+
+Parent / HoldCo Manager
+Status: Draft

@@ -1,0 +1,333 @@
+NS Web Edge Hosting Architecture
+
+0. Overview
+
+Pattern: Cloudflare as the public edge + a small VPS as the always-on connector + a private tunnel / VPN path back to on‑prem PowerEdge servers.
+
+Primary goals
+
+Keep PowerEdge not directly exposed to the public internet
+
+Centralize TLS, DNS, and edge protections at Cloudflare
+
+Maintain flexible routing for multiple sites and subdomains
+
+Enable incremental scaling (more origins, regions, redundancy)
+
+1. Reference Architecture
+
+flowchart LR
+  U[Users] --> CF[Cloudflare Edge: DNS + WAF + CDN + TLS]
+  CF --> T[Cloudflare Tunnel]
+  T --> VPS[VPS: cloudflared connector]
+  VPS -->|WireGuard| PE[PowerEdge: reverse proxy + apps]
+  PE --> S1[(Site 1)]
+  PE --> S2[(Site 2)]
+
+1.1 Key ideas
+
+No inbound ports required on the PowerEdge from the public internet.
+
+The VPS anchors reliable connectivity and can remain reachable even if residential IP changes.
+
+Cloudflare becomes the authoritative edge for:
+
+DNS
+
+TLS termination
+
+caching/CDN
+
+WAF/bot controls
+
+access control for sensitive routes
+
+2. Components
+
+2.1 Cloudflare (Edge)
+
+Authoritative DNS for all domains / subdomains
+
+TLS at the edge
+
+Cloudflare Tunnel hostname routing
+
+Optional:
+
+WAF / Bot protection
+
+Rate limiting
+
+Cloudflare Access (SSO/MFA gating) for admin endpoints
+
+2.2 VPS (Connector + Transport Hub)
+
+Runs cloudflared connector for the Tunnel
+
+Runs WireGuard (recommended) as the private transport to the PowerEdge
+
+Acts as the “always-on bridge” between Cloudflare and your on‑prem origin(s)
+
+2.3 PowerEdge (Origin)
+
+Hosts the actual workloads:
+
+websites
+
+APIs
+
+internal tools
+
+Runs either:
+
+reverse proxy (Nginx/Caddy/Traefik)
+
+containerized workloads (Docker/Podman/K8s)
+
+Binds services to:
+
+localhost and/or WireGuard interface only
+
+3. Networking Model
+
+3.1 Public internet exposure
+
+Only Cloudflare is public.
+
+The VPS may expose only what it needs (typically WireGuard UDP port).
+
+3.2 Private path (recommended)
+
+WireGuard tunnel: PowerEdge <-> VPS
+
+Cloudflare Tunnel: Cloudflare <-> VPS (cloudflared)
+
+3.3 DNS model
+
+Cloudflare hosts DNS for:
+
+apex: northfieldsolidarity.ai
+
+www and all needed subdomains (api, admin, assets, etc.)
+
+Records typically become:
+
+proxied (orange cloud) via Cloudflare
+
+mapped to Tunnel hostnames rather than direct A records
+
+4. Implementation Plan
+
+4.1 Phase 1 — Minimum viable production
+
+Outcome: Serve northfieldsolidarity.ai (and select subdomains) via Cloudflare edge without exposing PowerEdge.
+
+Create VPS
+
+Choose a minimal instance (CPU/RAM modest is fine for connector duties).
+
+Install WireGuard
+
+Configure VPS as WireGuard “hub”.
+
+Configure PowerEdge as WireGuard peer.
+
+Confirm stable private routing (PowerEdge services reachable from VPS via WG IP).
+
+Install cloudflared on VPS
+
+Authenticate to Cloudflare
+
+Create a Tunnel
+
+Run connector as a service
+
+Publish hostnames in the Tunnel
+Map Cloudflare hostnames to PowerEdge services over WireGuard.
+
+Example routing table
+
+northfieldsolidarity.ai -> http://10.99.0.2:8080
+
+www.northfieldsolidarity.ai -> http://10.99.0.2:8080
+
+api.northfieldsolidarity.ai -> http://10.99.0.2:8081
+
+admin.northfieldsolidarity.ai -> http://10.99.0.2:8090 (protect with Access)
+
+TLS mode
+
+Prefer “Full (strict)” in Cloudflare.
+
+Use an origin certificate on the PowerEdge (or terminate TLS on PowerEdge if you prefer end‑to‑end).
+
+4.2 Phase 2 — Security hardening
+
+Lock down PowerEdge services to:
+
+localhost
+
+WireGuard interface only
+
+Firewall rules:
+
+VPS: allow inbound WireGuard only; deny other inbound
+
+PowerEdge: deny inbound from WAN; allow from WG only
+
+Add Cloudflare Access for:
+
+admin.*
+
+internal dashboards
+
+Rate limits and WAF rules for public APIs
+
+4.3 Phase 3 — Resilience
+
+Add a second connector (option A):
+
+second VPS in another region
+
+Add a second connector (option B):
+
+run cloudflared on PowerEdge as additional connector
+
+Ensure:
+
+connectors are in the same tunnel
+
+health checks / monitoring in place
+
+4.4 Phase 4 — Multi‑POP / multi‑origin (future)
+
+Additional PowerEdge POPs in other geographies
+
+One of:
+
+per‑region tunnels + smart routing
+
+global load balancing at edge
+
+Gradually introduce:
+
+service discovery
+
+centralized secrets
+
+progressive delivery
+
+5. Operational Practices
+
+5.1 Observability
+
+Minimum recommended:
+
+Uptime checks for:
+
+main site
+
+API
+
+admin portal
+
+Logs:
+
+Cloudflare edge logs
+
+VPS system + cloudflared logs
+
+PowerEdge reverse proxy logs
+
+5.2 Backups
+
+Config backups:
+
+WireGuard configs
+
+cloudflared tunnel configs
+
+reverse proxy configs
+
+Workload backups depend on:
+
+static content vs DB-backed apps
+
+5.3 Patch cadence
+
+VPS: monthly security updates
+
+PowerEdge: scheduled maintenance window
+
+6. Runbooks
+
+6.1 Add a new subdomain (standard)
+
+Decide the internal service target (PowerEdge port / container)
+
+Add a Tunnel hostname mapping
+
+Add Cloudflare Access policy if sensitive
+
+Validate:
+
+TLS
+
+correct routing
+
+caching rules (if needed)
+
+6.2 Rotate or migrate PowerEdge services
+
+Deploy new service version on new port
+
+Update Tunnel mapping to new target
+
+Verify
+
+Decommission old port
+
+6.3 VPS failure response
+
+Confirm connector down
+
+Promote secondary connector (if configured)
+
+Rebuild VPS from baseline config
+
+Re-attach WireGuard and restart cloudflared
+
+7. Naming Conventions
+
+Hostnames
+
+www for site
+
+api for public API
+
+admin for protected admin
+
+status for public status page
+
+Internal network
+
+WG subnet: 10.99.0.0/24 (placeholder)
+
+PowerEdge WG IP: 10.99.0.2 (placeholder)
+
+VPS WG IP: 10.99.0.1 (placeholder)
+
+8. Open Decisions
+
+Reverse proxy choice on PowerEdge (Nginx vs Caddy vs Traefik)
+
+Container runtime/orchestration (Docker/Podman/K8s)
+
+Multi-region strategy (when POP #2 comes online)
+
+Certificate handling policy (edge-only vs end-to-end)
+
+9. Change Log
+
+v0.1 — Initial architecture + phased plan (Cloudflare Edge + VPS connector + PowerEdge origin)
+

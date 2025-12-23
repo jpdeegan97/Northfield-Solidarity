@@ -1,0 +1,201 @@
+Deep Research Engine (DRE)
+1. Purpose of This Document
+This document defines the state model and state transition semantics for the Deep Research Engine (DRE).
+It formalizes how research artifacts move through explicit states while preserving:
+  evidence provenance
+  versioned evolution
+  governance gating
+  replay and audit integrity
+2. State Design Principles
+ Evidence Is Stateless but Immutable — evidence does not transition; artifacts do
+ Explicit Lifecycle States — no implicit or inferred transitions
+ Versioned Transitions — state changes produce new versions
+ Human Authority — acceptance and promotion require human action
+ Governance as a Gate — downstream exposure requires approval
+3. Primary State Domains
+DRE maintains the following state domains:
+ Source State
+ Evidence State (logical)
+ Theme State
+ Hypothesis State
+ Narrative State
+ Promotion Request State
+ Review Queue State
+4. Source State
+Sources represent monitored origins of information.
+States:
+  registered
+  active
+  paused
+  deprecated
+Transitions:
+From
+To
+Trigger
+registered
+active
+monitoring enabled
+active
+paused
+operator pause
+paused
+active
+operator resume
+active
+deprecated
+source retired
+5. Evidence State (Logical)
+Evidence items are immutable and do not transition.
+Logical processing states (tracked via metadata):
+  captured
+  triaged
+  linked
+  parked
+These do not mutate evidence records.
+6. Theme State
+Themes evolve slowly and represent research domains.
+States:
+  draft
+  active
+  declining
+  archived
+Transitions:
+From
+To
+Trigger
+draft
+active
+accepted by reviewer
+active
+declining
+sustained negative evidence
+declining
+archived
+no longer relevant
+7. Hypothesis State
+Hypotheses are versioned claims.
+States:
+  open
+  supported
+  contradicted
+  retired
+Transitions:
+From
+To
+Trigger
+open
+supported
+confidence ≥ threshold
+open
+contradicted
+strong counter-evidence
+supported
+contradicted
+new disconfirming evidence
+any
+retired
+scope change / obsolescence
+Each transition creates a new hypothesis_version.
+8. Narrative State
+Narratives are human-readable syntheses.
+States:
+  draft
+  in_review
+  accepted
+  superseded
+Transitions:
+From
+To
+Trigger
+draft
+in_review
+submit for review
+in_review
+accepted
+reviewer approval
+accepted
+superseded
+new accepted version
+Accepted narratives are immutable.
+9. Promotion Request State
+Promotion requests govern downstream exposure.
+States:
+  draft
+  submitted
+  approved
+  rejected
+  expired
+Transitions:
+From
+To
+Trigger
+draft
+submitted
+submit to GGP
+submitted
+approved
+GGP approval
+submitted
+rejected
+GGP rejection
+approved
+expired
+superseded by newer version
+10. Review Queue State
+Review items coordinate human validation.
+States:
+  pending
+  in_review
+  changes_requested
+  approved
+  closed
+Transitions:
+From
+To
+Trigger
+pending
+in_review
+reviewer claims
+in_review
+approved
+reviewer approval
+in_review
+changes_requested
+reviewer feedback
+changes_requested
+pending
+author resubmits
+approved
+closed
+action completed
+11. Cross-State Invariants
+  evidence is never deleted or altered
+  state transitions always create versioned artifacts
+  accepted narratives reference specific hypothesis versions
+  promotions reference immutable snapshots
+12. Event Emission
+Every state transition emits an event:
+  dre.source.state_changed
+  dre.hypothesis.version_created
+  dre.narrative.accepted
+  dre.promotion.submitted
+  dre.promotion.approved
+Events are append-only.
+13. Document Position in DRE Corpus
+This state document builds upon:
+  NS-DRE-004 — LIFECYCLE
+  NS-DRE-005 — DECISION
+  NS-DRE-011 — APIMAP
+It informs:
+  NS-DRE-013 — RUNBOOK
+  NS-DRE-014 — DATADEF
+14. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial DRE State Model
+Parent / HoldCo Manager
+Status: Draft

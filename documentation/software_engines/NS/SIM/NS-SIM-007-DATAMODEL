@@ -1,0 +1,358 @@
+
+Simulation & Scenario Engine (SIM)
+1. Purpose of This Document
+This document defines the authoritative data model for the Simulation & Scenario Engine (SIM).
+It specifies:
+canonical simulation entities
+immutable storage rules
+relationships between scenarios, runs, and outcomes
+version and provenance bindings
+cross-engine data contracts
+This document is the single source of truth for SIM persistence semantics.
+2. Data Model Principles
+Scenario Runs Are Immutable — once persisted, never edited or deleted
+Append-Only Processing — new executions create new rows
+Explicit Provenance — every result references exact inputs and versions
+Derived ≠ Authoritative — aggregates and views are rebuildable
+ID-First Contracts — cross-engine references use IDs only
+3. Persistence Layers
+3.1 Scenario Definition Store (Authoritative)
+Stores scenario structure and intent.
+3.2 Scenario Run Store (Authoritative)
+Stores execution instances and results.
+3.3 Derived Views (Rebuildable)
+Stores summaries, comparisons, and indices.
+4. Canonical Entity Definitions
+4.1 Scenario (scenario)
+Meaning: A named, versioned simulation container.
+Field
+Type
+Required
+Description
+scenario_id
+UUID
+Yes
+Scenario identifier
+scenario_type
+String
+Yes
+baseline / action / stress / comparative
+description
+Text
+Yes
+Human-readable intent
+baseline_ref
+UUID
+Yes
+Reference to observed baseline
+created_by
+String
+Yes
+Actor
+created_at
+Timestamp
+Yes
+Creation time
+scenario_version
+String
+Yes
+Scenario definition version
+4.2 Assumption Set (assumption_set)
+Field
+Type
+Required
+Description
+assumption_set_id
+UUID
+Yes
+Identifier
+scenario_id
+UUID
+Yes
+Parent scenario
+category
+String
+Yes
+market / demand / supply / financial
+assumptions
+JSON
+Yes
+Explicit hypothesis values
+version
+String
+Yes
+Assumption version
+4.3 Constraint Set (constraint_set)
+Field
+Type
+Required
+Description
+constraint_set_id
+UUID
+Yes
+Identifier
+scenario_id
+UUID
+Yes
+Parent scenario
+constraint_type
+String
+Yes
+financial / operational / governance
+constraints
+JSON
+Yes
+Hard limits
+version
+String
+Yes
+Constraint version
+4.4 Scenario Input Snapshot (scenario_input_snapshot)
+Meaning: Frozen reference set of all inputs used in a run.
+Field
+Type
+Required
+Description
+snapshot_id
+UUID
+Yes
+Snapshot ID
+scenario_id
+UUID
+Yes
+Scenario
+sig_refs
+JSON
+Yes
+Signal/aggregate IDs + versions
+pie_refs
+JSON
+Yes
+Insight IDs + versions
+dat_refs
+JSON
+Yes
+Execution params + versions
+flo_refs
+JSON
+Yes
+Financial state refs
+snapshot_hash
+String
+Yes
+Deterministic hash
+created_at
+Timestamp
+Yes
+Snapshot time
+4.5 Scenario Run (scenario_run)
+Meaning: A single execution of a scenario.
+Field
+Type
+Required
+Description
+run_id
+UUID
+Yes
+Run identifier
+scenario_id
+UUID
+Yes
+Scenario
+snapshot_id
+UUID
+Yes
+Input snapshot
+model_versions
+JSON
+Yes
+Models used
+execution_engine_version
+String
+Yes
+Engine version
+random_seed
+Integer
+Yes
+RNG seed
+status
+String
+Yes
+queued / running / completed / failed
+started_at
+Timestamp
+Yes
+Start time
+completed_at
+Timestamp
+No
+End time
+4.6 Outcome Series (outcome_series)
+Field
+Type
+Required
+Description
+outcome_id
+UUID
+Yes
+Outcome ID
+run_id
+UUID
+Yes
+Scenario run
+metric
+String
+Yes
+profit / cashflow / inventory
+time_index
+Integer
+Yes
+Time step
+value
+Decimal
+Yes
+Metric value
+unit
+String
+No
+Unit
+4.7 Uncertainty Artifact (uncertainty_artifact)
+Field
+Type
+Required
+Description
+uncertainty_id
+UUID
+Yes
+Identifier
+run_id
+UUID
+Yes
+Scenario run
+metric
+String
+Yes
+Metric
+lower_bound
+Decimal
+Yes
+Lower CI
+upper_bound
+Decimal
+Yes
+Upper CI
+confidence_level
+Decimal
+Yes
+e.g. 0.95
+4.8 Sensitivity Artifact (sensitivity_artifact)
+Field
+Type
+Required
+Description
+sensitivity_id
+UUID
+Yes
+Identifier
+run_id
+UUID
+Yes
+Scenario run
+input_ref
+String
+Yes
+Assumption or variable
+outcome_ref
+String
+Yes
+Outcome metric
+sensitivity_score
+Decimal
+Yes
+Influence magnitude
+direction
+String
+Yes
+positive / negative
+4.9 Decision Artifact (sim_decision)
+Field
+Type
+Required
+Description
+decision_id
+UUID
+Yes
+Decision ID
+decision_type
+String
+Yes
+admission / model / constraint / exec
+subject_ref
+String
+Yes
+scenario or run
+outcome
+String
+Yes
+Result
+rationale
+JSON
+Yes
+Explanation
+ruleset_version
+String
+Yes
+Logic version
+evaluated_at
+Timestamp
+Yes
+Decision time
+correlation_id
+UUID
+Yes
+Trace ID
+5. Relationships (Logical)
+scenario → assumption_set (1:N)
+scenario → constraint_set (1:N)
+scenario → scenario_input_snapshot (1:N)
+scenario_input_snapshot → scenario_run (1:N)
+scenario_run → outcome_series (1:N)
+scenario_run → uncertainty_artifact (1:N)
+scenario_run → sensitivity_artifact (1:N)
+scenario_run → sim_decision (1:N)
+6. Cross-Engine Data Contracts
+Engine
+References
+GGP
+scenario_id, run_id, decisions
+DAT
+scenario summaries, risk annotations
+FLO
+financial outcomes
+PIE
+scenario results for learning
+PTE
+actual vs simulated comparison
+7. Invariants & Constraints
+Scenario runs are immutable
+Input snapshots are immutable
+All outcomes reference a run_id
+All runs reference a snapshot
+8. Document Position in SIM Corpus
+This data model builds upon:
+NS-SIM-002 — TAXONOMY
+NS-SIM-003 — ARCHITECTURE
+NS-SIM-006 — VERSION
+It informs:
+NS-SIM-008 — EEE
+NS-SIM-013 — RUNBOOK
+9. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial SIM Canonical Data Model
+Parent / HoldCo Manager
+Status: Draft

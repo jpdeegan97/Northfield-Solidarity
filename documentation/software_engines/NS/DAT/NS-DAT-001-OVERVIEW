@@ -1,0 +1,132 @@
+Digital Arbitrage Tooling (DAT)
+1. Purpose
+The Digital Arbitrage Tooling (DAT) engine is responsible for planning, staging, and executing governed market actions derived from approved insights.
+DAT exists to answer the question:
+How do we turn an approved opportunity into a concrete, executable plan — safely, repeatably, and measurably?
+DAT operates only on approved inputs and never invents opportunities. It translates intent into execution-ready workflows.
+2. Role Within Northfield Solidarity
+DAT sits in the execution planning and orchestration layer of the Northfield Solidarity ecosystem.
+Upstream inputs:
+PIE — approved insights and opportunity context
+SIM — scenario analysis, sensitivity bounds
+GGP — authorization, constraints, approvals
+Downstream integrations:
+Marketplaces
+Ad platforms
+Vendors / suppliers
+Automation and fulfillment systems
+DAT is the bridge between strategy and action.
+3. What DAT Produces
+DAT produces Execution Plans, which are structured, versioned artifacts describing:
+What actions will be taken
+In what sequence
+Under what constraints
+With what budgets and risk limits
+With what success and rollback criteria
+Execution Plans may result in:
+Dry-run simulations
+Scheduled executions
+Live automated actions
+All outputs are governed, auditable, and replayable.
+4. What DAT Does Not Do
+To preserve system safety and clarity, DAT explicitly does not:
+Generate opportunities or insights (PIE)
+Approve actions or budgets (GGP)
+Perform financial accounting (FLO)
+Simulate hypothetical outcomes (SIM)
+Manage identity or permissions (IDN)
+DAT executes within bounds set by others.
+5. Core Capabilities
+Execution Planning
+Translate approved insights into step-by-step plans.
+Constraint Enforcement
+Respect governance, budget, timing, and risk limits.
+Dry-Run & Staging
+Validate plans without live execution.
+Execution Orchestration
+Coordinate APIs, jobs, and workflows.
+Rollback & Recovery
+Provide safe abort and unwind mechanisms.
+Telemetry Emission
+Emit execution events for observability and accounting.
+6. Interaction With Other Engines
+
+
+
+Engine
+
+Relationship to DAT
+
+
+PIE
+
+Supplies approved insights
+
+
+SIM
+
+Supplies scenario bounds
+
+
+GGP
+
+Governs authorization and constraints
+
+
+FLO
+
+Consumes execution financial events
+
+
+PTE
+
+Tracks execution performance
+
+
+SIG
+
+May receive execution-generated signals
+DAT never bypasses governance or accounting.
+7. Operational Posture
+DAT is:
+Write-heavy during execution
+Stateful with explicit checkpoints
+Highly controlled (kill switches, approvals)
+Observable at every step
+Fail-safe by design
+DAT favors correctness and safety over raw speed.
+8. Expected Outcomes
+When DAT is operating correctly:
+Approved opportunities move to execution smoothly
+Risk and budget overruns are prevented
+Failures are contained and reversible
+Performance is measurable and attributable
+DAT turns insight into impact — safely.
+9. Document Position in DAT Corpus
+This document provides the conceptual overview of DAT.
+It is complemented by:
+NS-DAT-000 — CHARTER
+NS-DAT-002 — TAXONOMY
+NS-DAT-003 — ARCHITECTURE
+NS-DAT-004 — LIFECYCLE
+10. Version Control
+
+
+
+Version
+
+Date
+
+Description
+
+Approved By
+
+
+0.1
+
+TBD
+
+Initial DAT Overview
+
+Parent / HoldCo Manager
+Status: Draft

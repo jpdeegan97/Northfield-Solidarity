@@ -1,0 +1,311 @@
+NS-AEGIS-003 — ARCHITECTURE
+
+Project: Aegis (Dependency Management Product)
+
+1) Architecture Intent
+
+Aegis is a graph-native dependency lifecycle platform that:
+
+Maintains a canonical Registry + Dependency Graph
+
+Runs governed change workflows via GGE
+
+Stays current through agentic ops loops via CWP
+
+Ingests and normalizes signals via SIG
+
+Resolves stable identifiers via IDN
+
+Extends outward through connectors via MUX
+
+Aegis is designed to be used:
+
+As a standalone product (UI + API)
+
+As an internal platform powering NS engine/project dependency posture
+
+2) Architectural Principles
+
+Graph is the truth for impact. Registry holds facts; graph answers “who is affected?”
+
+Policy-first operations. Every mutation is a policy-evaluated change request.
+
+Evidence is a first-class artifact. Evidence freshness is tracked, verified, and expires.
+
+Agentic maintenance. Humans declare intent; CWP keeps posture continuously correct.
+
+Confidence-aware modeling. Observed/declared/inferred relationships are distinct.
+
+Snapshots matter. “As-of” queries and auditability require immutable graph snapshots.
+
+3) Logical Architecture (System View)
+
+flowchart LR
+  subgraph Clients
+    UI[Operator UI]
+    APIClient[API Consumers]
+  end
+
+  subgraph Aegis[NS-AEGIS Core]
+    GW[API Gateway]
+    SVC[Core Service]
+    REG[Registry]
+    GRAPH[Graph Service]
+    WF[Workflow Service]
+    EVD[Evidence Service]
+    MON[Monitoring/Rules]
+    SNAP[Snapshot Manager]
+  end
+
+  subgraph DataStores
+    SQL[(Registry DB)]
+    GDB[(Graph DB)]
+    OBJ[(Evidence Object Store)]
+    IDX[(Search Index)]
+    BUS[(Event Bus)]
+  end
+
+  subgraph NS_Engines[NS Engines]
+    GGE[GGE: Policy + Approvals + Audit]
+    CWP[CWP: Agentic Loops]
+    SIG[SIG: Signal Aggregation]
+    IDN[IDN: Identity Nexus]
+    MUX[MUX: Integrations]
+    FLO[FLO: Finance Link (optional)]
+  end
+
+  UI --> GW
+  APIClient --> GW
+
+  GW --> SVC
+  SVC --> REG
+  SVC --> GRAPH
+  SVC --> WF
+  SVC --> EVD
+  SVC --> MON
+  SVC --> SNAP
+
+  REG <--> SQL
+  GRAPH <--> GDB
+  EVD <--> OBJ
+  SVC <--> IDX
+
+  SVC <--> BUS
+  SNAP <--> BUS
+
+  WF <--> GGE
+  SVC <--> IDN
+  MON <--> SIG
+  MUX --> BUS
+  CWP <--> BUS
+  FLO -. optional .-> REG
+
+3.1 Core Components
+
+API Gateway: authn/authz, rate limits, multi-tenant boundaries (if externalized)
+
+Core Service: orchestration layer; owns business invariants
+
+Registry: canonical dependency records + DU scoping + lifecycle state
+
+Graph Service: relationship storage, traversals, impact queries, confidence qualifiers
+
+Workflow Service: change requests + approvals + audit references (delegated to GGE)
+
+Evidence Service: evidence ingestion, verification, freshness windows, retrieval
+
+Monitoring/Rules: signal normalization + policy-triggered actions
+
+Snapshot Manager: immutable “as-of” graph snapshots + diffs
+
+4) Data Architecture
+
+4.1 Storage Choices (conceptual)
+
+Registry DB (SQL): dependencies, DUs, owners, lifecycle, CR metadata, evidence metadata
+
+Graph DB: dependency edges + qualifiers + fast traversal for impact and blast radius
+
+Object Store: evidence artifacts (SBOMs, PDFs, attestations, scan results)
+
+Event Bus: decoupled ingestion + agentic loops + signal processing
+
+Search Index: human search over dependencies, vendors, evidence, CRs
+
+4.2 Canonical Keys
+
+Aegis uses IDN-aligned stable IDs (see TAXONOMY §3):
+
+dependency_id (canonical)
+
+dependency_unit_id (scope: env/region/system boundary)
+
+edge_id (from, to, type, env, qualifiers)
+
+5) Control Plane vs Data Plane
+
+5.1 Control Plane (Governance)
+
+Change Requests are policy-evaluated and routed via GGE.
+
+Aegis stores:
+
+CR content + diffs
+
+policy evaluation results (inputs/outputs)
+
+approval decisions and timestamps
+
+5.2 Data Plane (Operations)
+
+Dependency graph/registry updates
+
+Signal ingestion (CVE/outage/EOL/renewal)
+
+Agentic loop execution (freshness, drift, renewal, incident)
+
+6) Reference Flows
+
+6.1 Add Dependency (Governed Onboarding)
+
+sequenceDiagram
+  participant U as Operator
+  participant A as Aegis
+  participant I as IDN
+  participant G as GGE
+  participant S as Evidence Store
+  participant B as Event Bus
+  participant C as CWP Agents
+
+  U->>A: Create CR:add_dependency (metadata + scope)
+  A->>I: Resolve/assign canonical dependency_id
+  A->>G: Policy evaluate + approval routing
+  G-->>A: Approvals required + evidence baseline
+  A-->>U: Request evidence + show approval chain
+  U->>A: Upload/attach evidence
+  A->>S: Store evidence + mark verification pending
+  G-->>A: Approved
+  A->>A: Commit registry + graph updates
+  A->>B: Emit events (dependency_added, evidence_required)
+  C-->>B: Subscribe + run onboarding loop (validate, enrich, discover edges)
+  C->>A: Post enrichment (edges, confidence, freshness timestamps)
+
+6.2 Vulnerability / Vendor Incident → Impact → Remediation
+
+sequenceDiagram
+  participant SIG as SIG
+  participant A as Aegis
+  participant G as Graph
+  participant B as Event Bus
+  participant C as CWP Agents
+  participant U as Security/Owner
+
+  SIG->>A: Signal (CVE/incident) + affected identifiers
+  A->>A: Normalize + map to dependency_id / DU
+  A->>G: Impact query (downstream blast radius)
+  G-->>A: Affected services/projects/environments
+  A->>B: Emit incident_assessment event
+  C-->>B: Create remediation plan + tasks
+  A-->>U: Alert + affected list + plan proposal
+  U->>A: Approve plan / request exception CR
+
+6.3 Drift Detection (Declared vs Observed)
+
+MUX connectors and runtime probes emit observations.
+
+Aegis compares observations to declared desired state.
+
+Drift triggers:
+
+version_drift signal
+
+optional auto-generated update_version CR (policy gated)
+
+7) Connector Architecture (MUX-aligned)
+
+Aegis uses connectors as event producers and evidence fetchers.
+
+7.1 Connector Categories
+
+Repo/Build: GitHub/GitLab, CI pipelines, dependency manifests
+
+Artifact/Registry: container registries, package registries
+
+Cloud/Infra: cloud inventory APIs, IaC state
+
+Vendor/Contracts: vendor portals, renewal calendars, attestations
+
+Security: scanners, SBOM generators, vuln feeds
+
+7.2 Connector Contract (minimal)
+
+Emit observations to event bus:
+
+dependency_observed, edge_observed, evidence_observed, renewal_window
+
+Include confidence + scope (env/region/system boundary)
+
+8) Policy & Approval Architecture (GGE-aligned)
+
+8.1 Policy Inputs (examples)
+
+dependency class (software/vendor/infra/data)
+
+risk tier (tier_0–tier_3)
+
+environment scope (prod vs non-prod)
+
+data sensitivity + exposure
+
+evidence completeness + freshness
+
+8.2 Policy Outputs
+
+required evidence set
+
+approval chain
+
+monitoring baseline
+
+exception constraints (duration, compensating controls)
+
+9) Security Architecture
+
+Authn/Authz: Aegis delegates identity and authorization to NS standard (IDN + policy roles).
+
+RBAC + ABAC:
+
+RBAC for standard roles (operator, approver, security)
+
+ABAC for environment, system boundary, risk tier
+
+Auditability: every mutation references a governing CR and GGE decision trail.
+
+Evidence protection: object store encryption, strict read paths, expiration + retention rules.
+
+10) Observability
+
+Aegis emits:
+
+CR state transitions (submitted, evidence_pending, approved, rejected, committed)
+
+Signal lifecycle (received, mapped, assessed, remediating, closed)
+
+Agent loop telemetry (success/fail, freshness coverage, drift coverage)
+
+Graph metrics (node/edge counts, confidence distribution, snapshot diff sizes)
+
+11) Evolution Path (MVP → V1 → V2)
+
+11.1 MVP
+
+Registry + Graph + 2 workflows + 1 signal ingestion path + 1 freshness loop
+
+11.2 V1
+
+Multi-connector ingestion, stronger evidence verification, snapshot diffs, exception automation
+
+11.3 V2
+
+Predictive posture (risk forecasting), proactive migration planning, portfolio standardization recommendations, external productization boundaries
+

@@ -1,0 +1,101 @@
+Product InsightIQ Engine (PIE)
+
+0. Overview
+System Name: Product InsightIQ Engine
+Document Title: Product InsightIQ Engine Overview
+Document Id: NS-GGP-001-OVERVIEW
+Version: 0.1 
+Prepared By: Strategy & Governance Office 
+Approved By: Parent / HoldCo Manager 
+Effective Date: TBD 
+Review Cycle: Annual or Upon Material Change
+1. Purpose
+The Product InsightIQ Engine (PIE) is responsible for transforming fragmented market signals into coherent, explainable, and decision-ready product insights.
+PIE exists to answer a single core question:
+What products, markets, or opportunities are worth serious consideration — and why?
+PIE does not execute actions, allocate capital, or authorize decisions. Its role is to surface truth, uncertainty, and confidence in a structured form that downstream engines and human operators can reason about.
+2. Role Within Northfield Solidarity
+PIE sits in the intelligence layer of the Northfield Solidarity engine ecosystem.
+It acts as the primary synthesis engine between:
+  SIG (Signal Aggregation Engine): raw, normalized, trust-scored signals
+  DRE (Deep Research Engine): long-horizon thematic and exploratory research
+And downstream consumers:
+  DAT (Digital Arbitrage Tooling): execution planning
+  SIM (Simulation & Scenario Engine): counterfactual analysis
+  GGP (Governance Graph Processor): approval, audit, and control
+  Humans: strategic review and judgment
+PIE converts data exhaust into decision context.
+3. What PIE Produces
+PIE produces Insights, which are structured, versioned artifacts composed of:
+  A clear opportunity statement
+  Supporting evidence and signals
+  Quantified confidence and uncertainty
+  Explicit risks and counter-signals
+  Time-bound relevance and decay semantics
+Outputs may take multiple forms:
+  Ranked insight lists
+  Event emissions to downstream engines
+  Read-only query surfaces for humans
+PIE outputs are always explainable and auditable.
+4. What PIE Does Not Do
+To preserve system clarity and safety, PIE explicitly does not:
+  Execute trades, listings, or market actions (DAT)
+  Simulate scenarios or financial outcomes (SIM, FLO)
+  Approve or authorize actions (GGP)
+  Manage identities, entities, or permissions (IDN, PECA)
+PIE proposes. Others decide and act.
+5. Core Capabilities
+At a high level, PIE provides the following capabilities:
+ Signal SynthesisAggregates and contextualizes signals from SIG and DRE.
+ Insight GenerationForms candidate opportunities based on correlated evidence.
+ Scoring & RankingApplies consistent, versioned scoring models to compare opportunities.
+ Narrative ExplanationProduces human-readable rationales for each insight.
+ Decay & Relevance ManagementEnsures stale insights lose prominence over time.
+6. Interaction With Other Engines
+Engine
+Relationship to PIE
+SIG
+Supplies normalized, trust-scored signals
+DRE
+Supplies deep research artifacts and hypotheses
+SIM
+Consumes PIE insights for scenario testing
+DAT
+Consumes approved insights for execution planning
+GGP
+Governs promotion, approval, and audit of insights
+PTE
+Tracks performance of insight-driven initiatives
+PIE never bypasses governance or execution controls.
+7. Operational Posture
+PIE is:
+  Read-heavy for consumers
+  Write-controlled through governed pipelines
+  Deterministic given the same inputs and model versions
+  Replayable for audit and model evolution
+PIE is designed to support both human-in-the-loop and progressive automation workflows.
+8. Expected Outcomes
+When PIE is functioning correctly:
+  High-quality opportunities surface earlier
+  False positives are explainable and correctable
+  Downstream engines operate with better context
+  Governance decisions are faster and better-informed
+PIE reduces noise, not judgment.
+9. Document Position in PIE Corpus
+This document provides the conceptual overview of PIE.
+It is complemented by:
+  NS-PIE-000 — CHARTER (why PIE exists)
+  NS-PIE-002 — TAXONOMY (what PIE is made of)
+  NS-PIE-003 — ARCHITECTURE (how PIE is structured)
+  NS-PIE-004 — LIFECYCLE (how insights flow)
+
+
+10. Version Control
+Version
+Date
+Description
+Approved By
+0.1
+TBD
+Initial Concept & Overview Document
+Parent / HoldCo Manager
