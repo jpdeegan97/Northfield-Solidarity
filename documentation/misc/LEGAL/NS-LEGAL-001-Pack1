@@ -1,0 +1,534 @@
+NS Legal Pack v1 — US Operating Model (Entity Tree + Docs)
+
+Not legal advice. This is a lawyer-ready draft documentation system (with key template language) that you can hand to counsel to finalize based on jurisdictions, licenses, compliance, and your actual operations.
+
+0) Entity Tree (Canonical)
+
+Northfield Solidarity LLC (HoldCo / Parent)
+
+Owns membership interests in all subsidiaries
+
+Holds founder/member equity + governance controls
+
+Ideally does not sign customer contracts (keeps liability isolated)
+
+→ South Lawn LLC (Facilities / Real Estate / Space)
+
+Holds or leases physical space and facilities contracts
+
+Leases office/facility use to sister entities via intercompany lease
+
+→ NSDC Operations LLC (s) (Customer-facing Operating Company)
+
+Signs customer contracts: Terms, Order Forms, DPA, SLA
+
+Runs: billing, support, service delivery, customer success
+
+Holds: operational vendor contracts (hosting, support, general ops)
+
+(Optional later split)
+
+NSDC Marketplace Ops LLC: merchant tools, payments rails, marketplace policies, disputes/chargebacks
+
+NSDC Logistics Ops LLC: shipping/fulfillment, warehousing, carrier contracts, physical-liability vendor agreements
+
+→ NSDC IP Holdings LLC (IPCo / IP Owner)
+
+Owns: codebase, workflows, docs, templates, trademarks, domains, proprietary datasets (as applicable)
+
+Licenses platform IP to NSDC Operations LLC (and/or Marketplace/Logistics entities)
+
+→ NSDC Innovations Lab LLC (R&D that will ship)
+
+Prototyping + product research
+
+Assigns all resulting IP to NSDC IP Holdings LLC
+
+→ NSDC Experimental Lab LLC (Higher-risk R&D / sandbox)
+
+Bleeding-edge experiments, potentially higher compliance risk
+
+Assigns IP to NSDC IP Holdings LLC subject to internal gate/review
+
+→ NS MGMT LLC (Optional) (Shared Services / People Ops Wrapper)
+
+Use only if you want centralized employment/contractors + shared services
+
+Charges sister entities via intercompany services + cost allocation schedule
+
+1) Fill-In Variables (Use Across All Documents)
+
+[Effective Date] = YYYY-MM-DD
+
+[Platform Name] = Northfield Solidarity Platform (or brand)
+
+[Website] = your domain
+
+[Support Email] = support@…
+
+[Privacy Email] = privacy@…
+
+[Security Email] = security@…
+
+[Notices Address] = mailing address
+
+[Governing Law] = Delaware (default; adjust if needed)
+
+[Venue] = Delaware state/federal courts (or arbitration clause)
+
+[Subprocessors URL] = public or enterprise-only list
+
+[RTO/RPO] = recovery objectives (if you publish)
+
+2) Customer-Facing Contract Stack (Signing Entity: NSDC Operations LLC)
+
+2.1 Public / Web Terms
+
+Master Terms of Service (TOS) (NSDC Operations LLC ↔ Customer)
+
+Acceptable Use Policy (AUP) (incorporated into TOS)
+
+Privacy Policy (NSDC Operations LLC as the data-facing entity)
+
+Cookie Policy (if applicable)
+
+2.2 B2B / Enterprise Addenda
+
+Data Processing Addendum (DPA) (GDPR/UK GDPR posture)
+
+Security Addendum (baseline security commitments)
+
+Service Level Agreement (SLA) (uptime + support targets + credits)
+
+Order Form Template (pricing, term, seats, limits, support tier)
+
+Professional Services SOW (onboarding/custom work)
+
+2.3 AI / Automation Clauses (Baseline Policy)
+
+Include in TOS and, where relevant, DPA/Security Addendum:
+
+Outputs may be inaccurate; human review required
+
+No legal/financial/medical advice
+
+Customer warrants rights to inputs; no prohibited content
+
+Default: no training on Customer Data except to provide service, secure, debug, and produce de-identified aggregates
+
+Prohibit high-risk uses unless explicitly agreed with controls
+
+3) Key v1 Customer Documents (Template Language)
+
+3.1 Master Terms of Service (v1 skeleton)
+
+MASTER TERMS OF SERVICE (Effective [Effective Date])
+
+Parties: NSDC Operations LLC (“Company”) and the accepting entity (“Customer”).
+
+1. Scope; Order Forms. Order Forms govern commercial terms. These Terms govern use of [Platform Name].
+
+2. Authorized Users. Customer is responsible for all activity under its accounts.
+
+3. License. Limited, non-exclusive, non-transferable right to use the Service for internal business purposes during the subscription term.
+
+4. Customer Data. Customer retains rights to Customer Data. Company processes Customer Data to provide the Service.
+
+5. AI/Automation Outputs. Outputs may be inaccurate/incomplete; Customer is responsible for decisions and human review. Outputs are not professional advice.
+
+6. Training on Customer Data (Default). Company will not use Customer Data to train general models except: (a) to provide the Service, (b) to maintain security/prevent abuse/debug, and (c) de-identified aggregated analytics. Any deviation requires written agreement.
+
+7. Fees; Billing; Renewal; Taxes. As stated in Order Form. Auto-renew unless notice of non-renewal.
+
+8. Acceptable Use. Customer must comply with the AUP.
+
+9. Confidentiality. Mutual confidentiality with standard exclusions.
+
+10. Security; DPA. Reasonable safeguards; DPA applies where required.
+
+11. Suspension; Termination. Suspension for security/abuse/nonpayment. Termination for uncured material breach.
+
+12. Disclaimers. Service and Outputs provided “AS IS.” No warranty Outputs are accurate.
+
+13. Limitation of Liability. Exclude indirect damages. Cap liability to fees paid in prior 12 months (adjustable).
+
+14. Indemnities. Company IP infringement (Service). Customer misuse and Customer Data issues.
+
+15. Governing Law; Venue. [Governing Law], venue [Venue] (or arbitration).
+
+3.2 Acceptable Use Policy (v1 bullets)
+
+Prohibit: unlawful activity, malware, security probing/bypass, service disruption, bulk deception/fraud, IP infringement, privacy violations, misrepresentation, and prohibited high-risk uses.
+
+3.3 Privacy Policy (v1 bullets)
+
+Disclose: categories collected, usage, retention, subprocessors, security, rights requests, transfers, contact. (Tie to DPA where needed.)
+
+3.4 DPA / Security Addendum / SLA (v1 bullets)
+
+DPA: processor obligations, breach notice, subprocessors list, audit approach, SCC/UK addendum hooks
+
+Security: baseline controls (access control, logging, encryption in transit, incident response)
+
+SLA: uptime, exclusions, support targets, credit schedule
+
+4) Internal Governance Pack (Per Entity)
+
+For each LLC in the tree:
+
+Delaware LLC Operating Agreement (single-member, manager-managed)
+
+Initial Written Consent of Sole Member (organizational resolutions)
+
+Entity Register (EIN, bank, accounting profile, signatory policy)
+
+Default ownership: Sole Member = Northfield Solidarity LLC for all subs.
+
+5) Intercompany Agreements (Core “Glue”)
+
+5.1 IP Flow: Labs → IP Holdings
+
+IP Assignment Agreement (Innovations Lab → IP Holdings)
+
+Assign all inventions, code, docs, designs, datasets, workflows created in scope
+
+Further assurances + moral rights waiver
+
+IP Assignment Agreement (Experimental Lab → IP Holdings)
+
+Same as above, with optional internal gate language (assignment occurs upon acceptance into IP Holdings repository)
+
+5.2 Commercialization: IP Holdings → Operations
+
+IP License Agreement (IP Holdings → NSDC Operations LLC)
+
+Rights to host/operate/sublicense solely to provide the Service
+
+Improvements clause: Ops improvements assigned to IP Holdings; Ops receives operational license-back
+
+Royalty/fee: nominal or structured (rev % / cost-plus)
+
+5.3 Shared Work: Services / Chargebacks
+
+Choose one model:
+
+Model A (No MGMT LLC):
+
+Operations provides shared services (IT/SecOps/DevOps/Admin) to Labs
+
+Labs provide R&D outputs; IP assigned to IP Holdings
+
+Model B (With NS MGMT LLC):
+
+MGMT employs people + provides shared services to all entities
+
+Intercompany Services Agreements + cost allocation schedule
+
+5.4 Facilities: South Lawn → Others
+
+Intercompany Lease Agreement (South Lawn → Ops/Labs)
+
+Rent, utilities allocation, insurance, indemnities, use restrictions
+
+5.5 One-page Cost Allocation Schedule
+
+Defines how cloud, tools, rent, insurance, contractors are allocated
+
+Supports clean accounting and future audits
+
+6) People & Vendor Templates (Pick contracting entity intentionally)
+
+Mutual NDA (Ops or IP Holdings depending on purpose)
+
+Independent Contractor Agreement (must include IP assignment + confidentiality)
+
+Employee PIIA (invention assignment + confidentiality; jurisdiction-specific carve-outs)
+
+Recommendation:
+
+Contractors building core platform IP: contract via NSDC IP Holdings LLC (or ensure assignment flows to IP Holdings).
+
+Customer success/support: contract via NSDC Operations LLC.
+
+7) When to Split Ops into Marketplace + Logistics
+
+Split when either becomes true:
+
+You handle payments/merchants/disputes/chargebacks → Marketplace Ops
+
+You handle physical custody/shipping/fulfillment liability → Logistics Ops
+
+Add-on docs when you split:
+
+Merchant/Marketplace Terms + dispute policy
+
+Logistics terms, carrier/vendor indemnity clauses, loss/damage policy
+
+8) Offshore Roadmap (Future — Cayman LLC / Cook Islands Trust)
+
+Future intent (not executed in v1):
+
+Plan to add a Cayman Islands entity and a Cook Islands trust structure later.
+
+For now, operate under the US model above.
+
+Implementation note:
+
+When you’re ready, we’ll add a dedicated “Offshore Layer” section defining:
+
+ownership/beneficiary relationships
+
+IP licensing or holding strategy
+
+controlled foreign corporation (CFC) considerations and reporting obligations
+
+banking, substance, and governance requirements
+
+(These topics are highly fact- and jurisdiction-dependent and should be finalized with qualified counsel.)
+
+9) v1 Execution Order (Minimum Viable Legal)
+
+Phase 1 (must-have):
+
+Operating Agreements + Initial Consents for HoldCo, Ops, IP Holdings, Labs
+
+IP Assignment: Innovations/Experimental → IP Holdings
+
+IP License: IP Holdings → Operations
+
+Customer stack: TOS + AUP + Privacy + Order Form
+
+Phase 2 (as soon as relevant):
+5) DPA + Security Addendum + SLA
+6) Contractor/Employee agreements
+7) South Lawn lease (when space is used)
+
+Phase 3 (later):
+8) Marketplace/Logistics split + addenda
+9) Offshore layer (Cayman/Cook)
+
+Legal Roadmap — 12 Months (US-first, Offshore-ready)
+
+Objective: By the end of 12 months, Northfield Solidarity has a defensible multi-entity structure with clean IP chain-of-title, standardized customer contracts, operationally accurate privacy/security posture, and an “offshore-ready” binder for future Cayman LLC + Cook Islands trust implementation.
+
+Month 1 — Foundation + No Orphan IP
+
+Goal: Every entity is real, governed, and IP flow is airtight.
+
+Execute Operating Agreements + Initial Consents for:
+
+Northfield Solidarity LLC (HoldCo)
+
+NSDC Operations LLC
+
+NSDC IP Holdings LLC
+
+NSDC Innovations Lab LLC
+
+NSDC Experimental Lab LLC
+
+South Lawn LLC (if used in-year)
+
+NS MGMT LLC (only if you decide to stand it up)
+
+Stand up membership ledger + authority matrix (who can sign what)
+
+Execute:
+
+Labs → IP Holdings IP Assignments (both labs)
+
+Founder/early contributors → IP Holdings IP Assignment
+
+IP Holdings → Operations IP License
+
+Establish contracting rules: which entity signs which contracts
+
+Deliverable: Entity binders + IP chain-of-title starter packet.
+
+Month 2 — Customer Contracting Package v1
+
+Goal: Close customers on standard paper.
+
+Publish/approve:
+
+TOS + AUP + Privacy + Cookie
+
+Order Form template
+
+Draft (ready for enterprise):
+
+DPA
+
+Security Addendum
+
+SLA
+
+Create a Deal Desk Playbook (fallback clauses, redlines, approvals)
+
+Deliverable: Standard contract stack + deal desk rules.
+
+Month 3 — Data Governance + Compliance Posture
+
+Goal: Align actual operations with contractual promises.
+
+Create a data map (categories, retention, access, subprocessors)
+
+Document minimum security controls:
+
+access control, MFA, logging, incident response, backups
+
+Publish/maintain:
+
+Subprocessor list (public or enterprise-only)
+
+Security FAQ / one-pager
+
+Establish privacy ops:
+
+DSAR workflow, breach notification workflow, records
+
+Deliverable: Documented privacy/security program that matches your paper.
+
+Month 4 — Intercompany “Adulting” (Accounting Defensibility)
+
+Goal: Multi-entity structure is defensible and tax-ready.
+
+Execute:
+
+Intercompany Services Agreement (Ops ↔ Labs and/or MGMT ↔ all)
+
+Cost allocation schedule (cloud, tools, labor, insurance, rent)
+
+If South Lawn is active:
+
+execute Intercompany Lease + align insurance
+
+Deliverable: Chargeback + lease framework.
+
+Month 5 — People/Legal Scaling Kit
+
+Goal: Hire/contract quickly without IP leaks.
+
+Finalize:
+
+Contractor Agreement (IP assignment + confidentiality)
+
+Employee PIIA (jurisdiction-aware)
+
+NDA (mutual + unilateral variants)
+
+Create onboarding/offboarding and access provisioning checklists
+
+Deliverable: Workforce-ready, IP-safe staffing pipeline.
+
+Month 6 — Brand + IP Protection Sprint
+
+Goal: Lock names and reduce dispute risk.
+
+Trademark review + filings (brand and key product marks)
+
+Domain + social handle consolidation
+
+Adopt Open Source Policy (approved licenses, review workflow, notices)
+
+Deliverable: Early IP portfolio + OSS compliance posture.
+
+Month 7 — Enterprise Hardening
+
+Goal: Reduce enterprise redline friction.
+
+Harden:
+
+DPA annexes (SCCs/UK addendum hooks)
+
+SLA credits you can actually honor
+
+optional Professional Services SOW template
+
+Build clause library for common asks (audit, liability cap variants, insurance)
+
+Deliverable: Enterprise-ready paper with predictable negotiation.
+
+Month 8 — Risk & Insurance Alignment
+
+Goal: Ensure insurance + operations match legal promises.
+
+Confirm coverage: Tech E&O, Cyber, GL (and product liability if logistics)
+
+Align TOS/DPA/Security language with insurer expectations
+
+Run incident/breach tabletop exercise
+
+Deliverable: Insured, consistent, tested risk posture.
+
+Month 9 — Ops Split Decision Gate (Marketplace + Logistics)
+
+Goal: Decide whether/when to split Operations.
+Split triggers:
+
+Payments/merchants/disputes/chargebacks → Marketplace Ops
+
+Physical custody/shipping/fulfillment liability → Logistics Ops
+
+If splitting:
+
+Form entity(ies), execute new IP sublicenses/licenses, update customer/vendor terms
+
+Deliverable: Either stay unified with justification, or clean split with correct contracts.
+
+Month 10 — Governance Tightening (Process + Authority)
+
+Goal: Governance becomes repeatable and auditable.
+
+Quarterly manager resolutions cadence
+
+Delegation of authority (spend/sign limits)
+
+Contract repository + retention rules
+
+“What lives where” standard (HoldCo vs Ops vs IP vs Labs)
+
+Deliverable: Governance operating system.
+
+Month 11 — Offshore Readiness Binder (Future Cayman/Cook)
+
+Goal: Be ready to implement offshore later without rework.
+
+Assemble binder:
+
+membership ledger/cap table
+
+IP chain of title
+
+intercompany agreements
+
+financial statements + basic transfer pricing inputs
+
+Draft (do not execute) target offshore architecture
+
+Identify counsel shortlist (US tax + Cayman + Cook)
+
+Deliverable: Offshore readiness package.
+
+Month 12 — Audit Pass + Year-End Hardening
+
+Goal: Close the year with a clean, defensible legal posture.
+
+Signature and consistency audit across all docs
+
+Customer contract audit (are customers on correct paper?)
+
+IP audit (contributors, repos, assignments)
+
+Security/legal alignment audit
+
+Deliverable: Year-End Legal Closeout Report + Legal Pack v2 backlog.
+
+Operating Principles
+
+Ops sells. IP holds. Labs create. HoldCo owns.
+
+Every creator assigns IP upstream.
+
+Intercompany money flows are documented (services + license + lease).
+

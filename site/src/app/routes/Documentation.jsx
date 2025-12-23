@@ -2,17 +2,23 @@ import React, { useState } from "react";
 import Layout from "../../components/Layout.jsx";
 import Section from "../../components/Section.jsx";
 import { Link } from "react-router-dom";
-import { DOCS_REGISTRY } from "../../data/docsRegistry.js";
+// import { DOCS_REGISTRY } from "../../data/docsRegistry.js"; // Removed in favor of Context
 import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
 import {
     Folder, FolderOpen, FileText, ChevronRight, ChevronDown,
-    LayoutGrid, ListTree, File
+    LayoutGrid, ListTree, File, Plus
 } from "lucide-react";
+
+import { useDocs } from "../../context/DocsContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import DocModal from "../../components/DocModal.jsx";
 
 import { NS_PROJECTS } from "../../data/projectRegistry.js";
 import * as ProjectContent from "../../data/docs/projects_content.js";
 
+// ... FileTreeNode and FileExplorer components remain ... (omitted for brevity)
 const FileTreeNode = ({ label, type = "file", isOpen, onToggle, onClick, depth = 0, isActive }) => {
+    // ... same as before
     return (
         <div
             onClick={type === "folder" ? onToggle : onClick}
@@ -50,6 +56,7 @@ const FileTreeNode = ({ label, type = "file", isOpen, onToggle, onClick, depth =
 };
 
 const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFile }) => {
+    // ... same as before but need access to standard props
     const [openFolders, setOpenFolders] = useState({});
 
     const toggleFolder = (id) => {
@@ -59,7 +66,7 @@ const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFi
     return (
         <div className="card p-4" style={{ minHeight: '600px', alignSelf: 'stretch' }}>
             <div className="mb-4 text-xs font-bold text-secondary uppercase tracking-wider">File System</div>
-
+            {/* ... same implementation ... */}
             {/* General Docs */}
             <FileTreeNode
                 label="General Documentation"
@@ -114,7 +121,6 @@ const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFi
                     ))}
                 </div>
             ))}
-
             {/* Projects */}
             {activeProjects.length > 0 && (
                 <>
@@ -169,35 +175,55 @@ const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFi
 };
 
 export default function Documentation({ context }) {
+    const { docsRegistry, addDoc } = useDocs(); // Use context
+    const { hasPermission } = useAuth(); // Use auth
+
+    // Fallback to empty array if registry isn't loaded yet (though initial state handles it)
+    const registry = docsRegistry || [];
+
     const isSL = context === "SL";
+    const isWSP = context === "WSP";
     const [viewMode, setViewMode] = useState("grid");
-    const activeEngines = isSL ? SL_ENGINES : NS_ENGINES;
-    const theme = isSL ? "green" : "water";
+    const activeEngines = isSL ? SL_ENGINES : (isWSP ? [] : NS_ENGINES);
+    const theme = isSL ? "green" : (isWSP ? "gold" : "water");
+
+    const canEdit = hasPermission('builder');
 
     // 1. Engine Docs
     const orderedEngineDocs = activeEngines.map(engine =>
-        DOCS_REGISTRY.find(cat => cat.category.startsWith(engine.code))
+        registry.find(cat => cat.category.startsWith(engine.code))
     ).filter(Boolean);
 
     // 2. General Docs
-    const generalDocs = DOCS_REGISTRY.filter(cat =>
+    const generalDocs = registry.filter(cat =>
         !cat.category.includes("Engine")
     );
 
     // 3. Project Docs
-    const activeProjects = !isSL ? NS_PROJECTS : [];
+    const activeProjects = !isSL && !isWSP ? NS_PROJECTS : [];
 
     const nav = isSL ? [
-        { label: "Northfield Solidarity", to: "/docs" },
+        { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
         { label: "System", to: "/southlawn/system" },
         { label: "Investor Relations", to: "/southlawn/investors" },
+    ] : isWSP ? [
+        { label: "Northfield Solidarity", to: "/" },
+        { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
+        { type: "divider" },
+        { label: "Documentation", to: "/wsp/docs" },
+        { label: "Pricing", to: "/wsp/pricing" },
+        { label: "System", to: "/wsp/system" },
+        { label: "Investor Relations", to: "/wsp/investors" },
     ] : [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/docs" },
         { label: "Pricing", to: "/pricing" },
@@ -211,9 +237,51 @@ export default function Documentation({ context }) {
         setActiveDocModal({ category: cat, activeItem: doc });
     };
 
+    const handleAddDoc = (categoryName) => {
+        // Create a new blank document and add it to the category
+        const newDoc = {
+            id: `new-doc-${Date.now()}`,
+            title: "Untitled Document",
+            content: "# Untitled Document\n\nStart writing here...",
+            desc: "New draft document."
+        };
+        addDoc(categoryName, newDoc);
+
+        // Find the category object to pass to modal
+        const catObj = registry.find(c => c.category === categoryName) || { category: categoryName, items: [newDoc] };
+
+        // Open it in the modal
+        // Note: addedDoc needs to be in the registry for this to work perfectly 'live', 
+        // but addDoc updates the context which triggers re-render, so registry passed here might need to be refreshed or we rely on the state update.
+        // It's safer to just set the modal state, and since we just added it, it might not be in the 'catObj' derived from 'registry' variable from THIS render cycle.
+        // But the context update triggers a re-render.
+        // For IMMEDIATE feedback, let's open it manually.
+
+        setActiveDocModal({
+            category: {
+                ...catObj,
+                items: [...(catObj.items || []), newDoc]
+            },
+            activeItem: newDoc
+        });
+    };
+
     return (
         <div data-theme={theme}>
-            <Layout nav={nav}>
+            <Layout
+                nav={nav}
+                brand={isSL ? {
+                    title: "South Lawn RE Holdings",
+                    tagline: "Stewardship of land. Quiet execution.",
+                    footerLine: "Stewardship • Operations • Portfolio Execution",
+                    footerNote: "Quiet execution. Long-horizon compounding.",
+                } : isWSP ? {
+                    title: "WSP",
+                    tagline: "Architecture for the next epoch.",
+                    footerLine: "WSP • Strategic Operations",
+                    footerNote: "Limited Disclosure.",
+                } : undefined}
+            >
                 <div className="docs-page-container">
                     {/* Sidebar Navigation - Only show in Grid View */}
                     {viewMode === 'grid' && (
@@ -260,12 +328,14 @@ export default function Documentation({ context }) {
                     {/* Main Content */}
                     <main className="docs-content">
                         <div className="docs-header">
-                            <div className="eyebrow">{isSL ? "SouthLawn Operations" : "Knowledge Base"}</div>
-                            <h1 className="h1">{isSL ? "SouthLawn Documentation" : "System Documentation"}</h1>
+                            <div className="eyebrow">{isSL ? "SouthLawn Operations" : (isWSP ? "WSP Protocols" : "Knowledge Base")}</div>
+                            <h1 className="h1">{isSL ? "SouthLawn Documentation" : (isWSP ? "Strategic Documentation" : "System Documentation")}</h1>
                             <p className="lead">
                                 {isSL
                                     ? "Operational standards and engine references for the SouthLawn portfolio."
-                                    : "The single source of truth for Northfield Solidarity’s engineering standards and architectural patterns."
+                                    : isWSP
+                                        ? "Internal protocols for capital formation and strategic deployment."
+                                        : "The single source of truth for Northfield Solidarity’s engineering standards and architectural patterns."
                                 }
                             </p>
 
@@ -300,10 +370,21 @@ export default function Documentation({ context }) {
                                 {/* 1. General Documentation */}
                                 {generalDocs.map((section) => (
                                     <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="docs-section">
-                                        <h2 className="section-title">
-                                            <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
-                                            {section.category}
-                                        </h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
+                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
+                                                {section.category}
+                                            </h2>
+                                            {canEdit && (
+                                                <button
+                                                    className="btn icon sm ghost"
+                                                    onClick={() => handleAddDoc(section.category)}
+                                                    title="Add Document"
+                                                >
+                                                    <Plus size={18} />
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="grid">
                                             {section.items.map((item) => (
                                                 <Link key={item.id} to={`/docs/${item.id}`} className="card doc-link-card">
@@ -371,20 +452,38 @@ export default function Documentation({ context }) {
                                 {/* 4. Engine Specific Documentation */}
                                 {orderedEngineDocs.map((section) => (
                                     <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="docs-section">
-                                        <h2 className="section-title">
-                                            <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
-                                            {section.category}
-                                        </h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
+                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
+                                                {section.category}
+                                            </h2>
+                                            {canEdit && (
+                                                <button
+                                                    className="btn icon sm ghost"
+                                                    onClick={() => handleAddDoc(section.category)}
+                                                    title="Add Document"
+                                                >
+                                                    <Plus size={18} />
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="card p-6 flex flex-col items-start gap-4">
                                             <p className="mb-4 text-secondary">
                                                 Full technical documentation, architectural decisions, and operational runbooks for the {section.category}.
                                             </p>
-                                            <button
-                                                className="btn primary"
-                                                onClick={() => setActiveDocModal({ category: section, activeItem: section.items[0] })}
-                                            >
-                                                Open Engine Charter
-                                            </button>
+                                            <div className="grid full-width" style={{ marginTop: '1rem', width: '100%' }}>
+                                                {section.items.map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        className="card doc-link-card"
+                                                        onClick={() => handleOpenFile(section, item)}
+                                                        style={{ textAlign: 'left', border: '1px solid var(--c-border)', background: 'var(--c-bg)' }}
+                                                    >
+                                                        <div className="cardTitle sm">{item.title}</div>
+                                                        <div className="cardBody sm">{item.desc}</div>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </section>
                                 ))}
@@ -392,10 +491,22 @@ export default function Documentation({ context }) {
                                 {/* 5. Project Specific Documentation */}
                                 {activeProjects.map((project) => (
                                     <section key={project.code} id={`project-${project.code.toLowerCase()}`} className="docs-section">
-                                        <h2 className="section-title">
-                                            <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>🏗️</span>
-                                            {project.name}
-                                        </h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
+                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>🏗️</span>
+                                                {project.name}
+                                            </h2>
+                                            {canEdit && (
+                                                <button
+                                                    className="btn icon sm ghost"
+                                                    onClick={() => handleAddDoc(project.name)}
+                                                    title="Add Document"
+                                                >
+                                                    <Plus size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+
                                         <div className="card p-6 flex flex-col items-start gap-4">
                                             <p className="mb-4 text-secondary">
                                                 Full technical documentation, architectural decisions, and operational runbooks for the {project.name}.
@@ -415,36 +526,15 @@ export default function Documentation({ context }) {
                             </>
                         )}
 
+
                         {/* Doc Modal Overlay */}
                         {activeDocModal && (
-                            <div className="modal-overlay" onClick={() => setActiveDocModal(null)}>
-                                <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                    <div className="modal-sidebar">
-                                        <div className="modal-sidebar-header">
-                                            <h3>{activeDocModal.category.category}</h3>
-                                        </div>
-                                        <div className="modal-nav">
-                                            {activeDocModal.category.items.map(item => (
-                                                <button
-                                                    key={item.id}
-                                                    className={`modal-nav-item ${activeDocModal.activeItem.id === item.id ? 'active' : ''}`}
-                                                    onClick={() => setActiveDocModal({ ...activeDocModal, activeItem: item })}
-                                                >
-                                                    {item.title}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button className="btn sm ghost full-width mt-auto" onClick={() => setActiveDocModal(null)}>Close</button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <h2 className="mb-4">{activeDocModal.activeItem.title}</h2>
-                                        <div className="markdown-content" style={{ whiteSpace: 'pre-wrap' }}>
-                                            {activeDocModal.activeItem.content || "Content coming soon..."}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <DocModal
+                                activeDocModal={activeDocModal}
+                                setActiveDocModal={setActiveDocModal}
+                            />
                         )}
+
 
                     </main>
                 </div>

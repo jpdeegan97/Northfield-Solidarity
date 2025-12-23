@@ -1,22 +1,23 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Html, Float } from '@react-three/drei';
+import { OrbitControls, Text, Line, Html, Float, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Node Component
-function TopologyNode({ position, code, label, isActive, onClick, color = "#38bdf8" }) {
+function TopologyNode({ position, code, isActive, onClick, color = "#38bdf8" }) {
     const group = useRef();
     const shellRef = useRef();
 
     const activeScale = 1.4;
     const baseScale = 1;
 
-    // Animation: Rotate the wireframe shell
     useFrame((state, delta) => {
+        // Rotate the wireframe shell
         if (shellRef.current) {
             shellRef.current.rotation.y -= delta * 0.5;
             shellRef.current.rotation.z += delta * 0.2;
         }
+
         // Gentle pulse for active node
         if (isActive && group.current) {
             group.current.scale.lerp(new THREE.Vector3(activeScale, activeScale, activeScale), 0.1);
@@ -39,27 +40,19 @@ function TopologyNode({ position, code, label, isActive, onClick, color = "#38bd
 
             <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
                 <group ref={group}>
-                    {/* Inner Core: Crystal */}
-                    <mesh onClick={(e) => { e.stopPropagation(); onClick(code); }}>
-                        <octahedronGeometry args={[0.7, 0]} />
-                        <meshStandardMaterial
+                    {/* Wireframe Shell with Morphing Distortion */}
+                    <mesh ref={shellRef} scale={1.1} onClick={(e) => { e.stopPropagation(); onClick(code); }}>
+                        <icosahedronGeometry args={[0.8, 4]} /> {/* Increased detail for better morphing */}
+                        <MeshDistortMaterial
                             color={isActive ? "#ffff00" : color}
-                            emissive={isActive ? "#ffff00" : color}
-                            emissiveIntensity={isActive ? 0.8 : 0.2}
-                            roughness={0.1}
-                            metalness={0.9}
-                        />
-                    </mesh>
-
-                    {/* Outer Shell: Tech Wireframe */}
-                    <mesh ref={shellRef} scale={1.1}>
-                        <icosahedronGeometry args={[0.8, 0]} />
-                        <meshStandardMaterial
-                            color={isActive ? "#ffffff" : color}
                             wireframe={true}
                             transparent
-                            opacity={0.15}
+                            opacity={0.8}
                             side={THREE.DoubleSide}
+                            distort={isActive ? 0.6 : 0} // Morph only when selected
+                            speed={isActive ? 2 : 0}
+                            roughness={0}
+                            metalness={1}
                         />
                     </mesh>
 
@@ -81,7 +74,7 @@ function TopologyNode({ position, code, label, isActive, onClick, color = "#38bd
                     anchorY="middle"
                     outlineWidth={0.02}
                     outlineColor="#000000"
-                    font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff" // Optional: clearer font
+                    font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
                 >
                     {code}
                 </Text>

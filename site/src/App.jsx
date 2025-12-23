@@ -7,12 +7,20 @@ import SystemExplorer from "./app/routes/SystemExplorer.jsx";
 import Pricing from "./app/routes/Pricing.jsx";
 import Contact from "./app/routes/Contact.jsx";
 import Signup from "./app/routes/Signup.jsx";
+import Login from "./app/routes/Login.jsx";
 import Investors from "./app/routes/Investors.jsx";
 import SouthLawnPricing from "./app/routes/SouthLawnPricing.jsx";
 import SouthLawnLanding from "./app/SouthLawnLanding.jsx";
+import WSPLanding from "./app/WSPLanding.jsx";
+import WSPPricing from "./app/routes/WSPPricing.jsx";
+import WSPInvestors from "./app/routes/WSPInvestors.jsx";
+import WSPContact from "./app/routes/WSPContact.jsx";
+import Account from "./app/routes/Account.jsx";
+import Checkout from "./app/routes/Checkout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 
 import SouthLawnInvestors from "./app/routes/SouthLawnInvestors.jsx";
+import SouthLawnThesis from "./app/routes/SouthLawnThesis.jsx";
 
 export default function App() {
   return (
@@ -28,11 +36,24 @@ export default function App() {
           <Route path="investors" element={<Investors />} />
           <Route path="contact" element={<Contact />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="account" element={<Account />} /> {/* Added Route for Account */}
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="login" element={<Login />} />
           <Route path="southlawn" element={<SouthLawnLanding />} />
           <Route path="southlawn/pricing" element={<SouthLawnPricing />} />
+          <Route path="southlawn/thesis" element={<SouthLawnThesis />} />
           <Route path="southlawn/docs" element={<Documentation context="SL" />} />
           <Route path="southlawn/system" element={<SystemExplorer context="SL" />} />
           <Route path="southlawn/investors" element={<SouthLawnInvestors />} />
+          <Route path="wsp" element={<WSPLanding />} />
+          <Route path="wsp/pricing" element={<WSPPricing />} />
+          <Route path="wsp/investors" element={<WSPInvestors />} />
+          <Route path="wsp/docs" element={<Documentation context="WSP" />} />
+          <Route path="wsp/pricing" element={<WSPPricing />} />
+          <Route path="wsp/investors" element={<WSPInvestors />} />
+          <Route path="wsp/docs" element={<Documentation context="WSP" />} />
+          <Route path="wsp/system" element={<SystemExplorer context="WSP" />} />
+          <Route path="wsp/contact" element={<WSPContact />} />
         </Route>
       </Routes>
     </>

@@ -1,0 +1,438 @@
+NS-BCP-003 — ARCHITECTURE
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-003-ARCHITECTURE
+
+Status: Draft v1
+
+Depends On: NS-BCP-000-CHARTER, NS-BCP-001-OVERVIEW, NS-BCP-002-TAXONOMY
+
+Owner: BCP Lead (TBD)
+
+1. Architectural Objectives
+
+BCP’s architecture is designed to ensure:
+
+Safety: custody + access controls + release gates are enforceable
+
+Traceability: every deployment and upgrade has provenance and an immutable record
+
+Repeatability: standardized CI/CD and environments
+
+Observability: on-chain events and operations are monitored by default
+
+Integration: clean interfaces to GGP/GGE, IDN, FLO, SIG, DRE, MUX
+
+2. High-Level System View
+
+BCP consists of four main planes:
+
+Build & Verification Plane — compile, test, analyze, audit readiness
+
+Release & Deployment Plane — approvals, signers, deployment execution, registry updates
+
+Runtime & Data Plane — chain interactions, event ingestion, indexing, telemetry
+
+Governance & Control Plane — policy, identity/roles, custody, change authority
+
+2.1 Reference Architecture (Mermaid)
+
+flowchart LR
+  subgraph Dev[Developer & Product Teams]
+    REPO[Code Repos\nContracts + dApps + IaC]
+    SPEC[Specs + Threat Models]
+  end
+
+  subgraph BV[Build & Verification Plane]
+    CI[CI Pipeline\nBuild/Test/Analyze]
+    SA[Static Analysis\n+ Fuzz/Property]
+    AUD[Audit Readiness\nArtifacts]
+  end
+
+  subgraph GC[Governance & Control Plane]
+    GGP[GGP/GGE\nApprovals + Policy]
+    IDN[IDN\nIdentity/Roles]
+    CUST[Custody\nMultisig/MPC/HSM]
+    POL[Policy Engine\nRelease Gates]
+  end
+
+  subgraph RD[Release & Deployment Plane]
+    CD[CD/Release Orchestrator\nStaged Deploys]
+    REG[Contract Registry\nProvenance + Inventory]
+    RM[Release Manifest\nConfig + Networks]
+  end
+
+  subgraph RT[Runtime & Data Plane]
+    RPC[RPC Providers\nRedundant Access]
+    CHAIN[(Blockchains\nL1/L2/L3)]
+    IDX[Indexer/Subgraph\nQuery Layer]
+    SIG[SIG\nSignals/Alerts]
+    FLO[FLO\nLedger Feeds]
+    DRE[DRE\nEcosystem Intel]
+    OBS[Dashboards/Runbooks\nOn-call]
+  end
+
+  REPO --> CI
+  SPEC --> CI
+  CI --> SA --> AUD
+
+  AUD --> POL
+  POL --> GGP
+  IDN --> POL
+  CUST --> CD
+  GGP --> CD
+
+  CI --> RM --> CD --> REG
+  CD --> RPC --> CHAIN
+
+  CHAIN --> IDX --> SIG
+  CHAIN --> IDX --> FLO
+  CHAIN --> IDX --> OBS
+
+  DRE <--> SIG
+  DRE <--> REPO
+  REG --> OBS
+
+3. Core Components
+
+3.1 Contract Registry (System of Record)
+
+Role: canonical inventory and provenance ledger for all contract systems.
+
+Stores:
+
+contract package + version
+
+network + address + deployment timestamp
+
+build provenance (commit hash, build ID, artifact digests)
+
+config (constructor/initializer params, dependencies)
+
+ownership/roles model (admin, guardian, timelock, multisig)
+
+linked runbooks, dashboards, and incident contacts
+
+Outputs:
+
+“What is deployed where?” answers
+
+compliance artifacts for audits and governance reviews
+
+integration feed to SIG/FLO/IDN mappings
+
+3.2 Release Orchestrator (CD)
+
+Role: executes governed releases.
+
+Capabilities:
+
+staged deployments (DEV → TEST → PROD)
+
+approval checks and policy gates
+
+signer selection based on environment policy
+
+automatic registry updates after deploy
+
+canary / phased release strategy where applicable
+
+3.3 Policy Engine (Release Gates)
+
+Role: machine-enforceable policies that decide whether an action may proceed.
+
+Evaluates:
+
+required artifacts (threat model, runbook, monitoring)
+
+test + analysis thresholds
+
+change classification (patch/minor/major/emergency)
+
+risk class requirements (audit, custody, approvals)
+
+3.4 Custody Layer
+
+Role: secure authorization for high-impact actions.
+
+Includes:
+
+multisig / MPC / HSM-backed signers
+
+break-glass procedures
+
+separation of duties (deploy vs approve vs operate)
+
+3.5 On-chain Data Stack
+
+Role: convert chain events into usable internal signals.
+
+Includes:
+
+indexers/subgraphs
+
+event schema management
+
+normalization → metrics → alerts
+
+feeds to SIG and FLO
+
+4. Control Points (Where Safety is Enforced)
+
+BCP places explicit control points at:
+
+Pre-merge (developer workflow)
+
+coding standards
+
+automated checks
+
+mandatory reviews for sensitive modules
+
+Pre-release (build verification)
+
+tests + fuzz/property baselines
+
+static analysis and vulnerability checks
+
+threat model and change classification
+
+Pre-deploy (governance)
+
+policy engine verifies all required artifacts
+
+approvals recorded via GGP/GGE
+
+signer/custody constraints enforced
+
+Post-deploy (operations)
+
+registry updated and verified
+
+monitoring/alerts activated
+
+runbook validated
+
+Upgrade/Incident
+
+emergency controls (pause/guardian)
+
+governed upgrade path (timelock/multisig)
+
+postmortems drive policy updates
+
+5. Deployment Architecture
+
+5.1 Environments
+
+DEV: local simulation/fork; low-friction; no production keys
+
+TEST: shared staging; rehearsal of deploy/upgrade; limited keys
+
+PROD: mainnet/prod-grade networks; strict gates; custody enforced
+
+5.2 Deployment Artifacts
+
+Release Manifest: network targets, contract versions, configs, dependencies
+
+Deployment Manifest: actual addresses + tx hashes + timestamps
+
+Registry Update: immutable record written after deployment
+
+5.3 Upgrade Patterns (Allowed)
+
+BCP supports upgradeability only when explicitly approved:
+
+Proxy-based upgrades (implementation swap)
+
+Timelocked parameter changes
+
+Migration to new deployments (preferred for critical systems when feasible)
+
+Each upgrade must define:
+
+authority holders
+
+time delay (if any)
+
+rollback/containment plan
+
+compatibility and storage considerations
+
+6. Observability Architecture
+
+6.1 Telemetry Sources
+
+on-chain events (contract logs)
+
+transaction outcomes and failure reasons
+
+RPC provider health
+
+indexer lag and query errors
+
+6.2 Operational Outputs
+
+dashboards for each deployed system
+
+alert routes (severity + on-call ownership)
+
+runbooks linked from alerts and from the registry
+
+6.3 Incident Hooks
+
+emergency pause/guardian procedures
+
+communication templates and status pages (if applicable)
+
+postmortem pipeline that updates policy baselines
+
+7. Integration Architecture (NS Engines)
+
+7.1 GGP/GGE (Governance)
+
+policy decisions and approvals for:
+
+PROD deploys
+
+upgrades/migrations
+
+custody model changes
+
+audit waivers (rare; require explicit justification)
+
+7.2 IDN (Identity)
+
+maps:
+
+human/agent identities → on-chain roles
+
+signer identities → approvals and accountability
+
+7.3 FLO (Finance)
+
+receives:
+
+transaction/event feeds for ledgering and reconciliation
+
+treasury/asset movement signals (if applicable)
+
+7.4 SIG (Signals)
+
+receives:
+
+normalized on-chain telemetry
+
+security and operational alerts
+
+7.5 DRE (Research)
+
+provides:
+
+standards tracking and ecosystem intelligence
+
+chain/tool/vendor assessments
+
+consumes:
+
+incident learnings and security posture deltas
+
+7.6 MUX (Market Integration)
+
+abstracts vendors:
+
+RPC, indexing, custody, audit providers
+
+enforces provider redundancy and operational SLAs
+
+8. Security Architecture (Minimum Baseline)
+
+8.1 Key Controls
+
+no unmanaged hot keys for PROD
+
+multisig/MPC/HSM custody for privileged actions
+
+separation of duties: builder ≠ approver ≠ deploy signer
+
+8.2 Contract Safety Controls
+
+standardized role/permission model
+
+emergency pause (where appropriate)
+
+rate limits / circuit breakers (where appropriate)
+
+safe upgrade path or explicit immutability
+
+8.3 Supply Chain Controls
+
+dependency pinning
+
+reproducible builds where feasible
+
+artifact hashing and provenance recorded in registry
+
+9. Reference Data Flows
+
+9.1 Release Flow
+
+sequenceDiagram
+  participant Dev as Developer
+  participant CI as CI (Build/Test/Analyze)
+  participant Pol as Policy Engine
+  participant Gov as GGP/GGE
+  participant CD as Release Orchestrator
+  participant Cus as Custody (Multisig/MPC)
+  participant Chain as Blockchain
+  participant Reg as Contract Registry
+  participant Sig as SIG/Monitoring
+
+  Dev->>CI: Push code + specs
+  CI->>CI: Build + tests + analysis
+  CI->>Pol: Submit release candidate + artifacts
+  Pol->>Gov: Request approvals (if required)
+  Gov-->>Pol: Approvals granted/denied
+  Pol-->>CD: Permit release (policy pass)
+  CD->>Cus: Request signing authorization
+  Cus-->>CD: Signed tx(s)
+  CD->>Chain: Deploy/upgrade transactions
+  Chain-->>CD: Receipts + tx hashes
+  CD->>Reg: Write deployment record
+  Reg->>Sig: Activate monitoring + link runbooks
+
+9.2 Runtime Signal Flow
+
+flowchart LR
+  CH[(Chain)] --> LOGS[Events/Receipts]
+  LOGS --> IDX[Indexer/Subgraph]
+  IDX --> NORM[Normalize Signals]
+  NORM --> SIG[SIG Alerts/Anomalies]
+  NORM --> FLO[FLO Ledger Feeds]
+  NORM --> OBS[Dashboards/Runbooks]
+
+10. Deployment Topologies (v1 Defaults)
+
+10.1 Provider Strategy
+
+RPC: at least 2 independent providers for PROD
+
+Indexing: primary + fallback strategy for critical systems
+
+Custody: multisig or MPC; no single-key authority for critical systems
+
+10.2 Chain Strategy (v1)
+
+EVM-first for initial standardization
+
+add additional chains via explicit roadmap items and provider readiness
+
+11. Next Document
+
+NS-BCP-004 — LIFECYCLE (end-to-end lifecycle, gates, roles, and operational loops)
+

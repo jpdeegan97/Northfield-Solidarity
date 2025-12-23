@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext.jsx';
 import Layout from '../../components/Layout.jsx';
 import '../../styles/pricing.css';
 
 export default function Pricing() {
     const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'annual'
     const [openFaq, setOpenFaq] = useState(null);
+    const navigate = useNavigate();
+    const { addToCart } = useCart();
 
     const toggleFaq = (index) => {
         setOpenFaq(openFaq === index ? null : index);
     };
 
     const isAnnual = billingCycle === 'annual';
+
+    const handleSelectPlan = (planId, planName, monthlyPrice, annualPrice) => {
+        const price = isAnnual ? annualPrice : monthlyPrice;
+        addToCart({
+            id: planId,
+            name: planName,
+            price: Number(price),
+            type: 'plan',
+            period: isAnnual ? 'year' : 'month',
+            billingCycle
+        });
+        navigate('/checkout');
+    };
 
     return (
         <div data-theme="water">
@@ -36,7 +52,9 @@ export default function Pricing() {
                                     Plans built around governance-first operations. Add engines when you’re ready.
                                 </p>
                                 <div className="ctaRow">
-                                    <Link to="/signup" className="btn">Start building</Link>
+                                    <button onClick={() => {
+                                        document.getElementById('plans').scrollIntoView({ behavior: 'smooth' });
+                                    }} className="btn">Start building</button>
                                     <a href="#addons" className="btn ghost">View add-ons</a>
                                 </div>
                                 <ul className="hero-highlights">
@@ -88,7 +106,12 @@ export default function Pricing() {
                                     </ul>
                                 </div>
                                 <div className="card-footer">
-                                    <Link to="/signup?plan=starter" className="btn ghost full-width">Start building</Link>
+                                    <button
+                                        onClick={() => handleSelectPlan('starter', 'Starter Plan', 149, 1520)}
+                                        className="btn ghost full-width"
+                                    >
+                                        Start building
+                                    </button>
                                 </div>
                             </div>
 
@@ -114,7 +137,12 @@ export default function Pricing() {
                                     </ul>
                                 </div>
                                 <div className="card-footer">
-                                    <Link to="/signup?plan=builder" className="btn ghost full-width">Run operations</Link>
+                                    <button
+                                        onClick={() => handleSelectPlan('builder', 'Builder Plan', 499, 5090)}
+                                        className="btn ghost full-width"
+                                    >
+                                        Run operations
+                                    </button>
                                 </div>
                             </div>
 
@@ -144,7 +172,12 @@ export default function Pricing() {
                                     </div>
                                 </div>
                                 <div className="card-footer">
-                                    <Link to="/signup?plan=operator" className="btn full-width">Scale with governance</Link>
+                                    <button
+                                        onClick={() => handleSelectPlan('operator', 'Operator Plan', 1499, 15290)}
+                                        className="btn full-width"
+                                    >
+                                        Scale with governance
+                                    </button>
                                 </div>
                             </div>
 

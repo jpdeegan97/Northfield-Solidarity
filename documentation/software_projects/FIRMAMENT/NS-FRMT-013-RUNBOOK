@@ -1,0 +1,418 @@
+NS-FIRMAMENT-013 — RUNBOOK
+
+Project: Firmament (3D Operations Globe)Program: Northfield Solidarity (NS)Authority: GGE (Governance Graph Engine)Status: Draft v0.1
+
+1. Purpose
+
+This runbook defines how to operate Firmament in production:
+
+deployment and startup/shutdown procedures,
+
+routine operational checks,
+
+incident response workflows,
+
+debugging and triage steps,
+
+data freshness/staleness handling,
+
+projection rebuild and recovery,
+
+and verification of governance/action routing (CWP + GGE).
+
+Firmament is a real-time visualization + decision cockpit. Operational success depends on projection freshness and correct scoping/authorization.
+
+2. System Inventory
+
+2.1 Services (v0)
+
+firmament-api — UI-facing APIs (registry, drilldowns, briefs, actions)
+
+firmament-geo — tiling + spatial queries
+
+firmament-sector — sector metrics + treemap
+
+firmament-brief — brief generation + action ranking
+
+firmament-realtime — WS/SSE gateway
+
+firmament-projection-worker — ingestion → projection build
+
+2.2 Dependencies
+
+Postgres + PostGIS (projection DB)
+
+(Optional) Redis (tile/treemap cache)
+
+(Optional) Kafka (event bus)
+
+Engine APIs via MUX: IDN, SIG, FLO, SIM, CWP, GGE
+
+3. Day-0 Setup Checklist
+
+3.1 Database
+
+Postgres provisioned with PostGIS extension enabled
+
+migrations applied (projection schema version matches release)
+
+indexes created (GIST on geometry)
+
+3.2 Auth
+
+token validation configured
+
+tenant scoping header X-NS-Tenant enforced
+
+role map loaded for layer visibility + action permissions
+
+3.3 Layer Registry
+
+baseline layers published (entities, flows, events, signals, sector treemap)
+
+style rules present for each layer
+
+drilldown schemas validated (no dead geometry)
+
+3.4 Projection Worker
+
+connectors configured via MUX
+
+refresh cadence configured
+
+staleness budgets configured per source
+
+4. Normal Operations
+
+4.1 Daily Health Checks
+
+Projection lag within SLA
+
+Tile endpoint latency within SLA
+
+Realtime connectivity stable
+
+Sector treemap freshness within budget
+
+Source engine availability OK (IDN/SIG/FLO/CWP/GGE/SIM)
+
+4.2 Key Metrics (Recommended)
+
+projection build duration + last success time
+
+“max staleness” by layer
+
+tile requests p50/p95 latency
+
+WS connected clients + message rate
+
+brief generation latency
+
+action submission success rate
+
+4.3 Staleness Policy
+
+If a layer is stale: UI must show Stale badge + last updated time
+
+If source is unavailable: UI must show Unavailable badge + fallback snapshot age
+
+5. Deployments
+
+5.1 Deployment Strategy
+
+deploy stateless services first (api, geo, sector, brief)
+
+deploy realtime next
+
+deploy projection-worker last
+
+5.2 Rollback Strategy
+
+rollback service images to prior release
+
+do not roll back DB schema unless explicitly supported
+
+if schema mismatch: freeze worker, keep UI read-only against last good state
+
+6. Startup Procedure
+
+Verify DB reachable
+
+Start firmament-api
+
+Start firmament-geo
+
+Start firmament-sector
+
+Start firmament-brief
+
+Start firmament-realtime
+
+Start firmament-projection-worker
+
+Confirm:
+
+/api/v1/layers responds
+
+tile fetch works for baseline layer
+
+treemap endpoint responds
+
+WS connects
+
+7. Shutdown Procedure
+
+Stop firmament-projection-worker (prevents half-written projections)
+
+Drain realtime connections (graceful shutdown)
+
+Stop stateless services
+
+Confirm no active write traffic to projection DB
+
+8. Incident Response Playbooks
+
+8.1 Incident: Globe Empty / No Features Rendering
+
+Symptoms
+
+UI loads but layers show no features
+
+Checks
+
+GET /api/v1/layers returns layers? (registry)
+
+Tile endpoint returns features? (/geo/tiles/...)
+
+DB query: does firm_feature_current contain rows for tenant?
+
+Is tenant header correct?
+
+Likely Causes
+
+wrong tenant scope
+
+projection worker stalled
+
+tile filters too restrictive
+
+layer disabled via registry
+
+Fix
+
+verify tenant header and RBAC
+
+restart projection worker
+
+run projection rebuild for tenant/layer
+
+8.2 Incident: Sector Heatmap Blank / Not Updating
+
+Checks
+
+GET /sectors/treemap?metric=health_score
+
+DB: firm_sector_metric_current updated recently?
+
+sector compute job running?
+
+Fix
+
+restart sector service
+
+trigger sector recompute
+
+validate metric_id exists
+
+8.3 Incident: Realtime Not Updating
+
+Symptoms
+
+tiles load, but no deltas arrive
+
+Checks
+
+WS gateway logs
+
+client subscription payload correctness
+
+delta publish path from worker/sector
+
+Fix
+
+restart realtime gateway
+
+verify worker publishing deltas
+
+fallback to polling mode until fixed
+
+8.4 Incident: Brief Generation Slow/Failing
+
+Checks
+
+brief service latency
+
+dependencies (SIG/IDN/FLO/SIM)
+
+evidence bundle fetch times
+
+Fix
+
+degrade brief to cached / last-known
+
+disable SIM calls temporarily (show “scenario unavailable”)
+
+scale brief service
+
+8.5 Incident: Actions Not Creating Tasks/Gates
+
+Checks
+
+action submission endpoint response codes
+
+MUX connectivity to CWP/GGE
+
+authorization for action submit
+
+Fix
+
+verify token roles and action permissions
+
+retry submit with idempotency key
+
+if partial success: reconcile by checking firm_action_link and upstream refs
+
+9. Projection Operations
+
+9.1 Trigger Projection Rebuild
+
+Use admin endpoint (if enabled):
+
+POST /api/v1/admin/projection/rebuild
+
+Recommended modes:
+
+rebuild by tenant
+
+rebuild by layer
+
+rebuild by time window (snapshots)
+
+9.2 Backfill Snapshots
+
+run worker in backfill mode
+
+throttle to avoid DB saturation
+
+9.3 Projection Consistency Checks
+
+each feature must have valid geom
+
+payload refs must exist for drilldown-enabled features
+
+staleness must be populated
+
+10. Cache Operations (Optional)
+
+10.1 Invalidate Tile Cache
+
+POST /api/v1/admin/cache/invalidate
+
+When to use:
+
+style rule changes
+
+layer version publish
+
+corrupted tile payloads
+
+10.2 Redis Health
+
+memory pressure
+
+eviction rates
+
+hit ratio
+
+11. Data Quality / Staleness Troubleshooting
+
+11.1 Layer Shows “Stale”
+
+Root causes
+
+upstream engine lag
+
+projection worker lag
+
+wrong staleness budget
+
+Actions
+
+confirm upstream timestamps
+
+inspect worker queue/interval
+
+adjust budgets only with justification (GGE change record)
+
+11.2 Incorrect Geos
+
+Root causes
+
+failed geocoding
+
+wrong region mapping
+
+Actions
+
+validate GeoReference mapping for entity/event
+
+patch mapping table
+
+rebuild affected layer
+
+12. Security Operations
+
+12.1 Tenant Isolation Validation
+
+attempt cross-tenant requests (should 403)
+
+verify DB row-level filtering by tenant
+
+12.2 Layer ACL Validation
+
+confirm restricted layers hidden for non-admin roles
+
+12.3 Audit Validation
+
+confirm action submits create trace entries
+
+confirm gated actions have GGE decision refs
+
+13. Verification Checklist (Before Prod)
+
+layers render at multiple zoom levels
+
+treemap works and drilldowns generate briefs
+
+plan slider works (SIM available and SIM unavailable paths)
+
+actions submit and produce CWP tasks and/or GGE packets
+
+staleness visible
+
+failure modes degrade gracefully
+
+14. Definition of Done (Runbook v0)
+
+Runbook is “done” when:
+
+day-0 setup is clear,
+
+routine health checks are defined,
+
+incident playbooks cover major failure modes,
+
+projection rebuild/consistency procedures exist,
+
+and governance/action-routing verification is operationalized.
+

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decks xmlns="urn:northfield:pitchdeck:v1">
+
+  <!-- =========================================================
+       DECK A: ON-THE-FLY TRUNCATED (7 slides)
+       Goal: live pitch / quick forward / get to 2nd meeting
+       ========================================================= -->
+  <deck id="NS-DECK-OTF-001" type="on_the_fly" targetSlides="7">
+    <meta>
+      <title>Northfield Solidarity — On-the-Fly Deck</title>
+      <version>0.1</version>
+      <owner>Northfield Solidarity</owner>
+      <date>2025-12-23</date>
+      <styleHints>
+        <hint>1 idea per slide</hint>
+        <hint>Headlines should stand alone</hint>
+        <hint>Use 1 proof point per slide where possible</hint>
+      </styleHints>
+    </meta>
+
+    <slides>
+
+      <slide index="1" id="OTF-01">
+        <title>Northfield Solidarity — {One-liner}</title>
+        <subtitle>{For whom} • {Core outcome} • {Why now}</subtitle>
+        <bullets>
+          <b>{One sentence: what we do + who it’s for}</b>
+          <b>{Proof point: traction / pilot / pipeline / revenue}</b>
+          <b>{Big promise: speed / cost / compliance / quality}</b>
+        </bullets>
+        <notes>
+          <n>Say: “We help {ICP} achieve {Outcome} by {Mechanism}.”</n>
+        </notes>
+      </slide>
+
+      <slide index="2" id="OTF-02">
+        <title>The Problem</title>
+        <bullets>
+          <b>{Pain #1 — describe in concrete terms}</b>
+          <b>{Pain #2 — cost/time/risk}</b>
+          <b>{Pain #3 — why it persists}</b>
+          <b>{Cost of problem: $ / hours / risk exposure}</b>
+        </bullets>
+      </slide>
+
+      <slide index="3" id="OTF-03">
+        <title>Our Solution</title>
+        <bullets>
+          <b>{What it is}</b>
+          <b>{How it works in 1 line}</b>
+          <b>{Why it’s better: measurable deltas}</b>
+        </bullets>
+        <placeholders>
+          <placeholder type="visual">Workflow diagram or 1 screenshot</placeholder>
+        </placeholders>
+      </slide>
+
+      <slide index="4" id="OTF-04">
+        <title>Market + Who Buys First</title>
+        <bullets>
+          <b>{ICP: industry / size / role}</b>
+          <b>{Wedge: the first narrow use-case}</b>
+          <b>{Market sizing headline: credible top-down or bottom-up}</b>
+          <b>{Why we win the wedge quickly}</b>
+        </bullets>
+      </slide>
+
+      <slide index="5" id="OTF-05">
+        <title>Business Model</title>
+        <bullets>
+          <b>{Pricing model: subscription / usage / seat / hybrid}</b>
+          <b>{ACV target range}</b>
+          <b>{Sales motion: PLG / sales-led / channel}</b>
+          <b>{Gross margin target + what drives it}</b>
+        </bullets>
+      </slide>
+
+      <slide index="6" id="OTF-06">
+        <title>Traction + Next Milestones</title>
+        <bullets>
+          <b>{Traction metric #1}</b>
+          <b>{Traction metric #2}</b>
+          <b>{Traction metric #3}</b>
+          <b>{Next 2–3 milestones that unlock scale}</b>
+        </bullets>
+        <placeholders>
+          <placeholder type="chart">Simple growth or pipeline chart</placeholder>
+        </placeholders>
+      </slide>
+
+      <slide index="7" id="OTF-07">
+        <title>The Ask</title>
+        <bullets>
+          <b>{Raising: $X} for {Y months runway}</b>
+          <b>{Use of funds: 3 buckets}</b>
+          <b>{Milestones this round achieves}</b>
+          <b>{Why us / why win}</b>
+        </bullets>
+      </slide>
+
+    </slides>
+  </deck>
+</decks>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decks xmlns="urn:northfield:pitchdeck:v1">
+
+  <!-- =========================================================
+       DECK B: CORE INVESTOR PITCH BOOK (~30 slides)
+       Goal: partner-meeting-ready + diligence-friendly
+       ========================================================= -->
+  <deck id="NS-DECK-CORE-030-001" type="core_pitch_book" targetSlides="30">
+    <meta>
+      <title>Northfield Solidarity — Core Investor Pitch Book</title>
+      <version>0.1</version>
+      <owner>Northfield Solidarity</owner>
+      <date>2025-12-23</date>
+      <rules>
+        <rule>Each slide has a single takeaway headline</rule>
+        <rule>Prefer numbers over adjectives</rule>
+        <rule>Minimize text; use notes for talk track</rule>
+      </rules>
+    </meta>
+
+    <sections>
+
+      <section id="A" name="The Story" slides="1-6">
+        <slide index="1" id="PB-01">
+          <title>Northfield Solidarity</title>
+          <subtitle>{Tagline / One-liner}</subtitle>
+          <bullets>
+            <b>{Presenter name + title}</b>
+            <b>{Contact}</b>
+            <b>{Date}</b>
+          </bullets>
+        </slide>
+
+        <slide index="2" id="PB-02">
+          <title>{One-liner} — {Proof Point}</title>
+          <bullets>
+            <b>{What we do}</b>
+            <b>{Who we do it for}</b>
+            <b>{Outcome we deliver}</b>
+            <b>{Proof: revenue/users/pilots/pipeline}</b>
+          </bullets>
+        </slide>
+
+        <slide index="3" id="PB-03">
+          <title>The Problem is Expensive and Persistent</title>
+          <bullets>
+            <b>{Pain #1}</b>
+            <b>{Pain #2}</b>
+            <b>{Pain #3}</b>
+            <b>{Quantified cost: $ / hours / risk}</b>
+          </bullets>
+        </slide>
+
+        <slide index="4" id="PB-04">
+          <title>Status Quo Approaches Fail</title>
+          <bullets>
+            <b>{Current approach #1} → {failure mode}</b>
+            <b>{Current approach #2} → {failure mode}</b>
+            <b>{Why this is getting worse}</b>
+          </bullets>
+        </slide>
+
+        <slide index="5" id="PB-05">
+          <title>Why Now</title>
+          <bullets>
+            <b>{Catalyst #1: platform/tech shift}</b>
+            <b>{Catalyst #2: cost curve / labor / compute}</b>
+            <b>{Catalyst #3: regulation / compliance / risk}</b>
+            <b>{Catalyst #4: behavior / market structure}</b>
+          </bullets>
+        </slide>
+
+        <slide index="6" id="PB-06">
+          <title>Vision</title>
+          <bullets>
+            <b>{3–5 year end-state: what becomes true}</b>
+            <b>{What category this becomes}</b>
+            <b>{What “winning” looks like}</b>
+          </bullets>
+        </slide>
+      </section>
+
+
+      <section id="B" name="Product + Differentiation" slides="7-13">
+        <slide index="7" id="PB-07">
+          <title>Solution Overview</title>
+          <bullets>
+            <b>{What it is}</b>
+            <b>{Core value proposition}</b>
+            <b>{Pillar #1}</b>
+            <b>{Pillar #2}</b>
+            <b>{Pillar #3}</b>
+          </bullets>
+        </slide>
+
+        <slide index="8" id="PB-08">
+          <title>How It Works (Workflow)</title>
+          <placeholders>
+            <placeholder type="diagram">Input → Process → Output → Feedback loop</placeholder>
+          </placeholders>
+          <bullets>
+            <b>{Step 1}</b>
+            <b>{Step 2}</b>
+            <b>{Step 3}</b>
+            <b>{Step 4}</b>
+            <b>{Where value is created}</b>
+          </bullets>
+        </slide>
+
+        <slide index="9" id="PB-09">
+          <title>Product Modules</title>
+          <bullets>
+            <b>Today: {Module A} — {1-line value}</b>
+            <b>Today: {Module B} — {1-line value}</b>
+            <b>Today: {Module C} — {1-line value}</b>
+            <b>Next: {Module D} — {1-line value}</b>
+          </bullets>
+        </slide>
+
+        <slide index="10" id="PB-10">
+          <title>Product in Action</title>
+          <placeholders>
+            <placeholder type="screenshots">1–3 screens or before/after output</placeholder>
+          </placeholders>
+          <bullets>
+            <b>{What the user sees}</b>
+            <b>{What the system produces}</b>
+            <b>{Why this is hard to replicate}</b>
+          </bullets>
+        </slide>
+
+        <slide index="11" id="PB-11">
+          <title>Why We Win</title>
+          <bullets>
+            <b>{Differentiator #1 — measurable}</b>
+            <b>{Differentiator #2 — measurable}</b>
+            <b>{Differentiator #3 — measurable}</b>
+            <b>{Differentiator #4 — measurable}</b>
+          </bullets>
+        </slide>
+
+        <slide index="12" id="PB-12">
+          <title>Defensibility (Moat)</title>
+          <bullets>
+            <b>{Data advantage / proprietary signals}</b>
+            <b>{Workflow lock-in / switching costs}</b>
+            <b>{Distribution advantage}</b>
+            <b>{IP / architecture / compounding learning loop}</b>
+          </bullets>
+        </slide>
+
+        <slide index="13" id="PB-13">
+          <title>Trust: Security / Compliance / Reliability</title>
+          <bullets>
+            <b>{Security posture: encryption, access controls}</b>
+            <b>{Auditability / governance controls}</b>
+            <b>{Compliance targets: SOC2/ISO/etc. (if planned)}</b>
+            <b>{Reliability: uptime, monitoring, SLAs}</b>
+          </bullets>
+        </slide>
+      </section>
+
+
+      <section id="C" name="Market + Wedge Strategy" slides="14-18">
+        <slide index="14" id="PB-14">
+          <title>Ideal Customer + Buyer</title>
+          <bullets>
+            <b>ICP: {industry} / {size} / {profile}</b>
+            <b>Users: {role/persona}</b>
+            <b>Champion: {role}</b>
+            <b>Economic buyer: {role}</b>
+          </bullets>
+        </slide>
+
+        <slide index="15" id="PB-15">
+          <title>Market Size</title>
+          <bullets>
+            <b>TAM: {definition} = ${value}</b>
+            <b>SAM: {definition} = ${value}</b>
+            <b>SOM (near-term): {definition} = ${value}</b>
+            <b>Method: {top-down + bottom-up sanity check}</b>
+          </bullets>
+        </slide>
+
+        <slide index="16" id="PB-16">
+          <title>Beachhead Wedge</title>
+          <bullets>
+            <b>{Wedge segment}</b>
+            <b>{Why pain is acute}</b>
+            <b>{Why buying is easy}</b>
+            <b>{Why we can win quickly}</b>
+          </bullets>
+        </slide>
+
+        <slide index="17" id="PB-17">
+          <title>Expansion Paths</title>
+          <bullets>
+            <b>Expand #1: {more users/seats/workflows}</b>
+            <b>Expand #2: {adjacent teams or departments}</b>
+            <b>Expand #3: {new product module}</b>
+            <b>Expand #4: {new vertical}</b>
+          </bullets>
+        </slide>
+
+        <slide index="18" id="PB-18">
+          <title>Competitive Landscape</title>
+          <placeholders>
+            <placeholder type="matrix">2x2 or category map (Build vs Buy vs Status Quo)</placeholder>
+          </placeholders>
+          <bullets>
+            <b>{Competitor category A} — {why they fall short}</b>
+            <b>{Competitor category B} — {why they fall short}</b>
+            <b>Our position: {unique positioning statement}</b>
+          </bullets>
+        </slide>
+      </section>
+
+
+      <section id="D" name="Business Model + GTM" slides="19-23">
+        <slide index="19" id="PB-19">
+          <title>Business Model</title>
+          <bullets>
+            <b>Pricing: {model} (e.g., per-seat / usage / hybrid)</b>
+            <b>ACV: {range}</b>
+            <b>Gross margin: {target}%</b>
+            <b>Sales cycle: {weeks/months} • Buyer: {role}</b>
+          </bullets>
+        </slide>
+
+        <slide index="20" id="PB-20">
+          <title>Go-To-Market Strategy</title>
+          <bullets>
+            <b>Phase 1: {primary motion}</b>
+            <b>Phase 2: {secondary motion}</b>
+            <b>Distribution wedge: {channel/partner}</b>
+            <b>Why we win distribution: {reason}</b>
+          </bullets>
+        </slide>
+
+        <slide index="21" id="PB-21">
+          <title>Sales Motion</title>
+          <bullets>
+            <b>{Step 1: top-of-funnel}</b>
+            <b>{Step 2: discovery}</b>
+            <b>{Step 3: pilot/POC}</b>
+            <b>{Step 4: procurement/security}</b>
+            <b>{Step 5: close + rollout}</b>
+          </bullets>
+        </slide>
+
+        <slide index="22" id="PB-22">
+          <title>Customer Acquisition</title>
+          <bullets>
+            <b>Channel #1: {channel} — {why it works}</b>
+            <b>Channel #2: {channel} — {why it works}</b>
+            <b>Channel #3: {channel} — {why it works}</b>
+            <b>Key messaging: {positioning line}</b>
+          </bullets>
+        </slide>
+
+        <slide index="23" id="PB-23">
+          <title>Retention + Expansion</title>
+          <bullets>
+            <b>Time-to-value: {days/weeks}</b>
+            <b>Adoption driver: {workflow dependency}</b>
+            <b>Renewal driver: {measurable ROI}</b>
+            <b>Expansion driver: {new seats/modules}</b>
+          </bullets>
+        </slide>
+      </section>
+
+
+      <section id="E" name="Traction + Unit Economics" slides="24-27">
+        <slide index="24" id="PB-24">
+          <title>Traction Snapshot</title>
+          <bullets>
+            <b>Revenue: {ARR/MRR or $0 with pipeline}</b>
+            <b>Users / accounts: {#}</b>
+            <b>Pipeline: {# deals} / ${value}</b>
+            <b>Growth: {MoM%} or key trend</b>
+          </bullets>
+          <placeholders>
+            <placeholder type="chart">Traction chart (simple)</placeholder>
+          </placeholders>
+        </slide>
+
+        <slide index="25" id="PB-25">
+          <title>Customer Proof</title>
+          <bullets>
+            <b>Case #1: {customer type} — {result metric}</b>
+            <b>Case #2: {customer type} — {result metric}</b>
+            <b>Case #3: {customer type} — {result metric}</b>
+          </bullets>
+          <placeholders>
+            <placeholder type="logos">Logos / quotes / LOIs (if permitted)</placeholder>
+          </placeholders>
+        </slide>
+
+        <slide index="26" id="PB-26">
+          <title>Key Metrics</title>
+          <bullets>
+            <b>Retention / churn: {value}</b>
+            <b>Engagement: {WAU/MAU or usage}</b>
+            <b>NRR (if applicable): {value}</b>
+            <b>Leading indicators: {activation, time-to-value}</b>
+          </bullets>
+        </slide>
+
+        <slide index="27" id="PB-27">
+          <title>Unit Economics</title>
+          <bullets>
+            <b>CAC: ${value} (or “TBD—early”)</b>
+            <b>Payback: {months}</b>
+            <b>Gross margin: {value}%</b>
+            <b>What improves with scale: {3 levers}</b>
+          </bullets>
+        </slide>
+      </section>
+
+
+      <section id="F" name="Plan + The Raise" slides="28-30">
+        <slide index="28" id="PB-28">
+          <title>Roadmap + Milestones (12–18 months)</title>
+          <bullets>
+            <b>Milestone #1: {target outcome}</b>
+            <b>Milestone #2: {target outcome}</b>
+            <b>Milestone #3: {target outcome}</b>
+            <b>Milestone #4: {target outcome}</b>
+          </bullets>
+        </slide>
+
+        <slide index="29" id="PB-29">
+          <title>Team</title>
+          <bullets>
+            <b>{Founder/CEO — credibility}</b>
+            <b>{Key leader — credibility}</b>
+            <b>{Advisors/partners — credibility}</b>
+            <b>Hiring plan: {top 3 roles}</b>
+          </bullets>
+        </slide>
+
+        <slide index="30" id="PB-30">
+          <title>The Ask</title>
+          <bullets>
+            <b>Raising: ${X} • Runway: {Y months}</b>
+            <b>Use of funds: {Product} / {GTM} / {Ops}</b>
+            <b>Milestones: {target traction} + {target GTM} + {target product}</b>
+            <b>Next step: {what you want from the investor}</b>
+          </bullets>
+        </slide>
+      </section>
+
+    </sections>
+  </deck>
+
+</decks>

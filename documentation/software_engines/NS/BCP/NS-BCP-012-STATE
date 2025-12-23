@@ -1,0 +1,367 @@
+NS-BCP-012 — STATE
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-012-STATE
+
+Status: Draft v1
+
+Depends On: NS-BCP-004-LIFECYCLE, NS-BCP-006-VERSION, NS-BCP-007-DATAMODEL, NS-BCP-011-APIMAP
+
+Owner: BCP Lead (TBD)
+
+1. Purpose
+
+This document defines BCP’s state machines and canonical state fields for:
+
+systems
+
+releases
+
+deployments
+
+policy checks
+
+incidents
+
+State is critical because BCP must be:
+
+governable (clear approval checkpoints)
+
+operable (clear ownership and incident transitions)
+
+auditable (immutable transition records)
+
+2. State Model Principles
+
+Explicit transitions: no hidden state changes.
+
+Immutable transition records: state changes are appended, not overwritten.
+
+Policy-driven: transitions require policy gate pass where applicable.
+
+Environment-aware: DEV/TEST/PROD impose different allowed transitions.
+
+Separation of duties: sensitive transitions require distinct roles.
+
+3. System State Machine (BCP_SYSTEM.status)
+
+A system is the logical product/service.
+
+3.1 States
+
+IDEA: concept exists, not yet designed
+
+DESIGN: spec + threat model in progress
+
+BUILD: implementation underway
+
+VERIFY: verification/audit stage
+
+READY: release-ready (gates satisfied)
+
+PROD: deployed to production networks
+
+DEPRECATED: still running but new use discouraged
+
+RETIRED: decommissioned; no further operations except archival
+
+3.2 Transitions
+
+IDEA → DESIGN
+
+DESIGN → BUILD (requires threat model approved)
+
+BUILD → VERIFY
+
+VERIFY → READY (requires required gates satisfied)
+
+READY → PROD (requires governance approval for PROD)
+
+PROD → DEPRECATED (requires deprecation notice + migration plan)
+
+DEPRECATED → RETIRED (requires decommission record)
+
+3.3 System Transition Record
+
+Each transition should record:
+
+from_state, to_state
+
+actor_identity_id
+
+reason
+
+evidence_refs (threat model, audit, approvals)
+
+occurred_at
+
+4. Release State Machine (BCP_RELEASE)
+
+A release is a coordinated deployment/upgrade event.
+
+4.1 States
+
+DRAFT: manifest being prepared
+
+GATED: policy checks executed; results recorded
+
+AWAITING_APPROVAL: governance approval needed
+
+APPROVED: approvals granted
+
+SCHEDULED: queued for execution (optional)
+
+EXECUTING: deployment/upgrade in progress
+
+SUCCEEDED: executed and validated
+
+FAILED: execution failed (with rollback/containment notes)
+
+CANCELED: intentionally canceled
+
+4.2 Transitions
+
+DRAFT → GATED (policy evaluation run)
+
+GATED → AWAITING_APPROVAL (if required)
+
+GATED → APPROVED (if approval not required)
+
+AWAITING_APPROVAL → APPROVED (governance decision)
+
+APPROVED → EXECUTING
+
+EXECUTING → SUCCEEDED (requires validation + registry update)
+
+EXECUTING → FAILED
+
+FAILED → DRAFT (new attempt with new release ID or revision)
+
+Any → CANCELED (with reason)
+
+4.3 Transition Guards
+
+To APPROVED:
+
+all required gates PASS or explicit WAIVE with governance waiver
+
+To SUCCEEDED:
+
+deployments recorded in registry
+
+monitoring enabled
+
+post-deploy validation checks pass
+
+5. Deployment State Machine (DEPLOYMENT.status)
+
+A deployment is a deployed instance on a network.
+
+5.1 States
+
+PLANNED: planned in release manifest, not yet deployed
+
+DEPLOYING: tx submitted, awaiting confirmation
+
+ACTIVE: operating normally
+
+PAUSED: emergency containment active
+
+DEGRADED: operating but with known issues (limited functionality)
+
+DEPRECATED: should not be integrated for new usage
+
+RETIRED: no longer supported / decommissioned
+
+5.2 Transitions
+
+PLANNED → DEPLOYING
+
+DEPLOYING → ACTIVE (receipt success + validation)
+
+ACTIVE → PAUSED (guardian/emergency)
+
+PAUSED → ACTIVE (governed unpause)
+
+ACTIVE → DEGRADED (detected issues)
+
+DEGRADED → ACTIVE (issue resolved)
+
+ACTIVE/DEGRADED → DEPRECATED (migration plan)
+
+DEPRECATED → RETIRED (decommission)
+
+5.3 Deployment Transition Guards
+
+PAUSE requires guardian authority (or equivalent)
+
+UNPAUSE requires admin/governed authority; may require timelock depending on policy
+
+RETIRED requires decommission record + final registry update
+
+6. Policy Check State (POLICY_CHECK.result)
+
+Policy checks are immutable outcomes tied to a release.
+
+6.1 Results
+
+PASS
+
+FAIL
+
+WAIVED (must include waiver reference)
+
+6.2 Rules
+
+PROD releases cannot proceed if any required check is FAIL
+
+WAIVED is only permitted if:
+
+the policy is waivable
+
+a governance waiver exists and is time-bounded
+
+7. Incident State Machine (INCIDENT.status)
+
+An incident is an operational/security event.
+
+7.1 States
+
+OPEN: detected and acknowledged
+
+TRIAGING: investigating scope and impact
+
+MITIGATING: containment actions underway (pause/disable/revert strategy)
+
+RECOVERING: restoring normal operation
+
+RESOLVED: service stable; monitoring normal
+
+POSTMORTEM_PENDING: postmortem required but not complete
+
+POSTMORTEMED: postmortem completed and controls updated
+
+7.2 Transitions
+
+OPEN → TRIAGING
+
+TRIAGING → MITIGATING
+
+MITIGATING → RECOVERING
+
+RECOVERING → RESOLVED
+
+RESOLVED → POSTMORTEM_PENDING (for S1/S2 or High/Critical systems)
+
+POSTMORTEM_PENDING → POSTMORTEMED
+
+7.3 Incident Severity
+
+S1: critical loss or high likelihood of loss; widespread impact
+
+S2: major degradation or contained security risk
+
+S3: moderate degradation
+
+S4: minor issue
+
+Severity influences:
+
+notification requirements
+
+governance involvement
+
+whether pausing is mandatory/encouraged
+
+8. Cross-State Constraints (Invariants)
+
+8.1 PROD Constraints
+
+A system cannot be marked PROD unless at least one deployment is ACTIVE in a PROD environment.
+
+A release cannot be SUCCEEDED unless registry updates and monitoring activation are complete.
+
+8.2 Security Constraints
+
+High/Critical systems cannot move to READY unless required security artifacts are APPROVED.
+
+WAIVERS must have expiration and must be visible in release views.
+
+8.3 Version Constraints
+
+A deployment transitioning to ACTIVE must reference a valid BUILD_ARTIFACT_SET.
+
+Upgrade events must link pre-state and post-state.
+
+9. State Transition Logging
+
+BCP should maintain an append-only STATE_EVENT log.
+
+Suggested fields:
+
+state_event_id
+
+entity_type (SYSTEM|RELEASE|DEPLOYMENT|INCIDENT)
+
+entity_id
+
+from_state, to_state
+
+actor_identity_id
+
+reason
+
+evidence_refs (array)
+
+occurred_at
+
+This log is used for:
+
+audits
+
+incident timelines
+
+governance reviews
+
+10. State Diagrams
+
+10.1 Release State Diagram
+
+stateDiagram-v2
+  [*] --> DRAFT
+  DRAFT --> GATED
+  GATED --> AWAITING_APPROVAL
+  GATED --> APPROVED
+  AWAITING_APPROVAL --> APPROVED
+  APPROVED --> EXECUTING
+  EXECUTING --> SUCCEEDED
+  EXECUTING --> FAILED
+  FAILED --> DRAFT
+  DRAFT --> CANCELED
+  GATED --> CANCELED
+  AWAITING_APPROVAL --> CANCELED
+  APPROVED --> CANCELED
+
+10.2 Deployment State Diagram
+
+stateDiagram-v2
+  [*] --> PLANNED
+  PLANNED --> DEPLOYING
+  DEPLOYING --> ACTIVE
+  ACTIVE --> PAUSED
+  PAUSED --> ACTIVE
+  ACTIVE --> DEGRADED
+  DEGRADED --> ACTIVE
+  ACTIVE --> DEPRECATED
+  DEGRADED --> DEPRECATED
+  DEPRECATED --> RETIRED
+
+11. Next Document
+
+NS-BCP-013 — RUNBOOK (operator runbooks: deploy, pause, incident response, upgrade)
+

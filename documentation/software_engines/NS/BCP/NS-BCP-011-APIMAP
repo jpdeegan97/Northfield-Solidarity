@@ -1,0 +1,428 @@
+NS-BCP-011 — APIMAP
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-011-APIMAP
+
+Status: Draft v1
+
+Depends On: NS-BCP-003-ARCHITECTURE, NS-BCP-007-DATAMODEL, NS-BCP-009-IMPL, NS-BCP-010-FE
+
+Owner: BCP Lead (TBD)
+
+1. Purpose
+
+This document defines the API map for BCP, including:
+
+internal service boundaries
+
+external integrations (GGP/GGE, IDN, FLO, SIG, DRE, MUX)
+
+minimum endpoints/events required for v1
+
+BCP APIs are designed around:
+
+registry-first (source of truth)
+
+immutable provenance (release/deploy records)
+
+policy enforcement (gates)
+
+signals-as-data (events normalized into internal feeds)
+
+2. Service Catalog
+
+2.1 BCP Registry API (BCP-REG)
+
+Purpose: contract registry and provenance system of record.
+
+Primary consumers:
+
+BCP FE
+
+Release Orchestrator
+
+SIG/FLO/IDN integrations
+
+2.2 BCP Release Orchestrator (BCP-REL)
+
+Purpose: executes releases (deploy/upgrade/migrate), writes results.
+
+Primary consumers:
+
+CI/CD pipelines
+
+BCP FE (view; optionally trigger)
+
+2.3 BCP Policy Gates (BCP-POL)
+
+Purpose: evaluates release gates and produces policy check results.
+
+Primary consumers:
+
+Release Orchestrator
+
+Governance approval workflows
+
+2.4 BCP Signals Exporter (BCP-SIGX)
+
+Purpose: normalizes on-chain events into internal signals.
+
+Primary consumers:
+
+SIG
+
+FLO
+
+DRE (select feeds)
+
+2.5 BCP Incident & Postmortem (BCP-INC) (Optional v1)
+
+Purpose: incident records, runbook linking, postmortem artifacts.
+
+Primary consumers:
+
+BCP FE
+
+SIG
+
+3. External Integration Interfaces
+
+3.1 GGP/GGE (Governance)
+
+BCP → GGP/GGE
+
+Request approvals for:
+
+PROD deployments
+
+upgrades/migrations
+
+gate waivers
+
+GGP/GGE → BCP
+
+Provide approval decision records
+
+Provide policy configuration updates (optional)
+
+3.2 IDN (Identity)
+
+BCP → IDN
+
+Resolve identities for:
+
+approvals
+
+signers
+
+role bindings
+
+IDN → BCP
+
+Identity/role assertions and attribution mappings
+
+3.3 SIG (Signals)
+
+BCP → SIG
+
+normalized signal events
+
+alert-worthy events and metrics
+
+SIG → BCP
+
+alert state and incident triggers (optional)
+
+3.4 FLO (Ledger)
+
+BCP → FLO
+
+value movement events
+
+accounting primitives mapped from events
+
+FLO → BCP
+
+reconciliation status (optional)
+
+3.5 DRE (Research)
+
+BCP → DRE
+
+incident learnings
+
+chain/vendor performance telemetry summaries
+
+DRE → BCP
+
+chain/tool/vendor intelligence and advisories
+
+3.6 MUX (Market Integration)
+
+BCP → MUX
+
+provider requirements (RPC/indexing/custody/audit)
+
+MUX → BCP
+
+provider profile endpoints and redundancy configuration
+
+4. Registry API (BCP-REG) — v1 Endpoints
+
+Base: /bcp/registry/v1
+
+4.1 Systems
+
+POST /systems
+
+GET /systems
+
+GET /systems/{system_id}
+
+PATCH /systems/{system_id}
+
+4.2 Packages & Artifacts
+
+POST /packages
+
+GET /packages?system_id=
+
+POST /artifacts
+
+GET /artifacts?package_id=&semver=
+
+4.3 Deployments
+
+POST /deployments
+
+GET /deployments?system_id=&network_id=&environment=
+
+GET /deployments/{deployment_id}
+
+4.4 Releases
+
+POST /releases
+
+GET /releases?system_id=&status=
+
+GET /releases/{release_id}
+
+4.5 Policy Checks
+
+POST /policy-checks
+
+GET /policy-checks?release_id=
+
+4.6 Authority & Roles
+
+POST /authority-sets
+
+GET /authority-sets?system_id=
+
+POST /role-bindings
+
+GET /role-bindings?system_id=
+
+4.7 Security Artifacts
+
+POST /security-artifacts
+
+GET /security-artifacts?system_id=&type=
+
+4.8 Incidents (Optional v1)
+
+POST /incidents
+
+GET /incidents?system_id=&status=
+
+GET /incidents/{incident_id}
+
+5. Release Orchestrator API (BCP-REL) — v1
+
+Base: /bcp/release/v1
+
+5.1 Release Execution
+
+POST /execute
+
+input: release_manifest_ref or inline manifest
+
+output: execution_id
+
+GET /executions/{execution_id}
+
+status: queued/running/succeeded/failed
+
+links to logs
+
+5.2 Deployment Actions
+
+POST /deploy
+
+POST /upgrade
+
+POST /migrate
+
+Note: These endpoints may be internal-only. In many setups, orchestrator is pipeline-driven and exposes read-only status to FE.
+
+6. Policy Gates API (BCP-POL) — v1
+
+Base: /bcp/policy/v1
+
+6.1 Evaluate
+
+POST /evaluate
+
+inputs:
+
+release_id or release_manifest
+
+risk_class
+
+links to artifacts (threat model, runbook, audit)
+
+outputs:
+
+gate results PASS/FAIL/WAIVE
+
+evidence
+
+6.2 Policies
+
+GET /policies
+
+GET /policies/{policy_name}
+
+6.3 Waivers
+
+POST /waivers
+
+GET /waivers?system_id=&status=
+
+7. Signals Exporter (BCP-SIGX) — v1
+
+7.1 Ingestion
+
+BCP-SIGX consumes:
+
+chain logs/receipts via indexer or direct RPC
+
+event schema registry (BCP-REG)
+
+7.2 Output Feeds
+
+Push to SIG/FLO via internal event bus (preferred)
+
+Pull via API endpoints
+
+Base: /bcp/signals/v1
+
+GET /signals?system_id=&network_id=&since=
+
+GET /alerts?system_id=&severity= (optional)
+
+7.3 Canonical Signal Event Shape
+
+{
+  "signal_event_id": "...",
+  "signal_def_id": "...",
+  "system_id": "BCP-SYS-...",
+  "network_id": "ARBMAIN",
+  "block_number": 123456,
+  "tx_hash": "0x...",
+  "occurred_at": "2025-12-23T05:00:00Z",
+  "severity": "INFO|WARN|ALERT",
+  "type": "PRIVILEGED_ACTION|REVERT_SPIKE|PAUSE_STATE|INDEXER_LAG|VALUE_MOVEMENT",
+  "payload": {"...": "..."},
+  "attribution_identity_id": "IDN:..."
+}
+
+8. Governance Approval API (Integration Contract)
+
+BCP treats governance as an external authority.
+
+8.1 Approval Request (BCP → GGP/GGE)
+
+{
+  "request_type": "PROD_DEPLOY|UPGRADE|WAIVER",
+  "release_id": "BCP-REL-20251223-001",
+  "system_id": "BCP-SYS-TreasuryVault",
+  "risk_class": "HIGH",
+  "artifacts": {
+    "threat_model_ref": "uri",
+    "audit_report_ref": "uri",
+    "runbook_ref": "uri"
+  },
+  "summary": "Deploy TreasuryVault v1.0.0 to ARBMAIN",
+  "requested_by": "IDN:...",
+  "requested_at": "..."
+}
+
+8.2 Approval Decision (GGP/GGE → BCP)
+
+{
+  "release_id": "BCP-REL-20251223-001",
+  "decision": "APPROVED|DENIED|CONDITIONAL",
+  "approvers": ["IDN:..."],
+  "decision_ref": "uri",
+  "notes": "...",
+  "decided_at": "..."
+}
+
+9. API Security
+
+9.1 AuthN/AuthZ
+
+Auth via NS identity (IDN)
+
+RBAC enforced at API and FE
+
+separation of duties for PROD actions
+
+9.2 Audit Logging
+
+All write endpoints must produce:
+
+actor identity
+
+time
+
+payload digest
+
+result
+
+correlation IDs (release_id, deployment_id)
+
+10. Event Bus Topics (Optional but Recommended)
+
+If NS has an internal event bus, BCP publishes/consumes:
+
+Publish:
+
+bcp.release.executed
+
+bcp.deployment.recorded
+
+bcp.policy.evaluated
+
+bcp.signal.emitted
+
+bcp.incident.created
+
+Consume:
+
+ggp.approval.decided
+
+sig.alert.triggered
+
+dre.advisory.published
+
+11. Next Document
+
+NS-BCP-012 — STATE (state model: environments, releases, deployments, incidents, and transitions)
+

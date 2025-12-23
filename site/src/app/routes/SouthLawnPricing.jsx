@@ -23,8 +23,9 @@ export default function SouthLawnPricing() {
                     footerNote: "Quiet execution. Long-horizon compounding.",
                 }}
                 nav={[
-                    { label: "Northfield Solidarity", to: "/pricing" },
+                    { label: "Northfield Solidarity", to: "/" },
                     { label: "South Lawn", to: "/southlawn" },
+                    { label: "WSP", to: "/wsp" },
                     { type: "divider" },
                     { label: "Documentation", to: "/southlawn/docs" },
                     { label: "Pricing", to: "/southlawn/pricing" },

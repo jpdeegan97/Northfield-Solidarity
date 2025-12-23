@@ -6,8 +6,9 @@ export default function SouthLawnInvestors() {
 
     // South Lawn specific nav
     const nav = [
-        { label: "Northfield Solidarity", to: "/pricing" },
+        { label: "Northfield Solidarity", to: "/" }, // Fix: point to root Home
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
@@ -17,7 +18,15 @@ export default function SouthLawnInvestors() {
 
     return (
         <div data-theme="green">
-            <Layout nav={nav}>
+            <Layout
+                nav={nav}
+                brand={{
+                    title: "South Lawn RE Holdings",
+                    tagline: "Stewardship of land. Quiet execution.",
+                    footerLine: "Stewardship • Operations • Portfolio Execution",
+                    footerNote: "Quiet execution. Long-horizon compounding.",
+                }}
+            >
                 <div className="investor-portal">
                     {/* Header */}
                     <div className="ir-header">
@@ -52,39 +61,30 @@ export default function SouthLawnInvestors() {
                                 <div className="metrics-grid">
                                     <div className="metric-card">
                                         <div className="metric-label">Assets Under Management</div>
-                                        <div className="metric-value">$4.2M</div>
-                                        <div className="metric-delta positive">▲ $0.5M this quarter</div>
+                                        <div className="metric-value">$0</div>
+                                        <div className="metric-delta neutral">-- launching</div>
                                     </div>
                                     <div className="metric-card">
                                         <div className="metric-label">Active Doors</div>
-                                        <div className="metric-value">28</div>
-                                        <div className="metric-delta positive">▲ 3 new</div>
+                                        <div className="metric-value">0</div>
+                                        <div className="metric-delta neutral">--</div>
                                     </div>
                                     <div className="metric-card">
                                         <div className="metric-label">Occupancy Rate</div>
-                                        <div className="metric-value">96%</div>
-                                        <div className="metric-delta neutral">-- stable</div>
+                                        <div className="metric-value">--</div>
+                                        <div className="metric-delta neutral">--</div>
                                     </div>
                                     <div className="metric-card">
                                         <div className="metric-label">Avg. Yield</div>
-                                        <div className="metric-value">8.4%</div>
-                                        <div className="metric-delta positive">▲ 0.2%</div>
+                                        <div className="metric-value">--</div>
+                                        <div className="metric-delta neutral">--</div>
                                     </div>
                                 </div>
                                 <div style={{ marginTop: '3rem', padding: '2rem', background: 'var(--c-surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--c-border)' }}>
                                     <h4 style={{ marginBottom: '1rem' }}>Latest Acquisitions</h4>
                                     <ul style={{ listStyle: 'none', padding: 0 }}>
-                                        <li style={{ padding: '1rem 0', borderBottom: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between' }}>
-                                            <span><strong>124 Maple St.</strong> (Duplex)</span>
-                                            <span>Acquired Dec 10</span>
-                                        </li>
-                                        <li style={{ padding: '1rem 0', borderBottom: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between' }}>
-                                            <span><strong>890 Oak Ave.</strong> (Single Family)</span>
-                                            <span>Acquired Nov 22</span>
-                                        </li>
-                                        <li style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between', color: 'var(--c-text-sub)' }}>
-                                            <span><strong>45 Willow Ln.</strong> (Triplex)</span>
-                                            <span>Under Contract</span>
+                                        <li style={{ padding: '1rem 0', color: 'var(--c-text-sub)', fontStyle: 'italic' }}>
+                                            No active acquisitions.
                                         </li>
                                     </ul>
                                 </div>

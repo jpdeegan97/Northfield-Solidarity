@@ -86,6 +86,33 @@
     flex-direction: column;
 }
 
+[data-theme="gold"] {
+    --c-bg: #1c1917;
+    /* Warm Stone/Dark Orange */
+    --c-text: #fafaf9;
+    /* Stone White */
+    --c-text-sub: #d6d3d1;
+    /* Stone Gray */
+    --c-brand: #f59e0b;
+    /* Amber-500 */
+    --c-brand-light: #f59e0b20;
+    /* Low Opacity Amber */
+    --c-accent: #fbbf24;
+    /* Amber-400 */
+    --c-border: #44403c;
+    /* Stone-700 */
+    --c-surface: #44403c40;
+    /* Transparent Stone Surface */
+    --c-card-bg: #292524;
+    /* Stone-800 */
+
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 /* =========================================
    Reset & Base
    ========================================= */
@@ -159,10 +186,20 @@ button {
     border-bottom: 1px solid rgba(56, 189, 248, 0.1);
 }
 
+[data-theme="green"] .siteHeader {
+    background-image: linear-gradient(to bottom, rgba(5, 15, 5, 0.7), rgba(5, 15, 5, 0.3));
+    border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+[data-theme="gold"] .siteHeader {
+    background-image: linear-gradient(to bottom, rgba(28, 25, 23, 0.7), rgba(28, 25, 23, 0.3));
+    border-bottom: 1px solid rgba(245, 158, 11, 0.1);
+}
+
 .headerInner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
+    max-width: 100%;
+    margin: 0;
+    padding: 0 var(--space-6);
     height: 72px;
     /* Slightly taller for elegance */
     display: flex;
@@ -208,7 +245,7 @@ button {
 
 .siteNav {
     display: flex;
-    gap: var(--space-2);
+    gap: var(--space-4);
     align-items: center;
 }
 
@@ -616,6 +653,55 @@ button {
     background-color: rgba(56, 189, 248, 0.1);
 }
 
+/* Auth Buttons in Header */
+.auth-buttons {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn-login {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--c-text-sub);
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+    color: var(--c-text);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="water"] .btn-login:hover,
+[data-theme="green"] .btn-login:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-signup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--c-brand) 0%, var(--c-accent) 100%);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-signup:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(var(--c-brand), 0.3);
+    filter: brightness(1.1);
+}
+
 /* =========================================
    Ecosystem
    ========================================= */
@@ -741,4 +827,180 @@ button {
     .twoCol {
         grid-template-columns: 1fr;
     }
+}
+
+/* =========================================
+   Prose (Typography)
+   ========================================= */
+
+.prose {
+    color: var(--c-text);
+    max-width: 65ch;
+    /* Optimal reading width */
+    line-height: 1.75;
+    font-size: 1rem;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+    color: var(--c-text);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+}
+
+.prose h1 {
+    font-size: 2.25em;
+    letter-spacing: -0.025em;
+    margin-top: 0;
+}
+
+.prose h2 {
+    font-size: 1.5em;
+    letter-spacing: -0.015em;
+    border-bottom: 1px solid var(--c-border);
+    padding-bottom: 0.3em;
+}
+
+.prose h3 {
+    font-size: 1.25em;
+}
+
+.prose h4 {
+    font-size: 1em;
+}
+
+.prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+.prose a {
+    color: var(--c-brand);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    font-weight: 500;
+}
+
+.prose a:hover {
+    color: var(--c-accent);
+}
+
+.prose ul,
+.prose ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+}
+
+.prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose blockquote {
+    font-weight: 500;
+    font-style: italic;
+    color: var(--c-text);
+    border-left-width: 0.25rem;
+    border-left-color: var(--c-brand);
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-left: 1em;
+    opacity: 0.8;
+}
+
+.prose code {
+    color: var(--c-text);
+    background-color: var(--c-surface);
+    /* Use surface color for subtle contrast */
+    border: 1px solid var(--c-border);
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    font-weight: 600;
+}
+
+.prose pre {
+    background-color: #1e1e1e;
+    /* Always dark for code blocks? Or adapt? */
+    color: #e5e5e5;
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+    border: 1px solid var(--c-border);
+}
+
+/* Adjust pre code color for consistency */
+.prose pre code {
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0;
+    padding: 0;
+    font-weight: 400;
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+}
+
+.prose hr {
+    border-color: var(--c-border);
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+.prose strong {
+    font-weight: 600;
+    color: var(--c-text);
+}
+
+/* Table styling if needed */
+.prose table {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    border-collapse: collapse;
+}
+
+.prose thead {
+    border-bottom: 1px solid var(--c-border);
+}
+
+.prose thead th {
+    color: var(--c-text);
+    font-weight: 600;
+    vertical-align: bottom;
+    padding-right: 0.5714286em;
+    padding-bottom: 0.5714286em;
+    padding-left: 0.5714286em;
+}
+
+.prose tbody tr {
+    border-bottom: 1px solid var(--c-border);
+}
+
+.prose tbody td {
+    vertical-align: baseline;
+    padding: 0.5714286em;
+}
+
+/* Ensure images don't overflow */
+.prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin-top: 2em;
+    margin-bottom: 2em;
 }

@@ -1,0 +1,380 @@
+NS-BCP-010 — FE (Front-End / Operator Experience)
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-010-FE
+
+Status: Draft v1
+
+Depends On: NS-BCP-003-ARCHITECTURE, NS-BCP-007-DATAMODEL, NS-BCP-009-IMPL
+
+Owner: BCP Lead (TBD)
+
+1. Purpose
+
+BCP’s FE is the human-facing layer that makes BCP usable and safe day-to-day.
+
+It provides:
+
+an Operator Console for deployments, monitoring, and incident response
+
+a Product Team Console for discovering contracts, networks, SDKs, and integrations
+
+a Governance View for approvals, waivers, and change provenance
+
+BCP FE does not replace existing NS UIs; it provides a focused interface aligned to BCP controls and artifacts.
+
+2. Personas
+
+2.1 BCP Operator (ChainOps)
+
+deploys releases
+
+validates monitoring
+
+responds to incidents
+
+2.2 Smart Contract Engineer
+
+registers packages
+
+manages versions and artifacts
+
+reviews gate outcomes
+
+2.3 Security & Assurance
+
+reviews threat models
+
+tracks audit findings and remediation
+
+approves gates (where policy requires)
+
+2.4 Product Team (dApp)
+
+looks up addresses/ABIs
+
+checks compatibility notes
+
+monitors runtime behavior for their product
+
+2.5 Governance (GGP/GGE)
+
+approves production releases and upgrades
+
+reviews waivers
+
+audits decision history
+
+3. FE Surfaces (Apps)
+
+3.1 Operator Console (BCP Ops)
+
+Primary purpose: keep production safe.
+
+Core pages:
+
+Overview Dashboard
+
+systems by environment
+
+release status and recent changes
+
+active alerts and incidents
+
+Release Center
+
+create/view release manifests
+
+gate results (pass/fail/waive)
+
+approval status (GGP/GGE)
+
+execute deployment (if interactive) or view pipeline execution logs
+
+Deployments & Registry
+
+deployments by network and system
+
+addresses, versions, provenance, authority set
+
+quick links to runbooks and dashboards
+
+Incidents
+
+active incidents
+
+containment actions checklist
+
+postmortem creation workflow
+
+3.2 Product Console (BCP Hub)
+
+Primary purpose: help teams consume BCP safely.
+
+Core pages:
+
+System Catalog
+
+searchable list of BCP systems
+
+risk class and upgrade stance
+
+supported networks
+
+Contract Explorer
+
+ABI download / SDK references
+
+addresses per network
+
+version timeline
+
+Integration Kit
+
+code snippets (read-only)
+
+event schemas and signal definitions
+
+indexer endpoints and query examples
+
+Compatibility Matrix
+
+which dApp versions support which contract deployments
+
+3.3 Governance View (BCP + GGP/GGE)
+
+Primary purpose: make approvals auditable.
+
+Core pages:
+
+Approvals Ledger
+
+releases awaiting approval
+
+approvals history
+
+linked artifacts and risk class
+
+Waivers
+
+waiver requests
+
+rationale + expiration
+
+enforcement (auto-expire / re-approval)
+
+Decision Records (BCP-ADR)
+
+chain selection decisions
+
+upgrade stance decisions
+
+custody/vendor decisions
+
+4. Information Architecture (Navigation)
+
+Recommended top-level nav:
+
+Systems
+
+Deployments
+
+Releases
+
+Security
+
+Signals
+
+Incidents
+
+Governance
+
+Providers
+
+Settings
+
+5. Core UI Components
+
+5.1 System Card
+
+system name + ID
+
+risk class badge
+
+environment status (DEV/TEST/PROD)
+
+upgrade stance
+
+last release timestamp
+
+5.2 Release Gate Panel
+
+gate checklist with PASS/FAIL/WAIVE
+
+links to evidence (threat model, analysis, audit)
+
+approval status (who/when)
+
+5.3 Deployment Detail Panel
+
+network + address
+
+version lineage (package + artifact set)
+
+authority set (admin/guardian/timelock)
+
+runbook + dashboards
+
+5.4 Signal Stream
+
+recent privileged actions
+
+revert spikes
+
+pause state changes
+
+indexer lag warnings
+
+5.5 Incident Workbench
+
+incident timeline
+
+containment checklist
+
+comms templates
+
+postmortem scaffold
+
+6. FE Data Contracts (API Needs)
+
+FE reads from the Contract Registry and supporting services.
+
+Minimum queries:
+
+list systems with filters: risk_class, status, environment
+
+list deployments by system/network/environment
+
+release details including gate results and approvals
+
+authority set and role bindings for a system
+
+security artifacts and audit findings for a system
+
+signal events and alert status
+
+incident list and incident detail
+
+Write actions (restricted):
+
+create release manifest (or attach manifest)
+
+request approvals / create waiver request
+
+create incident record and attach postmortem
+
+All write actions should be gated by role-based access and (for sensitive actions) governance approvals.
+
+7. FE Permissions (RBAC)
+
+BCP FE permissions map to BCP roles.
+
+7.1 Roles
+
+BCP_VIEWER: read-only access to systems, deployments, releases
+
+BCP_ENGINEER: register packages/artifacts; view gates
+
+BCP_OPERATOR: execute releases (where interactive) and manage incidents
+
+BCP_SECURITY: approve artifacts, review findings, request gate waivers
+
+BCP_GOVERNANCE: approve releases/upgrades; approve/deny waivers
+
+7.2 Access Principles
+
+least privilege
+
+separation of duties
+
+PROD actions require elevated role + approvals
+
+8. UX Safety Features (Blockchain-Specific)
+
+BCP FE must reduce operator and user risk:
+
+Explicit network context (always show network + environment; no hidden mainnet)
+
+Transaction preview
+
+decoded call data
+
+estimated impact summary (where possible)
+
+Address hygiene
+
+ENS/name resolution where available
+
+warnings for unknown addresses
+
+High-risk action friction
+
+confirm step + reason capture
+
+“two-person rule” workflow for critical actions
+
+Immutable provenance links
+
+click-through to receipts and registry records
+
+9. Front-End Technical Direction (v1)
+
+BCP FE should be light-weight and consistent with NS front-end patterns.
+
+Recommended v1:
+
+React + TypeScript
+
+shared component library consistent with NS
+
+authentication via NS identity layer (IDN)
+
+Deployment:
+
+internal-only initially
+
+audit logs for all write actions
+
+10. MVP vs Later
+
+10.1 MVP (Must Have)
+
+Systems catalog
+
+Deployment explorer (addresses, versions, authority)
+
+Release view with gates + approvals status
+
+Security artifacts list (threat model, audit report links)
+
+Signal/alert basic dashboard
+
+10.2 Later (Nice to Have)
+
+interactive release execution (if not purely pipeline driven)
+
+richer decoded tx impact analysis
+
+incident workbench with automation
+
+vendor/provider health dashboards
+
+11. Next Document
+
+NS-BCP-011 — APIMAP (API map for registry/orchestrator/policy/signal feeds)
+

@@ -3,13 +3,15 @@ import React from "react";
 export const FlowerOfLife = ({ opacity = 0.05, color = "currentColor", className = "" }) => (
     <div className={`sacred-geo-bg ${className}`} style={{
         position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
+        top: '-50%', left: '-50%', right: '-50%', bottom: '-50%', // Expand to cover rotation edges
+        width: '200%', height: '200%', // Oversize to avoid corners showing during rotation
         overflow: 'hidden',
         pointerEvents: 'none',
         zIndex: 0,
-        opacity: opacity
+        opacity: opacity,
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style={{ animation: 'spinBackground 300s linear infinite' }}>
             <defs>
                 <pattern id="flowerGrid" width="20" height="34.6" patternUnits="userSpaceOnUse" patternTransform="scale(2)">
                     <circle cx="10" cy="10" r="10" fill="none" stroke={color} strokeWidth="0.2" />
@@ -20,6 +22,12 @@ export const FlowerOfLife = ({ opacity = 0.05, color = "currentColor", className
             </defs>
             <rect width="100%" height="100%" fill="url(#flowerGrid)" />
         </svg>
+        <style>{`
+            @keyframes spinBackground { 
+                from { transform: rotate(0deg); } 
+                to { transform: rotate(360deg); } 
+            }
+        `}</style>
     </div>
 );
 

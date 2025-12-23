@@ -1,12 +1,15 @@
 import React from "react";
 import { NavLink, useLocation, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Header({ brand, nav }) {
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
     const defaultNav = [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/docs" },
         { label: "Pricing", to: "/pricing" },
@@ -22,7 +25,10 @@ export default function Header({ brand, nav }) {
     };
 
     const isNSHome = (item) => item.to === "/" && item.label === "Northfield Solidarity";
-    const brandLink = location.pathname.startsWith("/southlawn") ? "/southlawn" : "/";
+
+    let brandLink = "/";
+    if (location.pathname.startsWith("/southlawn")) brandLink = "/southlawn";
+    if (location.pathname.startsWith("/wsp")) brandLink = "/wsp";
 
     return (
         <header className="siteHeader">
@@ -42,19 +48,29 @@ export default function Header({ brand, nav }) {
                                 to={item.to}
                                 className={({ isActive }) => {
                                     if (isNSHome(item)) {
-                                        // Active on all NS pages (not starting with /southlawn)
-                                        return !location.pathname.startsWith("/southlawn") ? "navLink active" : "navLink";
+                                        // Active on all NS pages (not starting with /southlawn or /wsp)
+                                        return (!location.pathname.startsWith("/southlawn") && !location.pathname.startsWith("/wsp")) ? "navLink active" : "navLink";
                                     }
                                     return isActive ? "navLink active" : "navLink";
                                 }}
-                                // Do not use 'end' for NS Home so it matches sub-routes, 
-                                // but use 'end' for other root links if any (unlikely).
                                 end={isNSHome(item) ? false : item.to === "/"}
                             >
                                 {item.label}
                             </NavLink>
                         );
                     })}
+
+                    <div className="navDivider" />
+                    <div className="auth-buttons">
+                        {isAuthenticated ? (
+                            <Link to="/account" className="btn-login" style={{ fontWeight: 600 }}>Account</Link>
+                        ) : (
+                            <>
+                                <Link to="/login" className="btn-login">Log In</Link>
+                                <Link to="/signup" className="btn-signup">Sign Up</Link>
+                            </>
+                        )}
+                    </div>
                 </nav>
             </div>
         </header>

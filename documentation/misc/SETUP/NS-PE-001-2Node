@@ -1,0 +1,292 @@
+NS-PE-010 — PowerEdge MVP Setup Runbook (Two-Node)
+
+0. Goal
+
+Stand up two PowerEdge servers as a small, reliable MVP cluster with:
+
+separation of concerns
+
+a real backup / failover story
+
+room to scale engines and data without re-architecting
+
+This remains MVP-grade (not full Kubernetes unless you choose it later).
+
+1. Two-Node Topology Options
+
+Option A (Recommended): Proxmox on both + VM separation + replication
+
+Proxmox on PE1 and PE2
+
+VMs placed intentionally:
+
+PE1: primary infra + primary apps
+
+PE2: observability + replicas + backup target
+
+Option B: Bare metal Ubuntu on both + Docker Compose
+
+Works fine for MVP
+
+Use strong discipline on networking, backups, and service placement
+
+2. Recommended Role Split
+
+PE1 (Primary / “Workhorse”)
+
+INFRA-PRIMARY
+
+PostgreSQL primary
+
+MongoDB primary (or primary RS member)
+
+Kafka/Redpanda primary
+
+APP-PRIMARY
+
+engine APIs, workers, orchestrators
+
+PE2 (Resilience / “Safety Net”)
+
+INFRA-REPLICA
+
+PostgreSQL replica
+
+MongoDB secondary (replica set member)
+
+Kafka/Redpanda secondary/broker (optional for MVP)
+
+OBS
+
+Prometheus/Grafana/Loki
+
+BACKUP
+
+backup repository target (restic/borg) + snapshot store
+
+3. Network & Access Model
+
+3.1 Networks
+
+At minimum:
+
+Mgmt LAN: iDRAC + Proxmox management (restricted)
+
+Server LAN: VM traffic, east-west service calls
+
+Optional:
+
+Storage LAN (if you add shared storage later)
+
+3.2 DNS & Naming
+
+pe1, pe2
+
+VMs: infra1, app1, obs2, infra2 (or similar)
+
+4. Two-Node Diagrams
+
+4.1 Two-Node High-Level Layout
+
+flowchart TB
+  subgraph PE1[PowerEdge #1]
+    subgraph P1[Proxmox]
+      INFRA1[INFRA-PRIMARY VM]
+      APP1[APP-PRIMARY VM]
+    end
+  end
+
+  subgraph PE2[PowerEdge #2]
+    subgraph P2[Proxmox]
+      INFRA2[INFRA-REPLICA VM]
+      OBS2[OBS VM]
+      BAK2[BACKUP VM/Service]
+    end
+  end
+
+  APP1 --> INFRA1
+  APP1 --> INFRA2
+
+  INFRA1 <--> INFRA2
+  OBS2 <--> INFRA1
+  OBS2 <--> APP1
+  BAK2 --> INFRA1
+  BAK2 --> INFRA2
+
+4.2 Data Replication Paths
+
+flowchart LR
+  PG1[(Postgres Primary)] -->|streaming replication| PG2[(Postgres Replica)]
+  MG1[(Mongo Primary)] -->|replica set| MG2[(Mongo Secondary)]
+  KF1[(Kafka/Redpanda)] -->|optional: broker replication| KF2[(Broker/Secondary)]
+
+5. Phase Plan
+
+5.1 Phase 0 — Hardware Baseline (Both Nodes)
+
+Update BIOS/iDRAC/firmware on both
+
+Configure iDRAC on mgmt network
+
+Standardize BIOS settings (virtualization on, power profile)
+
+5.2 Phase 1 — Host Install
+
+Option A: Proxmox on PE1 + PE2
+
+Same Proxmox version
+
+Same storage approach (ZFS or LVM-thin)
+
+Create vmbr0 on server LAN
+
+Optional (MVP+): Proxmox cluster
+
+You can cluster them, but with 2 nodes quorum is tricky.
+
+If you cluster: use a qdevice (a tiny third witness VM) OR accept limited HA semantics.
+
+5.3 Phase 2 — VM Provisioning
+
+Create these VMs:
+
+PE1: infra1, app1
+
+PE2: infra2, obs2, backup2
+
+Resource guidance:
+
+put extra RAM/CPU on infra1 and app1
+
+give backup2 large disk
+
+6. Core Services (Two-Node MVP)
+
+6.1 PostgreSQL
+
+infra1: primary
+
+infra2: streaming replica
+
+MVP rules:
+
+replication user with minimal rights
+
+hot_standby=on on replica
+
+nightly logical dump still required (replication ≠ backup)
+
+Failover (MVP manual):
+
+promote replica when needed
+
+repoint app connection strings
+
+6.2 MongoDB
+
+MVP recommended: Replica set
+
+infra1: primary
+
+infra2: secondary
+
+Optional (if you want safer elections):
+
+add an arbiter (lightweight) on obs2 or backup2
+
+6.3 Kafka / Redpanda
+
+MVP recommendation:
+
+start single broker on infra1
+
+add second broker on infra2 when you’re ready
+
+Reason:
+
+small two-broker setups can be finicky with replication factors unless configured carefully.
+
+7. Observability (PE2)
+
+Run on obs2:
+
+Prometheus
+
+Grafana
+
+Loki
+
+Benefits:
+
+If PE1 is sick, you still have dashboards/logs
+
+8. Backups (PE2)
+
+8.1 Backup Target
+
+On backup2:
+
+restic or borg repository
+
+immutable-ish retention policy
+
+8.2 Backup Sources
+
+infra1: Postgres dumps + base backups
+
+infra1: Mongo dumps/snapshots
+
+app1: configuration + secrets (encrypted)
+
+Proxmox: VM snapshots (coarse)
+
+8.3 Restore Drills
+
+Monthly:
+
+restore Postgres to a scratch DB
+
+restore Mongo to a scratch DB
+
+9. Security Baseline (Both)
+
+SSH keys only
+
+firewall:
+
+DB ports only accessible on server LAN
+
+public ingress only 80/443 to app reverse proxy
+
+separate admin accounts, avoid shared root
+
+secrets managed consistently (start simple; mature later)
+
+10. “Feeling It” Modes (How to Choose)
+
+Mode 1 — Lazy MVP (Fast)
+
+PE1: everything
+
+PE2: backups + obs only
+
+Mode 2 — Balanced MVP (Recommended)
+
+PE1: infra primary + apps
+
+PE2: obs + backup + replicas
+
+Mode 3 — HA-leaning MVP (More work)
+
+PE1/PE2: split apps + infra multi-broker, add witness/qdevice
+
+11. Done Definition (Two-Node)
+
+
+
+12. Next Docs
+
+NS-PE-011 — Two-Node Compose Pack (infra1/infra2/app1/obs2/backup2 compose files)
+
+NS-PE-012 — Failover Runbook (Postgres promote + app repoint, Mongo election notes)
+

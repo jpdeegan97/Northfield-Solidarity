@@ -1,0 +1,408 @@
+NS-BCP-008 — EEE (End-to-End Example)
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-008-EEE
+
+Status: Draft v1
+
+Depends On: NS-BCP-003-ARCHITECTURE, NS-BCP-004-LIFECYCLE, NS-BCP-007-DATAMODEL
+
+Owner: BCP Lead (TBD)
+
+1. Scenario
+
+We will walk through an end-to-end BCP delivery loop for a simple but realistic system:
+
+System: BCP-SYS-TreasuryVault
+
+Purpose: hold and disburse funds under governed controls
+
+Contracts: TreasuryVault, VaultPolicy (optional)
+
+dApp: Treasury Console (admin UI)
+
+Networks:
+
+TEST: SEPOLIA
+
+PROD: ARBMAIN (example)
+
+Risk Class: HIGH (value custody + privileged controls)
+
+2. Intake (Stage 0)
+
+2.1 Inputs
+
+“We need a treasury vault with controlled withdrawals and event visibility.”
+
+2.2 Outputs
+
+BCP System Brief
+
+owner: IDN:NorthfieldSolidarityOps
+
+value at risk: meaningful
+
+primary actions: deposit, withdraw, role assignment, emergency pause
+
+Classifications
+
+risk class: HIGH
+
+change class: MINOR (initial release planning)
+
+Draft Ownership
+
+Admin: multisig
+
+Guardian: separate multisig (or limited admin)
+
+Upgrades: timelock (if upgradeable)
+
+2.3 Registry Entries (Created)
+
+BCP_SYSTEM:
+
+system_id = BCP-SYS-TreasuryVault
+
+risk_class = HIGH
+
+upgrade_stance = UPGRADEABLE (decision pending)
+
+3. Design (Stage 1)
+
+3.1 Key Decisions
+
+Decision 1 — Upgrade stance
+
+Option A: Immutable, migrate if needed
+
+Option B: Upgradeable with timelock + multisig
+
+Accepted (for this example): Option B
+
+Rationale: treasury safety features may need patching; governance controls reduce risk
+
+Decision 2 — Custody model
+
+PROD privileged actions require multisig or MPC
+
+3.2 Required Design Artifacts
+
+Contract Spec (excerpt)
+
+deposit() allows anyone to deposit
+
+withdraw(to, amount) requires TREASURER role
+
+setLimit(token, dailyLimit) requires POLICY_ADMIN
+
+pause() requires GUARDIAN
+
+unpause() requires ADMIN + timelock (optional)
+
+Threat Model (excerpt)
+
+Assets: funds in vault
+
+Threats: compromised admin key; role abuse; re-entrancy; config manipulation
+
+Mitigations:
+
+multisig custody
+
+role separation (treasurer vs policy admin)
+
+timelock upgrades
+
+reentrancy guards + checks-effects-interactions
+
+emit events for all privileged actions
+
+Ownership/Role Matrix
+
+ADMIN: upgrades, role assignment
+
+TREASURER: withdrawals (bounded by limits)
+
+POLICY_ADMIN: limit configuration
+
+GUARDIAN: pause
+
+Event/Telemetry Plan
+
+emit events:
+
+Withdrawn(to, token, amount, by)
+
+LimitChanged(token, newLimit, by)
+
+Paused(by) / Unpaused(by)
+
+RoleGranted(role, account, by)
+
+3.3 Gate
+
+threat model reviewed and marked APPROVED
+
+4. Build (Stage 2)
+
+4.1 Implementation
+
+repo: repos/bcp/treasury-vault
+
+packages:
+
+BCP-CONTRACT-TreasuryVault
+
+4.2 Tests
+
+unit tests for role enforcement
+
+property tests (invariants):
+
+cannot withdraw when paused
+
+withdrawals do not exceed configured limits
+
+only authorized roles can change limits
+
+4.3 Build Outputs
+
+BCP produces:
+
+ABI
+
+bytecode
+
+toolchain + dependency digests
+
+4.4 Registry Entry (Build Artifact Set)
+
+BUILD_ARTIFACT_SET:
+
+artifact_set_id = ART-TreasuryVault-1.0.0-<digest>
+
+bytecode_digests = [...]
+
+abi_digests = [...]
+
+5. Verify (Stage 3)
+
+5.1 Automated Verification
+
+static analysis completed
+
+fuzzing run completed for invariants
+
+coverage meets HIGH baseline
+
+5.2 Human Review
+
+two-person review complete
+
+review notes resolved
+
+5.3 Testnet Rehearsal
+
+deploy to SEPOLIA via TEST signer
+
+run operational rehearsal:
+
+role assignments
+
+withdraw flows
+
+pause/unpause
+
+5.4 External Audit (HIGH)
+
+audit engagement created
+
+findings tracked; all HIGH/CRITICAL findings remediated and verified
+
+5.5 Gate
+
+Release Ready after:
+
+no open HIGH/CRITICAL findings
+
+runbook complete
+
+monitoring hooks validated on TEST
+
+6. Release (Stage 4)
+
+6.1 Release Manifest
+
+release_id = BCP-REL-20251223-001
+
+target network: ARBMAIN
+
+package: TreasuryVault@1.0.0
+
+config digest: CFG-<hash>
+
+custody: multisig signer
+
+6.2 Policy Checks
+
+Required for HIGH:
+
+threat model approved ✅
+
+tests + analysis ✅
+
+audit report linked ✅
+
+runbook + monitoring ✅
+
+custody enforced ✅
+
+6.3 Governance Approval
+
+GGP/GGE approves:
+
+production deployment
+
+authority set
+
+upgrade timelock parameters
+
+6.4 Deployment Execution
+
+Release Orchestrator requests signature from multisig
+
+tx submitted to chain
+
+receipts captured
+
+6.5 Registry Update
+
+Create DEPLOYMENT:
+
+deployment_id = BCP-DEPLOY-TreasuryVault-ARBMAIN-PROD#1
+
+address = 0x...
+
+tx_hash = 0x...
+
+artifact_set_id = ART-TreasuryVault-1.0.0-<digest>
+
+Create BCP_RELEASE and RELEASE_ITEM:
+
+links approvals + manifests + validation
+
+7. Operate (Stage 5)
+
+7.1 Monitoring Live
+
+SIG receives normalized signals:
+
+withdrawal volume spikes
+
+repeated reverts
+
+pause status changes
+
+Dashboards:
+
+vault balance
+
+withdrawals per day
+
+limit configuration
+
+indexer lag
+
+7.2 Routine Operational Work
+
+weekly review of privileged actions
+
+check role bindings
+
+verify custody health
+
+7.3 Incident Example
+
+Incident: unexpected withdrawal attempts failing repeatedly
+
+detect: alert on revert spike
+
+triage: identify caller address
+
+contain: if suspicious, guardian pauses
+
+recover: adjust policy and/or permissions
+
+postmortem: update threat model and gates
+
+8. Evolve (Stage 6)
+
+8.1 Change Request
+
+Goal: add support for ERC-4626 style deposits OR improve limit logic.
+
+Classify:
+
+change class: MINOR (or MAJOR if breaking)
+
+risk class: HIGH (unchanged)
+
+8.2 Process
+
+update spec + threat model (new attack surface)
+
+implement TreasuryVault@1.1.0
+
+repeat verify steps
+
+rehearse upgrade on TEST
+
+obtain governance approval
+
+execute upgrade under timelock
+
+8.3 Upgrade Record
+
+BCP-UPG-TreasuryVault-ARBMAIN-20260110-001
+
+link:
+
+pre-state deployment
+
+post-state implementation
+
+approvals
+
+validation report
+
+8.4 Registry Updates
+
+update deployment record with new impl address (if proxy)
+
+append upgrade event
+
+9. What This Example Proves
+
+BCP EEE demonstrates:
+
+clear artifact trail (spec → build → deploy → operate)
+
+mandatory gates tied to risk class
+
+custody and approvals as first-class control points
+
+registry as the canonical source of truth
+
+operational readiness (signals, dashboards, runbooks)
+
+10. Next Document
+
+NS-BCP-009 — IMPL (implementation plan: repos, stacks, pipelines, tools)
+

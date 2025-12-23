@@ -1,0 +1,288 @@
+NS-PE-000 — PowerEdge MVP Setup Runbook (Single-Node)
+
+0. Goal
+
+Stand up a single PowerEdge as a reliable MVP host for Northfield Solidarity engines/services.
+
+Principles:
+
+Start simple (single node, containerized services)
+
+Keep escape hatches (VM boundaries, easy backups, clear promotion path to a second PowerEdge)
+
+Bake in security + observability from day 1
+
+1. Target MVP Topology (Single Node)
+
+Two viable shapes. Pick one and standardize.
+
+Option A (Recommended for MVP): Proxmox + a few VMs + Docker Compose
+
+Proxmox (hypervisor) on bare metal
+
+A small number of VMs for isolation: infra, apps, observability
+
+Docker Compose inside VMs for speed
+
+Option B: Bare-metal Ubuntu + Docker Compose
+
+Fastest to start
+
+Slightly less isolation; still works for MVP
+
+Recommendation: Option A if you want clean separation and an easy path to “PowerEdge #2 = replica/backup/DR.”
+
+2. Phase 0 — Hardware Baseline
+
+2.1 Firmware / BIOS / iDRAC
+
+Update BIOS, RAID controller firmware, NIC firmware
+
+Configure iDRAC:
+
+static IP
+
+strong admin creds
+
+restrict management access to your admin subnet/VPN
+
+2.2 Storage Layout
+
+MVP storage choices:
+
+OS/Hypervisor: mirrored SSDs (RAID1)
+
+Data: mirrored SSDs or RAID10 (depending on your drive count)
+
+Rule:
+
+Put databases on the most reliable storage tier.
+
+2.3 Network
+
+Assign static IP(s)
+
+Decide: one NIC for management, one for server LAN (ideal)
+
+3. Phase 1 — Host Layer Install
+
+3.1 Option A: Proxmox Install
+
+Install Proxmox VE on the OS mirror
+
+Create a Linux bridge vmbr0 on your primary LAN NIC
+
+Enable:
+
+ZFS (if you’re using ZFS) or LVM-thin
+
+automatic security updates (or a scheduled patch window)
+
+3.2 Option B: Ubuntu Server Install
+
+Ubuntu Server LTS
+
+SSH key auth only
+
+UFW firewall baseline
+
+4. Phase 2 — VM Layout (if using Proxmox)
+
+Keep it simple.
+
+4.1 Recommended VMs
+
+INFRA-VM (datastores)
+
+PostgreSQL
+
+MongoDB
+
+Kafka (or Redpanda)
+
+Redis (optional)
+
+APP-VM (your NS services)
+
+API gateways / FastAPI / workers
+
+engine services (GGP/DRE/SIG/MUX etc.)
+
+OBS-VM (observability)
+
+Prometheus + Grafana
+
+Loki (logs) or OpenSearch (heavier)
+
+Tempo/Jaeger (tracing) optional
+
+4.2 Diagram
+
+flowchart TB
+  subgraph PE[PowerEdge (Single Node)]
+    subgraph HV[Host: Proxmox]
+      B[vmbr0 Bridge]
+      subgraph VM1[INFRA-VM]
+        PG[(PostgreSQL)]
+        MG[(MongoDB)]
+        KF[(Kafka/Redpanda)]
+        RD[(Redis optional)]
+      end
+      subgraph VM2[APP-VM]
+        API[API/Orchestrator]
+        W1[Workers]
+        ENG[Engine Services]
+      end
+      subgraph VM3[OBS-VM]
+        PR[Prometheus]
+        GR[Grafana]
+        LG[Loki/Logs]
+      end
+    end
+  end
+
+  API --> PG
+  API --> MG
+  API --> KF
+  ENG --> PG
+  ENG --> MG
+  ENG --> KF
+
+  PR <--> VM1
+  PR <--> VM2
+  PR <--> VM3
+  GR --> PR
+  GR --> LG
+
+5. Phase 3 — Core Services (MVP)
+
+5.1 Container Runtime
+
+Inside each VM:
+
+Docker + Docker Compose (fastest)
+
+Or: Podman + systemd (more “enterprise”) later
+
+5.2 PostgreSQL
+
+Baseline:
+
+dedicated volume
+
+tuned shared_buffers/work_mem modestly
+
+daily logical backups + periodic base backups
+
+5.3 MongoDB
+
+Baseline:
+
+dedicated volume
+
+auth enabled
+
+backups (mongodump or filesystem snapshots depending on setup)
+
+5.4 Kafka vs Redpanda (MVP recommendation)
+
+If you want fastest MVP: Redpanda single-node is simpler to operate.
+
+If you want “industry canonical”: Kafka + Zookeeper/KRaft (more moving parts).
+
+5.5 Reverse Proxy / TLS
+
+Caddy or Nginx
+
+terminate TLS
+
+route to APP-VM services
+
+6. Phase 4 — Security Baseline
+
+SSH keys only
+
+Disable password auth
+
+Firewall:
+
+only expose 80/443 publicly (if needed)
+
+restrict DB ports to internal subnet only
+
+Secrets:
+
+start with .env + file permissions
+
+migrate to Vault/Infisical later
+
+Backups encrypted at rest
+
+7. Phase 5 — Observability
+
+Minimum viable set:
+
+Metrics: Prometheus
+
+Dashboards: Grafana
+
+Logs: Loki
+
+What to instrument first:
+
+host health: CPU/RAM/disk IO
+
+DB health: connections, slow queries
+
+Kafka/Redpanda: lag
+
+app: request latency + error rate
+
+8. Phase 6 — Backups & Recovery
+
+8.1 What to backup
+
+Proxmox VM snapshots (coarse)
+
+DB logical backups (fine)
+
+DB base backups (for faster restore)
+
+Config repos + compose files
+
+8.2 Where to store
+
+External NAS or external drives
+
+Later: PowerEdge #2 as off-host backup target
+
+8.3 Restore drills
+
+practice restoring Postgres + Mongo monthly (even for MVP)
+
+9. Promotion Path to PowerEdge #2
+
+When you bring the second server online:
+
+replicate backups to PE#2
+
+add Postgres replica (streaming replication)
+
+add Mongo replica set member
+
+split workloads (OBS on PE#2, or INFRA on PE#2)
+
+10. MVP “Done” Definition
+
+You’re MVP-ready when:
+
+
+
+11. Next Doc
+
+NS-PE-001 — Service Compose Pack (MVP)
+
+compose layouts for INFRA-VM, APP-VM, OBS-VM
+
+ports, volumes, and baseline configs
+

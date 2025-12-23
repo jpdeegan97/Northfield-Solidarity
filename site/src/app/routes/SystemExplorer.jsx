@@ -4,13 +4,17 @@ import Layout from "../../components/Layout.jsx";
 import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
 import { DOCS_REGISTRY } from "../../data/docsRegistry.js";
 import SystemTopology3D from "../../components/SystemTopology3D.jsx";
+import MermaidDiagram from "../../components/MermaidDiagram.jsx";
+import { getDiagram } from "../../data/diagramRegistry.js";
 
 export default function SystemExplorer({ context }) {
     const isSL = context === "SL";
+    const isWSP = context === "WSP";
     const [searchParams] = useSearchParams();
-    const initialEngine = searchParams.get("engine") || (isSL ? "PTE" : "GGP");
+    const initialEngine = searchParams.get("engine") || (isSL ? "PTE" : (isWSP ? "WSP-1" : "GGP"));
     const [activeEngine, setActiveEngine] = useState(initialEngine);
     const [selectedDoc, setSelectedDoc] = useState(null);
+    const [showSpecModal, setShowSpecModal] = useState(false);
 
     // Zoom state not strictly needed for R3F but we keep activeEngine logic
 
@@ -20,13 +24,26 @@ export default function SystemExplorer({ context }) {
         if (engineParam) {
             setActiveEngine(engineParam);
         } else {
-            setActiveEngine(isSL ? "PTE" : "GGP");
+            setActiveEngine(isSL ? "PTE" : (isWSP ? "WSP-1" : "GGP"));
         }
-    }, [searchParams, isSL]);
+    }, [searchParams, isSL, isWSP]);
 
     // Helper to find engine data
-    const activeRegistry = isSL ? SL_ENGINES : NS_ENGINES;
-    const getEngine = (code) => activeRegistry.find((e) => e.code === code) || {};
+    const activeRegistry = isSL ? SL_ENGINES : (isWSP ? [] : NS_ENGINES);
+    const getEngine = (code) => {
+        if (isWSP) {
+            return {
+                code: code,
+                category: "Strategic",
+                name: code === "WSP-1" ? "Capital Formation" : "Capital Deployment",
+                description: "WSP strategic operation node.",
+                responsibilities: ["Capital Allocation", "Strategy"],
+                inputs: ["Market Data"],
+                outputs: ["Directives"]
+            };
+        }
+        return activeRegistry.find((e) => e.code === code) || {};
+    };
 
     // Define the grid positions for the "Circuit Layout"
     // NS Topology
@@ -50,7 +67,13 @@ export default function SystemExplorer({ context }) {
         { code: "PECA", label: "Structuring" },
     ];
 
-    const gridAreas = isSL ? slGridAreas : nsGridAreas;
+    // WSP Topology
+    const wspGridAreas = [
+        { code: "WSP-1", label: "Formation" },
+        { code: "WSP-2", label: "Deployment" },
+    ];
+
+    const gridAreas = isSL ? slGridAreas : (isWSP ? wspGridAreas : nsGridAreas);
     const currentPayload = getEngine(activeEngine);
 
     // 3D Coordinates Configuration (X, Y, Z)
@@ -73,7 +96,12 @@ export default function SystemExplorer({ context }) {
         PECA: { x: 200, y: 0, z: 0 },
     };
 
-    const nodeCoords = isSL ? slNodeCoords : nsNodeCoords;
+    const wspNodeCoords = {
+        "WSP-1": { x: -100, y: 0, z: 0 },
+        "WSP-2": { x: 100, y: 0, z: 0 },
+    };
+
+    const nodeCoords = isSL ? slNodeCoords : (isWSP ? wspNodeCoords : nsNodeCoords);
 
     // Define connections to render as 3D beams [StartCode, EndCode]
     const nsConnections3d = [
@@ -91,20 +119,35 @@ export default function SystemExplorer({ context }) {
         ["PTE", "PECA"]
     ];
 
-    const connections3d = isSL ? slConnections3d : nsConnections3d;
+    const wspConnections3d = [
+        ["WSP-1", "WSP-2"]
+    ];
 
-    // Custom SL Nav
+    const connections3d = isSL ? slConnections3d : (isWSP ? wspConnections3d : nsConnections3d);
+
+    // Custom SL / WSP Nav
     const nav = isSL ? [
-        { label: "Northfield Solidarity", to: "/pricing" }, // Matches SL Listing logic
+        { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
         { label: "System", to: "/southlawn/system" },
         { label: "Investor Relations", to: "/southlawn/investors" },
+    ] : isWSP ? [
+        { label: "Northfield Solidarity", to: "/" },
+        { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
+        { type: "divider" },
+        { label: "Documentation", to: "/wsp/docs" },
+        { label: "Pricing", to: "/wsp/pricing" },
+        { label: "System", to: "/wsp/system" },
+        { label: "Investor Relations", to: "/wsp/investors" },
     ] : [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
+        { label: "WSP", to: "/wsp" },
         { type: "divider" },
         { label: "Documentation", to: "/docs" },
         { label: "Pricing", to: "/pricing" },
@@ -112,18 +155,36 @@ export default function SystemExplorer({ context }) {
         { label: "Investor Relations", to: "/investors" },
     ];
 
+    const theme = isSL ? "green" : (isWSP ? "gold" : "water");
+
     return (
-        <div data-theme={isSL ? "green" : "water"}>
-            <Layout nav={nav}>
+        <div data-theme={theme}>
+            <Layout
+                theme={theme}
+                nav={nav}
+                brand={isSL ? {
+                    title: "South Lawn RE Holdings",
+                    tagline: "Stewardship of land. Quiet execution.",
+                    footerLine: "Stewardship • Operations • Portfolio Execution",
+                    footerNote: "Quiet execution. Long-horizon compounding.",
+                } : isWSP ? {
+                    title: "WSP",
+                    tagline: "Architecture for the next epoch.",
+                    footerLine: "WSP • Strategic Operations",
+                    footerNote: "Limited Disclosure.",
+                } : undefined}
+            >
                 <div className="explorer-container">
                     <div className="explorer-header" style={{ marginBottom: '0', textAlign: 'center' }}>
                         <h1 className="h1" style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                            {isSL ? "Operating Topology" : "System Topology"}
+                            {isSL ? "Operating Topology" : (isWSP ? "Strategic Architecture" : "System Topology")}
                         </h1>
                         <p className="sub" style={{ maxWidth: "600px", margin: "0 auto" }}>
                             {isSL
                                 ? "The real estate engine constellation. From research to structuring to portfolio control."
-                                : "The engine constellation. Click a node to inspect its role in the flow."}
+                                : isWSP
+                                    ? "High-level strategic flows for WSP asset deployment."
+                                    : "The engine constellation. Click a node to inspect its role in the flow."}
                         </p>
                     </div>
 
@@ -136,7 +197,7 @@ export default function SystemExplorer({ context }) {
                                 nodeCoords={nodeCoords}
                                 activeEngine={activeEngine}
                                 setActiveEngine={setActiveEngine}
-                                theme={isSL ? "green" : "water"}
+                                theme={theme}
                             />
                         </div>
 
@@ -171,8 +232,22 @@ export default function SystemExplorer({ context }) {
                                 </div>
                             </div>
 
+                            {/* Architecture Diagram */}
+                            <div className="panel-section" style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--c-border)' }}>
+                                <h4 className="panel-label" style={{ marginBottom: '1rem' }}>Architecture Flow</h4>
+                                <div style={{
+                                    background: 'rgba(0,0,0,0.2)',
+                                    borderRadius: '8px',
+                                    border: '1px solid var(--c-border)',
+                                    overflow: 'hidden'
+                                }}>
+                                    <MermaidDiagram code={getDiagram(activeEngine)} />
+                                </div>
+                            </div>
+
+
                             <div className="ctaRow" style={{ marginTop: 'auto' }}>
-                                <button className="btn panel-btn">Full Engine Spec</button>
+                                <button className="btn panel-btn" onClick={() => setShowSpecModal(true)}>Full Engine Spec</button>
                             </div>
 
                             {/* Engine Documentation Section */}
@@ -232,6 +307,44 @@ export default function SystemExplorer({ context }) {
                                         if (line.trim() === '') return <br key={i} />
                                         return <p key={i} style={{ marginBottom: '0.8em', lineHeight: '1.6' }}>{line}</p>
                                     })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Full Spec Modal */}
+                    {showSpecModal && (
+                        <div className="doc-modal-overlay" onClick={() => setShowSpecModal(false)} style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', zIndex: 1100,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '2rem'
+                        }}>
+                            <div className="doc-modal-content" onClick={e => e.stopPropagation()} style={{
+                                background: 'var(--c-surface)',
+                                width: '90vw', height: '90vh',
+                                borderRadius: '16px', border: '1px solid var(--c-border)',
+                                display: 'flex', flexDirection: 'column',
+                                position: 'relative', overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    padding: '1.5rem',
+                                    borderBottom: '1px solid var(--c-border)',
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    background: 'var(--c-bg)'
+                                }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--c-brand)', fontWeight: 'bold' }}>FULL SPECIFICATION</div>
+                                        <h2 style={{ fontSize: '1.5rem', margin: 0 }}>{currentPayload.name} ({currentPayload.code})</h2>
+                                    </div>
+                                    <button onClick={() => setShowSpecModal(false)} style={{
+                                        background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', color: 'var(--c-text-sub)'
+                                    }}>×</button>
+                                </div>
+                                <div style={{ flex: 1, overflow: 'auto', padding: '2rem', background: '#0d1117' }}>
+                                    <div style={{ minWidth: '1000px', minHeight: '800px', display: 'flex', justifyContent: 'center' }}>
+                                        <MermaidDiagram code={getDiagram(activeEngine)} />
+                                    </div>
                                 </div>
                             </div>
                         </div>

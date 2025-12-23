@@ -17,6 +17,7 @@ export default function SouthLawnLanding() {
                 nav={[
                     { label: "Northfield Solidarity", to: "/" },
                     { label: "South Lawn", to: "/southlawn" },
+                    { label: "WSP", to: "/wsp" },
                     { type: "divider" },
                     { label: "Documentation", to: "/southlawn/docs" },
                     { label: "Pricing", to: "/southlawn/pricing" },
@@ -118,6 +119,9 @@ export default function SouthLawnLanding() {
                             <div key={t} className="docCard">{t}</div>
                         ))}
                     </div>
+                    <div className="ctaRow">
+                        <Link className="btn ghost" to="/southlawn/thesis">Read Full 2025-2026 Thesis</Link>
+                    </div>
                 </Section>
 
                 <Section
@@ -151,8 +155,8 @@ function HeroSL() {
                         SouthLawn RE Holdings acquires, improves, and manages real estate assets with long-horizon discipline and operational clarity.
                     </p>
                     <div className="ctaRow">
-                        <button className="btn" type="button">View Thesis</button>
-                        <button className="btn ghost" type="button">View Portfolio</button>
+                        <Link className="btn" to="/southlawn/thesis">View Thesis</Link>
+                        <Link className="btn ghost" to="/southlawn/investors">View Portfolio</Link>
                     </div>
                 </div>
 
@@ -167,7 +171,7 @@ function HeroSL() {
 
             <style>{`
                 [data-theme="green"] .hero {
-                    background: radial-gradient(circle at top right, #1a2e1a 0%, #050505 60%);
+                    background: radial-gradient(circle at top right, rgba(26, 46, 26, 0.8) 0%, rgba(5, 5, 5, 0.4) 60%);
                 }
                 [data-theme="green"] .heroPanel {
                     background: rgba(20, 40, 20, 0.4);

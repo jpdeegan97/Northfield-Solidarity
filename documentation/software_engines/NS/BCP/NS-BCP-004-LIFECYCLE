@@ -1,0 +1,381 @@
+NS-BCP-004 — LIFECYCLE
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: BCP — Blockchain Compute Plane
+
+Document ID: NS-BCP-004-LIFECYCLE
+
+Status: Draft v1
+
+Depends On: NS-BCP-000-CHARTER, NS-BCP-001-OVERVIEW, NS-BCP-002-TAXONOMY, NS-BCP-003-ARCHITECTURE
+
+Owner: BCP Lead (TBD)
+
+1. Lifecycle Overview
+
+BCP uses a controlled lifecycle that treats smart contracts as long-lived production systems with:
+
+explicit governance for high-impact actions
+
+mandatory security artifacts
+
+repeatable deployment pipelines
+
+continuous observability and improvement
+
+BCP’s lifecycle is a loop:
+Intake → Design → Build → Verify → Release → Operate → Evolve → (repeat)
+
+2. Stages
+
+Stage 0 — Intake (Intent & Classification)
+
+Goal: define why the on-chain system exists and how risky it is.
+
+Inputs:
+
+product intent / problem statement
+
+target users and value at risk
+
+chain scope (EVM-first default)
+
+integration needs (FLO/SIG/IDN/DRE)
+
+Outputs (Required):
+
+BCP System Brief (1–2 pages)
+
+Risk Class (Low/Med/High/Critical)
+
+Change Class (for initial release planning)
+
+Ownership Draft (who will own/admin/guard)
+
+Gate:
+
+Risk class assigned and acknowledged by BCP Security & Assurance
+
+Stage 1 — Design (Architecture & Threat Model)
+
+Goal: design the contract system and its governance model before writing code.
+
+Activities:
+
+define contract boundaries and invariants
+
+pick upgrade stance (immutable vs upgradeable)
+
+define role/permission matrix
+
+define event schema for observability
+
+specify ChainOps needs (RPC, indexing)
+
+Outputs (Required):
+
+Contract Spec (functional requirements)
+
+Threat Model (assets, trust boundaries, attack paths, mitigations)
+
+Ownership/Role Matrix (admin, guardian, timelock/multisig)
+
+Upgrade & Migration Plan (even if “none”)
+
+Event/Telemetry Plan
+
+Gate:
+
+Threat model reviewed (BCP Security) and approved for build
+
+Stage 2 — Build (Implementation)
+
+Goal: implement contracts and dApp components with standard primitives.
+
+Activities:
+
+implement contract packages + tests
+
+implement dApp flows (wallet/signing UX)
+
+implement indexing/subgraph definitions (if needed)
+
+wire telemetry and dashboards stubs
+
+Outputs (Required):
+
+contract code + unit tests
+
+dApp code + integration tests (where relevant)
+
+initial indexer configuration
+
+draft runbook outline
+
+Gate:
+
+minimum test coverage baseline met (as defined by risk class)
+
+Stage 3 — Verify (Security & Quality)
+
+Goal: reduce risk before any production exposure.
+
+Activities:
+
+static analysis + linters
+
+fuzzing / property tests for key invariants
+
+peer review (two-person rule for sensitive modules)
+
+testnet rehearsals (deploy/upgrade drills)
+
+external audit coordination (if required)
+
+Outputs (Required):
+
+analysis reports captured
+
+fuzz/property test results captured
+
+peer review record
+
+testnet deployment receipts and notes
+
+audit report + remediation tracker (if applicable)
+
+Gate (Release Readiness):
+
+all required findings closed (or explicitly accepted via governance)
+
+runbook is complete enough for PROD operations
+
+Stage 4 — Release (Governed Deployment)
+
+Goal: ship under policy and approvals with provenance.
+
+Activities:
+
+generate Release Manifest (networks, versions, configs)
+
+policy engine checks release gates
+
+governance approvals captured (GGP/GGE)
+
+deploy via orchestrator + custody signer
+
+write deployment record to contract registry
+
+Outputs (Required):
+
+Release Manifest (planned)
+
+Deployment Manifest (actual: addresses/tx hashes)
+
+Registry Update (canonical inventory)
+
+monitoring enabled + alert routes confirmed
+
+Gate:
+
+registry updated and verified; monitoring live before declaring success
+
+Stage 5 — Operate (Monitor & Support)
+
+Goal: keep the system healthy and safe in production.
+
+Activities:
+
+continuous monitoring of:
+
+contract event signals
+
+tx failures/reverts
+
+indexer lag
+
+RPC health
+
+routine reviews of privileged actions
+
+incident drills (for High/Critical systems)
+
+Outputs:
+
+dashboards, alerts, and operational metrics
+
+runbook updates based on real behavior
+
+periodic operational reports to governance (as required)
+
+Gate:
+
+on-call ownership is assigned; severity routes are tested
+
+Stage 6 — Evolve (Upgrades, Migrations, Decommission)
+
+Goal: safely change or retire systems over time.
+
+Activities:
+
+propose change: patch/minor/major/emergency
+
+update threat model if risk surface changes
+
+run testnet rehearsal for upgrades/migrations
+
+obtain governance approvals
+
+execute upgrade/migration via custody controls
+
+Outputs (Required):
+
+Change Proposal (what/why/risk)
+
+updated Upgrade/Migration Plan
+
+updated Registry Records
+
+post-change validation report
+
+Gate:
+
+upgrade authority and timing (timelock/multisig) enforced per policy
+
+3. Lifecycle Diagram
+
+flowchart TD
+  A[Intake\nIntent + Risk Class] --> B[Design\nSpec + Threat Model]
+  B --> C[Build\nCode + Tests]
+  C --> D[Verify\nAnalysis + Fuzz + Audit]
+  D --> E[Release\nApprovals + Deploy + Registry]
+  E --> F[Operate\nMonitor + Runbooks]
+  F --> G[Evolve\nUpgrade/Migrate/Retire]
+  G --> B
+
+  D -->|Emergency Finding| C
+  F -->|Incident| H[Incident Response\nContain + Communicate]
+  H --> I[Postmortem\nControls Update]
+  I --> B
+
+4. Gates by Risk Class (v1 Defaults)
+
+4.1 Low
+
+threat model lite
+
+unit tests + static analysis
+
+peer review
+
+basic monitoring
+
+4.2 Medium
+
+full threat model
+
+unit + integration tests
+
+static analysis + basic fuzzing for key functions
+
+runbook required
+
+4.3 High
+
+full threat model + explicit invariants
+
+unit + integration + fuzz/property tests for invariants
+
+external audit recommended (often required)
+
+multisig/MPC custody enforced
+
+incident drill required
+
+4.4 Critical
+
+all High requirements
+
+external audit required
+
+staged rollout / guarded launch
+
+timelock governance for upgrades
+
+enhanced monitoring and anomaly detection
+
+5. Operational Loops
+
+5.1 Release Loop
+
+plan → rehearse (TEST) → approve → deploy → verify → observe
+
+5.2 Security Loop
+
+analyze → find → remediate → verify → harden baselines
+
+5.3 Incident Loop
+
+detect → triage → contain → recover → postmortem → policy update
+
+6. Required Artifacts by Stage (Checklist)
+
+Intake
+
+system brief
+
+risk class
+
+ownership draft
+
+Design
+
+contract spec
+
+threat model
+
+upgrade/migration plan
+
+telemetry plan
+
+Build
+
+code + tests
+
+indexer definitions (if needed)
+
+runbook draft
+
+Verify
+
+analysis reports
+
+fuzz/property results
+
+audit report + remediation (if applicable)
+
+Release
+
+release manifest
+
+deployment manifest
+
+registry update
+
+monitoring + runbook finalized
+
+Operate/Evolve
+
+ops reports
+
+incident records + postmortems
+
+updated registry and policies
+
+7. Next Document
+
+NS-BCP-005 — DECISION (decision framework: chain selection, upgrade stance, custody patterns, vendor strategy)
+
