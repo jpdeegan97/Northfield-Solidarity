@@ -1,14 +1,14 @@
 export const NS_DRE_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef store fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef synth fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000;
-    classDef gov fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000;
-    classDef cross fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
+    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef store fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef synth fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef gov fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000
+    classDef cross fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
 
     %% -- 1. Collection & Ingestion Layer --
     subgraph Ingestion [Collection & Ingestion Layer]
@@ -94,15 +94,15 @@ graph TD
 `;
 
 export const NS_IDN_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
+    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
 
     %% -- 1. Ingress & Validation --
     subgraph Ingress [Ingress & Validation]
@@ -181,17 +181,17 @@ graph TD
 `;
 
 export const NS_CDE_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef gov fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000;
-    classDef orch fill:#e8eaf6,stroke:#1a237e,stroke-width:2px,color:#000000;
-    classDef exec fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000;
-    classDef adapter fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef feedback fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef event fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000000;
+    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef gov fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef orch fill:#e8eaf6,stroke:#1a237e,stroke-width:2px,color:#000000
+    classDef exec fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000
+    classDef adapter fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef feedback fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef event fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000000
 
     %% -- 1. Plan Intake & Validation --
     subgraph Intake [Plan Intake & Validation]
@@ -287,16 +287,16 @@ graph TD
 `;
 
 export const NS_INT_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
-    classDef edge fill:#fbe9e7,stroke:#bf360c,stroke-width:2px,color:#000000;
+    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    classDef edge fill:#fbe9e7,stroke:#bf360c,stroke-width:2px,color:#000000
 
     %% -- 1. Intervention Core --
     subgraph Core [Intervention Core Cluster]
@@ -374,15 +374,15 @@ graph TD
 `;
 
 export const NS_LUM_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef store fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef serve fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef action fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000;
-    classDef producer fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
+    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef store fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef serve fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef action fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000
+    classDef producer fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
 
     %% -- 1. Signal Producers --
     subgraph Producers [Signal Producers]
@@ -484,16 +484,16 @@ graph TD
 `;
 
 export const NS_CWP_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef work fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000;
-    classDef agent fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef super fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000;
-    classDef review fill:#fbe9e7,stroke:#bf360c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef event fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000000;
-    classDef portal fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000000;
+    classDef work fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000
+    classDef agent fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef super fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef review fill:#fbe9e7,stroke:#bf360c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef event fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#000000
+    classDef portal fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000000
 
     %% -- 1. Work Definition & Registry --
     subgraph WorkDef [Work Definition]

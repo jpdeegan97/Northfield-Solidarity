@@ -10,27 +10,32 @@ export const USER_ROLES = {
 
 export const MOCK_USERS = [
     // Starter (2)
-    { id: 'STR-001', email: 'starter1@ns.local', role: USER_ROLES.STARTER, name: 'Starter One' },
-    { id: 'STR-002', email: 'starter2@ns.local', role: USER_ROLES.STARTER, name: 'Starter Two' },
+    { id: 'STR-001', email: 'starter2@northfieldsolidarity.ai', role: USER_ROLES.STARTER, name: 'Starter One' },
+    { id: 'STR-002', email: 'starter2@northfieldsolidarity.ai', role: USER_ROLES.STARTER, name: 'Starter Two' },
 
     // Builder (2)
-    { id: 'BLD-001', email: 'builder1@ns.local', role: USER_ROLES.BUILDER, name: 'Builder One' },
-    { id: 'BLD-002', email: 'builder2@ns.local', role: USER_ROLES.BUILDER, name: 'Builder Two' },
+    { id: 'BLD-001', email: 'builder1@northfieldsolidarity.ai', role: USER_ROLES.BUILDER, name: 'Builder One' },
+    { id: 'BLD-002', email: 'builder2@northfieldsolidarity.ai', role: USER_ROLES.BUILDER, name: 'Builder Two' },
 
     // Operator (2)
-    { id: 'OPR-001', email: 'operator1@ns.local', role: USER_ROLES.OPERATOR, name: 'Operator One' },
-    { id: 'OPR-002', email: 'operator2@ns.local', role: USER_ROLES.OPERATOR, name: 'Operator Two' },
+    { id: 'OPR-001', email: 'operator1@northfieldsolidarity.ai', role: USER_ROLES.OPERATOR, name: 'Operator One' },
+    { id: 'OPR-002', email: 'operator2@northfieldsolidarity.ai', role: USER_ROLES.OPERATOR, name: 'Operator Two' },
 
     // Investor (2)
-    { id: 'INV-001', email: 'investor1@ns.local', role: USER_ROLES.INVESTOR, name: 'Investor One' },
-    { id: 'INV-002', email: 'investor2@ns.local', role: USER_ROLES.INVESTOR, name: 'Investor Two' },
+    { id: 'INV-001', email: 'investor1@northfieldsolidarity.ai', role: USER_ROLES.INVESTOR, name: 'Investor One' },
+    { id: 'INV-002', email: 'investor2@northfieldsolidarity.ai', role: USER_ROLES.INVESTOR, name: 'Investor Two' },
 
     // Admin (1)
-    { id: 'ADM-001', email: 'admin@ns.local', role: USER_ROLES.ADMIN, name: 'System Admin' },
+    { id: 'ADM-001', email: 'admin@northfieldsolidarity.ai', role: USER_ROLES.ADMIN, name: 'System Admin', password: 'admin1234' },
 
     // Special Guest (2)
-    { id: 'SPG-001', email: 'guest1@ns.local', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest One' },
-    { id: 'SPG-002', email: 'guest2@ns.local', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }
+    { id: 'SPG-001', email: 'kiran.pampari@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest One' },
+    { id: 'SPG-002', email: 'pete.deegan@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
+    { id: 'SPG-003', email: 'kalp.oza@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Threeq' },
+    { id: 'SPG-004', email: 'effie.deegan@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
+    { id: 'SPG-005', email: 'kelsey.bagen@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
+    { id: 'SPG-006', email: 'melody.ector@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }, 
+    { id: 'SPG-007', email: 'rory.stello@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }
 ];
 
 export const getMockUser = (email) => {

@@ -63,15 +63,15 @@ flowchart TB
 `;
 
 export const NS_PIE_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef intake fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef score fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef text fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
+    classDef intake fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef score fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef text fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
 
     %% -- 1. Intake Layer --
     subgraph Intake [Intake Layer]
@@ -161,15 +161,15 @@ graph TD
 `;
 
 export const NS_DAT_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef control fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000000;
-    classDef gov fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000;
-    classDef exec fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000;
-    classDef logic fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000;
+    classDef control fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000000
+    classDef gov fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef exec fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000
+    classDef logic fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000000
 
     %% -- 1. Control Plane (Planning) --
     subgraph Control [Control Plane]
@@ -254,15 +254,15 @@ graph TD
 `;
 
 export const NS_FLO_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
+    classDef intake fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef read fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef ext fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
 
     %% -- 1. Ingestion Layer --
     subgraph Ingestion [Ingestion Layer]
@@ -342,15 +342,15 @@ graph TD
 `;
 
 export const NS_MUX_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef conn fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef ingest fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef core fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
-    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef dist fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
+    classDef conn fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef ingest fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef core fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef dist fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
 
     %% -- 1. Connector Layer --
     subgraph Connectors ["Connector Layer"]
@@ -425,14 +425,14 @@ graph TD
 `;
 
 export const NS_SIG_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef input fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef store fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
-    classDef feedback fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
+    classDef input fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef store fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    classDef feedback fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
 
     %% -- 1. Ingress Layer --
     subgraph Ingress ["Ingress Layer"]
@@ -513,14 +513,14 @@ graph TD
 `;
 
 export const NS_SIM_FLOW = `
-graph TD
+flowchart TD
 
     %% -- Styles --
-    classDef input fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef store fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
-    classDef ext fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
+    classDef input fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef store fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    classDef ext fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
 
     %% -- 1. Input Assembly --
     subgraph Assembly [Input Assembly Layer]

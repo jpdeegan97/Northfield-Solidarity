@@ -1,14 +1,14 @@
 export const NS_MASTER_DETAILED = `
-graph TD
+flowchart TD
     %% ==========================================
     %% GLOBAL STYLES
     %% ==========================================
-    classDef engine fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000;
-    classDef storage fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
-    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000;
-    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000;
-    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000;
-    classDef external fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000;
+    classDef engine fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000
+    classDef storage fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000
+    classDef logic fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000000
+    classDef ingest fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000000
+    classDef output fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    classDef external fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
 
     %% =================================================================================================
     %% 1. MUX - Market Integration Exchange (Internal Detail)

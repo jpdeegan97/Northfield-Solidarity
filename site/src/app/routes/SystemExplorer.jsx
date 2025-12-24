@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "../../components/Layout.jsx";
 import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
@@ -10,23 +10,18 @@ import { getDiagram } from "../../data/diagramRegistry.js";
 export default function SystemExplorer({ context }) {
     const isSL = context === "SL";
     const isWSP = context === "WSP";
-    const [searchParams] = useSearchParams();
-    const initialEngine = searchParams.get("engine") || (isSL ? "PTE" : (isWSP ? "WSP-1" : "GGP"));
-    const [activeEngine, setActiveEngine] = useState(initialEngine);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const defaultEngine = isSL ? "PTE" : (isWSP ? "WSP-1" : "GGP");
+    const activeEngine = searchParams.get("engine") || defaultEngine;
+
+    const setActiveEngine = (code) => {
+        setSearchParams({ engine: code });
+    };
+
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [showSpecModal, setShowSpecModal] = useState(false);
-
-    // Zoom state not strictly needed for R3F but we keep activeEngine logic
-
-    // Sync state with URL param
-    useEffect(() => {
-        const engineParam = searchParams.get("engine");
-        if (engineParam) {
-            setActiveEngine(engineParam);
-        } else {
-            setActiveEngine(isSL ? "PTE" : (isWSP ? "WSP-1" : "GGP"));
-        }
-    }, [searchParams, isSL, isWSP]);
+    const [showSystemModal, setShowSystemModal] = useState(false);
+    const [systemModalMode, setSystemModalMode] = useState("DETAILED");
 
     // Helper to find engine data
     const activeRegistry = isSL ? SL_ENGINES : (isWSP ? [] : NS_ENGINES);
@@ -58,6 +53,7 @@ export default function SystemExplorer({ context }) {
         { code: "SIM", label: "Simulation" },
         { code: "DAT", label: "Execution" },
         { code: "FLO", label: "Finance" },
+        { code: "BCP", label: "Blockchain" },
     ];
 
     // SL Topology
@@ -88,6 +84,7 @@ export default function SystemExplorer({ context }) {
         SIM: { x: -150, y: 150, z: 50 },
         DAT: { x: 150, y: 150, z: 50 },
         FLO: { x: 0, y: 250, z: 0 },
+        BCP: { x: 0, y: -350, z: 0 },
     };
 
     const slNodeCoords = {
@@ -111,7 +108,8 @@ export default function SystemExplorer({ context }) {
         ["GGP", "SIM"], ["GGP", "DAT"],
         ["GGP", "INT"],
         ["INT", "SIM"], ["INT", "DAT"],
-        ["SIM", "FLO"], ["DAT", "FLO"]
+        ["SIM", "FLO"], ["DAT", "FLO"],
+        ["BCP", "SIG"], ["BCP", "FLO"]
     ];
 
     const slConnections3d = [
@@ -186,6 +184,13 @@ export default function SystemExplorer({ context }) {
                                     ? "High-level strategic flows for WSP asset deployment."
                                     : "The engine constellation. Click a node to inspect its role in the flow."}
                         </p>
+                    </div>
+
+                    {/* System Diagram Controls */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem', marginBottom: '1rem' }}>
+                        <button className="btn" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }} onClick={() => setShowSystemModal(true)}>
+                            View Overall System Architecture
+                        </button>
                     </div>
 
                     <div className="topology-split">
@@ -341,9 +346,51 @@ export default function SystemExplorer({ context }) {
                                         background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', color: 'var(--c-text-sub)'
                                     }}>×</button>
                                 </div>
-                                <div style={{ flex: 1, overflow: 'auto', padding: '2rem', background: '#0d1117' }}>
-                                    <div style={{ minWidth: '1000px', minHeight: '800px', display: 'flex', justifyContent: 'center' }}>
-                                        <MermaidDiagram code={getDiagram(activeEngine)} />
+                                <div style={{ flex: 1, overflow: 'hidden', padding: 0, background: '#0d1117', position: 'relative' }}>
+                                    <div style={{ width: '100%', height: '100%' }}>
+                                        <MermaidDiagram code={getDiagram(activeEngine)} enableZoom={true} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Full System Modal */}
+                    {showSystemModal && (
+                        <div className="doc-modal-overlay" onClick={() => setShowSystemModal(false)} style={{
+                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'rgba(0,0,0,0.85)', zIndex: 1100,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '2rem'
+                        }}>
+                            <div className="doc-modal-content" onClick={e => e.stopPropagation()} style={{
+                                background: 'var(--c-surface)',
+                                width: '90vw', height: '90vh',
+                                borderRadius: '16px', border: '1px solid var(--c-border)',
+                                display: 'flex', flexDirection: 'column',
+                                position: 'relative', overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    padding: '1.5rem',
+                                    borderBottom: '1px solid var(--c-border)',
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    background: 'var(--c-bg)'
+                                }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--c-brand)', fontWeight: 'bold' }}>SYSTEM ARCHITECTURE</div>
+                                        <h2 style={{ fontSize: '1.5rem', margin: '0 0 0.5rem 0' }}>Northfield Solidarity ({systemModalMode})</h2>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button className="btn" style={{ fontSize: '0.8rem', padding: '0.2rem 0.8rem', background: systemModalMode === 'DETAILED' ? 'var(--c-brand)' : 'transparent', border: '1px solid var(--c-border)' }} onClick={() => setSystemModalMode("DETAILED")}>Detailed</button>
+                                            <button className="btn" style={{ fontSize: '0.8rem', padding: '0.2rem 0.8rem', background: systemModalMode === 'ABSTRACTED' ? 'var(--c-brand)' : 'transparent', border: '1px solid var(--c-border)' }} onClick={() => setSystemModalMode("ABSTRACTED")}>Abstracted</button>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowSystemModal(false)} style={{
+                                        background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', color: 'var(--c-text-sub)'
+                                    }}>×</button>
+                                </div>
+                                <div style={{ flex: 1, overflow: 'hidden', padding: 0, background: '#0d1117', position: 'relative' }}>
+                                    <div style={{ width: '100%', height: '100%' }}>
+                                        <MermaidDiagram code={getDiagram("MASTER_" + systemModalMode)} enableZoom={true} />
                                     </div>
                                 </div>
                             </div>

@@ -1,0 +1,10 @@
+northfieldsolidarity.ai {
+    # Option 1: Serve built static files (Recommended for Production)
+    # root * site/dist
+    # file_server
+    # try_files {path} /index.html
+
+    # Option 2: Reverse Proxy to running application (e.g. Vite preview or dev)
+    # Default Vite port is 5173. Change to 4173 for 'npm run preview'
+    reverse_proxy localhost:5173
+}
