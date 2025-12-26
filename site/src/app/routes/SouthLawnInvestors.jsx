@@ -66,8 +66,8 @@ export default function SouthLawnInvestors() {
                                     </div>
                                     <div className="metric-card">
                                         <div className="metric-label">Active Doors</div>
-                                        <div className="metric-value">0</div>
-                                        <div className="metric-delta neutral">--</div>
+                                        <div className="metric-value">2</div>
+                                        <div className="metric-delta positive">+2 this month</div>
                                     </div>
                                     <div className="metric-card">
                                         <div className="metric-label">Occupancy Rate</div>

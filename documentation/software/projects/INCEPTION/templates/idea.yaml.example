@@ -1,0 +1,25 @@
+# Example idea intake for INCEPTION
+id: "idea-1234"
+title: "Example Project"
+problem: "Describe the pain."
+audience:
+  personas:
+    - name: "Primary"
+      context: "Where/when they use it"
+constraints:
+  time_budget_minutes: 5
+  security_profile: "demo"
+  deployment: "local"
+success_metrics:
+  - "Time-to-first-demo <= 5 min"
+mvp_definition:
+  must_do:
+    - "Happy path A"
+assumptions:
+  - "Assume user has X"
+open_questions:
+  - "What about Y?"
+outputs:
+  docs: true
+  scaffold: true
+  mvp: true

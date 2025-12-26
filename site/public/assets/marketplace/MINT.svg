@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+        <rect width="100%" height="100%" fill="#050505"/>
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="4.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <line x1="0" y1="29" x2="400" y2="29" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="164" x2="400" y2="164" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="209" x2="400" y2="209" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="38" x2="400" y2="38" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="45" x2="400" y2="45" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="39" y1="0" x2="39" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="88" y1="0" x2="88" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="62" y1="0" x2="62" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="346" y1="0" x2="346" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="362" y1="0" x2="362" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" />
+        <g filter="url(#glow)">
+            <rect x="349" y="119" width="58" height="58" fill="#3b82f6" fill-opacity="0.20" transform="rotate(22 378 148)" /><rect x="49" y="4" width="54" height="54" fill="#3b82f6" fill-opacity="0.12" transform="rotate(57 76 31)" /><circle cx="338" cy="116" r="19" fill="#3b82f6" fill-opacity="0.20" /><rect x="315" y="216" width="52" height="52" fill="#3b82f6" fill-opacity="0.39" transform="rotate(42 341 242)" /><circle cx="102" cy="32" r="11.5" fill="#3b82f6" fill-opacity="0.13" /><rect x="38" y="12" width="65" height="65" fill="#3b82f6" fill-opacity="0.10" transform="rotate(56 70.5 44.5)" /><circle cx="268" cy="51" r="34.5" fill="#3b82f6" fill-opacity="0.27" />
+        </g>
+        <rect width="100%" height="100%" fill="url(#grad)" fill-opacity="0.2"/>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0" />
+            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+        </linearGradient>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="48" fill="white" style="text-shadow: 0 0 20px #3b82f6">MINT</text>
+    </svg>

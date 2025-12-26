@@ -1,0 +1,202 @@
+NS-CHRONICLE-004 — OPERATING ROUTINE
+
+This document defines how you run NS-CHRONICLE every day with minimal friction, maximum continuity, and clean handoffs into the rest of Northfield Solidarity.
+
+1) The daily cadence (non-negotiable)
+
+NS-CHRONICLE is a two-touch system:
+
+1.1 Morning (AM) — “Load the day”
+
+Target time: within 30 minutes of starting work
+
+Duration: 3–10 minutes
+
+Artifact: MorningBrief XML
+
+1.2 Evening (PM) — “Save state”
+
+Target time: last work action of the day (before sleep)
+
+Duration: 5–12 minutes
+
+Artifact: EveningDebrief XML
+
+If you only do one:
+
+PM is more important than AM (because it preserves continuity).
+
+2) The workflow (what you actually do)
+
+2.1 AM workflow
+
+Open yesterday’s pm.xml.
+
+Copy forward carryovers you still care about.
+
+Pick Top 3 priorities and write success definitions.
+
+Declare at least one Focus Rule (what you won’t do today).
+
+Save YYYY-MM-DD.am.xml.
+
+2.2 PM workflow
+
+Skim your AM brief (to compare plan vs reality).
+
+List what you shipped (even if it’s “docs created”).
+
+Capture decisions + learnings.
+
+Convert every open loop into a carryover with NextAction.
+
+Seed tomorrow’s top 3 candidates.
+
+Save YYYY-MM-DD.pm.xml.
+
+3) Storage conventions (Source of Truth)
+
+The archive is the source of truth.
+
+3.1 Directory layout (recommended)
+
+NS-CHRONICLE/
+
+YYYY/
+
+YYYY-MM/
+
+YYYY-MM-DD.am.xml
+
+YYYY-MM-DD.pm.xml
+
+YYYY-MM-DD.notes.md (optional)
+
+3.2 File naming rules
+
+AM file ends with .am.xml
+
+PM file ends with .pm.xml
+
+Date is ISO: YYYY-MM-DD
+
+3.3 Version control (optional but powerful)
+
+Git the archive for diffs and history.
+
+Never store secrets (store references only).
+
+4) Prompts (always produce the same XML)
+
+Use these prompts verbatim so you always get compliant XML.
+
+4.1 Morning prompt
+
+Generate a MorningBrief in the NS-CHRONICLE XML format. Write in first-person (“I…”). Use my carryovers and current priorities from this chat. If info is missing, leave fields empty rather than inventing.
+
+4.2 Evening prompt
+
+Generate an EveningDebrief in the NS-CHRONICLE XML format. Write in first-person (“I…”). Summarize what I worked on today based on this chat, including what I shipped, decisions I made, and carryovers. If unsure, mark the field as <Uncertain>true</Uncertain> inside the relevant item.
+
+5) Completion standards (what “done” means)
+
+5.1 MorningBrief is complete if it has
+
+OneSentenceIntent
+
+1–3 TopPriorities with an OutcomeDefinition
+
+At least one FocusRules/Rule
+
+Any carryovers you still intend to advance
+
+5.2 EveningDebrief is complete if it has
+
+OneParagraphFromMyPerspective
+
+At least one entry in WhatIWorkedOn (even if small)
+
+At least one Carryover OR an explicit statement that nothing is carried
+
+Tomorrow seed: at least 1 candidate
+
+6) Timeboxing rules (to keep it effortless)
+
+AM is not allowed to become planning theatre.
+
+Limit to Top 3 priorities.
+
+Everything else is secondary or carryover.
+
+PM is not allowed to become a journal.
+
+Capture outcomes, decisions, learnings, carryovers.
+
+Put emotion or narrative in optional notes.
+
+7) Continuity rules (the power rules)
+
+Every carryover must include a NextAction.
+
+Every decision must include a Rationale (one sentence is enough).
+
+Every shipped artifact gets a link when possible (doc ID, repo path, PR).
+
+If you’re unsure, mark it with <Uncertain>true</Uncertain>.
+
+8) Integration routing (GGE / DRE / quickscope)
+
+When you want to feed engines:
+
+8.1 GGE (Governance Graph Engine)
+
+Send: Decisions, policy/standard updates, naming changes.
+
+From Chronicle: <Decisions> and WhatIShipped items of type decision/doc.
+
+8.2 DRE (Deep Research Engine)
+
+Send: research threads, sources, hypotheses, conclusions.
+
+From Chronicle: WorkBlocks of type research + <Learnings>.
+
+8.3 quickscope (Intervention)
+
+Send: carryovers + next actions as state transitions.
+
+From Chronicle: <Continuity><Carryovers>.
+
+8.4 LUM
+
+Send: incident summaries, operational insights.
+
+From Chronicle: WorkBlocks of type ops + any incident notes in Problems.
+
+9) Weekly (optional) — “rollup” routine
+
+Once per week (15–30 min):
+
+Extract top shipped items
+
+Extract major decisions
+
+Review carryover aging (what is lingering?)
+
+Pick next week’s theme/intent
+
+(If you want, we can formalize this as NS-CHRONICLE-005.)
+
+10) Failure modes and fixes
+
+Too long: reduce fields; limit TopPriorities to 3; shorten narrative.
+
+Too vague: strengthen OutcomeDefinition (“artifact exists at X”).
+
+Carryover pile-up: enforce “drop or next action” rule; cap carryovers to 10.
+
+No evidence: add doc IDs/links as you go; don’t rely on memory.
+
+11) Next document
+
+NS-CHRONICLE-005 — DATA MODEL (XML constraints + validation rules + ingestion mapping)
+

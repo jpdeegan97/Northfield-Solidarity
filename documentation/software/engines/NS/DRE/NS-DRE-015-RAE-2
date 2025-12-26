@@ -1,0 +1,305 @@
+NS-DRE-015B — Research Artifact Engine (RAE)
+
+EEE & IMPL Specification
+
+Engine: Deep Research Engine (DRE)Extends: DRE-015 — Research Artifact EngineDocument Type: Execution, Events & ImplementationVersion: 1.0Status: Canonical
+
+1. Purpose
+
+This document defines the execution semantics, event model, and implementation guidance for the Research Artifact Engine (RAE).
+
+NS-DRE-015B specifies how Research Artifacts are executed, updated, vectorized, and published in a deterministic, auditable, and scalable manner.
+
+2. Execution Model (EEE)
+
+2.1 Artifact-Centric Execution
+
+RAE operates on a single primary unit of execution: the Research Artifact (RA).
+
+All research activity, synthesis, documentation, and vectorization is scoped to an Artifact ID.
+
+Execution is:
+
+Deterministic
+
+Idempotent per lifecycle phase
+
+Append-only with respect to state history
+
+2.2 Execution Triggers
+
+RAE execution may be triggered by:
+
+Artifact creation (INIT)
+
+Manual scope update
+
+Scheduled refresh (time-based)
+
+Signal ingestion (event-based)
+
+Drift detection threshold breach
+
+Explicit re-synthesis request
+
+Each trigger results in a bounded lifecycle re-entry, not a full restart.
+
+2.3 Phase-Level Executors
+
+Each lifecycle phase is handled by a dedicated executor:
+
+Phase
+
+Executor Responsibility
+
+INIT
+
+Identity + metadata creation
+
+SCOPE
+
+Boundary validation and normalization
+
+DISCOVER
+
+Source querying and signal ingestion
+
+SYNTHESIZE
+
+Pattern extraction and reconciliation
+
+FORMALIZE
+
+Structured state + doc generation
+
+VECTORIZE
+
+Multi-layer embedding generation
+
+PUBLISH
+
+State exposure + event emission
+
+MONITOR
+
+Drift evaluation and trigger generation
+
+Executors are composable and replaceable.
+
+3. Event Model (EEE)
+
+3.1 Core Event Types
+
+RAE emits strongly-typed domain events:
+
+ArtifactCreated
+
+ScopeDefined
+
+DiscoveryCompleted
+
+SynthesisCompleted
+
+FormalizationCompleted
+
+VectorizationCompleted
+
+ArtifactPublished
+
+DriftDetected
+
+ArtifactInvalidated
+
+Events are immutable and ordered per Artifact ID.
+
+3.2 Event Payload Structure
+
+event_id: UUID
+artifact_id: UUID
+event_type: enum
+lifecycle_state: enum
+timestamp: ISO-8601
+payload: object
+
+Events are the source of truth for state transitions.
+
+3.3 Downstream Consumers
+
+RAE events are consumed by:
+
+PIE (reasoning + execution)
+
+Monitoring / observability systems
+
+Governance / approval layers (future GGP binding)
+
+Audit and replay systems
+
+4. State Assembly & Persistence
+
+4.1 State Composition
+
+ArtifactState is assembled incrementally from executor outputs:
+
+Knowledge graph fragments
+
+Signal maps
+
+Frontier assessments
+
+Constraint models
+
+Opportunity surfaces
+
+State assembly is purely additive per version.
+
+4.2 Versioning Rules
+
+Every successful lifecycle pass produces a new ArtifactState version
+
+Versions are immutable
+
+Historical versions remain queryable
+
+5. Vectorization Pipeline (EEE)
+
+5.1 Vector Layers
+
+RAE maintains four orthogonal embeddings per artifact:
+
+Semantic Vector
+
+Structural Vector
+
+Temporal Vector
+
+Strategic Vector
+
+Each layer is generated independently and versioned.
+
+5.2 Vector Update Strategy
+
+Minor signal updates → partial vector refresh
+
+Major synthesis events → full vector regeneration
+
+Drift-triggered updates → confidence downgrade until re-vectorized
+
+6. Documentation Projection (IMPL)
+
+Documentation generation is executed during FORMALIZE.
+
+6.1 Projection Rules
+
+Docs are generated from ArtifactState only
+
+No manual authoring
+
+Each document references ArtifactState version
+
+6.2 Supported Outputs
+
+Overview Snapshot
+
+Frontier Report
+
+Competitive Landscape
+
+Constraint & Risk Brief
+
+Opportunity Thesis
+
+Strategy / Decision Memo
+
+7. Publishing Contract (EEE)
+
+7.1 Publish Conditions
+
+An ArtifactState may be published if:
+
+All required lifecycle phases complete successfully
+
+Vectorization completed
+
+No blocking drift flags exist
+
+7.2 Published Interfaces
+
+On publish, RAE exposes:
+
+Current ArtifactState
+
+ArtifactVectorSpace
+
+Documentation projections
+
+Confidence and freshness metadata
+
+These are pushed to PIE via event + state channels.
+
+8. Drift Detection & Monitoring
+
+8.1 Drift Signals
+
+Drift may be detected from:
+
+New high-impact external signals
+
+Internal inconsistency thresholds
+
+Temporal decay of confidence
+
+8.2 Drift Handling
+
+DriftDetected event emitted
+
+Artifact confidence downgraded
+
+Lifecycle re-entry scheduled (DISCOVER or SYNTHESIZE)
+
+9. Failure & Recovery Semantics
+
+Executor failures are isolated per phase
+
+Partial execution does not corrupt prior state
+
+Replay is possible via event log
+
+RAE is event-replayable by design.
+
+10. Implementation Notes (IMPL)
+
+10.1 Architectural Style
+
+Event-driven
+
+Artifact-scoped state
+
+Append-only persistence
+
+Deterministic executors
+
+10.2 Scaling Model
+
+Horizontal scaling by Artifact ID
+
+Executors are stateless
+
+Vector workloads may be offloaded to specialized compute
+
+11. Strategic Importance
+
+NS-DRE-015B operationalizes research as:
+
+Infrastructure
+
+Executable state
+
+Long-lived organizational memory
+
+This document completes the transition from research as activity to research as system.
+
+12. Summary
+
+RAE executes, evolves, and governs Research Artifacts through deterministic lifecycle execution, event-driven state assembly, and continuous vectorized intelligence publication to PIE.
+

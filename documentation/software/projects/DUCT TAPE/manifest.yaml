@@ -1,0 +1,68 @@
+project: Duct Tape Sessions
+code: DT
+generated_at: 2025-12-24
+documents:
+  -
+    id: DT-CON-000
+    file: DT-CON-000-DOCUMENTATION-MASTER.md
+    title: Documentation Master
+  -
+    id: DT-000
+    file: DT-000-CHARTER.md
+    title: Charter
+  -
+    id: DT-001
+    file: DT-001-OVERVIEW.md
+    title: Overview
+  -
+    id: DT-002
+    file: DT-002-TAXONOMY.md
+    title: Taxonomy
+  -
+    id: DT-003
+    file: DT-003-ARCHITECTURE.md
+    title: Architecture
+  -
+    id: DT-004
+    file: DT-004-LIFECYCLE.md
+    title: Lifecycle
+  -
+    id: DT-005
+    file: DT-005-DECISION.md
+    title: Decision Log
+  -
+    id: DT-006
+    file: DT-006-VERSION.md
+    title: Versioning
+  -
+    id: DT-007
+    file: DT-007-DATAMODEL.md
+    title: Data Model
+  -
+    id: DT-008
+    file: DT-008-EEE.md
+    title: End-to-End Example
+  -
+    id: DT-009
+    file: DT-009-IMPL.md
+    title: Implementation
+  -
+    id: DT-010
+    file: DT-010-FE.md
+    title: Front-End
+  -
+    id: DT-011
+    file: DT-011-APIMAP.md
+    title: API Map
+  -
+    id: DT-012
+    file: DT-012-STATE.md
+    title: State
+  -
+    id: DT-013
+    file: DT-013-RUNBOOK.md
+    title: Runbook
+  -
+    id: DT-014
+    file: DT-014-DATAREF.md
+    title: Data Reference

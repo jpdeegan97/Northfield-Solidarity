@@ -1,0 +1,280 @@
+NS-OCP-001 — OVERVIEW
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: OCP — Onchain Compute Plane
+
+Document ID: NS-OCP-001-OVERVIEW
+
+Status: Draft v1
+
+Depends On: NS-OCP-000-CHARTER
+
+Owner: OCP Lead (TBD)
+
+1. Executive Summary
+
+The Onchain Compute Plane (OCP) is Northfield Solidarity’s standardized platform for building, deploying, and operating smart contracts and dApps with production-grade governance and security.
+
+OCP converts blockchain work from “bespoke engineering” into a repeatable delivery system:
+
+predictable environments (dev/test/prod)
+
+controlled deployments with provenance
+
+mandatory security gates and audit readiness
+
+strong custody and access controls
+
+observability and incident response by default
+
+OCP is both:
+
+a product studio capability (ship dApps and on-chain products)
+
+a platform capability (shared primitives, pipelines, and controls)
+
+2. What OCP Is
+
+OCP is the canonical NS plane for:
+
+2.1 Smart Contract Lifecycle
+
+Design standards and contract architecture
+
+Implementation, testing, and review
+
+Deployment, upgrade governance, and change control
+
+Post-deploy monitoring and incident response
+
+2.2 dApp Delivery
+
+Wallet integrations and signing flows
+
+Frontend/mobile patterns for safe transaction UX
+
+Integration with indexers and on-chain data sources
+
+2.3 ChainOps
+
+Environment management (testnets/mainnets)
+
+CI/CD pipelines for contracts and apps
+
+RPC and indexing strategy
+
+Monitoring, alerting, runbooks
+
+2.4 On-Chain Intelligence
+
+Event ingestion → normalized signals → internal feeds
+
+Analytics readiness for FLO, SIG, DRE, SIM and other NS systems
+
+3. What OCP Is Not
+
+OCP is not:
+
+a governance authority (that’s GGP/GGE)
+
+a generic webapp team (OCP dApp work is on-chain-integrated product work)
+
+an experimental sandbox without controls (experimentation exists, but with clear separation and environment boundaries)
+
+a token issuance engine by default (requires explicit governance and separate vehicles)
+
+4. OCP Users
+
+4.1 Primary Users
+
+OCP Engineers: contracts, dApps, ChainOps
+
+Product Teams: teams building NS products that need on-chain primitives
+
+Security & Assurance: internal reviewers, audit coordinators, incident responders
+
+4.2 Secondary Users
+
+Governance (GGP/GGE): approvals, policy enforcement, upgrade decision tracking
+
+Finance (FLO): on-chain accounting feeds, reconciliation, treasury visibility (if applicable)
+
+Identity (IDN): roles, permissions, ownership mapping
+
+Research (DRE): ecosystem tracking, standards monitoring, chain roadmap intelligence
+
+5. Core Concepts
+
+5.1 Networks & Environments
+
+OCP explicitly separates environments:
+
+DEV: rapid iteration, local forks/simulators
+
+TEST: shared integration nets, staging configs, rehearsals
+
+PROD: mainnet (or production-equivalent), strict gates
+
+5.2 Contract Registry (Source of Truth)
+
+OCP maintains an authoritative record for:
+
+contract names, versions, bytecode provenance
+
+deployment addresses per network
+
+constructor/config parameters
+
+ownership/upgrade authorities
+
+linked runbooks and monitoring dashboards
+
+5.3 Release Gates
+
+OCP defines minimum required artifacts and checks before production deployment:
+
+threat model + review
+
+testing baseline (unit + property tests/fuzzing where applicable)
+
+static analysis record
+
+peer review (two-person rule for critical changes)
+
+documented ownership/upgrade/pause model
+
+monitoring + runbooks
+
+5.4 Security & Custody
+
+OCP treats keys and permissions as first-class:
+
+explicit custody policy (hardware / MPC / multisig patterns)
+
+least-privilege roles and break-glass controls
+
+auditable approvals for high-impact actions
+
+5.5 Observability
+
+OCP requires that production systems:
+
+emit events that support monitoring and forensics
+
+flow into dashboards and alerts
+
+have runbooks that describe triage and response steps
+
+6. Reference Deliverables (OCP v1)
+
+OCP v1 standardizes around three deliverables that every on-chain project can reuse:
+
+Contract Registry + Deployment Manager
+
+controlled deployments, provenance, environment configs
+
+Security Baseline Kit
+
+templates for threat modeling, upgrade policy, review checklist, incident response
+
+dApp Starter Framework
+
+wallet integration patterns, signing UX safety rails, indexing integration
+
+7. How Work Flows Through OCP
+
+A typical OCP project follows a repeatable path:
+
+Intake / Intent
+
+define objective, chain scope, risk class, and ownership
+
+Design
+
+architecture + threat model + upgrade/governance plan
+
+Build
+
+implement contracts and dApp; wire indexing and telemetry
+
+Verify
+
+tests + analysis + peer review; external audit if required
+
+Deploy
+
+staged rollouts; registry updates; approvals captured
+
+Operate
+
+monitor, respond, patch (via governed change)
+
+Evolve
+
+upgrades/migrations under governance; postmortems and pattern improvements
+
+8. Interfaces with Other NS Engines
+
+8.1 Governance (GGP/GGE)
+
+approvals for production deployment and upgrades
+
+policy enforcement (gates, required artifacts)
+
+8.2 Identity (IDN)
+
+mapping of human/agent identities to on-chain roles
+
+access control and responsibility attribution
+
+8.3 Finance (FLO)
+
+ingestion of on-chain transactions and events for accounting/reconciliation
+
+8.4 Signals (SIG)
+
+monitoring feeds, anomalies, incident triggers
+
+8.5 Research (DRE)
+
+chain/standards intelligence; protocol watchlists; vendor assessments
+
+8.6 Simulation (SIM)
+
+scenario modeling for upgrades, incidents, liquidity/market interactions (if applicable)
+
+8.7 Market Integration (MUX)
+
+provider abstraction for RPC, indexing, custody, auditing vendors
+
+9. Adoption Model
+
+OCP is designed for incremental adoption:
+
+Phase 1 (Foundation): registry + deploy manager + baseline security gates
+
+Phase 2 (Scale): shared libraries, hardened dApp framework, stronger observability
+
+Phase 3 (Maturity): advanced governance (timelocks, progressive decentralization), formal methods where needed, continuous audit posture
+
+10. Key Decisions (v1 Defaults)
+
+Chain strategy: EVM-first for v1 unless a project requires otherwise
+
+Upgrades: allowed only with explicit documented model and governance approvals
+
+Custody: multisig/MPC/hardware-backed patterns; no unmanaged hot keys
+
+Release discipline: production deployments require the full gate set
+
+11. Next Documents
+
+NS-OCP-002 — TAXONOMY (entities, artifacts, environments, roles, permissions)
+
+NS-OCP-003 — ARCHITECTURE (reference architecture + data flows)
+
+NS-OCP-004 — LIFECYCLE (end-to-end lifecycle and control points)
+

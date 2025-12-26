@@ -1,0 +1,201 @@
+NS-CHRONICLE-006 — VERSION
+
+This document defines how NS-CHRONICLE evolves over time without breaking your archive, parsers, or downstream ingestion (GGE / DRE / quickscope).
+
+1) Versioning goals
+
+Never break historical daily XML files.
+
+Allow additive evolution (new fields, new tags) safely.
+
+Provide deterministic parsing rules for automation.
+
+Keep “manual copy/paste” viable forever.
+
+2) Where version lives
+
+Every Chronicle artifact includes:
+
+Meta/Version
+
+Example:
+
+<Meta>
+  <Date>2025-12-24</Date>
+  <Timezone>America/New_York</Timezone>
+  <Author>John</Author>
+  <Version>1.0</Version>
+</Meta>
+
+Version applies to the schema of that artifact (MorningBrief or EveningDebrief).
+
+3) Versioning scheme
+
+NS-CHRONICLE uses a simple semantic approach:
+
+MAJOR.MINOR (e.g., 1.0, 1.1, 2.0)
+
+3.1 MINOR bump (safe)
+
+MINOR increases when changes are backward compatible, such as:
+
+adding optional fields
+
+adding new enumeration values (with safe fallbacks)
+
+adding entirely new optional sections
+
+3.2 MAJOR bump (breaking)
+
+MAJOR increases when changes are not backward compatible, such as:
+
+renaming nodes/fields
+
+changing meaning of a field
+
+removing fields
+
+changing required/optional status in a way that breaks old producers
+
+NS-CHRONICLE strongly prefers avoiding MAJOR bumps.
+
+4) Backward compatibility rules (non-negotiable)
+
+4.1 Never rename existing nodes casually
+
+If you must rename:
+
+introduce the new node
+
+dual-write both old and new for a transition period
+
+update parsers to accept either
+
+only then deprecate the old node
+
+4.2 Never remove fields from old files
+
+Historical files are immutable. Deprecation means “ignored by new tooling,” not deleted.
+
+4.3 Unknown fields must be ignorable
+
+Parsers must ignore unknown tags and continue.
+
+4.4 Unknown enum values must not break ingestion
+
+If an enum value is unknown:
+
+treat as unknown
+
+preserve the raw text
+
+optionally set <Uncertain>true</Uncertain> if it came from an automated generator
+
+5) Producer rules (ChatGPT/manual writers)
+
+When producing XML:
+
+Always include Meta/Version.
+
+Prefer enums from NS-CHRONICLE-002.
+
+If you don’t know the right enum, leave empty or use unknown if you adopt it.
+
+Do not invent new field names in an ad-hoc way.
+
+6) Consumer rules (parsers/indexers/engine ingestion)
+
+Any NS-CHRONICLE consumer must:
+
+Read Meta/Version
+
+Maintain compatibility with at least the last two MINOR versions
+
+Ignore unknown fields
+
+Preserve original XML for provenance
+
+Suggested consumer strategy:
+
+Parse into an internal canonical object model
+
+Store:
+
+raw XML
+
+parsed canonical representation
+
+parse warnings (unknown fields, invalid enums)
+
+7) Deprecation policy
+
+A field is deprecated when:
+
+a better field exists
+
+it’s redundant
+
+it’s causing ambiguity
+
+Deprecation process:
+
+Mark deprecated in docs
+
+Continue accepting it indefinitely
+
+Stop generating it in new output only after a transition period
+
+Deprecation does not require a MAJOR bump.
+
+8) Schema registry (recommended)
+
+Maintain a simple registry file in the archive root:
+
+NS-CHRONICLE/schema/
+
+MorningBrief.v1.0.xsd (optional)
+
+EveningDebrief.v1.0.xsd (optional)
+
+CHANGELOG.md
+
+You don’t need XSD to begin, but it becomes valuable once you automate ingestion.
+
+9) Changelog requirements
+
+When you change schema behavior:
+
+update CHANGELOG.md with:
+
+date
+
+version
+
+what changed
+
+whether consumers need action
+
+Changelog format suggestion:
+
+Added:
+
+Changed:
+
+Deprecated:
+
+Removed: (avoid; only for generation, not historical acceptance)
+
+10) Recommended current versions
+
+MorningBrief: 1.0
+
+EveningDebrief: 1.0
+
+If you add optional fields, move to 1.1 without breaking older files.
+
+11) Next document
+
+If you want to keep building the productivity project, the next natural doc is:
+
+NS-CHRONICLE-007 — INDEXING + ROLLUPS (daily index.json, weekly rollups, search, and “time by project” summaries)
+

@@ -1,0 +1,196 @@
+NS-IPR-006 — VERSION
+
+This document defines how NS-IPR evolves over time without breaking your registry, evidence packs, integrations, or historical provenance.
+
+NS-IPR has three versioning surfaces:
+
+Registry schema version (records for assets/filings/docket/decisions)
+
+Pack template version (Evidence/Ownership/Filing/Maintenance pack formats)
+
+State machine version (workflow states and transitions)
+
+1) Versioning goals
+
+Preserve auditability across years.
+
+Avoid breaking historical records.
+
+Enable additive improvements without refactoring the archive.
+
+Keep integrations (quickscope/GGE/AEGIS/DRE) stable.
+
+2) Version identifiers
+
+2.1 Registry schema version
+
+Each IPAsset record must include:
+
+schema_version (e.g., 1.0)
+
+2.2 Pack template versions
+
+Each pack includes:
+
+pack_type (EvidencePack, OwnershipPack, TrademarkPack, PatentPack, etc.)
+
+pack_version (e.g., 1.0)
+
+2.3 State machine version
+
+The lifecycle engine (even if manual) has:
+
+workflow_version (e.g., 1.0)
+
+3) Versioning scheme
+
+NS-IPR uses a semantic approach:
+
+MAJOR.MINOR
+
+3.1 MINOR changes (backward compatible)
+
+Allowed without breaking consumers:
+
+adding optional fields
+
+adding new enum values (with fallbacks)
+
+adding new pack sections
+
+adding new risk flags
+
+3.2 MAJOR changes (breaking)
+
+Require migration planning:
+
+renaming fields
+
+changing the meaning of an existing field
+
+removing fields
+
+changing identity rules for records
+
+NS-IPR should aggressively avoid MAJOR changes.
+
+4) Backward compatibility rules (non-negotiable)
+
+4.1 Never delete history
+
+Historical registry records and packs are immutable for audit purposes.
+
+4.2 No silent renames
+
+If you must rename a field:
+
+introduce the new field
+
+dual-write (populate both) for a transition window
+
+update consumers to accept either
+
+deprecate old field generation (but keep accepting it)
+
+4.3 Unknown fields must be ignored
+
+Consumers must ignore unknown fields and continue.
+
+4.4 Unknown enums must degrade safely
+
+If an enum value is unknown:
+
+treat as unknown
+
+preserve the raw string
+
+optionally attach a warning
+
+5) Deprecation policy
+
+A field/enum/pack section can be deprecated when:
+
+it’s redundant
+
+it’s ambiguous
+
+it creates operational risk
+
+Deprecation means:
+
+continue accepting it indefinitely
+
+stop generating it in new packs after a transition
+
+Deprecation does not require a MAJOR bump.
+
+6) Migration policy
+
+6.1 Migration triggers
+
+Migrations may be required when:
+
+registry shape changes materially
+
+identity rules change (IDs)
+
+workflow states change in incompatible ways
+
+6.2 Migration principles
+
+migrations must be idempotent
+
+migration must never erase provenance
+
+raw source artifacts remain the truth; derived indices can rebuild
+
+7) Changelog requirements
+
+Maintain:
+
+NS-IPR/CHANGELOG.md
+
+Every change includes:
+
+date
+
+version
+
+what changed
+
+consumer action required (yes/no)
+
+deprecations
+
+Suggested sections:
+
+Added
+
+Changed
+
+Deprecated
+
+Fixed
+
+8) Current baseline versions (v1)
+
+Registry schema: 1.0
+
+EvidencePack: 1.0
+
+OwnershipPack: 1.0
+
+TrademarkPack: 1.0
+
+CopyrightPack: 1.0
+
+PatentPack: 1.0
+
+MaintenancePack: 1.0
+
+Workflow: 1.0
+
+9) Next document
+
+NS-IPR-007 — DATAMODEL (canonical entities, relationships, IDs, and mappings into quickscope/GGE/AEGIS/DRE)
+

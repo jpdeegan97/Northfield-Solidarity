@@ -1,0 +1,236 @@
+NS-CHRONICLE-003 — ARCHITECTURE
+
+NS-CHRONICLE is a lightweight capture system with a clean data pipeline into your broader Northfield Solidarity ecosystem (GGE / DRE / quickscope). The design prioritizes:
+
+extremely low friction capture (AM/PM)
+
+deterministic structure (XML)
+
+easy local storage + diffing
+
+optional ingestion into graph/state systems
+
+1) High-level system diagram (conceptual)
+
+Capture UI (you + ChatGPT)
+
+Canonical XML artifact (MorningBrief / EveningDebrief)
+
+Local Archive (files organized by date)
+
+Index + Search (optional)
+
+Ingestion Pipeline (optional)
+
+Downstream Engines (GGE / DRE / quickscope)
+
+2) Core components
+
+2.1 Capture Interface
+
+Primary interface: ChatGPT prompt → XML output.
+
+Capture modes:
+
+AM Mode: plan + intent + top priorities + constraints
+
+PM Mode: recap + shipped + decisions + learnings + carryovers
+
+Design constraints:
+
+must work with copy/paste
+
+must not require external integrations to be useful
+
+2.2 Canonical XML Artifacts
+
+Two schemas:
+
+MorningBrief
+
+EveningDebrief
+
+Rules:
+
+first-person voice
+
+stable field names (from NS-CHRONICLE-002)
+
+links are evidence anchors
+
+uncertainty is explicit (<Uncertain>true</Uncertain>)
+
+2.3 Archive Layer (Source of Truth)
+
+Source of truth is the file archive (not the chat).
+
+Recommended directory layout:
+
+NS-CHRONICLE/
+
+YYYY/
+
+YYYY-MM/
+
+YYYY-MM-DD.am.xml
+
+YYYY-MM-DD.pm.xml
+
+YYYY-MM-DD.notes.md (optional freeform)
+
+Why this layout:
+
+stable chronological ordering
+
+easy git versioning + diffs
+
+easy ingestion batching
+
+2.4 Index Layer (Optional)
+
+If you want fast recall (search by project/topic/decision):
+
+Two tiers:
+
+Light index (recommended first):
+
+daily generated JSON summary index (per day)
+
+supports quick grep or simple search
+
+Deep index (later):
+
+embed key fields into DRE graph
+
+cross-link decisions ↔ artifacts ↔ projects
+
+2.5 Ingestion Pipeline (Optional, but designed-in)
+
+CHRONICLE artifacts can be ingested into your engines as structured events.
+
+Pipeline stages:
+
+Parse XML
+
+Normalize taxonomy fields (project IDs, types, impact)
+
+Emit events
+
+Write to graph/state stores
+
+Event mapping (recommended):
+
+WorkBlock → activity event
+
+ShippedItem → artifact event
+
+Decision → decision node + edges to projects
+
+Learning → knowledge node
+
+Carryover → open-loop task/state edge to next day
+
+2.6 Downstream Consumers
+
+GGE (Governance Graph Engine)
+
+consumes: Decisions, policy changes, standards created
+
+emits: governance context and “what changed” summaries
+
+DRE (Deep Research Engine)
+
+consumes: research threads, links, hypotheses, findings
+
+emits: connected knowledge graph + trend mapping
+
+quickscope (Intervention)
+
+consumes: carryovers + next actions
+
+emits: state transitions and next-day intent scaffolding
+
+3) Data flow and lifecycle
+
+3.1 Daily lifecycle
+
+AM: create YYYY-MM-DD.am.xml
+
+PM: create YYYY-MM-DD.pm.xml
+
+(Optional) generate YYYY-MM-DD.index.json
+
+(Optional) ingest into engines nightly
+
+3.2 Weekly / monthly lifecycle (optional)
+
+weekly rollup: top shipped items, major decisions, learnings, carryover closure
+
+monthly map: where time went by project, what moved forward, what stalled
+
+4) Architecture constraints and guardrails
+
+4.1 Minimal friction
+
+if capture takes too long, the system will die
+
+keep fields short; use links for depth
+
+4.2 Determinism
+
+avoid free-text where a taxonomy enum exists
+
+only expand where it creates durable value (decisions/learnings)
+
+4.3 Privacy and security
+
+do not paste secrets into Chronicle
+
+if sensitive: store only references (ticket IDs, doc IDs)
+
+5) “Continuity guarantees” (what this architecture ensures)
+
+If you follow the loop:
+
+tomorrow morning you can reconstruct:
+
+what mattered yesterday
+
+what shipped
+
+what changed direction
+
+what is still open and the next action
+
+This is the core continuity guarantee.
+
+6) Implementation tiers (how to adopt)
+
+Tier 1 — Manual (start here)
+
+ChatGPT produces XML
+
+you save files in the archive layout
+
+Tier 2 — Indexed
+
+nightly script creates index.json per day
+
+grep/search across projects/decisions/carryovers
+
+Tier 3 — Engine-ingested
+
+parser emits events into GGE/DRE/quickscope
+
+graph shows:
+
+time allocation by project
+
+decision network over time
+
+carryover aging and closure
+
+7) Next document
+
+NS-CHRONICLE-004 — OPERATING ROUTINE (how you run it daily, prompts, storage rules, and “make it effortless” heuristics)
+

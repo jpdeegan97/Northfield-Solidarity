@@ -5,7 +5,8 @@ mermaid.initialize({
     startOnLoad: false,
     theme: "dark",
     securityLevel: "loose",
-    fontFamily: "var(--font-mono)" // Attempt to match site font
+    fontFamily: "var(--font-mono)", // Attempt to match site font
+    suppressErrorRendering: true, // Prevent mermaid from inserting error text into DOM
 });
 
 export default function MermaidDiagram({ code, enableZoom = false }) {

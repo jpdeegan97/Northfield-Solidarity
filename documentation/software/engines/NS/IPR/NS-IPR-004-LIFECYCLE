@@ -1,0 +1,350 @@
+NS-IPR-004 — LIFECYCLE
+
+This document defines the end-to-end lifecycle NS-IPR enforces: from IP intake → evidence → ownership → decision gates → filing workflow → maintenance.
+
+NS-IPR’s lifecycle is designed to prevent three common IP failures:
+
+weak provenance (can’t prove what existed when)
+
+unclear ownership (missing assignments / chain of title)
+
+bad timing (public disclosure before patent strategy; missed filing/renewal deadlines)
+
+1) Lifecycle overview (the spine)
+
+NS-IPR runs a standard flow for every IPAsset:
+
+Intake
+
+Classification
+
+Evidence Pack
+
+Ownership Pack
+
+Decision Gate
+
+Filing Pack + Counsel Handoff (if applicable)
+
+Docketing + Maintenance
+
+Audit + Updates (continuous)
+
+At any step, NS-IPR may open Risk Flags and route tasks into quickscope.
+
+2) States (canonical)
+
+Every IPAsset lives in exactly one lifecycle state at a time:
+
+intake
+
+classified
+
+evidence_ready
+
+ownership_ready
+
+decision_pending
+
+filing_in_progress
+
+registered (or granted for patents)
+
+maintaining
+
+retired
+
+A Filing record has its own status set (candidate → filed → office action → registered, etc.), but the IPAsset state remains the single “top-level truth.”
+
+3) Phase 1 — Intake
+
+3.1 Goal
+
+Ensure nothing valuable is “born untracked.”
+
+3.2 Triggers
+
+new repo/module, major feature, or algorithm
+
+new engine/product name, logo, slogan, domain
+
+new doc/spec/standard that represents novel work
+
+new dataset/data pipeline recipes
+
+new internal process that might be a trade secret
+
+3.3 Required inputs
+
+Project tag (e.g., NS-AEGIS, NS-PG)
+
+Asset title/name
+
+Initial confidentiality posture (public|internal|restricted|trade_secret)
+
+3.4 Outputs
+
+IPAsset created with state: intake
+
+Initial “owner candidate” entity (best guess; verified later)
+
+quickscope tasks opened if any obvious gaps exist
+
+3.5 Definition of Done
+
+IPAsset exists in registry with minimal metadata
+
+4) Phase 2 — Classification
+
+4.1 Goal
+
+Identify what type of protection is relevant.
+
+4.2 Actions
+
+assign AssetClass and AssetType
+
+set ProtectionIntent (file now / later / monitor / keep secret / open source / abandon)
+
+identify whether disclosure is currently safe
+
+4.3 Outputs
+
+IPAsset updated to state: classified
+
+Risk flags opened if:
+
+public disclosure risk exists
+
+brand collision likely
+
+OSS/license posture may contaminate claims
+
+4.4 Definition of Done
+
+Classification is explicit and recorded
+
+5) Phase 3 — Evidence Pack
+
+5.1 Goal
+
+Create defensible provenance.
+
+5.2 Evidence capture (examples)
+
+repo commits/tags, file hashes
+
+doc IDs + versions
+
+prototypes, diagrams
+
+trademark “use in commerce” specimens
+
+publication timestamps (if already public)
+
+5.3 Outputs
+
+EvidencePack attached to the asset
+
+Evidence strength grading (optional)
+
+5.4 Definition of Done
+
+EvidencePack exists and is linked
+
+For high-value assets: evidence must be at least strong
+
+6) Phase 4 — Ownership Pack (chain of title)
+
+6.1 Goal
+
+Prove who owns it (and that they can file).
+
+6.2 Actions
+
+identify all contributors (authors/inventors/designers)
+
+map contributors to agreements (employee assignment, contractor assignment, NDA/CLA)
+
+map owner entity (which NS LLC holds this)
+
+6.3 Outputs
+
+OwnershipPack attached
+
+Chain-of-title state:
+
+clear / incomplete / disputed / third_party_owned
+
+6.4 Definition of Done
+
+Chain-of-title is clear OR the asset is blocked with a critical risk flag
+
+Hard gate:
+
+Do not file or publish as “owned IP” if chain-of-title is incomplete.
+
+7) Phase 5 — Decision Gate
+
+7.1 Goal
+
+Make protect/publish posture explicit (and auditable).
+
+7.2 Decision types
+
+trademark: proceed? which classes? which mark variants?
+
+patent: file provisional? timeline? disclosure posture?
+
+trade secret: keep restricted? controls required?
+
+open source: allowed? license? what must be removed?
+
+7.3 Outputs
+
+Decision record routed to GGE
+
+IPAsset moves to:
+
+decision_pending (if not resolved)
+
+or directly to filing_in_progress / maintaining depending on result
+
+7.4 Definition of Done
+
+A decision is “made” only if it has:
+
+Choice
+
+Rationale
+
+linked evidence/ownership packs
+
+8) Phase 6 — Filing Pack + Counsel Handoff
+
+8.1 Goal
+
+Produce a counsel-ready package quickly and consistently.
+
+8.2 Filing pack outputs (by type)
+
+Trademark Pack
+
+mark, owner, goods/services classes, specimen candidates, use dates, collision notes
+
+Copyright Pack
+
+work description, authorship, publication status, deposit materials list
+
+Patent Pack
+
+invention disclosure, diagrams, claims sketch, inventor list, priority timing, disclosure risk
+
+8.3 Workflow
+
+filing record created: ready_for_counsel
+
+counsel handoff happens (external)
+
+filing status is tracked inside NS-IPR
+
+8.4 Definition of Done
+
+filing pack exists and is linked
+
+docket items are created (deadlines, office actions, renewals)
+
+9) Phase 7 — Docketing + Maintenance
+
+9.1 Goal
+
+Never miss a deadline; keep registrations alive.
+
+9.2 Docket items
+
+office action response windows
+
+statements of use / specimens
+
+renewals / maintenance fees
+
+watch/monitor actions
+
+9.3 Routing
+
+docket items → quickscope
+
+critical deadlines → escalation policy (see NS-IPR-013)
+
+9.4 Definition of Done
+
+All deadlines are represented as docket items
+
+Overdue/critical escalation is active
+
+10) Phase 8 — Audit + Continuous updates
+
+10.1 Goal
+
+Keep registry current and provable.
+
+Ongoing actions:
+
+update filing statuses
+
+attach new evidence (e.g., new specimens, new releases)
+
+update ownership when entity structure changes
+
+record reversals or strategic changes as GGE decisions
+
+Definition of Done:
+
+registry reflects current truth; no “unknown status” for Tier 0/1 assets
+
+11) Gates (the non-negotiables)
+
+Gate A — Disclosure gate (patent/trade secret)
+
+If an asset is patent-sensitive or trade-secret-managed:
+
+default to restricted
+
+no public release until decision gate passes
+
+Gate B — Ownership gate
+
+No filing or “owned IP” claims without a clear chain of title.
+
+Gate C — Evidence gate
+
+No major filing without an evidence pack.
+
+Gate D — Deadline gate
+
+Every filing creates docket items immediately.
+
+12) Tiering (what gets the most rigor)
+
+NS-IPR should classify assets into tiers (informal v1):
+
+Tier 0 IP: existential brands, core platform inventions
+
+Tier 1 IP: major product lines, foundational standards
+
+Tier 2 IP: useful but replaceable
+
+Tier 3 IP: low value / exploratory
+
+Tier affects:
+
+evidence strength requirements
+
+counsel involvement
+
+docket escalation severity
+
+13) Next document
+
+NS-IPR-005 — DECISION (decision criteria, approval routing, reversal handling, and how decisions connect to GGE/quickscope)
+

@@ -31,45 +31,32 @@ export default function Pricing() {
 
     return (
         <div data-theme="water">
-            <Layout
-                nav={[
-                    { label: "Northfield Solidarity", to: "/" },
-                    { label: "South Lawn", to: "/southlawn/pricing" },
-                    { type: "divider" },
-                    { label: "Documentation", to: "/docs" },
-                    { label: "Pricing", to: "/pricing" },
-                    { label: "System", to: "/system" },
-                    { label: "Investor Relations", to: "/investors" },
-                ]}
-            >
+            <Layout>
                 <div className="pricing-page">
                     {/* --- HERO --- */}
                     <section className="pricing-hero">
                         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 var(--space-4)' }}>
                             <div className="pricing-hero-content">
-                                <h1 className="h1">Choose your operating layer.</h1>
+                                <h1 className="h1">The Solidarity Operating Stack.</h1>
                                 <p className="lead">
-                                    Plans built around governance-first operations. Add engines when you’re ready.
+                                    You are not buying software. You are buying into a new way of operating. <br />
+                                    <span style={{ opacity: 0.8 }}>Come on the ride.</span>
                                 </p>
                                 <div className="ctaRow">
                                     <button onClick={() => {
                                         document.getElementById('plans').scrollIntoView({ behavior: 'smooth' });
-                                    }} className="btn">Start building</button>
-                                    <a href="#addons" className="btn ghost">View add-ons</a>
+                                    }} className="btn">Join the Movement</button>
+                                    <a href="#addons" className="btn ghost">Explore Add-ons</a>
                                 </div>
-                                <ul className="hero-highlights">
-                                    <li>Governed workflows and auditability</li>
-                                    <li>Engine add-ons (DRE, Firmament, CWP)</li>
-                                    <li>Upgrade without re-platforming</li>
-                                </ul>
                             </div>
                         </div>
                     </section>
 
-                    {/* --- PLANS --- */}
+                    {/* --- MEMBERSHIP PLANS --- */}
                     <section id="plans" className="section">
                         <div className="sectionHead center-text">
-                            <h2 className="h2">Plans</h2>
+                            <h2 className="h2">Membership Tiers</h2>
+                            <p className="sub">The foundation of your digital estate.</p>
                             <div className="billing-toggle-wrapper">
                                 <span className={!isAnnual ? 'active' : ''}>Monthly</span>
                                 <button
@@ -84,124 +71,96 @@ export default function Pricing() {
                         </div>
 
                         <div className="pricing-grid">
-                            {/* STARTER */}
+                            {/* TIER 1: OPERATOR */}
                             <div className="pricing-card">
-                                <div className="card-header">
-                                    <h3 className="cardTitle">Starter</h3>
-                                    <div className="price">
-                                        <span className="currency">$</span>
-                                        <span className="amount">{isAnnual ? '1520' : '149'}</span>
-                                        <span className="suffix">{isAnnual ? '/yr' : '/mo'}</span>
-                                    </div>
-                                    <p className="best-for">Solo operator / prototype</p>
-                                </div>
-                                <div className="card-body">
-                                    <ul className="feature-list">
-                                        <li>1 workspace</li>
-                                        <li>Core registry + dashboards</li>
-                                        <li>Basic entity graph</li>
-                                        <li>5 integrations</li>
-                                        <li>25GB storage</li>
-                                        <li>Email support</li>
-                                    </ul>
-                                </div>
-                                <div className="card-footer">
-                                    <button
-                                        onClick={() => handleSelectPlan('starter', 'Starter Plan', 149, 1520)}
-                                        className="btn ghost full-width"
-                                    >
-                                        Start building
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* BUILDER */}
-                            <div className="pricing-card">
-                                <div className="card-header">
-                                    <h3 className="cardTitle">Builder</h3>
-                                    <div className="price">
-                                        <span className="currency">$</span>
-                                        <span className="amount">{isAnnual ? '5090' : '499'}</span>
-                                        <span className="suffix">{isAnnual ? '/yr' : '/mo'}</span>
-                                    </div>
-                                    <p className="best-for">Early team / real ops</p>
-                                </div>
-                                <div className="card-body">
-                                    <ul className="feature-list">
-                                        <li>Up to 5 seats</li>
-                                        <li>Governance workflows (approvals/audit)</li>
-                                        <li>20 integrations</li>
-                                        <li>250GB storage</li>
-                                        <li>Alerts + scheduled jobs</li>
-                                        <li>Standard support</li>
-                                    </ul>
-                                </div>
-                                <div className="card-footer">
-                                    <button
-                                        onClick={() => handleSelectPlan('builder', 'Builder Plan', 499, 5090)}
-                                        className="btn ghost full-width"
-                                    >
-                                        Run operations
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* OPERATOR (Recommended) */}
-                            <div className="pricing-card recommended">
-                                <div className="recommended-badge">Recommended</div>
                                 <div className="card-header">
                                     <h3 className="cardTitle">Operator</h3>
                                     <div className="price">
                                         <span className="currency">$</span>
-                                        <span className="amount">{isAnnual ? '15290' : '1499'}</span>
+                                        <span className="amount">{isAnnual ? '8995' : '895'}</span>
                                         <span className="suffix">{isAnnual ? '/yr' : '/mo'}</span>
                                     </div>
-                                    <p className="best-for">Serious multi-engine ops</p>
+                                    <p className="best-for">Join the ride. Independent velocity.</p>
                                 </div>
                                 <div className="card-body">
                                     <ul className="feature-list">
-                                        <li>Up to 15 seats</li>
-                                        <li>Advanced policy gates</li>
-                                        <li>Environment separation (dev/prod)</li>
-                                        <li>SSO-lite</li>
-                                        <li>1TB storage</li>
-                                        <li>Priority support</li>
+                                        <li><strong>Core Canvas & Product Dock</strong></li>
+                                        <li>1 Active Workspace</li>
+                                        <li><strong>Self-Healing Governance</strong> (Auto-repair logic)</li>
+                                        <li>Basic Incubator & Chronicle engines</li>
+                                        <li>Standard Support</li>
                                     </ul>
-                                    <div className="bonus-feature">
-                                        <strong>Bonus:</strong> Firmament: first 3 live layers included
-                                    </div>
                                 </div>
                                 <div className="card-footer">
                                     <button
-                                        onClick={() => handleSelectPlan('operator', 'Operator Plan', 1499, 15290)}
-                                        className="btn full-width"
+                                        onClick={() => handleSelectPlan('operator', 'Operator Membership', 895, 8995)}
+                                        className="btn ghost full-width"
                                     >
-                                        Scale with governance
+                                        Initialize
                                     </button>
                                 </div>
                             </div>
 
-                            {/* ENTERPRISE */}
-                            <div className="pricing-card">
+                            {/* TIER 2: ARCHITECT */}
+                            <div className="pricing-card recommended">
+                                <div className="recommended-badge">Recommended</div>
                                 <div className="card-header">
-                                    <h3 className="cardTitle">Enterprise</h3>
+                                    <h3 className="cardTitle">Architect</h3>
                                     <div className="price">
-                                        <span className="amount">Custom</span>
+                                        <span className="currency">$</span>
+                                        <span className="amount">{isAnnual ? '29995' : '2995'}</span>
+                                        <span className="suffix">{isAnnual ? '/yr' : '/mo'}</span>
                                     </div>
-                                    <p className="best-for">Regulated / larger org</p>
+                                    <p className="best-for">For those building the future.</p>
                                 </div>
                                 <div className="card-body">
                                     <ul className="feature-list">
-                                        <li>Unlimited seats</li>
-                                        <li>SSO/SAML</li>
-                                        <li>Dedicated VPC / on-prem option</li>
-                                        <li>Custom SLAs</li>
-                                        <li>Security review</li>
-                                        <li>Custom integration work</li>
+                                        <li>Everything in Operator, plus:</li>
+                                        <li>Up to 5 Seats</li>
+                                        <li><strong>Digital Twin Mirror</strong> (Real-time syncing)</li>
+                                        <li><strong>Knowledge Graph Serendipity</strong> (Network intel)</li>
+                                        <li>Deep Research Engine (DRE) Basic Access</li>
+                                        <li>Priority Support</li>
                                     </ul>
                                 </div>
                                 <div className="card-footer">
-                                    <Link to="/contact?topic=enterprise" className="btn ghost full-width">Talk to us</Link>
+                                    <button
+                                        onClick={() => handleSelectPlan('architect', 'Architect Membership', 2995, 29995)}
+                                        className="btn full-width"
+                                    >
+                                        Architect
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* TIER 3: SOVEREIGN */}
+                            <div className="pricing-card">
+                                <div className="card-header">
+                                    <h3 className="cardTitle">Sovereign</h3>
+                                    <div className="price">
+                                        <span className="currency">$</span>
+                                        <span className="amount">{isAnnual ? '125000' : '12500'}</span>
+                                        <span className="suffix">{isAnnual ? '/yr' : '/mo'}</span>
+                                    </div>
+                                    <p className="best-for">The Inner Circle. Direct alignment.</p>
+                                </div>
+                                <div className="card-body">
+                                    <ul className="feature-list">
+                                        <li>Everything in Architect, plus:</li>
+                                        <li>Up to 15 Seats</li>
+                                        <li><strong>Immutable Decision Chains</strong> (Full Audit)</li>
+                                        <li><strong>Continuity Bond</strong> (Resilience Guarantee)</li>
+                                        <li>Environment Separation (Dev/Prod)</li>
+                                        <li>Dedicated Account Manager</li>
+                                    </ul>
+                                </div>
+                                <div className="card-footer">
+                                    <button
+                                        onClick={() => handleSelectPlan('sovereign', 'Sovereign Membership', 12500, 125000)}
+                                        className="btn ghost full-width"
+                                    >
+                                        Establish
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -210,81 +169,75 @@ export default function Pricing() {
                     {/* --- ADD-ONS --- */}
                     <section id="addons" className="section">
                         <div className="sectionHead">
-                            <h2 className="h2">Engine add-ons</h2>
-                            <p className="sub">Attach to any plan. Price what’s expensive (compute, data, real-time layers) separately.</p>
+                            <h2 className="h2">Strategic Expansions</h2>
+                            <p className="sub">High-leverage modules to extend your capability.</p>
                         </div>
 
                         <div className="grid">
-                            {/* DRE */}
+                            {/* Fractal Instance Forking */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">DRE (Deep Research Engine)</h3>
+                                <h3 className="cardTitle">Fractal Instance Forking</h3>
                                 <div className="addon-price">
-                                    <span className="base-price">$199/mo base</span>
-                                    <span className="usage-price">+ $0.08 per research unit</span>
+                                    <span className="base-price">Usage Based</span>
                                 </div>
-                                <p className="cardBody">Aligned to LLM/search/scrape workloads.</p>
+                                <p className="cardBody">
+                                    Instantly spawn child instances for new projects or franchises. Inherit governance, isolate state.
+                                </p>
                             </div>
 
-                            {/* FIRMAMENT */}
+                            {/* Predictive Ghost Runs */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">Firmament (3D Ops Globe)</h3>
+                                <h3 className="cardTitle">Predictive Ghost Runs</h3>
                                 <div className="addon-price">
-                                    <span className="base-price">$299/mo base</span>
-                                    <span className="usage-price">+ $25 per live layer/mo</span>
+                                    <span className="base-price">$995/mo</span>
                                 </div>
-                                <p className="cardBody">Layers include heatmaps, routes, events, entity footprints, and filtered overlays.</p>
+                                <p className="cardBody">
+                                    Simulate decisions against market data before committing capital. Risk immunity.
+                                </p>
                             </div>
 
-                            {/* CWP */}
+                            {/* Synthetic Persona Testing */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">CWP (Cognitive Work Plane)</h3>
+                                <h3 className="cardTitle">Synthetic Persona Testing</h3>
                                 <div className="addon-price">
-                                    <span className="base-price">$19/seat/mo</span>
-                                    <span className="usage-price">(Requires Builder+)</span>
+                                    <span className="base-price">$495/mo</span>
                                 </div>
-                                <p className="cardBody">Scales with human + agent operators.</p>
+                                <p className="cardBody">
+                                    Wargame your product against AI stakeholders (Regulator, Customer, Competitor).
+                                </p>
                             </div>
 
-                            {/* INTEGRATIONS */}
+                            {/* Resource Arbitrage Pilot */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">Premium Integrations Pack</h3>
+                                <h3 className="cardTitle">Resource Arbitrage Pilot</h3>
                                 <div className="addon-price">
-                                    <span className="base-price">$149/mo</span>
+                                    <span className="base-price">% of Capture</span>
                                 </div>
-                                <p className="cardBody">ERP / Finance / CRM / Logistics connectors.</p>
+                                <p className="cardBody">
+                                    Automated optimization of cloud/compute resources. We skim the savings.
+                                </p>
                             </div>
 
-                            {/* AUDIT VAULT */}
+                            {/* Automated Living Context */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">Data Retention / Audit Vault</h3>
+                                <h3 className="cardTitle">Automated Living Context</h3>
                                 <div className="addon-price">
-                                    <span className="usage-price">$99/yr per additional year retained</span>
+                                    <span className="base-price">$195/mo</span>
                                 </div>
-                                <p className="cardBody">Long-term auditability and historical replay.</p>
+                                <p className="cardBody">
+                                    A morning brief that evolves with your project state. Never start cold.
+                                </p>
                             </div>
 
-                            {/* BYOK */}
+                            {/* Custom Services */}
                             <div className="card addon-card">
-                                <h3 className="cardTitle">Private Model / BYOK</h3>
+                                <h3 className="cardTitle">White Glove Setup</h3>
                                 <div className="addon-price">
-                                    <span className="base-price">$99 - $499/mo</span>
+                                    <span className="base-price">From $15,000</span>
                                 </div>
-                                <p className="cardBody">Use your own keys/models; keep governance intact. Provider pass-through costs apply.</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* --- SERVICES --- */}
-                    <section id="services" className="section service-section">
-                        <h2 className="h3">One-time setup</h2>
-                        <div className="service-list">
-                            <div className="service-item">
-                                <span className="service-name">Onboarding & System Mapping</span>
-                                <span className="service-price">$1,500 (Starter/Builder) / $5,000+ (Operator/Ent)</span>
-                            </div>
-                            <div className="service-item">
-                                <span className="service-name">Custom Integration Build</span>
-                                <span className="service-price">$175/hr</span>
+                                <p className="cardBody">
+                                    Full system mapping and migration of your existing operational estate.
+                                </p>
                             </div>
                         </div>
                     </section>
@@ -294,11 +247,10 @@ export default function Pricing() {
                         <h2 className="h2">FAQ</h2>
                         <div className="faq-list">
                             {[
-                                { q: "What counts as a research unit?", a: "A normalized unit of compute and external data calls used by DRE. You’ll see it itemized in usage reporting." },
-                                { q: "Can I start on Starter and upgrade later?", a: "Yes. Plans are designed so you can upgrade without migrating data or changing your workflows." },
-                                { q: "Do add-ons require a specific plan?", a: "CWP seats require Builder+. Most other add-ons can attach to any plan." },
-                                { q: "Is annual billing required?", a: "No. Annual is optional and includes a ~15% discount." },
-                                { q: "Do you support on-prem or private cloud?", a: "Yes, on Enterprise with a dedicated VPC/on-prem option and custom SLAs." }
+                                { q: "What is the difference between Architect and Sovereign?", a: "Architect is for building structure; Sovereign is for maintaining legacy. Sovereign adds immutable audit trails and continuity guarantees." },
+                                { q: "Can I add 'Ghost Runs' to the Operator tier?", a: "Yes. All Strategic Expansions are compatible with any Membership Tier." },
+                                { q: "How does Fractal Forking billing work?", a: "You pay a small base fee for each child instance, plus the resource usage of that instance." },
+                                { q: "Is 'Self-Healing Governance' active by default?", a: "Yes, on all tiers. It ensures your rules and permissions auto-correct if they drift from the defined standard." }
                             ].map((item, index) => (
                                 <div key={index} className={`faq-item ${openFaq === index ? 'open' : ''}`} onClick={() => toggleFaq(index)}>
                                     <div className="faq-question">
@@ -316,13 +268,13 @@ export default function Pricing() {
                     {/* --- FINAL CTA --- */}
                     <section className="section final-cta center-text">
                         <div className="callout">
-                            <h2 className="h2">Ready to operationalize?</h2>
+                            <h2 className="h2">Begin your residency.</h2>
                             <p className="lead" style={{ margin: '0 auto var(--space-5)' }}>
-                                Pick a plan, add the engines you need, and keep everything governed from day one.
+                                Secure your operating baseline. Expand efficiently.
                             </p>
                             <div className="ctaRow" style={{ justifyContent: 'center' }}>
-                                <Link to="/signup" className="btn">Start building</Link>
-                                <Link to="/contact" className="btn ghost">Talk to us</Link>
+                                <Link to="/signup" className="btn">Start Application</Link>
+                                <Link to="/contact" className="btn ghost">Contact Syndication</Link>
                             </div>
                         </div>
                     </section>

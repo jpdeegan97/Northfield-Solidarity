@@ -1,0 +1,364 @@
+NS-OCP-002 — TAXONOMY
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: OCP — Onchain Compute Plane
+
+Document ID: NS-OCP-002-TAXONOMY
+
+Status: Draft v1
+
+Depends On: NS-OCP-000-CHARTER, NS-OCP-001-OVERVIEW
+
+Owner: OCP Lead (TBD)
+
+1. Taxonomy Goals
+
+This taxonomy defines the canonical vocabulary for OCP so that:
+
+artifacts are named consistently
+
+environments and deployments are unambiguous
+
+ownership, custody, and authority are explicit
+
+security controls can be automated and enforced
+
+2. Core Domains
+
+OCP is organized into five domains:
+
+Contracts Domain — on-chain code and its lifecycle
+
+dApp Domain — user-facing applications interacting with contracts
+
+ChainOps Domain — deployments, environments, infrastructure, monitoring
+
+Security & Assurance Domain — gates, reviews, audits, incidents
+
+Data & Intelligence Domain — indexing, event streams, analytics, internal feeds
+
+3. Entities (Nouns)
+
+3.1 Blockchain Primitives
+
+Chain / Network: a blockchain execution environment (e.g., mainnet/testnet) with a chain ID.
+
+L1 / L2 / L3: settlement vs execution layers (OCP treats these as network attributes).
+
+Account: an address capable of holding assets and sending transactions.
+
+EOA (Externally Owned Account): a key-controlled account.
+
+Contract Account: an account controlled by deployed bytecode.
+
+Transaction (Tx): a state transition request.
+
+Receipt: proof of execution including status and emitted logs/events.
+
+Event / Log: emitted data for indexing and monitoring.
+
+Block: ordered set of transactions.
+
+Finality: confirmation confidence level (chain attribute).
+
+3.2 Contract Lifecycle Entities
+
+Contract Spec: human-readable functional + security requirements.
+
+Contract Module / Package: deployable unit of contract code.
+
+Contract Version: semantic version of a contract package.
+
+Build Artifact: compiled bytecode, ABI, metadata, and source map.
+
+Deployment: an instance of a contract version on a specific network.
+
+Deployment Record: immutable record linking deployment to provenance (commit, build, signer, timestamp, config).
+
+Constructor / Initializer Config: parameters required at deployment or first initialization.
+
+Proxy / Implementation: upgradeable pattern components.
+
+Upgrade: governed change to a deployed system (implementation switch, migration, parameter change).
+
+Migration: state and/or data move from old system to new system.
+
+Decommission: formal retirement of a deployment.
+
+3.3 Authority & Control Entities
+
+Owner: entity with ultimate administrative authority.
+
+Admin: entity with operational authority (may be limited).
+
+Role: named permissions grouping (e.g., MINTER, PAUSER).
+
+Permission: atomic capability (e.g., call function X).
+
+Guardian: emergency authority holder (pause/containment).
+
+Timelock: delayed execution controller.
+
+Multisig: M-of-N approval controller.
+
+MPC Custody: distributed key custody mechanism.
+
+Signer: identity used to authorize deployments/transactions.
+
+Approver: identity required to authorize high-risk actions.
+
+Policy: machine-enforceable rule set for actions and gates.
+
+3.4 dApp & UX Entities
+
+dApp: user-facing app interfacing with contracts.
+
+Wallet Provider: component for key custody/signing (browser wallet, mobile wallet, embedded wallet).
+
+Session: bounded authorization context for repeated actions.
+
+Transaction Intent: pre-signing representation of user action.
+
+Signature Request: request presented to user/wallet for approval.
+
+Gas Strategy: fee estimation and fee-payer strategy.
+
+Relayer: service that submits transactions (especially for sponsored gas).
+
+Account Abstraction (AA): account model enabling policy-driven signing and fee abstraction.
+
+3.5 ChainOps & Infrastructure Entities
+
+Environment: OCP-managed stage (DEV/TEST/PROD).
+
+RPC Provider: node access endpoint provider.
+
+Indexer: service that ingests chain data and exposes query APIs.
+
+Subgraph / Query Layer: structured indexing + query interface.
+
+Node: blockchain client instance (self-hosted or managed).
+
+Secrets Store: system of record for secrets and keys.
+
+CI Pipeline: automated build/test/analysis flow.
+
+CD Pipeline: automated deployment flow.
+
+Release: versioned deployment event, tied to approvals.
+
+Rollback / Containment: emergency action to reduce blast radius.
+
+3.6 Security & Assurance Entities
+
+Threat Model: structured risk analysis and mitigations.
+
+Risk Class: categorical risk level (Low/Med/High/Critical).
+
+Control: required safeguard (gate, review, policy).
+
+Security Gate: mandatory check before production deploy.
+
+Static Analysis: automated code analysis results.
+
+Fuzzing / Property Tests: probabilistic and invariant testing.
+
+Audit: external or internal security review.
+
+Finding: issue identified by analysis/audit.
+
+Remediation: fix + verification of finding closure.
+
+Incident: security/availability event requiring response.
+
+Postmortem: structured incident report and improvements.
+
+3.7 Data & Intelligence Entities
+
+Event Schema: canonical definition of emitted events.
+
+Normalized Signal: standardized internal representation of on-chain events.
+
+Metric: quantified signal (latency, error rate, volume).
+
+Alert: threshold-based or anomaly-based trigger.
+
+Dashboard: operational visualization.
+
+Data Feed: output stream to other NS engines.
+
+Attribution Record: mapping of on-chain actions to identities (via IDN policy).
+
+4. Artifact Types
+
+4.1 Code Artifacts
+
+Contract source code
+
+Contract libraries (shared primitives)
+
+dApp codebase
+
+Infrastructure-as-code (IaC)
+
+Indexer definitions/subgraphs
+
+4.2 Build Artifacts
+
+ABI
+
+Bytecode
+
+Deployment manifests
+
+Source maps
+
+SBOM-like dependency snapshot (recommended)
+
+4.3 Governance & Security Artifacts
+
+Threat model
+
+Upgrade policy
+
+Ownership/role matrix
+
+Release approval record
+
+Audit reports and remediation tracker
+
+Runbooks
+
+Incident postmortems
+
+5. Environment Taxonomy
+
+OCP environments are explicit and non-overlapping:
+
+OCP-ENV-DEV: local dev, forks, rapid iteration
+
+OCP-ENV-TEST: shared integration testing and staging rehearsals
+
+OCP-ENV-PROD: mainnet / production-grade networks
+
+Each environment has:
+
+allowed networks
+
+allowed custody/signer types
+
+gating requirements
+
+observability requirements
+
+6. Network Taxonomy
+
+Networks are categorized by:
+
+Type: L1 / L2 / L3
+
+Purpose: devnet / testnet / mainnet
+
+Finality Profile: probabilistic vs near-instant vs delayed
+
+Reliability Profile: RPC redundancy requirements
+
+Compliance Profile: any constraints required by NS policy
+
+7. Naming Conventions
+
+7.1 General Pattern
+
+{NS}-{OCP}-{DOMAIN}-{NAME}-{QUALIFIERS}
+
+7.2 Contract Packages
+
+OCP-CONTRACT-{PackageName}
+
+Versions use SemVer: MAJOR.MINOR.PATCH
+
+7.3 Deployments
+
+OCP-DEPLOY-{PackageName}-{Network}-{Stage}
+
+Example: OCP-DEPLOY-TreasuryVault-ARBMAIN-PROD
+
+7.4 Roles & Policies
+
+OCP-ROLE-{RoleName}
+
+OCP-POLICY-{PolicyName}
+
+7.5 Runbooks & Dashboards
+
+OCP-RUNBOOK-{SystemName}-{Scenario}
+
+OCP-DASH-{SystemName}
+
+8. Classification Systems
+
+8.1 Risk Class (v1)
+
+Low: limited scope, low value, no privileged actions
+
+Medium: moderate privileges or moderate value at risk
+
+High: meaningful privileges or significant value at risk
+
+Critical: systemic privileges, large value at risk, or public-facing core protocol
+
+Risk class influences:
+
+audit requirements
+
+custody requirements
+
+approval chain
+
+monitoring intensity
+
+8.2 Change Class (v1)
+
+Patch: minor fixes, no storage layout/behavioral change that affects safety
+
+Minor: new features, backward compatible
+
+Major: breaking changes, migrations likely
+
+Emergency: time-sensitive containment or fix
+
+9. Relationship Map (High-Level)
+
+Contract Package → produces Build Artifact
+
+Build Artifact + Config + Signer → creates Deployment
+
+Deployment → emits Events → ingested by Indexer → produces Signals/Metrics
+
+Deployment + Ownership/Roles → governed by Policies and Approvals
+
+Finding → tracked to Remediation → required to close Release Gate
+
+Incident → triggers Runbook → yields Postmortem → updates Policies/Controls
+
+10. Integration Taxonomy (Interfaces)
+
+OCP ↔ GGP/GGE: approvals, policy enforcement, upgrade governance records
+
+OCP ↔ IDN: identity/role attribution, signer mapping, accountability
+
+OCP ↔ FLO: on-chain transaction feeds, reconciliation signals
+
+OCP ↔ SIG: operational telemetry, alerts, anomaly feeds
+
+OCP ↔ DRE: ecosystem intelligence, standards tracking, vendor assessments
+
+OCP ↔ MUX: provider abstraction for RPC, indexing, custody, auditing vendors
+
+11. Next Document
+
+NS-OCP-003 — ARCHITECTURE (reference architecture, control points, data flows)
+

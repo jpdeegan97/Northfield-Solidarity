@@ -1,0 +1,148 @@
+NS-IPR-001 — OVERVIEW
+
+1) What NS-IPR is
+
+NS-IPR is Northfield Solidarity’s IP Formalization + Registration Engine: a repeatable pipeline that turns what you create (code, docs, brand, systems, designs, datasets) into formal, defensible, searchable IP assets.
+
+It is not a law firm. It is an operational system that:
+
+captures invention/creation evidence
+
+standardizes ownership and assignment
+
+manages filing workflows and deadlines
+
+produces counsel-ready “filing packs”
+
+maintains a living IP registry
+
+2) The problem NS-IPR solves
+
+Without a system, IP effort becomes reactive and error-prone:
+
+unclear ownership or missing assignments
+
+weak provenance (hard to prove dates/authorship)
+
+missed trademark/patent timing windows
+
+accidental public disclosures
+
+brand collisions and inconsistent usage
+
+OSS and third-party license exposure that contaminates “owned IP”
+
+NS-IPR makes IP protection a normal part of shipping, not a one-off legal scramble.
+
+3) The NS-IPR pipeline (end-to-end)
+
+NS-IPR runs a consistent flow:
+
+Create (work happens in repos/docs/design)
+
+Intake (asset is logged; minimal metadata captured)
+
+Classify (what type of IP is this?)
+
+Evidence Pack (provenance: commits, hashes, timestamps, authors, artifacts)
+
+Ownership Pack (entity ownership + contributor assignment chain)
+
+Decision Gate (protect as trademark/copyright/patent/trade secret/OSS?)
+
+Filing Pack (counsel-ready materials and docket)
+
+Maintenance (renewals, specimens, monitoring, deadlines)
+
+Audit + Search (registry always current)
+
+4) Primary outputs
+
+NS-IPR outputs a set of durable artifacts:
+
+IP Asset Record (canonical registry entry)
+
+Evidence Pack (what existed, when, who, where)
+
+Ownership/Assignment Pack (chain of title)
+
+Filing Pack (trademark/copyright/patent handoff)
+
+Maintenance Pack (renewal calendar + watchpoints)
+
+Risk Flags (missing assignments, OSS license conflicts, disclosure risk)
+
+5) IP classes supported
+
+NS-IPR supports:
+
+Trademarks: product/engine names, logos, slogans
+
+Copyright: code, docs, creative content
+
+Patents: systems/methods (provisional → non-provisional strategy)
+
+Trade secrets: internal processes, data, techniques not publicly disclosed
+
+Contracts/Assignments: invention assignment, contractor IP assignment, contributor agreements
+
+6) How NS-IPR fits into Northfield Solidarity
+
+NS-IPR is a cross-cutting engine that interfaces with:
+
+GGE: IP governance policies, decision logs, approvals
+
+NS-AEGIS: OSS/dependency license posture (contamination risk)
+
+DRE: invention threads, research provenance, prior art notes
+
+quickscope: state tracking (filing status, deadlines, tasks)
+
+NS-INC / NS-CHRONICLE: daily/weekly iteration artifacts that act as evidence trails
+
+NS-LUM: deadline health + operational visibility (optional)
+
+7) Adoption modes
+
+Mode A — Manual (MVP)
+
+You create IP asset records and evidence packs manually
+
+Counsel filings tracked via checklists and deadlines
+
+Mode B — Semi-automated
+
+Hashing + metadata extraction from repos/docs
+
+Deadline docketing + reminders
+
+Standard filing pack templates
+
+Mode C — Engine-integrated
+
+Automatic detection of new assets (new repos, new project names, new brands)
+
+AEGIS-driven OSS risk flags
+
+quickscope state machine for filings/renewals
+
+GGE decision routing for “protect vs publish”
+
+8) Success indicators
+
+Every core NS project has a registered/tracked name and repository ownership record
+
+100% of contributors have assignments on file before meaningful contribution
+
+No missed renewal or docket deadlines
+
+Filing packs can be generated quickly (≤ 1 hour)
+
+Clear answers to: “Who owns it, what is it, what’s filed, and what’s next?”
+
+9) What’s next
+
+Next standard-template doc:
+
+NS-IPR-002 — TAXONOMY (asset types, evidence types, ownership entities, filing states, risk flags)
+

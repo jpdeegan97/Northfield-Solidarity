@@ -207,7 +207,7 @@ export default function Documentation({ context }) {
         { label: "South Lawn", to: "/southlawn" },
         { label: "WSP", to: "/wsp" },
         { type: "divider" },
-        { label: "Documentation", to: "/southlawn/docs" },
+        { label: "Docs", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
         { label: "System", to: "/southlawn/system" },
         { label: "Investor Relations", to: "/southlawn/investors" },
@@ -216,20 +216,11 @@ export default function Documentation({ context }) {
         { label: "South Lawn", to: "/southlawn" },
         { label: "WSP", to: "/wsp" },
         { type: "divider" },
-        { label: "Documentation", to: "/wsp/docs" },
+        { label: "Docs", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },
         { label: "System", to: "/wsp/system" },
         { label: "Investor Relations", to: "/wsp/investors" },
-    ] : [
-        { label: "Northfield Solidarity", to: "/" },
-        { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
-        { type: "divider" },
-        { label: "Documentation", to: "/docs" },
-        { label: "Pricing", to: "/pricing" },
-        { label: "System", to: "/system" },
-        { label: "Investor Relations", to: "/investors" },
-    ];
+    ] : undefined;
 
     const [activeDocModal, setActiveDocModal] = React.useState(null);
 

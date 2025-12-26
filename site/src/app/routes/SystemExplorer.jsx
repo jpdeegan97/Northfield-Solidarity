@@ -40,88 +40,89 @@ export default function SystemExplorer({ context }) {
         return activeRegistry.find((e) => e.code === code) || {};
     };
 
-    // Define the grid positions for the "Circuit Layout"
-    // NS Topology
-    const nsGridAreas = [
-        { code: "SIG", label: "Inputs" },
-        { code: "MUX", label: "Inputs" },
-        { code: "DRE", label: "Research" },
-        { code: "PIE", label: "Research" },
-        { code: "GGP", label: "Nucleus" },
-        { code: "IDN", label: "Nucleus" },
-        { code: "INT", label: "State" },
-        { code: "SIM", label: "Simulation" },
-        { code: "DAT", label: "Execution" },
-        { code: "FLO", label: "Finance" },
-        { code: "BCP", label: "Blockchain" },
-    ];
+    // Dynamic Topology Generation
+    const generateTopology = (registry) => {
+        const nodes = registry.map(e => ({ code: e.code, label: e.category }));
 
-    // SL Topology
+        // Define spatial zones for categories (X, Y, Z)
+        const zones = {
+            'Governance': { x: 0, y: 300, z: 0 },
+            'Identity': { x: 0, y: 0, z: 0 }, // Nucleus
+            'System': { x: 0, y: 100, z: -50 },
+            'Research': { x: -250, y: 0, z: 50 },
+            'Execution': { x: 250, y: 0, z: 50 },
+            'Integration': { x: 0, y: -200, z: 0 },
+            'Resilience': { x: -150, y: -250, z: 100 }, // QRT area
+            'Simulation': { x: 150, y: 250, z: 50 },
+            'Operations': { x: 200, y: -200, z: 0 },
+            'SOP': { x: -200, y: 200, z: -50 },
+            'Other': { x: 0, y: -350, z: 0 }
+        };
+
+        const coords = {};
+        const connections = [];
+
+        registry.forEach((eng, i) => {
+            const zone = zones[eng.category] || zones['Other'];
+            // Distribute nodes within zone to avoid overlap
+            // Using a deterministic hash or simple index offset
+            const offset = (i % 5) * 60;
+            const angle = (i % 3) * (Math.PI * 2 / 3);
+
+            coords[eng.code] = {
+                x: zone.x + Math.cos(angle) * 40,
+                y: zone.y + (i % 2 === 0 ? 30 : -30),
+                z: zone.z + Math.sin(angle) * 40
+            };
+
+            // Generate connections from integrations
+            if (eng.integrations) {
+                eng.integrations.forEach(target => {
+                    // Only add if target exists in this registry
+                    if (registry.find(e => e.code === target)) {
+                        connections.push([eng.code, target]);
+                    }
+                });
+            }
+        });
+
+        // Ensure "Hubs" like GGP/IDN are centered if they exist
+        if (coords['GGP']) coords['GGP'] = { x: 0, y: 50, z: 50 };
+        if (coords['IDN']) coords['IDN'] = { x: 0, y: -50, z: -50 };
+
+        return { nodes, coords, connections };
+    };
+
+    const nsTopology = generateTopology(NS_ENGINES);
+
+    // Sl and WSP remain static/simple for now as they are less defined
     const slGridAreas = [
         { code: "MRFPE", label: "Feasibility" },
         { code: "PTE", label: "Portfolio" },
         { code: "PECA", label: "Structuring" },
     ];
-
-    // WSP Topology
-    const wspGridAreas = [
-        { code: "WSP-1", label: "Formation" },
-        { code: "WSP-2", label: "Deployment" },
-    ];
-
-    const gridAreas = isSL ? slGridAreas : (isWSP ? wspGridAreas : nsGridAreas);
-    const currentPayload = getEngine(activeEngine);
-
-    // 3D Coordinates Configuration (X, Y, Z)
-    const nsNodeCoords = {
-        SIG: { x: -200, y: -250, z: 0 },
-        MUX: { x: 200, y: -250, z: 0 },
-        DRE: { x: -150, y: -100, z: 50 },
-        PIE: { x: 150, y: -100, z: 50 },
-        GGP: { x: 0, y: 0, z: 100 }, // Nucleus high
-        IDN: { x: 200, y: 0, z: -50 },
-        INT: { x: -200, y: 0, z: -50 },
-        SIM: { x: -150, y: 150, z: 50 },
-        DAT: { x: 150, y: 150, z: 50 },
-        FLO: { x: 0, y: 250, z: 0 },
-        BCP: { x: 0, y: -350, z: 0 },
-    };
-
     const slNodeCoords = {
         MRFPE: { x: -200, y: 0, z: 0 },
         PTE: { x: 0, y: 0, z: 50 },
         PECA: { x: 200, y: 0, z: 0 },
     };
+    const slConnections3d = [["MRFPE", "PTE"], ["PTE", "PECA"]];
 
+    const wspGridAreas = [
+        { code: "WSP-1", label: "Formation" },
+        { code: "WSP-2", label: "Deployment" },
+    ];
     const wspNodeCoords = {
         "WSP-1": { x: -100, y: 0, z: 0 },
         "WSP-2": { x: 100, y: 0, z: 0 },
     };
+    const wspConnections3d = [["WSP-1", "WSP-2"]];
 
-    const nodeCoords = isSL ? slNodeCoords : (isWSP ? wspNodeCoords : nsNodeCoords);
+    const gridAreas = isSL ? slGridAreas : (isWSP ? wspGridAreas : nsTopology.nodes);
+    const nodeCoords = isSL ? slNodeCoords : (isWSP ? wspNodeCoords : nsTopology.coords);
+    const connections3d = isSL ? slConnections3d : (isWSP ? wspConnections3d : nsTopology.connections);
 
-    // Define connections to render as 3D beams [StartCode, EndCode]
-    const nsConnections3d = [
-        ["SIG", "DRE"], ["MUX", "PIE"],
-        ["DRE", "GGP"], ["PIE", "GGP"],
-        ["GGP", "IDN"],
-        ["GGP", "SIM"], ["GGP", "DAT"],
-        ["GGP", "INT"],
-        ["INT", "SIM"], ["INT", "DAT"],
-        ["SIM", "FLO"], ["DAT", "FLO"],
-        ["BCP", "SIG"], ["BCP", "FLO"]
-    ];
-
-    const slConnections3d = [
-        ["MRFPE", "PTE"],
-        ["PTE", "PECA"]
-    ];
-
-    const wspConnections3d = [
-        ["WSP-1", "WSP-2"]
-    ];
-
-    const connections3d = isSL ? slConnections3d : (isWSP ? wspConnections3d : nsConnections3d);
+    const currentPayload = getEngine(activeEngine);
 
     // Custom SL / WSP Nav
     const nav = isSL ? [
@@ -129,7 +130,7 @@ export default function SystemExplorer({ context }) {
         { label: "South Lawn", to: "/southlawn" },
         { label: "WSP", to: "/wsp" },
         { type: "divider" },
-        { label: "Documentation", to: "/southlawn/docs" },
+        { label: "Docs", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
         { label: "System", to: "/southlawn/system" },
         { label: "Investor Relations", to: "/southlawn/investors" },
@@ -138,20 +139,11 @@ export default function SystemExplorer({ context }) {
         { label: "South Lawn", to: "/southlawn" },
         { label: "WSP", to: "/wsp" },
         { type: "divider" },
-        { label: "Documentation", to: "/wsp/docs" },
+        { label: "Docs", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },
         { label: "System", to: "/wsp/system" },
         { label: "Investor Relations", to: "/wsp/investors" },
-    ] : [
-        { label: "Northfield Solidarity", to: "/" },
-        { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
-        { type: "divider" },
-        { label: "Documentation", to: "/docs" },
-        { label: "Pricing", to: "/pricing" },
-        { label: "System", to: "/system" },
-        { label: "Investor Relations", to: "/investors" },
-    ];
+    ] : undefined;
 
     const theme = isSL ? "green" : (isWSP ? "gold" : "water");
 
@@ -175,14 +167,14 @@ export default function SystemExplorer({ context }) {
                 <div className="explorer-container">
                     <div className="explorer-header" style={{ marginBottom: '0', textAlign: 'center' }}>
                         <h1 className="h1" style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-                            {isSL ? "Operating Topology" : (isWSP ? "Strategic Architecture" : "System Topology")}
+                            {isSL ? "Operating Topology" : (isWSP ? "Strategic Architecture" : "The System Holoscope")}
                         </h1>
                         <p className="sub" style={{ maxWidth: "600px", margin: "0 auto" }}>
                             {isSL
                                 ? "The real estate engine constellation. From research to structuring to portfolio control."
                                 : isWSP
                                     ? "High-level strategic flows for WSP asset deployment."
-                                    : "The engine constellation. Click a node to inspect its role in the flow."}
+                                    : "Real-time visualization of the active engine constellation."}
                         </p>
                     </div>
 
@@ -195,7 +187,7 @@ export default function SystemExplorer({ context }) {
 
                     <div className="topology-split">
                         {/* Left: The 3D Topology */}
-                        <div className="circuit-board" style={{ padding: 0, overflow: 'hidden', background: 'transparent', border: 'none' }}>
+                        <div className="circuit-board" style={{ padding: 0, overflow: 'hidden', background: 'transparent', border: 'none', height: '600px', display: 'block' }}>
                             <SystemTopology3D
                                 nodes={gridAreas}
                                 connections={connections3d}
@@ -516,183 +508,6 @@ export default function SystemExplorer({ context }) {
     width: 100%;
     justify-content: center;
     margin-top: var(--space-4);
-}
-
-/* --- 3D Experiment --- */
-.experiment-section {
-    margin-top: 120px;
-    border-top: 1px solid var(--c-border);
-    padding-top: var(--space-8);
-}
-
-.scene-3d-wrapper {
-    height: 600px;
-    perspective: 1000px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0) 70%);
-}
-
-.scene-3d {
-    width: 0;
-    height: 0;
-    position: relative;
-    transform-style: preserve-3d;
-    animation: rotateScene 30s infinite linear;
-}
-
-.orbit-node-wrapper {
-    position: absolute;
-    top: 0; left: 0;
-    width: 140px; height: 100px; /* Base size */
-    width: 160px; height: 110px; /* Slightly larger base */
-    /* Center the wrapper on the coord */
-    margin-left: -80px; margin-top: -55px;
-    transform-style: preserve-3d;
-    transition: z-index 0s;
-}
-
-.orbit-node-wrapper.active-wrapper {
-    z-index: 100; /* Bring to front */
-}
-
-.orbit-node-wrapper.nucleus .orbit-node-card {
-    background: var(--c-brand);
-    color: #fff;
-    box-shadow: 0 0 30px var(--c-brand);
-    border-color: #fff;
-}
-
-.orbit-node-card {
-    width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid var(--c-border);
-    border-radius: 12px;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 1rem;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-
-    /* Counter-rotate to face screen */
-    animation: counterRotate 30s infinite linear reverse;
-}
-
-.orbit-node-card:hover {
-   border-color: var(--c-brand);
-   box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-   transform: scale(1.05);
-}
-
-/* --- LOD Low Detail Mode --- */
-.lod-low .orbit-node-card {
-   padding: 4px;
-   border-radius: 50px; /* Make it more pill-like or round */
-   background: rgba(15, 23, 42, 0.8);
-}
-
-.node-code-compact {
-    font-family: var(--font-mono);
-    font-weight: 800;
-    font-size: 1.5rem; /* Larger font relative to small card */
-    color: var(--c-brand);
-    letter-spacing: -1px;
-}
-
-/* Highlight compact nodes on hover too */
-.lod-low .orbit-node-card:hover { 
-    transform: scale(1.2); 
-    background: var(--c-brand);
-}
-.lod-low .orbit-node-card:hover .node-code-compact { color: #fff; }
-
-
-.orbit-node-card.active {
-    background: var(--c-brand);
-    border-color: #fff;
-    box-shadow: 0 0 30px var(--c-brand);
-    transform: scale(1.15); /* Expansion */
-}
-
-.orbit-node-card.active .node-code,
-.orbit-node-card.active .node-name-3d,
-.orbit-node-card.active .node-label {
-    color: #fff;
-    opacity: 1;
-}
-
-.orbit-node-card.active .node-status {
-    background: #fff;
-    box-shadow: 0 0 10px #fff;
-}
-
-.node-name-3d {
-    font-size: 0.7rem;
-    line-height: 1.2;
-    font-weight: 600;
-    margin-bottom: 4px;
-    opacity: 0.8;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* --- Connection Beams (Veins) --- */
-.connection-beam {
-    position: absolute;
-    top: 0; left: 0;
-    height: 3px; /* Slightly thicker for visibility */
-    background: rgba(56, 189, 248, 0.1); /* Faint track */
-    transform-origin: 0 50%;
-    pointer-events: none;
-    margin-top: -1.5px; /* Centered based on new height */
-    overflow: hidden; /* Clip the pulse */
-}
-
-/* The pumping pulse */
-.connection-beam::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 50%; /* Length of the pulse tail */
-    height: 100%;
-    
-    /* "Blood" gradient - using accent color for contrast */
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        var(--c-accent) 50%, 
-        transparent 100%
-    );
-    
-    /* Glow effect */
-    filter: drop-shadow(0 0 4px var(--c-accent));
-    
-    /* Animation: Pumping back and forth */
-    animation: veinPump 4s infinite ease-in-out alternate;
-}
-
-@keyframes veinPump {
-    0% { left: -50%; opacity: 0; }
-    15% { opacity: 1; }
-    85% { opacity: 1; }
-    100% { left: 100%; opacity: 0; }
-}
-
-@keyframes rotateScene {
-    from { transform: rotateY(0deg) rotateX(10deg); }
-    to { transform: rotateY(360deg) rotateX(10deg); }
-}
-
-@keyframes counterRotate {
-    from { transform: rotateX(-10deg) rotateY(0deg); }
-    to { transform: rotateX(-10deg) rotateY(360deg); }
 }
 
 @media(max-width: 900px) {

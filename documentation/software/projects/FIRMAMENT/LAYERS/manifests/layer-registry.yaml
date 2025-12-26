@@ -1,0 +1,10 @@
+FL-L01-CAPITAL-GRAVITY: { tier: advanced }
+FL-L02-SUPPLY-CHAIN: { tier: advanced }
+FL-L03-TALENT-FLOW: { tier: member }
+FL-L04-IDEOLOGICAL-FIELDS: { tier: member }
+FL-L05-TECH-FRONTIERS: { tier: public }
+FL-L06-REGULATORY-PRESSURE: { tier: sovereign }
+FL-L07-RESOURCE-CONTROL: { tier: strategic }
+FL-L08-DIGITAL-SOVEREIGNTY: { tier: strategic }
+FL-L09-SOFT-POWER: { tier: public }
+FL-L10-GLOBAL-RISK: { tier: sovereign }

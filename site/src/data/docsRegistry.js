@@ -335,6 +335,69 @@ export const DOCS_REGISTRY = [
         ]
     },
     {
+        category: "LUM Engine",
+        icon: "💡",
+        items: [
+            { id: "lum-overview", title: "001 Overview", desc: "Purpose and role of Luminance Observability.", content: "# Luminance\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "CWP Engine",
+        icon: "📋",
+        items: [
+            { id: "cwp-overview", title: "001 Overview", desc: "Critical Workflows & Procedures.", content: "# CWP\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "BCP Engine",
+        icon: "🛡️",
+        items: [
+            { id: "bcp-overview", title: "001 Overview", desc: "Business Continuity Protocol.", content: "# BCP\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "BCO Engine",
+        icon: "🔄",
+        items: [
+            { id: "bco-overview", title: "001 Overview", desc: "Business Continuity Operations.", content: "# BCO\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "CON Engine",
+        icon: "🔌",
+        items: [
+            { id: "con-overview", title: "001 Overview", desc: "Connectors engine.", content: "# Connectors\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "IPR Engine",
+        icon: "📝",
+        items: [
+            { id: "ipr-overview", title: "001 Overview", desc: "IP Formalization + Registration.", content: "# IPR\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "OCP Engine",
+        icon: "💻",
+        items: [
+            { id: "ocp-overview", title: "001 Overview", desc: "Onchain Compute Plane.", content: "# OCP\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "QTN Engine",
+        icon: "☣️",
+        items: [
+            { id: "qtn-overview", title: "001 Overview", desc: "Quarantine Engine.", content: "# QTN\n\nOverview coming soon." }
+        ]
+    },
+    {
+        category: "SWB Engine",
+        icon: "🎛️",
+        items: [
+            { id: "swb-overview", title: "001 Overview", desc: "Switchboard Engine.", content: "# SWB\n\nOverview coming soon." }
+        ]
+    },
+    {
         category: "INT Engine",
         icon: "⚡",
         items: [

@@ -1,0 +1,383 @@
+NS-OCP-009 — IMPL
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: OCP — Onchain Compute Plane
+
+Document ID: NS-OCP-009-IMPL
+
+Status: Draft v1
+
+Depends On: NS-OCP-003-ARCHITECTURE, NS-OCP-006-VERSION, NS-OCP-007-DATAMODEL, NS-OCP-008-EEE
+
+Owner: OCP Lead (TBD)
+
+1. Purpose
+
+This document translates the OCP architecture into an initial, buildable implementation plan:
+
+repo layout
+
+core services (registry, release orchestrator, policy checks)
+
+tooling stack (EVM-first)
+
+CI/CD flows
+
+ops/monitoring baseline
+
+integration points (GGP/GGE, IDN, FLO, SIG, DRE, MUX)
+
+OCP is implemented as a platform + shared libraries plus project templates that product teams can use immediately.
+
+2. Implementation Strategy
+
+OCP implementation is delivered in three waves:
+
+Wave 1 — Foundation (Make it Real)
+
+Contract Registry v1
+
+Release Orchestrator v1
+
+Policy checks v1 (gates)
+
+dApp starter template v1
+
+Wave 2 — Hardening
+
+stronger custody integration patterns
+
+richer observability + incident tooling
+
+indexing/data normalization improvements
+
+Wave 3 — Maturity
+
+advanced governance controls (timelocks, progressive decentralization support)
+
+richer rule engine for policies
+
+continuous audit posture
+
+3. Repository & Package Layout (Suggested)
+
+3.1 Monorepo Option (Recommended for v1)
+
+ns-bcp/
+  apps/
+    registry-api/          # Contract registry service
+    release-orchestrator/  # Deploy/upgrade runner
+    policy-gates/          # Gate evaluation service (or library)
+    ops-dashboard/         # Operator UI (optional)
+
+  packages/
+    contracts-core/        # Shared contract primitives
+    contracts-templates/   # Standard modules: roles, pause, limits
+    dapp-starter/          # Wallet + signing UX starter
+    indexing-starter/      # Subgraph/indexer templates
+    sdk/                   # TS SDK (ABIs + clients)
+
+  infra/
+    iac/                   # Terraform/Pulumi/etc.
+    ci/                    # pipeline definitions
+    monitoring/            # alerts/dashboards/runbooks-as-code
+
+  docs/
+    adr/                   # OCP-ADR-#### decision records
+    standards/             # coding + security standards
+
+3.2 Polyrepo Option
+
+Use if teams need independence; still enforce standardized templates.
+
+4. Core Platform Components (Build Targets)
+
+4.1 Contract Registry v1
+
+Form: API + DB + lightweight UI (optional).
+
+Responsibilities:
+
+store OCP_SYSTEM, CONTRACT_PACKAGE, BUILD_ARTIFACT_SET, DEPLOYMENT, RELEASE, SECURITY_ARTIFACT
+
+provide read APIs for “what’s deployed where?”
+
+store provenance (commit/build digests)
+
+Interfaces:
+
+receives deployment writes from Release Orchestrator
+
+serves queries to SIG/FLO/IDN integrations
+
+MVP API Endpoints (examples):
+
+POST /systems
+
+POST /packages
+
+POST /artifacts
+
+POST /releases
+
+POST /deployments
+
+GET /deployments?system_id=&network_id=
+
+4.2 Release Orchestrator v1
+
+Form: service/CLI runner used by pipelines.
+
+Responsibilities:
+
+read Release Manifest
+
+run gate evaluation
+
+request approvals (GGP/GGE integration)
+
+execute deploy/upgrade transactions
+
+write deployment records to registry
+
+MVP Capabilities:
+
+deterministic deploy scripts
+
+support for:
+
+fresh deploy
+
+proxy deploy (if allowed)
+
+parameter changes (timelock/multisig)
+
+capture tx receipts and metadata
+
+4.3 Policy Gates v1
+
+Form: library or service that computes PASS/FAIL/WAIVE.
+
+Responsibilities:
+
+read required artifacts by risk class
+
+verify:
+
+threat model present + approved
+
+tests/analysis present
+
+audit link present (High/Critical)
+
+runbook present
+
+custody constraints match environment
+
+MVP Output:
+
+POLICY_CHECK records written to registry
+
+4.4 dApp Starter Framework v1
+
+Form: TS/React starter (or mobile later).
+
+Responsibilities:
+
+wallet connectors + signing UX patterns
+
+contract address discovery via registry
+
+transaction intent modeling + safe confirmation display
+
+error handling and revert decoding
+
+4.5 Indexing Starter v1
+
+Form: templates for common indexers.
+
+Responsibilities:
+
+define event schema conventions
+
+generate normalized signal outputs
+
+publish feeds for SIG/FLO
+
+5. EVM-First Tooling Stack (v1 Default)
+
+OCP standardizes EVM-first for speed and ecosystem maturity.
+
+5.1 Contract Tooling
+
+Hardhat or Foundry (pick one as canonical; the other can be supported later)
+
+Slither/static analysis equivalents (as policy requires)
+
+Fuzz/property test toolchain
+
+5.2 dApp Tooling
+
+TypeScript + React
+
+Ethers/viem-style clients (choose canonical)
+
+Wallet integration library (standardize)
+
+5.3 Indexing
+
+subgraph/indexer templates
+
+event schema versioning
+
+5.4 Secrets & Custody
+
+dev/test keys isolated from prod
+
+prod signing via multisig/MPC/HSM patterns
+
+6. CI/CD Implementation
+
+6.1 CI (Build & Verify)
+
+CI must:
+
+compile contracts
+
+run unit + integration tests
+
+run static analysis
+
+run fuzz/property tests for High/Critical packages
+
+produce build artifact set with digests
+
+Outputs:
+
+artifact set ID
+
+analysis report IDs
+
+release candidate bundle
+
+6.2 CD (Release)
+
+CD must:
+
+accept a Release Manifest
+
+run policy gates
+
+obtain approvals (when required)
+
+deploy via orchestrator with custody
+
+update registry
+
+enable monitoring and verify alert routes
+
+7. Data & Monitoring Implementation
+
+7.1 Signals → SIG
+
+normalize events into standardized signal objects
+
+publish:
+
+tx failure spikes
+
+privileged action events
+
+pause/unpause events
+
+unusual volume or abnormal patterns
+
+7.2 Ledger Feeds → FLO
+
+event-to-ledger mapping for value movement
+
+reconciliation jobs (scheduled)
+
+7.3 Dashboards/Alerts
+
+Minimum per PROD system:
+
+balance/TVL view
+
+failure rate + revert reasons
+
+privileged actions log
+
+indexer lag
+
+8. Integration Implementation Notes
+
+8.1 GGP/GGE
+
+approvals represented as immutable references attached to OCP_RELEASE
+
+waivers require governance record links
+
+8.2 IDN
+
+IDENTITY_REF objects mapped to signers and role bindings
+
+attribution rules applied to SIGNAL_EVENT where possible
+
+8.3 MUX
+
+providers (RPC/indexing/custody/audit) abstracted via provider profiles
+
+redundancy required for PROD
+
+9. Operational Readiness (Definition of Done)
+
+A OCP system is PROD-ready when:
+
+registry entries exist for system, packages, deployments
+
+policy gates pass
+
+approvals captured
+
+custody enforced
+
+monitoring + runbooks are live
+
+incident routes and severity matrix are tested
+
+10. Wave Plan (Concrete Deliverables)
+
+Wave 1 Deliverables
+
+registry-api + DB schema (v1 datamodel)
+
+release-orchestrator CLI with deploy + record
+
+policy-gates with risk-class gating
+
+dapp-starter reading addresses from registry
+
+Wave 2 Deliverables
+
+provider redundancy automation
+
+advanced event normalization
+
+on-call dashboards/runbooks-as-code
+
+Wave 3 Deliverables
+
+richer policy DSL
+
+continuous audit posture and automated evidence collection
+
+progressive decentralization patterns
+
+11. Next Document
+
+NS-OCP-010 — FE (operator UI + product team experience, optional)
+

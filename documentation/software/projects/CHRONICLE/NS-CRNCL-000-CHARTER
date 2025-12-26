@@ -1,0 +1,246 @@
+NS-CHRONICLE-000 — CHARTER (Daily Continuity + Productivity)
+
+1) Mission
+
+Create a lightweight, high-signal daily continuity system that captures what you planned, what you actually did, why it mattered, and what carries forward—so you can “resume instantly” each morning.
+
+2) Problem statement
+
+High-context work (Northfield Solidarity engines/projects) creates cognitive load. Without a consistent daily record, momentum and continuity degrade across sleep cycles, interruptions, and context switching.
+
+3) Scope
+
+In scope
+
+A twice-daily routine:
+
+Morning Brief (plan + priorities + risks)
+
+Evening Debrief (what happened + outcomes + carryovers)
+
+XML-first output so it can be:
+
+stored, diffed, indexed, and ingested into your graph systems (GGE / DRE / quickscope)
+
+Minimal friction: 3–10 minutes AM, 5–12 minutes PM.
+
+Out of scope (for now)
+
+Full task management replacement
+
+Calendar automation (can be integrated later)
+
+4) Core principles
+
+First-person truth: written from your perspective (I did / I decided / I learned).
+
+Outcome over activity: track deliverables and decisions, not just effort.
+
+Carryover clarity: every open loop becomes a named carryover or is explicitly dropped.
+
+Evidence linkage: attach doc IDs, PRs, tickets, runbooks, or notes where possible.
+
+5) Interfaces with Northfield Solidarity
+
+GGE: decisions, policies, governance changes
+
+DRE: research threads and findings to map into the graph
+
+quickscope (Intervention): state snapshots + next state transitions
+
+NS-LUM: ops/observability work and incidents (high-level summary)
+
+6) Deliverables
+
+Standard XML schemas:
+
+MorningBrief
+
+EveningDebrief
+
+Daily archive convention: one file per day per brief/debrief
+
+Optional weekly synthesis later (rollups)
+
+7) Success metrics
+
+“Time-to-context” each morning ≤ 5 minutes
+
+Fewer dropped threads (carryover completion rate rises)
+
+Clear decision log continuity across NS projects
+
+NS-CHRONICLE-001 — Daily XML Templates
+
+A) Morning Brief XML (copy/paste)
+
+<MorningBrief>
+  <Meta>
+    <Date>YYYY-MM-DD</Date>
+    <Timezone>America/New_York</Timezone>
+    <Author>John</Author>
+    <Version>1.0</Version>
+  </Meta>
+
+  <Context>
+    <OneSentenceIntent>I want today to be about ...</OneSentenceIntent>
+    <ContinuityFromYesterday>
+      <Carryovers>
+        <Item>
+          <Title></Title>
+          <WhyItMatters></WhyItMatters>
+          <NextAction></NextAction>
+          <Blocker></Blocker>
+          <Link></Link>
+        </Item>
+      </Carryovers>
+    </ContinuityFromYesterday>
+  </Context>
+
+  <TodayPlan>
+    <TopPriorities>
+      <Priority>
+        <Title></Title>
+        <OutcomeDefinition>By end of day, success looks like ...</OutcomeDefinition>
+        <TimeBoxMinutes></TimeBoxMinutes>
+        <Dependencies></Dependencies>
+        <Risk></Risk>
+        <Link></Link>
+      </Priority>
+    </TopPriorities>
+
+    <SecondaryGoals>
+      <Goal>
+        <Title></Title>
+        <OutcomeDefinition></OutcomeDefinition>
+      </Goal>
+    </SecondaryGoals>
+
+    <DecisionQueue>
+      <Decision>
+        <Question></Question>
+        <Options></Options>
+        <Lean></Lean>
+      </Decision>
+    </DecisionQueue>
+
+    <Constraints>
+      <Constraint>Meetings, travel, energy limits, deadlines...</Constraint>
+    </Constraints>
+
+    <FocusRules>
+      <Rule>What I will NOT do today</Rule>
+      <Rule>Distraction kill-switch (e.g., block X, ignore Y)</Rule>
+    </FocusRules>
+  </TodayPlan>
+
+  <Mindset>
+    <EnergyLevel>low|medium|high</EnergyLevel>
+    <MainThreatToMomentum></MainThreatToMomentum>
+    <OneCommitment>I commit to ...</OneCommitment>
+  </Mindset>
+</MorningBrief>
+
+B) Evening Debrief XML (copy/paste)
+
+<EveningDebrief>
+  <Meta>
+    <Date>YYYY-MM-DD</Date>
+    <Timezone>America/New_York</Timezone>
+    <Author>John</Author>
+    <Version>1.0</Version>
+  </Meta>
+
+  <Summary>
+    <OneParagraphFromMyPerspective>
+      Today I...
+    </OneParagraphFromMyPerspective>
+    <Score>
+      <Outcome>0-10</Outcome>
+      <Focus>0-10</Focus>
+      <Energy>0-10</Energy>
+    </Score>
+  </Summary>
+
+  <WhatIShipped>
+    <Item>
+      <Title></Title>
+      <Type>doc|code|decision|infra|research|ops</Type>
+      <Impact></Impact>
+      <Link></Link>
+    </Item>
+  </WhatIShipped>
+
+  <WhatIWorkedOn>
+    <WorkBlock>
+      <Project>NS-____</Project>
+      <WhatIDid></WhatIDid>
+      <Result></Result>
+      <TimeSpentMinutes></TimeSpentMinutes>
+      <Links></Links>
+    </WorkBlock>
+  </WhatIWorkedOn>
+
+  <Decisions>
+    <Decision>
+      <Title></Title>
+      <Context></Context>
+      <Choice></Choice>
+      <Rationale></Rationale>
+      <Consequences></Consequences>
+      <Link></Link>
+    </Decision>
+  </Decisions>
+
+  <Learnings>
+    <Learning>
+      <WhatILearned></WhatILearned>
+      <HowItChangesTomorrow></HowItChangesTomorrow>
+    </Learning>
+  </Learnings>
+
+  <Problems>
+    <Problem>
+      <WhatWentWrong></WhatWentWrong>
+      <RootCauseHypothesis></RootCauseHypothesis>
+      <FixNextTime></FixNextTime>
+    </Problem>
+  </Problems>
+
+  <Continuity>
+    <Carryovers>
+      <Item>
+        <Title></Title>
+        <NextAction></NextAction>
+        <Priority>high|medium|low</Priority>
+        <Blocker></Blocker>
+        <Link></Link>
+      </Item>
+    </Carryovers>
+
+    <TomorrowSeed>
+      <Top3Candidates>
+        <Candidate>
+          <Title></Title>
+          <Why></Why>
+        </Candidate>
+      </Top3Candidates>
+    </TomorrowSeed>
+  </Continuity>
+
+  <Closeout>
+    <GratitudeOrWin></GratitudeOrWin>
+    <ShutdownPhrase>Done for today.</ShutdownPhrase>
+  </Closeout>
+</EveningDebrief>
+
+NS-CHRONICLE-002 — “Ask ChatGPT” Prompts (so you always get XML)
+
+Morning prompt
+
+Generate a MorningBrief in the NS-CHRONICLE XML format. Write in first-person (“I…”). Use my carryovers and current priorities from this chat. If info is missing, leave fields empty rather than inventing.
+
+Evening prompt
+
+Generate an EveningDebrief in the NS-CHRONICLE XML format. Write in first-person (“I…”). Summarize what I worked on today based on this chat, including what I shipped, decisions I made, and carryovers. If unsure, mark the field as <Uncertain>true</Uncertain> inside the relevant item.
+

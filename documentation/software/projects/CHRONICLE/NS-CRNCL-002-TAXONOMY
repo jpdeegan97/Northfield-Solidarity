@@ -1,0 +1,268 @@
+NS-CHRONICLE-002 — TAXONOMY
+
+This document standardizes the vocabulary NS-CHRONICLE uses so your daily XML entries are consistent, searchable, and ingestible.
+
+1) Entity taxonomy
+
+NS-CHRONICLE entries describe five primary entity types:
+
+WorkBlock — a unit of effort tied to a project and outcome
+
+ShippedItem — an artifact that exists now (doc/code/decision/etc.)
+
+Decision — a choice you made that changes trajectory
+
+Learning — a durable insight that should persist
+
+Carryover — an open loop explicitly handed to tomorrow
+
+2) Project taxonomy
+
+2.1 Project naming rule
+
+Use a stable project identifier in every WorkBlock:
+
+NS-PG (Postgres)
+
+NS-BCO (Business Continuity Operations)
+
+NS-AEGIS
+
+NS-DRE
+
+NS-LUM
+
+NS-CWP
+
+NS-CICD
+
+NS-CHRONICLE
+
+NS-OS (Office Spaces)
+
+NS-FRMT (Firmament)
+
+NS-OCP (Onchain Compute Plane)
+
+If work is “meta” (planning, hiring, finance, legal):
+
+NS-ADMIN (admin/ops)
+
+NS-LEGAL
+
+NS-FIN
+
+2.2 Subproject / doc IDs
+
+When available, include:
+
+DocId (e.g., NS-PG-006)
+
+ArtifactId (PR, commit, ticket, runbook ref)
+
+3) Work type taxonomy
+
+Use these values for Type in ShippedItems and for WorkBlocks when you want to classify effort.
+
+3.1 Allowed work types
+
+doc — documentation/spec/standard
+
+code — implementation
+
+infra — infrastructure/platform work
+
+ops — operations/on-call/incidents
+
+research — investigation/reading/market scan
+
+design — architecture/UI/UX
+
+decision — governance or directional choice
+
+meeting — meeting calls that materially advanced work
+
+admin — business/admin tasks
+
+3.2 Work mode (optional but useful)
+
+deepwork
+
+shallowwork
+
+reactive
+
+creative
+
+4) Outcome taxonomy
+
+4.1 Result quality (optional)
+
+shipped — exists and is saved somewhere
+
+progress — meaningful advancement but not done
+
+blocked — could not proceed
+
+abandoned — intentionally dropped
+
+4.2 Impact scale (for ShippedItem.Impact)
+
+tiny — minor improvement
+
+small — noticeable improvement
+
+medium — meaningful milestone
+
+large — major milestone
+
+critical — foundational or existential
+
+5) Decision taxonomy
+
+5.1 Decision classes
+
+naming — naming/identity choices
+
+architecture — system design/topology
+
+security — access, controls, policy
+
+operations — runbooks, on-call, SLOs
+
+product — scope, roadmap, priorities
+
+people — hiring, org, roles
+
+finance — spend, pricing, budgets
+
+legal — entity, contracts, compliance
+
+5.2 Decision status
+
+draft — thought formed but not committed
+
+made — committed decision
+
+reversed — explicitly changed later
+
+6) Carryover taxonomy
+
+Carryovers are the continuity backbone. Every carryover must have a NextAction.
+
+6.1 Priority
+
+high — blocks progress or time-sensitive
+
+medium — important but not urgent
+
+low — nice-to-have / background
+
+6.2 Carryover type
+
+execution — needs doing
+
+decision — needs choosing
+
+research — needs investigation
+
+waiting — blocked on someone/something
+
+bug — defect to fix
+
+risk — looming hazard that needs mitigation
+
+6.3 Blocker type (optional)
+
+time
+
+dependency
+
+clarity
+
+energy
+
+access
+
+tooling
+
+7) Risk taxonomy (MorningBrief)
+
+7.1 Risk class
+
+schedule
+
+technical
+
+security
+
+continuity
+
+scope
+
+people
+
+vendor
+
+7.2 Risk severity
+
+low | medium | high
+
+8) Scoring taxonomy (EveningDebrief)
+
+Scores are intentionally simple and subjective.
+
+Outcome (0–10): did the day produce meaningful outcomes?
+
+Focus (0–10): did I stay on the right work?
+
+Energy (0–10): how sustainable did it feel?
+
+8.1 Optional score notes
+
+Add short notes when the score is extreme (≤3 or ≥8) to capture why.
+
+9) Link taxonomy (evidence)
+
+Every major item should have at least one link when possible:
+
+doc: internal doc ID (e.g., NS-PG-010)
+
+repo: repository path
+
+pr: pull request
+
+issue: ticket
+
+runbook: runbook ID
+
+url: external reference
+
+10) XML conventions (so parsing is easy)
+
+10.1 Stable field rules
+
+Keep field names stable (case-sensitive)
+
+Prefer enumerations from this taxonomy
+
+If unknown, leave empty rather than inventing
+
+10.2 Uncertainty flag
+
+If ChatGPT is unsure about a specific element, include:
+
+<Uncertain>true</Uncertain>
+
+inside the relevant node.
+
+10.3 Time tracking
+
+Time values are minutes (TimeSpentMinutes, TimeBoxMinutes)
+
+Use best estimates; consistency matters more than precision
+
+11) Next document
+
+NS-CHRONICLE-003 — OPERATING ROUTINE (cadence, storage, prompts, “how to keep it effortless”)
+

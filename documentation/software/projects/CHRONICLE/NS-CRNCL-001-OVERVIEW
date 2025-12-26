@@ -1,0 +1,102 @@
+NS-CHRONICLE-001 — OVERVIEW
+
+1) What NS-CHRONICLE is
+
+NS-CHRONICLE is Northfield Solidarity’s personal continuity + productivity layer: a twice-daily ritual that produces structured, first-person records so you can resume instantly after sleep, interruptions, or context switching.
+
+It’s designed for high-context building (engines, infra, legal, product) where momentum dies if state isn’t captured.
+
+2) The two daily artifacts
+
+NS-CHRONICLE produces exactly two artifacts per day:
+
+MorningBrief (AM)
+
+Captures: intent, top priorities, success definitions, constraints, risks, and carryovers.
+
+Output: a plan that is small enough to execute.
+
+EveningDebrief (PM)
+
+Captures: what you actually did, what shipped, decisions made, lessons learned, failures, and carryovers.
+
+Output: a state snapshot + a clean handoff to tomorrow.
+
+Both are written in first-person and output as XML for storage, diffing, and ingestion.
+
+3) The continuity loop (how it works)
+
+EveningDebrief creates a structured set of carryovers + decision records.
+
+MorningBrief consumes those carryovers and converts them into today’s plan.
+
+The cycle repeats, keeping your work “loaded in RAM.”
+
+The key property: every open loop is either:
+
+converted into a carryover with a next action, or
+
+explicitly dropped.
+
+4) Why XML (the platform intent)
+
+XML is chosen because it is:
+
+easy to copy/paste
+
+deterministic and parseable
+
+friendly to diffs and versioning
+
+ingestible by your internal systems (GGE / DRE / quickscope)
+
+NS-CHRONICLE is intentionally format-stable so it can become a data stream.
+
+5) Integration points inside Northfield Solidarity
+
+NS-CHRONICLE is a meta-layer that can feed:
+
+GGE: decisions, governance changes, policy evolution
+
+DRE: research threads, findings, hypotheses to map into the graph
+
+quickscope (Intervention): state snapshots and next-state intents
+
+NS-LUM: incident summaries and ops learnings (high-level)
+
+In practice:
+
+every work block should include a Project tag (NS-PG, NS-BCO, NS-AEGIS, etc.)
+
+every shipped artifact should include a link or doc ID when possible
+
+6) The “From my perspective” requirement
+
+NS-CHRONICLE must sound like you.
+
+Rules:
+
+Use “I did / I decided / I learned / I will…”
+
+Prefer outcomes over effort
+
+Name the next action on every carryover
+
+7) Expected time cost
+
+Morning: 3–10 minutes
+
+Evening: 5–12 minutes
+
+If it consistently takes longer, the template should be tightened.
+
+8) What comes next
+
+Next documents should formalize:
+
+NS-CHRONICLE-002 — TAXONOMY (projects, work types, tags, scoring)
+
+NS-CHRONICLE-003 — OPERATING ROUTINE (cadence, prompts, storage conventions)
+
+NS-CHRONICLE-004 — DATA MODEL (XML schema constraints + ingestion mapping)
+

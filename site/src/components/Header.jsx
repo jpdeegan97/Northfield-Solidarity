@@ -11,10 +11,13 @@ export default function Header({ brand, nav }) {
         { label: "South Lawn", to: "/southlawn" },
         { label: "WSP", to: "/wsp" },
         { type: "divider" },
-        { label: "Documentation", to: "/docs" },
-        { label: "Pricing", to: "/pricing" },
+        { label: "Platform", to: "/platform" },
+        { label: "Marketplace", to: "/marketplace" },
         { label: "System", to: "/system" },
+        { label: "Pricing", to: "/pricing" },
         { label: "Investor Relations", to: "/investors" },
+        { label: "Documentation", to: "/docs" },
+        { label: "Contact", to: "/contact" },
     ];
 
     // Use provided nav/brand or defaults
@@ -31,27 +34,33 @@ export default function Header({ brand, nav }) {
     if (location.pathname.startsWith("/wsp")) brandLink = "/wsp";
 
     return (
-        <header className="siteHeader">
-            <div className="headerInner">
-                <Link to={brandLink} className="brandArea" style={{ textDecoration: 'none' }}>
-                    <div className="brandTitle">{activeBrand.title}</div>
-                    <div className="brandTagline">{activeBrand.tagline}</div>
+        <header className="sticky top-0 z-50 p-0 border-b border-white/10 bg-slate-900/80 backdrop-blur-md">
+            <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
+                <Link to={brandLink} className="flex flex-col justify-center leading-none no-underline">
+                    <div className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand to-white">{activeBrand.title}</div>
+                    <div className="text-xs text-brand/50 font-medium tracking-wide mt-1 opacity-80">{activeBrand.tagline}</div>
                 </Link>
-                <nav className="siteNav">
+                <nav className="flex items-center gap-1">
                     {activeNav.map((item, index) => {
                         if (item.type === "divider") {
-                            return <div key={`div-${index}`} className="navDivider" />;
+                            return <div key={`div-${index}`} className="w-px h-6 bg-white/20 mx-2" />;
                         }
                         return (
                             <NavLink
                                 key={item.to}
                                 to={item.to}
                                 className={({ isActive }) => {
+                                    const baseClass = "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-all relative overflow-hidden inline-flex items-center justify-center text-center leading-tight whitespace-nowrap";
+                                    const activeClass = "bg-brand/10 text-brand";
+                                    const inactiveClass = "text-white/60 hover:bg-white/5 hover:text-white";
+
                                     if (isNSHome(item)) {
                                         // Active on all NS pages (not starting with /southlawn or /wsp)
-                                        return (!location.pathname.startsWith("/southlawn") && !location.pathname.startsWith("/wsp")) ? "navLink active" : "navLink";
+                                        return (!location.pathname.startsWith("/southlawn") && !location.pathname.startsWith("/wsp"))
+                                            ? `${baseClass} ${activeClass}`
+                                            : `${baseClass} ${inactiveClass}`;
                                     }
-                                    return isActive ? "navLink active" : "navLink";
+                                    return isActive ? `${baseClass} ${activeClass}` : `${baseClass} ${inactiveClass}`;
                                 }}
                                 end={isNSHome(item) ? false : item.to === "/"}
                             >
@@ -60,14 +69,14 @@ export default function Header({ brand, nav }) {
                         );
                     })}
 
-                    <div className="navDivider" />
-                    <div className="auth-buttons">
+                    <div className="w-px h-6 bg-white/20 mx-2" />
+                    <div className="flex gap-2 items-center flex-shrink-0">
                         {isAuthenticated ? (
-                            <Link to="/account" className="btn-login" style={{ fontWeight: 600 }}>Account</Link>
+                            <Link to="/account" className="text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 px-3 py-2 rounded-md transition-all">Account</Link>
                         ) : (
                             <>
-                                <Link to="/login" className="btn-login">Log In</Link>
-                                <Link to="/signup" className="btn-signup">Sign Up</Link>
+                                <Link to="/login" className="text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 px-3 py-2 rounded-md transition-all">Log In</Link>
+                                <Link to="/signup" className="inline-flex items-center justify-center px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-brand to-accent rounded-full shadow-lg hover:shadow-brand/30 hover:brightness-110 hover:-translate-y-px transition-all">Sign Up</Link>
                             </>
                         )}
                     </div>

@@ -1,0 +1,352 @@
+NS-INC-002 — TAXONOMY
+
+This document defines the vocabulary and canonical “objects” used by NS-INC (Incubator) to control iteration cycles across Northfield Solidarity.
+
+The goal is consistent language so planning, execution, review, and routing can be automated later without changing how you work today.
+
+1) Core taxonomy objects
+
+Incubator standardizes nine primary object types:
+
+Cycle — a named iteration window (Daily / Weekly / Monthly)
+
+Intent — the directional theme for a cycle
+
+Outcome — a measurable end state for a cycle
+
+Artifact — a durable output (doc/code/runbook/etc.)
+
+WorkBlock — a unit of effort tied to a project and outcome
+
+Decision — a committed choice with rationale
+
+Learning — durable insight that changes future behavior
+
+Risk — a predicted threat with mitigation
+
+Carryover — an open loop with a next action
+
+2) Cycle taxonomy
+
+2.1 Cycle types
+
+DailyCycle: continuity (AM/PM) and execution focus
+
+WeeklyCycle: iteration plan + retro + carryover management
+
+MonthlyCycle: direction review + governance/strategy alignment
+
+2.2 Cycle properties
+
+All cycles have:
+
+CycleId (recommended):
+
+Daily: YYYY-MM-DD
+
+Weekly: YYYY-WW
+
+Monthly: YYYY-MM
+
+StartDate, EndDate
+
+Intent
+
+Outcomes[]
+
+Constraints[] (optional)
+
+3) Project taxonomy (routing key)
+
+3.1 Project tag rule
+
+Every WorkBlock, Artifact, Decision, and Carryover should include a project tag.
+
+Canonical project tags (examples; extend as needed):
+
+NS-INC (Incubator)
+
+NS-CHRONICLE (daily continuity layer)
+
+NS-PG, NS-LUM, NS-AEGIS, NS-DRE, NS-CWP, NS-CICD
+
+NS-BCO, NS-OCP, NS-OS, NS-FRMT
+
+NS-LEGAL, NS-FIN, NS-ADMIN
+
+3.2 Subproject / artifact ID
+
+When available, include:
+
+DocId (e.g., NS-PG-006)
+
+ArtifactId (PR/commit/ticket/runbook)
+
+4) Outcome taxonomy
+
+4.1 Outcome types
+
+ship — a new/updated artifact exists
+
+stabilize — reliability/latency/operational stability improved
+
+decide — a decision is recorded and linked
+
+learn — a learning is captured and applied
+
+de-risk — a known risk reduced (backup verified, drill completed, etc.)
+
+4.2 Outcome definition rule
+
+Every Outcome must include:
+
+OutcomeDefinition (what “done” means)
+
+Evidence (link/doc ID) when possible
+
+4.3 Outcome status
+
+planned
+
+in_progress
+
+shipped
+
+blocked
+
+dropped
+
+5) Artifact taxonomy
+
+5.1 Artifact types
+
+doc
+
+code
+
+infra
+
+ops
+
+runbook
+
+decision
+
+research
+
+design
+
+5.2 Artifact impact scale
+
+tiny — minor improvement
+
+small — noticeable improvement
+
+medium — meaningful milestone
+
+large — major milestone
+
+critical — foundational/existential
+
+5.3 Evidence links
+
+Supported evidence link prefixes:
+
+doc: internal doc ID
+
+repo: repository path
+
+pr: pull request
+
+issue: ticket
+
+runbook: runbook ID
+
+url: external reference
+
+6) Work taxonomy
+
+6.1 WorkBlock
+
+A WorkBlock is a unit of effort with optional time tracking.
+
+Required fields:
+
+Project
+
+WhatIDid
+
+Recommended fields:
+
+Type (see below)
+
+Result
+
+TimeSpentMinutes
+
+Links[]
+
+6.2 Work types
+
+doc|code|infra|ops|research|design|decision|meeting|admin
+
+6.3 Work modes (optional)
+
+deepwork|shallowwork|reactive|creative
+
+7) Decision taxonomy
+
+7.1 Decision classes
+
+naming
+
+architecture
+
+security
+
+operations
+
+product
+
+people
+
+finance
+
+legal
+
+7.2 Decision status
+
+draft
+
+made
+
+reversed
+
+7.3 Decision fields (minimum)
+
+Title
+
+Choice
+
+Rationale
+
+Project (recommended)
+
+Link (recommended)
+
+8) Learning taxonomy
+
+8.1 Learning fields
+
+WhatILearned
+
+HowItChangesNextIteration
+
+Project (optional)
+
+Link (optional)
+
+Learning intent:
+
+convert insight into a rule, habit, or standard.
+
+9) Risk taxonomy
+
+9.1 Risk classes
+
+schedule
+
+technical
+
+security
+
+continuity
+
+scope
+
+people
+
+vendor
+
+9.2 Risk severity
+
+low|medium|high
+
+9.3 Risk fields
+
+Description
+
+Severity
+
+Mitigation
+
+Owner (optional)
+
+Evidence (optional)
+
+10) Carryover taxonomy
+
+Carryovers are the “open loops” Incubator controls.
+
+10.1 Priority
+
+high|medium|low
+
+10.2 Carryover types
+
+execution — needs doing
+
+decision — needs choosing
+
+research — needs investigation
+
+waiting — blocked externally
+
+bug — defect to fix
+
+risk — looming hazard to mitigate
+
+10.3 Blocker types (optional)
+
+time|dependency|clarity|energy|access|tooling
+
+10.4 Carryover fields (minimum)
+
+Title
+
+NextAction
+
+Priority
+
+Type (carryover type)
+
+Project (recommended)
+
+11) Scoring taxonomy (optional but useful)
+
+Incubator may track subjective scores per cycle:
+
+OutcomeScore (0–10)
+
+FocusScore (0–10)
+
+EnergyScore (0–10)
+
+Use these to detect drift/burnout patterns.
+
+12) Routing taxonomy (where objects flow)
+
+Carryovers → quickscope
+
+Decisions + standards → GGE
+
+Research threads + learnings → DRE
+
+Ops work + incidents → LUM
+
+Incubator is the coordinator; engines are the consumers.
+
+13) Next document
+
+NS-INC-003 — ARCHITECTURE (artifact flow, storage conventions, routing to engines, and adoption tiers)
+

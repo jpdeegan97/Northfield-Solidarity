@@ -1,0 +1,254 @@
+NS-INC-004 — LIFECYCLE
+
+This document defines the Incubator lifecycle: the repeatable daily/weekly/monthly iteration cycle Incubator enforces across Northfield Solidarity.
+
+Incubator’s lifecycle is an operating rhythm plus a set of artifacts. The artifacts are the checkpoints that prevent drift.
+
+1) Lifecycle goals
+
+Keep momentum continuous (no “context reboot” each day).
+
+Convert effort into outcomes (artifacts, decisions, learnings).
+
+Make open loops explicit (carryovers with next actions).
+
+Provide a predictable cadence for planning and review.
+
+2) The three nested cycles
+
+Incubator runs three nested cycles:
+
+Daily Cycle — continuity + execution
+
+Weekly Cycle — iteration plan + retro + carryover control
+
+Monthly Cycle — direction control + governance digest
+
+The weekly cycle aggregates daily reality. The monthly cycle aggregates weekly movement.
+
+3) Daily Cycle (D1)
+
+Artifacts: MorningBrief (AM) + EveningDebrief (PM) (via NS-CHRONICLE)
+
+3.1 Inputs
+
+Yesterday’s carryovers
+
+Current constraints (meetings, energy, deadlines)
+
+Any active weekly outcomes
+
+3.2 Steps
+
+AM Load (MorningBrief)
+
+Declare today’s intent
+
+Select Top 1–3 priorities
+
+Define what “done” means for each
+
+Set at least one focus rule
+
+Execute (WorkBlocks)
+
+Do work in blocks; attach project tags and links when possible
+
+PM Save State (EveningDebrief)
+
+Summarize day from first-person perspective
+
+Record what shipped (artifacts)
+
+Record decisions + learnings
+
+Convert open loops → carryovers with next actions
+
+Seed tomorrow’s candidates
+
+3.3 Daily “Definition of Done”
+
+Daily cycle is complete when:
+
+PM debrief exists
+
+At least one WorkBlock is recorded
+
+Carryovers are explicit (or explicitly none)
+
+3.4 Daily exit criteria (stop the bleeding)
+
+If you are overloaded or the day is chaotic:
+
+produce a minimal PM debrief with:
+
+what happened
+
+top 3 carryovers
+
+tomorrow seed
+
+4) Weekly Cycle (W1)
+
+Artifacts: WeeklyPlan + WeeklyRetro + CarryoverAgingReport
+
+4.1 Weekly cadence
+
+WeeklyPlan: start of week (or the first working day)
+
+WeeklyRetro: end of week (or last working day)
+
+CarryoverAgingReport: produced during retro (or immediately after)
+
+4.2 WeeklyPlan structure
+
+Inputs:
+
+last week’s retro
+
+carryover backlog and aging
+
+monthly direction constraints
+
+Steps:
+
+Select 1–3 Weekly Outcomes (max)
+
+Choose a small backlog of secondary goals
+
+Identify risks and mitigations
+
+Decide any “must decide” items this week
+
+Definition of Done:
+
+1–3 outcomes with clear evidence targets
+
+risk list and constraints recorded
+
+4.3 Weekly execution rule
+
+Daily priorities should usually map to one of:
+
+a weekly outcome
+
+a necessary carryover
+
+a deliberate exception (incident, urgent ops)
+
+4.4 WeeklyRetro structure
+
+Steps:
+
+Compare planned outcomes vs shipped reality
+
+Identify top wins and misses
+
+Capture lessons that change next week’s behavior
+
+Update standards/decisions if needed
+
+Definition of Done:
+
+wins and misses recorded
+
+at least one behavior change or adjustment noted
+
+4.5 CarryoverAgingReport (the enforcement tool)
+
+Purpose: prevent open-loop buildup.
+
+Rules:
+
+Every carryover older than a threshold must be:
+
+progressed,
+
+converted into a decision,
+
+delegated,
+
+or explicitly dropped.
+
+Aging bands (recommended):
+
+0–2 days: normal
+
+3–7 days: review required
+
+8–21 days: intervention required
+
+>21 days: must decide (do/kill/park)
+
+5) Monthly Cycle (M1)
+
+Artifacts: DirectionReview + DecisionDigest
+
+5.1 Monthly cadence
+
+Run at month end or the first day of the next month.
+
+5.2 DirectionReview
+
+Steps:
+
+Summarize what moved (by project)
+
+Summarize what stalled and why
+
+Identify drift (work done not aligned to outcomes)
+
+Set next month’s intent and focus constraints
+
+Definition of Done:
+
+clear narrative + 3–5 directional focus statements
+
+5.3 DecisionDigest
+
+Steps:
+
+Collect major decisions from the month
+
+Record rationale and consequences
+
+Link decisions to artifacts shipped
+
+Definition of Done:
+
+all high-impact decisions are captured and searchable
+
+6) Gates and guardrails
+
+6.1 Outcome gate
+
+An outcome is only “done” if it has evidence (doc ID, PR, runbook, etc.).
+
+6.2 Decision gate
+
+A decision is only “made” if rationale is recorded.
+
+6.3 Carryover gate
+
+Every carryover must have a next action.
+
+6.4 Drift gate
+
+If more than half of the week’s time goes to unplanned work, WeeklyPlan must be adjusted and logged.
+
+7) Lifecycle failure modes (and fixes)
+
+Too many priorities: cap outcomes and enforce Top 3.
+
+Carryover pile-up: run aging report and kill/park items.
+
+No shipping: tighten outcome definitions into artifacts.
+
+Planning theatre: shorten plans; prioritize execution and PM debrief.
+
+8) What’s next
+
+Next standard-template doc:
+
+NS-INC-005 — DECISION (how Incubator records, approves, reverses, and routes decisions across NS)
+

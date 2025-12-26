@@ -1,0 +1,258 @@
+NS-INC-003 — ARCHITECTURE
+
+NS-INC (Incubator) is an iteration-control architecture built around a simple idea:
+
+Artifacts are the system.
+
+Incubator produces and routes a small set of structured artifacts that preserve continuity and drive consistent iteration across Northfield Solidarity projects.
+
+1) High-level architecture (conceptual)
+
+Incubator has six layers:
+
+Capture Layer — where artifacts are created (you + ChatGPT, optionally tooling)
+
+Canonical Artifact Layer — structured docs (daily/weekly/monthly)
+
+Archive Layer — file system source of truth (versioned optional)
+
+Index Layer — derived indexes/rollups for search and metrics
+
+Routing Layer — mapping artifacts into engines
+
+Consumer Engines — quickscope, GGE, DRE, LUM (and future consumers)
+
+2) Core components
+
+2.1 Capture Layer
+
+Primary interface (v1): manual + ChatGPT prompts.
+
+Capture modes:
+
+Daily: MorningBrief + EveningDebrief (via NS-CHRONICLE)
+
+Weekly: WeeklyPlan + WeeklyRetro + CarryoverAgingReport
+
+Monthly: DirectionReview + DecisionDigest
+
+Design constraints:
+
+Must work with copy/paste.
+
+Must not require integrations to be useful.
+
+2.2 Canonical Artifact Layer
+
+Incubator defines a minimum artifact set (the “Iteration Spine”).
+
+Daily artifacts (operator continuity)
+
+MorningBrief (AM)
+
+EveningDebrief (PM)
+
+Weekly artifacts (iteration control)
+
+WeeklyPlan
+
+WeeklyRetro
+
+CarryoverAgingReport
+
+Monthly artifacts (direction control)
+
+DirectionReview
+
+DecisionDigest
+
+Incubator consumes daily continuity from NS-CHRONICLE and upgrades it into weekly/monthly control.
+
+2.3 Archive Layer (Source of Truth)
+
+The archive is the source of truth. Indexes and ingestion outputs are derived.
+
+Recommended layout:
+
+NS-INC/
+
+daily/ (links or copies of Chronicle artifacts)
+
+weekly/
+
+monthly/
+
+indexes/
+
+rollups/
+
+Typical structure:
+
+NS-INC/daily/YYYY/YYYY-MM/YYYY-MM-DD.am.xml
+
+NS-INC/daily/YYYY/YYYY-MM/YYYY-MM-DD.pm.xml
+
+NS-INC/weekly/YYYY/YYYY-WW.weeklyplan.xml
+
+NS-INC/weekly/YYYY/YYYY-WW.weeklyretro.xml
+
+NS-INC/weekly/YYYY/YYYY-WW.carryoveraging.json
+
+NS-INC/monthly/YYYY/YYYY-MM.directionreview.xml
+
+NS-INC/monthly/YYYY/YYYY-MM.decisiondigest.xml
+
+Version control:
+
+Optional but recommended (git) for diffs and provenance.
+
+2.4 Index Layer (Derived)
+
+Incubator creates derived views for:
+
+fast search (project/decision/carryover)
+
+time allocation (by project/type)
+
+carryover aging/closure
+
+decision velocity
+
+Index artifacts (examples):
+
+daily index.json
+
+weekly rollup (md + json)
+
+monthly rollup (md + json)
+
+This layer can start as simple scripts and later become an engine job.
+
+2.5 Routing Layer (Artifact → Engine mapping)
+
+Incubator is the coordinator; engines are consumers.
+
+Routing rules:
+
+Carryovers route to quickscope as actionable state transitions
+
+Decisions + standards route to GGE as governance nodes
+
+Research sessions + learnings route to DRE as knowledge nodes
+
+Ops work + incidents route to LUM as operational events
+
+Incubator enforces that every routed object has:
+
+a project tag
+
+a type
+
+evidence links when possible
+
+2.6 Consumer Engines
+
+quickscope (Intervention)
+
+Inputs: carryovers, next actions, priorities
+
+Outputs: state transitions, aging, closure metrics
+
+GGE (Governance Graph Engine)
+
+Inputs: decisions, standards, policy changes
+
+Outputs: governance graph of “what changed and why”
+
+DRE (Deep Research Engine)
+
+Inputs: research work blocks, learnings, sources
+
+Outputs: connected knowledge graph and trend mapping
+
+LUM
+
+Inputs: incidents, degradations, ops work blocks
+
+Outputs: dashboards, alerts, incident timelines
+
+3) Data flow (daily → weekly → monthly)
+
+3.1 Daily flow
+
+MorningBrief sets intent + top priorities.
+
+Work happens.
+
+EveningDebrief captures shipped artifacts, decisions, learnings, carryovers.
+
+Carryovers are routed (optional v1) or staged for weekly planning.
+
+3.2 Weekly flow
+
+WeeklyPlan selects 1–3 outcomes across projects.
+
+Week execution is guided by daily capture.
+
+WeeklyRetro reconciles plan vs reality.
+
+CarryoverAgingReport forces closure decisions (do/decide/drop).
+
+3.3 Monthly flow
+
+DirectionReview summarizes movement and drift.
+
+DecisionDigest records major decisions and how they changed trajectory.
+
+Month-level intent is set for next cycle.
+
+4) Adoption tiers (how to implement without overbuilding)
+
+Tier A — Manual (start here)
+
+You generate artifacts in chat.
+
+You store them in the archive.
+
+You rely on human recall + basic grep.
+
+Tier B — Indexed
+
+Scripts generate daily indexes and weekly/monthly rollups.
+
+You can query “what happened” quickly.
+
+Tier C — Engine-routed
+
+Parsed objects emit events into quickscope/GGE/DRE/LUM.
+
+You get dashboards and cross-project state visibility.
+
+5) Non-functional requirements
+
+Low friction: artifacts must be fast to create.
+
+Deterministic: stable schemas and versioning.
+
+Provenance: raw artifacts preserved; derived views rebuildable.
+
+Privacy: no secrets; links over sensitive content.
+
+Resilience: the system works even if engines are offline.
+
+6) Architecture guardrails
+
+Archive remains source of truth.
+
+Unknown fields are ignorable (forward compatible).
+
+Carryovers must always have a next action.
+
+Decisions must have rationale.
+
+Evidence links are expected for anything “shipped.”
+
+7) Next document
+
+NS-INC-004 — LIFECYCLE (the precise daily/weekly/monthly lifecycle, gates, and “definition of done” per artifact)
+

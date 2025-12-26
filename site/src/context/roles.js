@@ -34,8 +34,9 @@ export const MOCK_USERS = [
     { id: 'SPG-003', email: 'kalp.oza@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Threeq' },
     { id: 'SPG-004', email: 'effie.deegan@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
     { id: 'SPG-005', email: 'kelsey.bagen@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
-    { id: 'SPG-006', email: 'melody.ector@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }, 
-    { id: 'SPG-007', email: 'rory.stello@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }
+    { id: 'SPG-006', email: 'melody.ector@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
+    { id: 'SPG-007', email: 'rory.stello@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
+    { id: 'SPG-008', email: 'john.deegan@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest John' }
 ];
 
 export const getMockUser = (email) => {

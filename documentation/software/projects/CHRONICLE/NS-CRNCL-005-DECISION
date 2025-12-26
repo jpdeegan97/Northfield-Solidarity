@@ -1,0 +1,366 @@
+NS-CHRONICLE-005 — DATA MODEL (XML Schemas + Validation)
+
+This document defines the data model for NS-CHRONICLE: the XML schemas, required fields, enumerations, and validation rules that keep the system consistent and ingestible.
+
+NS-CHRONICLE intentionally uses two artifacts per day:
+
+MorningBrief
+
+EveningDebrief
+
+1) Data model goals
+
+Deterministic: stable fields so parsing never breaks
+
+Minimal but sufficient: capture only what drives continuity
+
+Ingestible: clean mapping into GGE / DRE / quickscope
+
+Human-friendly: writable by hand and by ChatGPT
+
+2) Common conventions
+
+2.1 Required meta fields
+
+Both artifacts must include:
+
+Meta/Date (ISO YYYY-MM-DD)
+
+Meta/Timezone (default America/New_York)
+
+Meta/Author (e.g., John)
+
+Meta/Version (schema version, e.g., 1.0)
+
+2.2 Optional meta extensions
+
+Allowed optional nodes:
+
+Meta/Tags (free text tags)
+
+Meta/Source (e.g., chatgpt, manual)
+
+2.3 Uncertainty
+
+If the generator is unsure, include:
+
+<Uncertain>true</Uncertain>
+
+inside the node that is uncertain.
+
+2.4 Time units
+
+All time values are minutes:
+
+TimeSpentMinutes
+
+TimeBoxMinutes
+
+3) Schema: MorningBrief
+
+3.1 Structure
+
+Required top-level sections:
+
+Meta
+
+Context
+
+TodayPlan
+
+Mindset
+
+3.2 Required fields
+
+MorningBrief is considered valid if it contains:
+
+Meta/Date
+
+Context/OneSentenceIntent
+
+At least one TodayPlan/TopPriorities/Priority
+
+3.3 Nodes
+
+3.3.1 TopPriorities/Priority
+
+Fields:
+
+Title (required)
+
+OutcomeDefinition (required)
+
+TimeBoxMinutes (optional)
+
+Dependencies (optional)
+
+Risk (optional)
+
+Link (optional)
+
+3.3.2 ContinuityFromYesterday/Carryovers/Item
+
+Fields:
+
+Title (required)
+
+WhyItMatters (optional)
+
+NextAction (required)
+
+Blocker (optional)
+
+Link (optional)
+
+3.3.3 DecisionQueue/Decision
+
+Fields:
+
+Question (required)
+
+Options (optional)
+
+Lean (optional)
+
+3.3.4 FocusRules/Rule
+
+Fields:
+
+text (required)
+
+3.3.5 Mindset
+
+Fields:
+
+EnergyLevel (enum: low|medium|high)
+
+MainThreatToMomentum (optional)
+
+OneCommitment (optional)
+
+4) Schema: EveningDebrief
+
+4.1 Structure
+
+Required top-level sections:
+
+Meta
+
+Summary
+
+WhatIWorkedOn
+
+Continuity
+
+Optional sections:
+
+WhatIShipped
+
+Decisions
+
+Learnings
+
+Problems
+
+Closeout
+
+4.2 Required fields
+
+EveningDebrief is considered valid if it contains:
+
+Meta/Date
+
+Summary/OneParagraphFromMyPerspective
+
+At least one WhatIWorkedOn/WorkBlock
+
+At least one carryover OR an explicit “none” signal:
+
+either Continuity/Carryovers/Item exists
+
+or Continuity/Carryovers exists with <None>true</None>
+
+4.3 Nodes
+
+4.3.1 WhatIWorkedOn/WorkBlock
+
+Fields:
+
+Project (required; should be from NS-CHRONICLE-002)
+
+WhatIDid (required)
+
+Result (optional)
+
+TimeSpentMinutes (optional)
+
+Links (optional)
+
+4.3.2 WhatIShipped/Item
+
+Fields:
+
+Title (required)
+
+Type (enum; see Section 5)
+
+Impact (enum; see Section 5)
+
+Link (optional)
+
+4.3.3 Decisions/Decision
+
+Fields:
+
+Title (required)
+
+Context (optional)
+
+Choice (required)
+
+Rationale (required)
+
+Consequences (optional)
+
+Link (optional)
+
+4.3.4 Learnings/Learning
+
+Fields:
+
+WhatILearned (required)
+
+HowItChangesTomorrow (optional)
+
+4.3.5 Problems/Problem
+
+Fields:
+
+WhatWentWrong (required)
+
+RootCauseHypothesis (optional)
+
+FixNextTime (optional)
+
+4.3.6 Continuity/Carryovers/Item
+
+Fields:
+
+Title (required)
+
+NextAction (required)
+
+Priority (enum: high|medium|low)
+
+Blocker (optional)
+
+Link (optional)
+
+CarryoverType (optional enum; see Section 5)
+
+4.3.7 Summary/Score
+
+Fields:
+
+Outcome (0–10)
+
+Focus (0–10)
+
+Energy (0–10)
+
+5) Enumerations (authoritative)
+
+These enums should match NS-CHRONICLE-002.
+
+5.1 Work types
+
+Allowed Type values:
+
+doc|code|infra|ops|research|design|decision|meeting|admin
+
+5.2 Impact scale
+
+Allowed Impact values:
+
+tiny|small|medium|large|critical
+
+5.3 CarryoverType
+
+Allowed CarryoverType values:
+
+execution|decision|research|waiting|bug|risk
+
+5.4 Priority
+
+Allowed Priority values:
+
+high|medium|low
+
+6) Validation rules (the “musts”)
+
+6.1 Global rules
+
+Do not store secrets.
+
+Every major item should include at least one evidence link when possible.
+
+Prefer taxonomy enums; if unknown leave empty.
+
+6.2 MorningBrief rules
+
+Max 3 TopPriorities (strong recommendation)
+
+Every priority must have an OutcomeDefinition
+
+Every carryover must have a NextAction
+
+6.3 EveningDebrief rules
+
+Every carryover must have a NextAction
+
+At least one WorkBlock must include Project
+
+If you shipped nothing, include <WhatIShipped><None>true</None></WhatIShipped>
+
+7) Ingestion mapping (CHRONICLE → Engines)
+
+This is the canonical mapping if/when you ingest Chronicle into your systems.
+
+7.1 quickscope (Intervention)
+
+Continuity/Carryovers/Item → state transitions / open-loop tasks
+
+key fields: Title, NextAction, Priority, Blocker, Link
+
+7.2 GGE (Governance Graph Engine)
+
+Decisions/Decision → decision nodes
+
+WhatIShipped/Item of Type=decision|doc → governance artifacts
+
+link edges: decision → project → artifact
+
+7.3 DRE (Deep Research Engine)
+
+WorkBlocks with Type=research (or tagged) + Learnings → research nodes
+
+links become source edges
+
+7.4 LUM
+
+WorkBlocks with Type=ops + Problems/Incidents → operational events
+
+8) Schema evolution (versioning)
+
+Increment Meta/Version when you change field names or enumerations.
+
+Additive fields are allowed without breaking changes.
+
+Avoid renaming nodes; prefer deprecation with dual-write for a few weeks if needed.
+
+9) Next document
+
+If you want to continue, the next natural step is an automation layer:
+
+NS-CHRONICLE-006 — Automation + Indexing (Local Scripts, Rollups, Search)
+

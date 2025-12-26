@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+        <rect width="100%" height="100%" fill="#050505"/>
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="4.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <line x1="0" y1="263" x2="400" y2="263" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="215" x2="400" y2="215" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="25" x2="400" y2="25" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="271" x2="400" y2="271" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="21" x2="400" y2="21" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="133" y1="0" x2="133" y2="300" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="349" y1="0" x2="349" y2="300" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="159" y1="0" x2="159" y2="300" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="155" y1="0" x2="155" y2="300" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" /><line x1="100" y1="0" x2="100" y2="300" stroke="#22c55e" stroke-opacity="0.2" stroke-width="1" />
+        <g filter="url(#glow)">
+            <circle cx="286" cy="255" r="39.5" fill="#22c55e" fill-opacity="0.29" /><circle cx="182" cy="42" r="22.5" fill="#22c55e" fill-opacity="0.34" /><circle cx="72" cy="183" r="44.5" fill="#22c55e" fill-opacity="0.37" /><rect x="176" y="107" width="72" height="72" fill="#22c55e" fill-opacity="0.17" transform="rotate(29 212 143)" /><rect x="153" y="193" width="23" height="23" fill="#22c55e" fill-opacity="0.39" transform="rotate(1 164.5 204.5)" />
+        </g>
+        <rect width="100%" height="100%" fill="url(#grad)" fill-opacity="0.2"/>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0" />
+            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.3" />
+        </linearGradient>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="48" fill="white" style="text-shadow: 0 0 20px #22c55e">PECA</text>
+    </svg>

@@ -1,0 +1,139 @@
+NS-INC-000 — CHARTER (Incubator Iteration Control)
+
+1) Mission
+
+Create a single Northfield Solidarity project (“Incubator”) that controls iteration cycles across projects/engines so momentum is continuous, priorities are explicit, and progress compounds without context loss.
+
+Incubator is the operating system for:
+
+planning → execution → review → learning → next iteration
+
+2) Problem statement
+
+As NS grows (multiple engines, standards, infra, legal, product), work fragments:
+
+priorities drift
+
+decisions get lost
+
+context resets after sleep/interruptions
+
+iteration cadence becomes inconsistent
+
+Incubator exists to standardize iteration loops (daily/weekly/monthly) and ensure every project has:
+
+a current plan
+
+measurable outcomes
+
+a decision log
+
+a next action queue
+
+3) Scope
+
+In scope
+
+A unified iteration cadence:
+
+Daily continuity (AM/PM state capture)
+
+Weekly iteration plan + retro
+
+Monthly direction review
+
+Standard artifacts and “minimum viable governance” for all NS projects
+
+A routing layer that pushes artifacts into:
+
+quickscope (state / carryovers)
+
+GGE (decisions / policies)
+
+DRE (research threads / learnings)
+
+LUM (ops events / incidents)
+
+Out of scope (initially)
+
+Replacing your task manager/calendar
+
+Heavy workflow tooling (start lightweight, automate later)
+
+4) Primary users
+
+You (primary operator)
+
+Future NS operators/engine leads (secondary)
+
+5) Core principles
+
+One loop to rule them all: every project follows the same iteration rhythm.
+
+Outcome over activity: measure what shipped/decided/learned.
+
+Continuity is a feature: state is saved daily.
+
+Explicit carryovers: open loops are named, prioritized, and aged.
+
+Evidence-first: link to docs/PRs/tickets/runbooks.
+
+6) Interfaces (how Incubator connects)
+
+NS-CHRONICLE: daily AM/PM continuity feed (personal operator layer)
+
+quickscope (Intervention): carryovers become state transitions / next actions
+
+GGE: decisions and standards become governance nodes
+
+DRE: research learnings become knowledge graph nodes
+
+LUM: ops work + incidents become operational events
+
+7) Deliverables
+
+Incubator defines and enforces the following artifact set:
+
+7.1 Daily (operator)
+
+MorningBrief + EveningDebrief (first-person)
+
+7.2 Weekly (iteration)
+
+WeeklyPlan (Top 3 outcomes + backlog)
+
+WeeklyRetro (wins, misses, lessons, adjustments)
+
+CarryoverAgingReport (what’s stuck and why)
+
+7.3 Monthly (direction)
+
+DirectionReview (what moved, what didn’t, what changes next month)
+
+DecisionDigest (major decisions and rationale)
+
+8) Operating cadence
+
+Daily: continuity capture + carryover routing
+
+Weekly: plan (start of week) + retro (end of week)
+
+Monthly: direction and governance review
+
+9) Success metrics
+
+Morning “time-to-context” ≤ 5 minutes
+
+Weekly shipped artifacts increase
+
+Carryover aging decreases (fewer stale open loops)
+
+Decision recall improves (decisions are findable and linked)
+
+10) Risks and mitigations
+
+Overhead creep: keep artifacts minimal; automate only after behavior sticks
+
+Too rigid: allow exceptions, but require explicit rationale
+
+Tool sprawl: archive-first, tool-agnostic; engines are optional consumers

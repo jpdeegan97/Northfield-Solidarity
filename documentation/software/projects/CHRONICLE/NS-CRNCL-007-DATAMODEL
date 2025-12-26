@@ -1,0 +1,338 @@
+NS-CHRONICLE-007 — DATA MODEL (Conceptual + Engine Mapping)
+
+This document defines the conceptual data model behind NS-CHRONICLE and the canonical mappings into Northfield Solidarity engines.
+
+Note: NS-CHRONICLE-005 defines the XML schema + validation rules. This doc defines the entities, relationships, and event mapping (the “meaning” layer).
+
+1) Core entities
+
+NS-CHRONICLE centers on a small set of durable entities.
+
+1.1 Day
+
+Represents one calendar day of record.
+
+Key fields:
+
+date (YYYY-MM-DD)
+
+timezone
+
+author
+
+Relationships:
+
+Day has 0–1 MorningBrief
+
+Day has 0–1 EveningDebrief
+
+Day has many WorkBlocks, ShippedItems, Decisions, Learnings, Problems, Carryovers
+
+1.2 MorningBrief
+
+Represents planned intent + priorities for the day.
+
+Key fields:
+
+one_sentence_intent
+
+top_priorities[]
+
+constraints[]
+
+focus_rules[]
+
+decision_queue[]
+
+carryovers_from_yesterday[]
+
+1.3 EveningDebrief
+
+Represents actual outcomes + saved state.
+
+Key fields:
+
+one_paragraph_summary
+
+score (outcome/focus/energy)
+
+worked_on[]
+
+shipped[]
+
+decisions[]
+
+learnings[]
+
+problems[]
+
+carryovers[]
+
+tomorrow_seed[]
+
+2) Activity entities
+
+2.1 WorkBlock
+
+A unit of work tied to a project and outcome.
+
+Key fields:
+
+project (e.g., NS-PG)
+
+type (doc|code|infra|ops|research|design|decision|meeting|admin)
+
+what_i_did
+
+result
+
+time_spent_minutes
+
+links[]
+
+Rules:
+
+At least one WorkBlock must exist in every EveningDebrief.
+
+2.2 ShippedItem
+
+A durable artifact that exists now.
+
+Key fields:
+
+title
+
+type (doc|code|decision|infra|research|ops)
+
+impact (tiny|small|medium|large|critical)
+
+project (optional but recommended)
+
+link
+
+Interpretation:
+
+“Shipped” means it can be referenced later (doc ID, repo, PR, ticket, etc.).
+
+3) Cognition entities
+
+3.1 Decision
+
+A committed directional choice.
+
+Key fields:
+
+title
+
+class (naming|architecture|security|operations|product|people|finance|legal)
+
+status (draft|made|reversed)
+
+context
+
+choice
+
+rationale
+
+consequences
+
+project (recommended)
+
+link
+
+Identity rule:
+
+A Decision should be stable across days if revisited (same title, new status or note).
+
+3.2 Learning
+
+A durable insight.
+
+Key fields:
+
+what_i_learned
+
+how_it_changes_tomorrow
+
+project (optional)
+
+link
+
+3.3 Problem
+
+A failure/degradation and a corrective idea.
+
+Key fields:
+
+what_went_wrong
+
+root_cause_hypothesis
+
+fix_next_time
+
+project (optional)
+
+link
+
+4) Continuity entities
+
+4.1 Carryover
+
+An explicit open loop handed forward.
+
+Key fields:
+
+title
+
+next_action
+
+priority (high|medium|low)
+
+carryover_type (execution|decision|research|waiting|bug|risk)
+
+blocker (optional)
+
+project (recommended)
+
+link
+
+Rules:
+
+Every Carryover must have a next_action.
+
+Carryovers are the primary feed into quickscope.
+
+4.2 TomorrowSeed
+
+A lightweight candidate priority for the next MorningBrief.
+
+Key fields:
+
+title
+
+why
+
+project (optional)
+
+5) Relationship graph (how entities connect)
+
+The canonical relationships are:
+
+Day → MorningBrief / EveningDebrief
+
+EveningDebrief → WorkBlocks / ShippedItems / Decisions / Learnings / Problems / Carryovers
+
+WorkBlock → Project
+
+ShippedItem → Project (recommended)
+
+Decision → Project (recommended)
+
+Carryover → Project (recommended)
+
+Cross-day relationships:
+
+Carryover(Day N) → Carryover(Day N+1) (same title lineage)
+
+Decision(Day N) → Decision(Day N+K) (revisit lineage)
+
+6) Canonical IDs (recommended, optional)
+
+To support ingestion, NS-CHRONICLE can optionally include IDs.
+
+6.1 Suggested ID formats
+
+day_id = YYYY-MM-DD
+
+workblock_id = YYYY-MM-DD::<project>::WB::<n>
+
+ship_id = YYYY-MM-DD::<project>::SHIP::<slug>
+
+decision_id = <project>::DEC::<slug>
+
+carryover_id = <project>::CO::<slug>
+
+If you don’t want to add IDs to XML, engines can generate them deterministically.
+
+7) Event mapping to engines
+
+7.1 quickscope (Intervention)
+
+Input: Carryovers
+
+Mapping:
+
+Carryover → OpenLoopTask
+
+fields: title, next_action, priority, blocker, link, project
+
+Derived metrics:
+
+carryover aging (days open)
+
+closure rate
+
+priority distribution
+
+7.2 GGE (Governance Graph Engine)
+
+Input: Decisions + governance artifacts
+
+Mapping:
+
+Decision → DecisionNode
+
+ShippedItem(type=decision|doc) → GovernanceArtifact
+
+Edges:
+
+Decision → Project
+
+Decision → Artifact
+
+Artifact → Project
+
+7.3 DRE (Deep Research Engine)
+
+Input: Research WorkBlocks + Learnings + sources
+
+Mapping:
+
+WorkBlock(type=research) → ResearchSession
+
+Learning → InsightNode
+
+Links → SourceEdge
+
+7.4 LUM
+
+Input: Ops WorkBlocks + Problems
+
+Mapping:
+
+WorkBlock(type=ops) → OperationalEvent
+
+Problem → IncidentNote (or DegradationReport)
+
+8) Derived analytics (what you’ll get “for free”)
+
+Once ingested or indexed, the model supports:
+
+time spent by project / type
+
+shipped artifacts per week
+
+decision velocity (decisions made vs revisited)
+
+carryover aging and closure
+
+focus drift (plan vs actual)
+
+energy/outcome correlation
+
+9) Next document
+
+If you want to continue, next is the natural automation layer:
+
+NS-CHRONICLE-008 — INDEXING + ROLLUPS (daily index.json, weekly rollups, search, time-by-project)
+

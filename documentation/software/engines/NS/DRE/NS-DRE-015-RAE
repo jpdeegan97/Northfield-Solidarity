@@ -1,0 +1,245 @@
+
+DRE-015 — Research Artifact Engine (RAE)
+
+Engine: Deep Research Engine (DRE)Document Type: Core Capability ExtensionVersion: 1.0Status: Canonical
+
+1. Purpose
+
+The Research Artifact Engine (RAE) enables DRE to execute deep research and formalize results into persistent, stateful, and executable Research Artifacts.
+
+A Research Artifact represents the complete evolving knowledge state of a product, topic, or system. Documentation is a projection of artifact state, not the source of truth.
+
+2. Definitions
+
+Research Artifact (RA)
+
+A bounded, versioned, stateful object representing everything known, inferred, and evolving about a research target.
+
+3. Responsibilities
+
+RAE is responsible for:
+
+Topic and scope initialization
+
+Deep research execution across heterogeneous sources
+
+Signal detection and frontier mapping
+
+Synthesis into structured intelligence
+
+Canonical documentation generation
+
+Artifact state persistence
+
+Vector space construction
+
+Lifecycle monitoring and drift detection
+
+Publishing artifact state to PIE
+
+4. Research Artifact Lifecycle
+
+INIT → SCOPE → DISCOVER → SYNTHESIZE → FORMALIZE → VECTORIZE → PUBLISH → MONITOR
+
+Lifecycle States
+
+INIT – Artifact identity created and registeredSCOPE – Explicit domain boundaries definedDISCOVER – Signals, sources, and actors collectedSYNTHESIZE – Patterns and trajectories extractedFORMALIZE – Structured intelligence and docs generatedVECTORIZE – Multi-layer vector embeddings createdPUBLISH – Artifact state exposed to PIEMONITOR – Continuous drift detection and updates
+
+5. Data Model
+
+ResearchArtifact
+
+artifact_id: UUID
+name: string
+domain: string
+scope_definition: object
+lifecycle_state: enum
+created_at: timestamp
+updated_at: timestamp
+
+ArtifactState
+
+artifact_id: UUID
+knowledge_graph: graph
+signal_map: object
+frontier_assessment: object
+constraint_map: object
+opportunity_surface: object
+
+ArtifactDocumentation
+
+artifact_id: UUID
+doc_type: enum
+version: string
+generated_at: timestamp
+content: structured_text
+
+ArtifactVectorSpace
+
+artifact_id: UUID
+semantic_vector: vector
+structural_vector: vector
+temporal_vector: vector
+strategic_vector: vector
+
+6. Documentation Generation
+
+Documentation is derived, reproducible, and versioned.
+
+Supported projections:
+
+Overview Snapshot
+
+Frontier Analysis
+
+Competitive Landscape
+
+Constraint & Risk Map
+
+Opportunity Thesis
+
+Architecture / System Map
+
+Strategy & Decision Memo
+
+7. Execution Semantics
+
+Research Artifacts are executable objects, supporting:
+
+Query
+
+Comparison
+
+Fork
+
+Merge
+
+Scenario simulation
+
+All historical states are retained and auditable.
+
+8. Governance & Integrity
+
+Artifact versions are immutable
+
+State transitions are logged
+
+Drift triggers lifecycle re-entry
+
+Publication to PIE requires valid state
+
+9. Output Contract
+
+RAE outputs:
+
+Authoritative Artifact State
+
+Vectorized Intelligence
+
+Canonical Documentation
+
+Lifecycle Events
+
+These outputs are consumed directly by PIE.
+
+PIE-009 — Research Artifact Consumption Interface
+
+Engine: Product Intelligence Engine (PIE)Document Type: Core IntegrationVersion: 1.0Status: CanonicalUpstream Dependency: DRE-015
+
+1. Purpose
+
+Defines how PIE consumes Research Artifacts produced by DRE as live, authoritative intelligence inputs.
+
+PIE does not perform research — it reasons on artifact state.
+
+2. Role of Research Artifacts in PIE
+
+Within PIE, a Research Artifact functions as:
+
+A complete intelligence context
+
+A comparison unit
+
+A simulation substrate
+
+A long-lived memory object
+
+3. Artifact Intake Model
+
+PIE ingests:
+
+ArtifactState updates
+
+ArtifactVectorSpace updates
+
+Documentation projections
+
+Lifecycle and drift events
+
+4. PIE Artifact Context Model
+
+PIEArtifactContext:
+  artifact_id: UUID
+  current_state: ArtifactState
+  vector_space: ArtifactVectorSpace
+  documentation_views: list
+  confidence_score: float
+
+5. Vector Space Usage
+
+PIE operates over orthogonal vector layers:
+
+Semantic
+
+Structural
+
+Temporal
+
+Strategic
+
+These enable cross-domain comparison, similarity detection, and opportunity arbitrage.
+
+6. Reasoning & Execution Capabilities
+
+Using Research Artifacts, PIE can:
+
+Compare frontier maturity
+
+Identify gaps
+
+Simulate constraint changes
+
+Generate execution strategies
+
+Rank opportunities
+
+7. Artifact Operations
+
+PIE supports:
+
+Read-only querying
+
+Comparative analysis
+
+Fork-with-assumptions
+
+Scenario modeling
+
+Recommendation generation
+
+PIE cannot mutate authoritative artifact state.
+
+8. Consistency & Trust Model
+
+PIE operates only on published states
+
+Confidence adjusts with freshness
+
+Drift events downgrade confidence
+
+No reasoning on partial state
+
+9. Summary
+
+Research Artifacts are the unit of intelligence inside PIE, enabling deterministic reasoning, comparison, and execution across domains.
+

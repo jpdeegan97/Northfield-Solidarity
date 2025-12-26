@@ -3,9 +3,9 @@ NS-INT-000 — CHARTER
 
 1. Identity
 
-Project / Engine Name: Intervention
+Project / Engine Name: QuickScope
 
-Nickname: quickscope
+Nickname: Intervention
 
 Domain: System-wide state, context, and real-time coherence layer for Northfield Solidarity (NS)
 
@@ -15,7 +15,7 @@ Primary Consumers: GGP, Firmament, all NS engines, operator UIs, observability t
 
 2. Mission
 
-Intervention exists to provide a single, authoritative, replayable, real-time state context for the entire NS ecosystem—so every engine and UI can reliably answer:
+QuickScope exists to provide a single, authoritative, replayable, real-time state context for the entire NS ecosystem—so every engine and UI can reliably answer:
 
 What is true now?
 
@@ -25,7 +25,7 @@ Who/what changed it?
 
 What is the current process state of long-running work?
 
-Intervention turns NS into a coherent, stateful “beast” with shared context, causal chains, and durable memory.
+QuickScope turns NS into a coherent, stateful “beast” with shared context, causal chains, and durable memory.
 
 3. Problem Statement
 
@@ -45,9 +45,9 @@ Without a unified state fabric, NS cannot scale reliably, explainably, or in rea
 
 4. Scope
 
-4.1 In Scope (What Intervention is)
+4.1 In Scope (What QuickScope is)
 
-Intervention is the State Fabric + Context Plane for NS. It provides:
+QuickScope is the State Fabric + Context Plane for NS. It provides:
 
 Immutable Event Log (System Memory)
 
@@ -97,7 +97,7 @@ Low-latency reads and offline-tolerant behavior
 
 Standard sync/resync and conflict-handling protocol
 
-4.2 Out of Scope (What Intervention is not)
+4.2 Out of Scope (What QuickScope is not)
 
 Not a governance authority: It does not decide what is allowed (GGP does).
 
@@ -123,7 +123,7 @@ Edge-first performance: reads should be fast where work happens.
 
 6. Success Criteria
 
-Intervention is successful when:
+QuickScope is successful when:
 
 Firmament can render global NS state in real time (snapshot + deltas)
 
@@ -247,7 +247,7 @@ NS-INT-001 — OVERVIEW
 
 1. What Intervention Is
 
-Intervention (quickscope) is the system-wide State Fabric and Context Plane for Northfield Solidarity.
+QuickScope (Intervention) is the system-wide State Fabric and Context Plane for Northfield Solidarity.
 
 It provides:
 

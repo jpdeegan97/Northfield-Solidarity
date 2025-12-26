@@ -1,0 +1,204 @@
+NS-IPR-000 — CHARTER (IP Formalization + Registration Engine)
+
+1) Mission
+
+Build an internal engine that turns Northfield Solidarity’s IP into formal, defensible, and searchable assets by:
+
+capturing invention/creation evidence
+
+standardizing ownership + assignment
+
+managing filing workflows (copyright, trademark, patent strategy)
+
+producing audit-ready provenance and status
+
+This engine exists to make “IP lockdown” operational and repeatable.
+
+2) Problem statement
+
+As NS creates many artifacts (engines, docs, code, brands, datasets, designs), IP risk increases:
+
+unclear ownership/assignment
+
+inconsistent marking and evidence
+
+missed filing windows
+
+trademark collisions
+
+accidental open-source leakage
+
+inability to prove invention dates or authorship
+
+NS-IPR solves this by creating a single IP pipeline from creation → classification → decision → registration → maintenance.
+
+3) Scope
+
+In scope
+
+IP intake workflow for everything created at NS (code, docs, brand, designs)
+
+IP asset registry (canonical inventory)
+
+Evidence capture + provenance
+
+Ownership + assignment management (entity/employee/contractor)
+
+Filing workflow tracking:
+
+trademarks
+
+copyrights
+
+patents (strategy + docketing)
+
+Open-source and third-party dependency policy hooks (NS-AEGIS alignment)
+
+Renewal/maintenance calendar (deadlines, fees, watch-outs)
+
+Out of scope (initially)
+
+Acting as a law firm or replacing counsel
+
+Automatically filing with governments (we track + package; counsel/files externally)
+
+Litigation management
+
+4) Primary users
+
+Founder/operator (you)
+
+Legal ops (future)
+
+Engineering leads (future)
+
+Brand/product owners (future)
+
+5) Core principles
+
+Evidence-first: every asset has a provenance trail.
+
+Default protect: treat novel work as protectable until decided otherwise.
+
+Separation of concerns: create → classify → decide → file → maintain.
+
+Least disclosure: don’t publish before decisions on patent/trade secret posture.
+
+Auditability: you can answer “who created what, when, under what assignment, and what’s its legal status?”
+
+6) IP classes supported
+
+Trademark: names, logos, slogans, product lines
+
+Copyright: code, docs, creative works
+
+Patent: inventions, methods, systems (provisional → non-provisional strategy)
+
+Trade secret: non-public know-how, processes, datasets, configs
+
+Contracts/Assignments: contributor agreements, contractor IP assignment, invention assignment
+
+7) Engine outputs (deliverables)
+
+NS-IPR produces:
+
+IP Asset Record (canonical registry entry)
+
+Evidence Pack (source files, hashes, timestamps, commit refs, author claims)
+
+Ownership Pack (assignment chain, entity mapping, contributor agreements)
+
+Filing Pack (draft descriptions, classes, specimens, priority dates, counsel handoff)
+
+Maintenance Pack (renewal schedule, reminders, watch service links)
+
+Risk Flags (collisions, missing assignments, OSS conflicts, public disclosure risk)
+
+8) Interfaces with other NS engines/projects
+
+GGE: governance policies (IP policy, OSS policy), decision logs
+
+NS-AEGIS: dependency and license compliance signals (OSS exposure risk)
+
+DRE: research provenance and invention threads
+
+quickscope: state tracking for filings, tasks, deadlines
+
+NS-CHRONICLE / NS-INC: daily/weekly iteration artifacts that create IP evidence trails
+
+9) Success metrics
+
+100% of projects have an IP asset record for names + core repos
+
+100% of contributors have signed assignment terms before substantial work
+
+No missed renewal/maintenance deadlines
+
+Time to produce a filing handoff pack ≤ 1 hour
+
+Reduction in “unknown ownership” or “untracked brand usage” to near zero
+
+10) Risks and mitigations
+
+Overhead creep: keep intake lightweight; automate hashing + metadata later.
+
+False confidence: use counsel review gates for filing decisions.
+
+Over-filing: introduce decision criteria so filings are strategic.
+
+Disclosure risk: patent/trade secret gates before publishing.
+
+11) Roadmap (high-level)
+
+Phase 1 — Registry + Intake (MVP)
+
+Asset taxonomy + registry
+
+Contributor/assignment checklist
+
+Evidence capture baseline (repo refs + hashes)
+
+Phase 2 — Filing workflow + packs
+
+Trademark/copyright/patent pack templates
+
+Docketing + deadline tracking
+
+Phase 3 — Automation + integrations
+
+AEGIS license risk ingestion
+
+quickscope state machine for filings
+
+LUM visibility for deadline health
+
+12) Next documents (standard template)
+
+NS-IPR-001 — OVERVIEW
+
+NS-IPR-002 — TAXONOMY
+
+NS-IPR-003 — ARCHITECTURE
+
+NS-IPR-004 — LIFECYCLE
+
+NS-IPR-005 — DECISION
+
+NS-IPR-006 — VERSION
+
+NS-IPR-007 — DATAMODEL
+
+NS-IPR-008 — EEE
+
+NS-IPR-009 — IMPL
+
+NS-IPR-010 — FE (optional operator UI)
+
+NS-IPR-011 — APIMAP
+
+NS-IPR-012 — STATE
+
+NS-IPR-013 — RUNBOOK
+
+NS-IPR-014 — DATAREF
+

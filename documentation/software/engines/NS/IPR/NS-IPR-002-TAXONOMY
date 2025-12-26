@@ -1,0 +1,430 @@
+NS-IPR-002 — TAXONOMY
+
+This document defines the vocabulary NS-IPR uses to classify IP assets, capture evidence, manage ownership, and track filing workflows.
+
+The goal: every IP record is consistent, searchable, and routable into GGE / quickscope / AEGIS / DRE.
+
+1) Core objects
+
+NS-IPR standardizes these primary objects:
+
+IPAsset — the canonical registry record
+
+EvidenceItem — proof of creation/invention/use
+
+OwnershipChain — who owns it and how title is established
+
+Contributor — people/entities who created or contributed
+
+Agreement — assignment/contract documents governing ownership
+
+Filing — a registration effort (trademark/copyright/patent)
+
+DocketItem — a deadline, renewal, or action item
+
+RiskFlag — a risk signal (missing assignment, collision, disclosure risk)
+
+Decision — protect vs publish vs keep secret, with rationale (routes to GGE)
+
+2) IP asset taxonomy
+
+2.1 Asset classes
+
+Trademark
+
+Copyright
+
+Patent
+
+TradeSecret
+
+Brand (pre-filing brand candidates)
+
+Design (UI/UX, visual design elements)
+
+Dataset (data assets)
+
+KnowHow (processes, internal systems)
+
+2.2 Asset types (more specific)
+
+Trademark-related
+
+word_mark
+
+logo_mark
+
+slogan
+
+product_line
+
+domain
+
+Copyright-related
+
+source_code
+
+documentation
+
+creative_content
+
+ui_assets
+
+Patent-related
+
+system
+
+method
+
+workflow
+
+algorithm
+
+hardware_integration
+
+Trade secret-related
+
+process
+
+configuration
+
+operational_playbook
+
+model_or_prompting_strategy
+
+dataset_recipe
+
+2.3 Confidentiality posture
+
+public (already public)
+
+internal (NS internal)
+
+restricted (need-to-know)
+
+trade_secret (explicitly managed as trade secret)
+
+2.4 Protection intent
+
+file_now
+
+file_later
+
+monitor
+
+keep_secret
+
+open_source
+
+abandon
+
+3) Evidence taxonomy (provenance)
+
+Evidence is the backbone of defensibility.
+
+3.1 Evidence categories
+
+RepositoryEvidence
+
+commit hash
+
+tag/release
+
+file hash
+
+build artifact checksum
+
+DocumentEvidence
+
+spec/charter/standard doc IDs
+
+meeting notes (if used)
+
+PublicationEvidence
+
+website page / marketing page
+
+launch announcement
+
+public docs
+
+UseInCommerceEvidence (trademark critical)
+
+invoices
+
+screenshots
+
+sales pages
+
+app store listings
+
+InventionDisclosureEvidence (patent)
+
+invention disclosure form
+
+diagrams
+
+experiments
+
+prototypes
+
+AuthorshipEvidence
+
+contributor claims
+
+contractor statements
+
+emails/approvals (references only)
+
+3.2 Evidence strength (optional)
+
+weak (informal note)
+
+medium (repo/doc reference)
+
+strong (timestamped artifact + hash + controlled access)
+
+legal_grade (counsel-ready, organized, auditable)
+
+4) Ownership and contributor taxonomy
+
+4.1 Owner entity types
+
+individual (employee/founder)
+
+company (Northfield Solidarity LLC or subsidiaries)
+
+contractor_entity
+
+third_party
+
+4.2 Contributor roles
+
+author
+
+co_author
+
+inventor
+
+designer
+
+reviewer
+
+implementer
+
+4.3 Chain of title states
+
+clear (assignments complete)
+
+incomplete (missing agreement/signature)
+
+disputed (conflict)
+
+third_party_owned (licensed/used)
+
+5) Agreement taxonomy
+
+Agreements are how you prove ownership.
+
+5.1 Agreement types
+
+employee_invention_assignment
+
+contractor_ip_assignment
+
+nda
+
+work_for_hire
+
+license_in
+
+license_out
+
+contributor_license_agreement (CLA)
+
+5.2 Agreement status
+
+draft
+
+sent
+
+signed
+
+expired
+
+superseded
+
+6) Filing taxonomy
+
+6.1 Filing types
+
+TrademarkFiling
+
+CopyrightFiling
+
+PatentFiling
+
+6.2 Filing jurisdictions
+
+us (USPTO / US Copyright Office)
+
+eu
+
+uk
+
+ca
+
+au
+
+global_strategy (placeholder for multi-jurisdiction planning)
+
+6.3 Filing status (generic)
+
+candidate
+
+researching
+
+ready_for_counsel
+
+filed
+
+office_action
+
+responded
+
+allowed
+
+registered/granted
+
+rejected/abandoned
+
+renewal_due
+
+renewed
+
+6.4 Trademark-specific concepts
+
+Nice Class (goods/services classification)
+
+Specimen (proof of use)
+
+First use / use in commerce dates
+
+Watch (monitor confusingly similar marks)
+
+6.5 Patent-specific concepts
+
+provisional
+
+non_provisional
+
+priority_date
+
+public_disclosure_risk
+
+prior_art
+
+inventor_list
+
+7) Risk flag taxonomy
+
+NS-IPR uses risk flags to force action.
+
+7.1 Risk categories
+
+missing_assignment
+
+unclear_ownership
+
+third_party_license_risk
+
+open_source_contamination
+
+brand_collision
+
+public_disclosure_risk
+
+confidentiality_breach_risk
+
+missed_deadline_risk
+
+specimen_insufficient
+
+inventor_dispute_risk
+
+7.2 Risk severity
+
+low|medium|high|critical
+
+7.3 Risk resolution state
+
+open
+
+mitigating
+
+resolved
+
+accepted
+
+8) State machine taxonomy (quickscope routing)
+
+8.1 Asset lifecycle states
+
+intake
+
+classified
+
+evidence_ready
+
+ownership_ready
+
+decision_pending
+
+filing_in_progress
+
+registered
+
+maintaining
+
+retired
+
+8.2 Docket lifecycle states
+
+scheduled
+
+due_soon
+
+overdue
+
+completed
+
+waived
+
+9) Integration tagging (engine routing keys)
+
+Every IPAsset record should carry:
+
+Project (e.g., NS-AEGIS, NS-PG, NS-LUM)
+
+AssetClass
+
+ConfidentialityPosture
+
+ProtectionIntent
+
+Jurisdiction (if applicable)
+
+Routing defaults:
+
+Decisions → GGE
+
+Filing/Docket tasks → quickscope
+
+OSS/license risk flags → NS-AEGIS
+
+Research/prior art threads → DRE
+
+10) Next document
+
+NS-IPR-003 — ARCHITECTURE (registry + evidence pipeline + decision gates + filing packs + maintenance + engine integrations)
+

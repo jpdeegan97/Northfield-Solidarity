@@ -1,0 +1,292 @@
+NS-IPR-003 — ARCHITECTURE
+
+NS-IPR is an internal IP operations engine. Its architecture is designed to: (1) capture provenance early, (2) enforce ownership clarity, (3) gate disclosure, (4) package counsel-ready filing materials, and (5) never miss deadlines.
+
+1) Architectural principles
+
+Archive-first, audit-ready: the source of truth is your IP registry + evidence store.
+
+Evidence before filing: every action is anchored to provenance artifacts.
+
+Decision gates: “protect vs publish vs keep secret” is explicit and recorded.
+
+Workflow over magic: automate only after the process is stable.
+
+Least disclosure: avoid public release before patent/trade-secret decisions.
+
+Integrate, don’t replace: NS-IPR routes to quickscope/GGE/AEGIS/DRE rather than duplicating them.
+
+2) Core components
+
+2.1 Intake Layer
+
+Purpose: capture new IP candidates as they emerge.
+
+Intake sources:
+
+New repos, packages, or major modules
+
+New product/engine names, logos, slogans
+
+New standards/docs/diagrams
+
+New datasets or data pipelines
+
+Novel system architectures or algorithms
+
+Outputs:
+
+A new IPAsset record in intake state
+
+Initial metadata: project tag, asset class guess, confidentiality posture
+
+2.2 Registry Layer (Canonical Inventory)
+
+Purpose: a single source of truth of what exists.
+
+Stores:
+
+IPAssets (all tracked items)
+
+Filing records and statuses
+
+Ownership chains
+
+Risk flags
+
+Links to evidence and agreements
+
+Registry requirements:
+
+searchable by project, asset class, name/mark, repo path, decision, filing status
+
+stable IDs for cross-linking
+
+2.3 Evidence Layer (Provenance + Proof)
+
+Purpose: defensibility and counsel-ready packaging.
+
+Evidence inputs:
+
+repo commit hashes, tags, file hashes
+
+doc IDs + versions
+
+screenshots/specimens (trademark use)
+
+invention disclosures (patent)
+
+publication references (what was made public and when)
+
+Evidence outputs:
+
+Evidence Pack per asset
+
+Evidence strength grading (weak → legal-grade)
+
+2.4 Ownership & Assignment Layer
+
+Purpose: chain of title clarity.
+
+Inputs:
+
+contributor list (employees/contractors)
+
+agreements (assignment/CLA/NDA/license)
+
+entity structure mapping (who owns what LLC)
+
+Outputs:
+
+Ownership Pack per asset
+
+Risk flags when chain is incomplete
+
+2.5 Decision Gate Layer
+
+Purpose: make protection posture explicit.
+
+Key decisions:
+
+protect type: trademark / copyright / patent / trade secret
+
+timeline: file now vs later
+
+disclosure: publish now vs delay
+
+open source posture (requires AEGIS alignment)
+
+Decision outputs:
+
+Decision records routed to GGE
+
+Updates to the asset’s protection intent + workflow state
+
+2.6 Filing Pack Layer
+
+Purpose: produce counsel-ready handoff.
+
+Per filing type, produce standardized packs:
+
+Trademark Pack: mark, owner, goods/services classes, specimen candidates, use dates, search notes
+
+Copyright Pack: work description, authorship, publication status, deposit materials
+
+Patent Pack: invention disclosure, claims sketch, diagrams, inventor list, priority timing, disclosure risk notes
+
+Output:
+
+ready_for_counsel filing record + pack bundle
+
+2.7 Docketing & Maintenance Layer
+
+Purpose: never miss deadlines.
+
+Tracks:
+
+filing deadlines
+
+office action response windows
+
+renewals/maintenance
+
+watch/monitor actions (e.g., confusingly similar marks)
+
+Outputs:
+
+Docket items routed to quickscope
+
+Escalation rules for overdue / critical deadlines
+
+2.8 Risk Engine
+
+Purpose: continuously surface hazards.
+
+Risk inputs:
+
+missing assignments
+
+OSS/license conflicts (from NS-AEGIS)
+
+brand collisions (internal + external search results)
+
+disclosure events (site publish, repo public, marketing announcements)
+
+Risk outputs:
+
+Risk flags on assets
+
+Required mitigations as quickscope tasks
+
+3) Data stores (conceptual)
+
+NS-IPR is intentionally storage-agnostic, but conceptually needs:
+
+IP Registry Store
+
+structured records (assets, filings, decisions, docket)
+
+Evidence Store
+
+immutable-ish artifact storage (hashes + files + references)
+
+Agreement Store
+
+signed PDFs and metadata (references only in Chronicle)
+
+Index/Search (optional but recommended)
+
+fast search across assets, marks, classes, dates
+
+4) Integration architecture (Northfield Solidarity)
+
+4.1 quickscope (Intervention)
+
+Routes:
+
+docket items (deadlines)
+
+mitigation tasks (risk flags)
+
+“next actions” for filing workflows
+
+4.2 GGE (Governance Graph Engine)
+
+Routes:
+
+protect/publish decisions
+
+OSS policy decisions
+
+brand naming approvals
+
+4.3 NS-AEGIS
+
+Routes:
+
+OSS dependency/license posture and conflicts
+
+alerts when a repo’s license posture threatens “owned IP” claims
+
+4.4 DRE
+
+Routes:
+
+invention threads
+
+prior art research notes and source links
+
+4.5 NS-INC / NS-CHRONICLE
+
+Consumes:
+
+project artifacts (docs/code) as evidence
+
+daily/weekly records for provenance timeline
+
+5) Operational flows (at a glance)
+
+5.1 New engine/project name
+
+Intake → Brand candidate → Collision search → Decision gate → Trademark pack → Docket
+
+5.2 New core repo/module
+
+Intake → Evidence pack (repo metadata) → Ownership check → Decision gate (copyright/trade secret/patent) → Filing pack (if applicable)
+
+5.3 Patent-sensitive invention
+
+Intake → Confidentiality posture restricted → Evidence pack → Invention disclosure → Decision gate (file provisional?) → Counsel handoff → Publication allowed only after gate
+
+6) Adoption tiers
+
+Tier A — Manual (MVP)
+
+Manual registry entries
+
+Manual evidence bundle creation
+
+quickscope used for deadlines
+
+Tier B — Semi-automated
+
+Auto-extract repo metadata + hashes
+
+Standard pack templates
+
+Automated docket reminders
+
+Tier C — Engine-integrated
+
+Detection of new assets from NS-INC/CHRONICLE and repos
+
+AEGIS-driven risk ingestion
+
+GGE decision routing
+
+Full state machine + analytics
+
+7) Next document
+
+NS-IPR-004 — LIFECYCLE (intake → evidence → ownership → decision → filing → maintenance, with gates and definitions of done)
+

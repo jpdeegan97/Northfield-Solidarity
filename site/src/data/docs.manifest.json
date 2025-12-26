@@ -1,0 +1,884 @@
+[
+    {
+        "category": "GGP Engine",
+        "icon": "🧠",
+        "items": [
+            {
+                "id": "ggp-overview",
+                "title": "001 Overview",
+                "desc": "System purpose, scope, and objectives.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-001-OVERVIEW.md"
+            },
+            {
+                "id": "ggp-architecture",
+                "title": "002 Architecture",
+                "desc": "System design, layers, and components.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-002-ARCHITECTURE.md"
+            },
+            {
+                "id": "ggp-taxonomy",
+                "title": "003 Taxonomy",
+                "desc": "Component categories and attributes.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-003-TAXONOMY.md"
+            },
+            {
+                "id": "ggp-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "Execution phases and state transitions.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-004-LIFECYCLE.md"
+            },
+            {
+                "id": "ggp-decision",
+                "title": "005 Decision Prompt",
+                "desc": "Logic for the Update Decision Prompt.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-005-DECISION.md"
+            },
+            {
+                "id": "ggp-version",
+                "title": "006 Versioning",
+                "desc": "Semantics and propagation rules.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-006-VERSION.md"
+            },
+            {
+                "id": "ggp-datamodel",
+                "title": "007 Data Model",
+                "desc": "Audit schema and frontend read models.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-007-DATAMODEL.md"
+            },
+            {
+                "id": "ggp-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end execution scenario.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-008-EEE.md"
+            },
+            {
+                "id": "ggp-impl",
+                "title": "009 Implementation",
+                "desc": "MVP plan and module breakdown.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-009-IMPL.md"
+            },
+            {
+                "id": "ggp-fe",
+                "title": "010 Frontend",
+                "desc": "Wireframes and screen layouts.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-010-FE.md"
+            },
+            {
+                "id": "ggp-apimap",
+                "title": "011 API Mapping",
+                "desc": "Endpoint to component mapping.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-011-APIMAP.md"
+            },
+            {
+                "id": "ggp-state",
+                "title": "012 State Mgmt",
+                "desc": "Frontend state management plan.",
+                "path": "documentation/software/engines/NS/GGP/NS-GGP-012-STATE.md"
+            }
+        ]
+    },
+    {
+        "category": "PIE Engine",
+        "icon": "🥧",
+        "items": [
+            {
+                "id": "pie-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of the Product InsightIQ Engine.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-001-OVERVIEW.md"
+            },
+            {
+                "id": "pie-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical vocabulary and primitives.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-002-TAXONOMY.md"
+            },
+            {
+                "id": "pie-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "pie-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "Insight flow from signal to expiry.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-004-LIFECYCLE.md"
+            },
+            {
+                "id": "pie-decision",
+                "title": "005 Decision",
+                "desc": "Evaluation and promotion logic.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-005-DECISION.md"
+            },
+            {
+                "id": "pie-version",
+                "title": "006 Versioning",
+                "desc": "Semantic versioning rules for insights.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-006-VERSION.md"
+            },
+            {
+                "id": "pie-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-007-DATAMODEL.md"
+            },
+            {
+                "id": "pie-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end execution scenario.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-008-EEE.md"
+            },
+            {
+                "id": "pie-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-009-IMPL.md"
+            },
+            {
+                "id": "pie-fe",
+                "title": "010 Frontend",
+                "desc": "Visualization and UX specifications.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-010-FE.md"
+            },
+            {
+                "id": "pie-apimap",
+                "title": "011 API Map",
+                "desc": "Frontend and consumer API contracts.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-011-APIMAP.md"
+            },
+            {
+                "id": "pie-state",
+                "title": "012 State Mgmt",
+                "desc": "State transitions and consistency.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-012-STATE.md"
+            },
+            {
+                "id": "pie-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures and controls.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-013-RUNBOOK.md"
+            },
+            {
+                "id": "pie-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field-level schemas.",
+                "path": "documentation/software/engines/NS/PIE/NS-PIE-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "DAT Engine",
+        "icon": "⚡",
+        "items": [
+            {
+                "id": "dat-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Digital Arbitrage Tooling.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-001-OVERVIEW.md"
+            },
+            {
+                "id": "dat-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical vocabulary and primitives.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-002-TAXONOMY.md"
+            },
+            {
+                "id": "dat-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "dat-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "Execution phases and state transitions.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-004-LIFECYCLE.md"
+            },
+            {
+                "id": "dat-decision",
+                "title": "005 Decision",
+                "desc": "Operational decision semantics.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-005-DECISION.md"
+            },
+            {
+                "id": "dat-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for plans and runs.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-006-VERSION.md"
+            },
+            {
+                "id": "dat-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-007-DATAMODEL.md"
+            },
+            {
+                "id": "dat-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end execution scenario.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-008-EEE.md"
+            },
+            {
+                "id": "dat-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-009-IMPL.md"
+            },
+            {
+                "id": "dat-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-010-FE.md"
+            },
+            {
+                "id": "dat-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-011-APIMAP.md"
+            },
+            {
+                "id": "dat-state",
+                "title": "012 State Mgmt",
+                "desc": "State machines and sub-states.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-012-STATE.md"
+            },
+            {
+                "id": "dat-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures and controls.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-013-RUNBOOK.md"
+            },
+            {
+                "id": "dat-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field-level schemas.",
+                "path": "documentation/software/engines/NS/DAT/NS-DAT-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "FLO Engine",
+        "icon": "💰",
+        "items": [
+            {
+                "id": "flo-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Financial Ledger Orchestrator.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-001-OVERVIEW.md"
+            },
+            {
+                "id": "flo-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical financial vocabulary.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-002-TAXONOMY.md"
+            },
+            {
+                "id": "flo-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "flo-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end financial data flow.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-004-LIFECYCLE.md"
+            },
+            {
+                "id": "flo-decision",
+                "title": "005 Decision",
+                "desc": "Financial decision framework.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-005-DECISION.md"
+            },
+            {
+                "id": "flo-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for rulesets and schemas.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-006-VERSION.md"
+            },
+            {
+                "id": "flo-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-007-DATAMODEL.md"
+            },
+            {
+                "id": "flo-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end financial scenario.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-008-EEE.md"
+            },
+            {
+                "id": "flo-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-009-IMPL.md"
+            },
+            {
+                "id": "flo-fe",
+                "title": "010 Frontend",
+                "desc": "Finance operator UI specs.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-010-FE.md"
+            },
+            {
+                "id": "flo-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-011-APIMAP.md"
+            },
+            {
+                "id": "flo-state",
+                "title": "012 State Mgmt",
+                "desc": "State machines and derived state.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-012-STATE.md"
+            },
+            {
+                "id": "flo-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures and controls.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-013-RUNBOOK.md"
+            },
+            {
+                "id": "flo-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field-level schemas.",
+                "path": "documentation/software/engines/NS/FLO/NS-FLO-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "MUX Engine",
+        "icon": "🔌",
+        "items": [
+            {
+                "id": "mux-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Market Integration Layer.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-001-OVERVIEW.md"
+            },
+            {
+                "id": "mux-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical external artifact vocabulary.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-002-TAXONOMY.md"
+            },
+            {
+                "id": "mux-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "mux-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end external truth flow.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-004-LIFECYCLE.md"
+            },
+            {
+                "id": "mux-decision",
+                "title": "005 Decision",
+                "desc": "Admissibility and integrity decisions.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-005-DECISION.md"
+            },
+            {
+                "id": "mux-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for rulesets and configs.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-006-VERSION.md"
+            },
+            {
+                "id": "mux-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-007-DATAMODEL.md"
+            },
+            {
+                "id": "mux-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end integration scenario.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-008-EEE.md"
+            },
+            {
+                "id": "mux-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-009-IMPL.md"
+            },
+            {
+                "id": "mux-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-010-FE.md"
+            },
+            {
+                "id": "mux-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-011-APIMAP.md"
+            },
+            {
+                "id": "mux-state",
+                "title": "012 State Mgmt",
+                "desc": "State machines and invariant models.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-012-STATE.md"
+            },
+            {
+                "id": "mux-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures and controls.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-013-RUNBOOK.md"
+            },
+            {
+                "id": "mux-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field-level schemas.",
+                "path": "documentation/software/engines/NS/MUX/NS-MUX-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "SIG Engine",
+        "icon": "📡",
+        "items": [
+            {
+                "id": "sig-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Signal Aggregation Engine.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-001-OVERVIEW.md"
+            },
+            {
+                "id": "sig-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical signal vocabulary.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-002-TAXONOMY.md"
+            },
+            {
+                "id": "sig-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "sig-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end signal flow.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-004-LIFECYCLE.md"
+            },
+            {
+                "id": "sig-decision",
+                "title": "005 Decision",
+                "desc": "Signal decision framework.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-005-DECISION.md"
+            },
+            {
+                "id": "sig-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for logic.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-006-VERSION.md"
+            },
+            {
+                "id": "sig-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-007-DATAMODEL.md"
+            },
+            {
+                "id": "sig-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end signal scenario.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-008-EEE.md"
+            },
+            {
+                "id": "sig-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-009-IMPL.md"
+            },
+            {
+                "id": "sig-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-010-FE.md"
+            },
+            {
+                "id": "sig-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-011-APIMAP.md"
+            },
+            {
+                "id": "sig-state",
+                "title": "012 State Mgmt",
+                "desc": "State machine models.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-012-STATE.md"
+            },
+            {
+                "id": "sig-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-013-RUNBOOK.md"
+            },
+            {
+                "id": "sig-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field definitions.",
+                "path": "documentation/software/engines/NS/SIG/NS-SIG-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "SIM Engine",
+        "icon": "🔮",
+        "items": [
+            {
+                "id": "sim-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Sim & Scenario Engine.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-001-OVERVIEW.md"
+            },
+            {
+                "id": "sim-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical simulation vocabulary.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-002-TAXONOMY.md"
+            },
+            {
+                "id": "sim-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and layers.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "sim-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end simulation flow.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-004-LIFECYCLE.md"
+            },
+            {
+                "id": "sim-decision",
+                "title": "005 Decision",
+                "desc": "Simulation decision framework.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-005-DECISION.md"
+            },
+            {
+                "id": "sim-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for models and history.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-006-VERSION.md"
+            },
+            {
+                "id": "sim-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-007-DATAMODEL.md"
+            },
+            {
+                "id": "sim-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end simulation scenario.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-008-EEE.md"
+            },
+            {
+                "id": "sim-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-009-IMPL.md"
+            },
+            {
+                "id": "sim-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-010-FE.md"
+            },
+            {
+                "id": "sim-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-011-APIMAP.md"
+            },
+            {
+                "id": "sim-state",
+                "title": "012 State Mgmt",
+                "desc": "State machine models.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-012-STATE.md"
+            },
+            {
+                "id": "sim-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-013-RUNBOOK.md"
+            },
+            {
+                "id": "sim-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field definitions.",
+                "path": "documentation/software/engines/NS/SIM/NS-SIM-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "IDN Engine",
+        "icon": "🆔",
+        "items": [
+            {
+                "id": "idn-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Identity & Entity Nexus.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-001-OVERVIEW.md"
+            },
+            {
+                "id": "idn-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical identity vocabulary.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-002-TAXONOMY.md"
+            },
+            {
+                "id": "idn-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "idn-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end identity flow.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-004-LIFECYCLE.md"
+            },
+            {
+                "id": "idn-decision",
+                "title": "005 Decision",
+                "desc": "Identity decision framework.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-005-DECISION.md"
+            },
+            {
+                "id": "idn-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for identity truth.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-006-VERSION.md"
+            },
+            {
+                "id": "idn-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-007-DATAMODEL.md"
+            },
+            {
+                "id": "idn-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end identity scenario.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-008-EEE.md"
+            },
+            {
+                "id": "idn-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-009-IMPL.md"
+            },
+            {
+                "id": "idn-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-010-FE.md"
+            },
+            {
+                "id": "idn-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-011-APIMAP.md"
+            },
+            {
+                "id": "idn-state",
+                "title": "012 State Mgmt",
+                "desc": "State machine models.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-012-STATE.md"
+            },
+            {
+                "id": "idn-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-013-RUNBOOK.md"
+            },
+            {
+                "id": "idn-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field definitions.",
+                "path": "documentation/software/engines/NS/IDN/NS-IDN-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "CDE Engine",
+        "icon": "📤",
+        "items": [
+            {
+                "id": "cde-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Content Distribution Engine.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-001-OVERVIEW.md"
+            },
+            {
+                "id": "cde-taxonomy",
+                "title": "002 Taxonomy",
+                "desc": "Canonical distribution vocabulary.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-002-TAXONOMY.md"
+            },
+            {
+                "id": "cde-architecture",
+                "title": "003 Architecture",
+                "desc": "Logical architecture and subsystems.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-003-ARCHITECTURE.md"
+            },
+            {
+                "id": "cde-lifecycle",
+                "title": "004 Lifecycle",
+                "desc": "End-to-end distribution flow.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-004-LIFECYCLE.md"
+            },
+            {
+                "id": "cde-decision",
+                "title": "005 Decision",
+                "desc": "Distribution decision framework.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-005-DECISION.md"
+            },
+            {
+                "id": "cde-version",
+                "title": "006 Versioning",
+                "desc": "Versioning rules for plans and logic.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-006-VERSION.md"
+            },
+            {
+                "id": "cde-datamodel",
+                "title": "007 Data Model",
+                "desc": "Authoritative entities and storage.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-007-DATAMODEL.md"
+            },
+            {
+                "id": "cde-eee",
+                "title": "008 Example Exec",
+                "desc": "End-to-end distribution scenario.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-008-EEE.md"
+            },
+            {
+                "id": "cde-impl",
+                "title": "009 Implementation",
+                "desc": "MVP service decomposition.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-009-IMPL.md"
+            },
+            {
+                "id": "cde-fe",
+                "title": "010 Frontend",
+                "desc": "Operator UI specifications.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-010-FE.md"
+            },
+            {
+                "id": "cde-apimap",
+                "title": "011 API Map",
+                "desc": "Backend API surfaces.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-011-APIMAP.md"
+            },
+            {
+                "id": "cde-state",
+                "title": "012 State Mgmt",
+                "desc": "State machine models.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-012-STATE.md"
+            },
+            {
+                "id": "cde-runbook",
+                "title": "013 Runbook",
+                "desc": "Operational procedures.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-013-RUNBOOK.md"
+            },
+            {
+                "id": "cde-datadef",
+                "title": "014 Data Defs",
+                "desc": "Canonical field definitions.",
+                "path": "documentation/software/engines/NS/CDE/NS-CDE-014-DATADEF.md"
+            }
+        ]
+    },
+    {
+        "category": "INT Engine",
+        "icon": "⚡",
+        "items": [
+            {
+                "id": "int-charter",
+                "title": "000 Charter",
+                "desc": "Engine identity and mission.",
+                "path": "documentation/software/engines/NS/INT/NS-INT-000-CHARTER.md"
+            },
+            {
+                "id": "int-overview",
+                "title": "001 Overview",
+                "desc": "Purpose and role of Intervention.",
+                "path": "documentation/software/engines/NS/INT/NS-INT-001-OVERVIEW.md"
+            },
+            {
+                "id": "int-decision",
+                "title": "005 Decision",
+                "desc": "Architectural decisions log.",
+                "path": "documentation/software/engines/NS/INT/NS-INT-005-DECISION.md"
+            }
+        ]
+    },
+    {
+        "category": "Architecture",
+        "icon": "🏗️",
+        "items": [
+            {
+                "id": "charters-and-boundaries",
+                "title": "Engine charters & boundaries",
+                "desc": "Defining the scope and responsibility of every engine. How GGP controls flow.",
+                "path": "documentation/software/migrated/architecture-engine-charters-boundaries.md"
+            },
+            {
+                "id": "data-model",
+                "title": "Data model (PostgreSQL + Mongo)",
+                "desc": "Hybrid persistence strategy for relational and document data.",
+                "path": "documentation/software/migrated/architecture-data-model-postgresql-mongo.md"
+            },
+            {
+                "id": "hybrid-implementation",
+                "title": "Hybrid Implementation (Python/C++)",
+                "desc": "Dual-language engine architecture for performance and flexibility.",
+                "path": "documentation/software/migrated/architecture-hybrid-implementation-pythonc.md"
+            },
+            {
+                "id": "events-and-topics",
+                "title": "Event envelope + topic contracts",
+                "desc": "Standardized message formats for Kafka/EventBridge.",
+                "path": "documentation/software/migrated/architecture-event-envelope-topic-contracts.md"
+            }
+        ]
+    },
+    {
+        "category": "Reliability",
+        "icon": "🛡️",
+        "items": [
+            {
+                "id": "idempotency-retry-dlq",
+                "title": "Idempotency + retry + DLQ standards",
+                "desc": "Ensuring exactly-once processing and failure handling.",
+                "path": "documentation/software/migrated/reliability-idempotency-retry-dlq-standards.md"
+            },
+            {
+                "id": "deployment-topology",
+                "title": "Deployment topology",
+                "desc": "PowerEdge + Container strategy for on-prem/cloud hybrid.",
+                "path": "documentation/software/migrated/reliability-deployment-topology.md"
+            }
+        ]
+    },
+    {
+        "category": "Security",
+        "icon": "🔒",
+        "items": [
+            {
+                "id": "security",
+                "title": "Security + IP lockdown strategy",
+                "desc": "Zero-trust networking and intellectual property protection.",
+                "path": "documentation/software/migrated/security-security-ip-lockdown-strategy.md"
+            }
+        ]
+    }
+]

@@ -1,0 +1,458 @@
+NS-IPR-007 — DATAMODEL
+
+This document defines the canonical NS-IPR data model: entities, relationships, identity rules, and engine mappings.
+
+NS-IPR’s model is designed to support:
+
+audit-grade provenance
+
+chain-of-title clarity
+
+filing/docket workflows
+
+risk surfacing
+
+routing into GGE / quickscope / AEGIS / DRE
+
+1) Core entities
+
+1.1 IPAsset (the canonical unit)
+
+Represents one protectable “thing” you care about.
+
+Examples:
+
+the mark “Northfield Solidarity” (word mark)
+
+the engine name “NS-AEGIS”
+
+a core codebase/module
+
+a patentable method
+
+a trade secret process
+
+Key fields:
+
+asset_id (stable)
+
+project (NS-*)
+
+title / mark_text (as relevant)
+
+asset_class (Trademark/Copyright/Patent/TradeSecret/Brand/Design/Dataset/KnowHow)
+
+asset_type (word_mark, system, source_code, process, etc.)
+
+confidentiality_posture (public/internal/restricted/trade_secret)
+
+protection_intent (file_now/file_later/monitor/keep_secret/open_source/abandon)
+
+tier (tier0–tier3)
+
+lifecycle_state (intake → maintaining)
+
+created_at, last_updated_at
+
+Relationships:
+
+IPAsset has many EvidenceItems
+
+IPAsset has one OwnershipChain
+
+IPAsset has many Agreements (directly or via OwnershipChain)
+
+IPAsset has many Filings
+
+IPAsset has many DocketItems
+
+IPAsset has many RiskFlags
+
+IPAsset has many Decisions
+
+1.2 EvidenceItem
+
+One piece of provenance/proof.
+
+Key fields:
+
+evidence_id
+
+asset_id
+
+evidence_category (RepositoryEvidence, DocumentEvidence, UseInCommerceEvidence, etc.)
+
+evidence_type (commit_hash, doc_id, screenshot, specimen, etc.)
+
+ref (URL, doc ID, repo path)
+
+hash (optional)
+
+timestamp (when it existed)
+
+strength (weak/medium/strong/legal_grade)
+
+notes
+
+1.3 EvidencePack
+
+A structured bundle of EvidenceItems.
+
+Key fields:
+
+pack_id
+
+asset_id
+
+pack_version
+
+generated_at
+
+contents[] (evidence_ids or embedded summaries)
+
+1.4 Contributor
+
+A person/entity who contributed.
+
+Key fields:
+
+contributor_id
+
+name
+
+entity_type (individual/company/contractor_entity)
+
+role (author/inventor/designer/etc.)
+
+contact_ref (optional)
+
+1.5 Agreement
+
+A governing document for IP rights.
+
+Key fields:
+
+agreement_id
+
+agreement_type (employee_invention_assignment, contractor_ip_assignment, nda, cla, license_in, license_out)
+
+status (draft/sent/signed/expired/superseded)
+
+effective_date
+
+parties[] (contributors/entities)
+
+storage_ref (reference to signed PDF location)
+
+1.6 OwnershipChain
+
+Represents chain of title for an asset.
+
+Key fields:
+
+ownership_id
+
+asset_id
+
+owner_entity (e.g., Northfield Solidarity LLC or a specific subsidiary)
+
+contributors[]
+
+agreements[]
+
+chain_state (clear/incomplete/disputed/third_party_owned)
+
+notes
+
+1.7 Filing
+
+Represents an attempt to register/protect.
+
+Key fields:
+
+filing_id
+
+asset_id
+
+filing_type (TrademarkFiling/CopyrightFiling/PatentFiling)
+
+jurisdiction (us/eu/uk/ca/au/...)
+
+status (candidate/researching/ready_for_counsel/filed/office_action/responded/registered_or_granted/rejected_or_abandoned/renewal_due/renewed)
+
+application_number (optional)
+
+registration_number (optional)
+
+filed_date (optional)
+
+priority_date (patent)
+
+nice_classes[] (trademark)
+
+specimen_refs[] (trademark)
+
+counsel_ref (optional)
+
+Relationships:
+
+Filing has many DocketItems
+
+Filing has one FilingPack (per submission wave)
+
+1.8 FilingPack
+
+Counsel-ready bundle for one filing effort.
+
+Key fields:
+
+pack_id
+
+filing_id
+
+pack_type (TrademarkPack/CopyrightPack/PatentPack)
+
+pack_version
+
+generated_at
+
+contents_refs[] (evidence, diagrams, descriptions)
+
+1.9 DocketItem
+
+A tracked deadline/action.
+
+Key fields:
+
+docket_id
+
+asset_id (and/or filing_id)
+
+docket_type (office_action_response, renewal, specimen_due, maintenance_fee, watch_check)
+
+due_date
+
+severity (low/medium/high/critical)
+
+state (scheduled/due_soon/overdue/completed/waived)
+
+next_action
+
+owner (who is responsible)
+
+1.10 RiskFlag
+
+A risk signal that requires mitigation.
+
+Key fields:
+
+risk_id
+
+asset_id
+
+category (missing_assignment, brand_collision, disclosure_risk, open_source_contamination, missed_deadline_risk, etc.)
+
+severity (low/medium/high/critical)
+
+state (open/mitigating/resolved/accepted)
+
+description
+
+mitigation_plan
+
+links[]
+
+1.11 Decision
+
+A recorded governance choice for the asset.
+
+Key fields:
+
+decision_id
+
+asset_id
+
+project
+
+decision_class (naming/legal/security/product/etc.)
+
+status (draft/made/reversed)
+
+choice
+
+rationale
+
+consequences
+
+effective_date
+
+evidence_links[]
+
+reversal_of_decision_id (optional)
+
+2) Relationships (graph view)
+
+Canonical edges:
+
+IPAsset → EvidenceItem (HAS_EVIDENCE)
+
+IPAsset → OwnershipChain (HAS_OWNERSHIP)
+
+OwnershipChain → Agreement (GOVERNED_BY)
+
+OwnershipChain → Contributor (CONTRIBUTED_BY)
+
+IPAsset → Filing (HAS_FILING)
+
+Filing → FilingPack (HAS_PACK)
+
+Filing → DocketItem (HAS_DOCKET)
+
+IPAsset → RiskFlag (HAS_RISK)
+
+IPAsset → Decision (HAS_DECISION)
+
+Cross-engine edges:
+
+Decision → GGE (EMITTED_TO)
+
+DocketItem/RiskFlag tasks → quickscope (EMITTED_TO)
+
+OSS-related RiskFlag → NS-AEGIS (EMITTED_TO)
+
+Prior-art/research EvidenceItem → DRE (EMITTED_TO)
+
+3) Identity rules (stable IDs)
+
+NS-IPR requires stable IDs to keep provenance auditable.
+
+3.1 Recommended ID formats
+
+asset_id = IPR-ASSET::<project>::<slug>
+
+filing_id = IPR-FILING::<asset_id>::<jurisdiction>::<type>::<n>
+
+docket_id = IPR-DOCKET::<filing_id>::<due_date>::<type>
+
+risk_id = IPR-RISK::<asset_id>::<category>::<n>
+
+decision_id = IPR-DEC::<asset_id>::<date>::<slug>
+
+Slug rules:
+
+lowercase
+
+hyphen separated
+
+deterministic from title/mark where possible
+
+4) State model (top-level)
+
+4.1 IPAsset lifecycle state
+
+intake
+
+classified
+
+evidence_ready
+
+ownership_ready
+
+decision_pending
+
+filing_in_progress
+
+registered
+
+maintaining
+
+retired
+
+4.2 Filing status
+
+See NS-IPR-002; Filing has its own status independent of IPAsset.
+
+4.3 Docket state
+
+scheduled | due_soon | overdue | completed | waived
+
+4.4 Risk state
+
+open | mitigating | resolved | accepted
+
+5) Engine mappings
+
+5.1 quickscope (Intervention)
+
+Emit tasks/events for:
+
+every DocketItem
+
+every RiskFlag with severity >= high
+
+filing pack preparation tasks
+
+quickscope fields:
+
+title, next_action, due_date, severity, links, asset_id, project
+
+5.2 GGE (Governance Graph Engine)
+
+Emit governance records for:
+
+protect/publish posture decisions
+
+naming approvals
+
+OSS posture decisions
+
+entity ownership placement decisions
+
+GGE fields:
+
+decision_id, asset_id, choice, rationale, effective_date, evidence_links
+
+5.3 NS-AEGIS
+
+Emit/consume for OSS risk:
+
+RiskFlags of category open_source_contamination or third_party_license_risk
+
+link to repo/module and dependency graph context
+
+5.4 DRE
+
+Emit research nodes for:
+
+prior art notes
+
+invention threads
+
+sources (EvidenceItems with external URLs)
+
+6) Minimal “registry MVP” record set
+
+To be useful immediately, every IPAsset should minimally have:
+
+asset_id
+
+project
+
+title
+
+asset_class
+
+confidentiality_posture
+
+protection_intent
+
+lifecycle_state
+
+at least one EvidenceItem reference
+
+an OwnershipChain state (clear or incomplete)
+
+7) Next document
+
+NS-IPR-008 — EEE (end-to-end examples: trademark pack, patent-sensitive invention, OSS release posture with AEGIS)
+

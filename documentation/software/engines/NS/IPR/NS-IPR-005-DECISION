@@ -1,0 +1,316 @@
+NS-IPR-005 — DECISION
+
+This document defines how NS-IPR makes, records, approves, routes, and (when necessary) reverses IP decisions across Northfield Solidarity.
+
+NS-IPR decisions must be:
+
+explicit (no “implicit posture”)
+
+evidence-backed (linked to Evidence/Ownership packs)
+
+auditable (who/when/why)
+
+actionable (they create filing tasks, disclosure rules, or OSS actions)
+
+1) Decision domains (what we decide)
+
+NS-IPR decisions fall into these domains:
+
+Protect posture
+
+trademark / copyright / patent / trade secret / open source / abandon
+
+Disclosure posture
+
+publish now vs delay vs restricted
+
+Jurisdiction strategy
+
+US-only vs multi-jurisdiction (EU/UK/etc.)
+
+Timing
+
+file now vs file later vs monitor
+
+Ownership/entity placement
+
+which NS entity holds the asset
+
+Brand controls
+
+naming approvals, mark variants, usage standards
+
+OSS posture (AEGIS alignment)
+
+what can be open sourced, under what license, with what carve-outs
+
+2) Non-negotiable gates
+
+These gates must be satisfied before certain decisions can progress.
+
+2.1 Ownership gate
+
+If chain-of-title is not clear, no filing and no “owned IP” claims.
+
+Action: open a quickscope task to complete assignments/agreements.
+
+2.2 Evidence gate
+
+High-value decisions require an Evidence Pack link.
+
+At minimum: repo commit refs + doc refs + timestamps.
+
+2.3 Disclosure gate (patent / trade secret)
+
+If asset is patent-sensitive or trade-secret-managed, default is restricted.
+
+Public disclosure requires an explicit decision and documented rationale.
+
+2.4 OSS gate (license + contamination)
+
+Open-source decisions require AEGIS posture review:
+
+dependency licensing scan
+
+inbound license restrictions
+
+export of proprietary modules/keys/config
+
+3) Decision criteria (how we choose)
+
+3.1 Trademark decision criteria
+
+Proceed when:
+
+it’s a core name/brand used consistently
+
+collision risk is acceptable
+
+you can produce (or soon will) use in commerce evidence
+
+you expect long-lived value
+
+Delay/monitor when:
+
+name may change
+
+unclear product-market fit
+
+insufficient specimen / usage maturity
+
+3.2 Copyright decision criteria
+
+Proceed when:
+
+asset is a major body of code/docs/creative work
+
+you want simplified enforcement posture
+
+ownership is clear and deposit materials are available
+
+Note: copyright exists automatically upon creation in many jurisdictions, but registration may be valuable for enforcement and formalization.
+
+3.3 Patent decision criteria
+
+Proceed when:
+
+invention is novel and strategically defensible
+
+it creates durable differentiation
+
+disclosure timing is controllable
+
+you can articulate claims and embodiments
+
+Avoid/keep secret when:
+
+invention is easily reverse-engineered (patent may be necessary)
+
+OR when secrecy is maintainable and disclosure would weaken advantage
+
+Key risk:
+
+public disclosure before strategy can compromise patent options depending on jurisdiction.
+
+3.4 Trade secret decision criteria
+
+Proceed when:
+
+value comes from non-public know-how
+
+you can maintain controls (restricted access, NDAs, compartmentalization)
+
+publication is not necessary for adoption
+
+Trade secret requires operational discipline: access control + documentation + employee/contractor controls.
+
+3.5 Open-source decision criteria (AEGIS-aligned)
+
+Proceed when:
+
+open source accelerates adoption/community
+
+core differentiation remains protected (via patents, trade secrets, hosted services, or retained modules)
+
+you can comply with inbound license constraints
+
+Avoid when:
+
+it exposes proprietary methods you plan to patent
+
+it leaks trade secret material
+
+it creates license obligations you cannot accept
+
+4) Decision authority and approvals
+
+Incubator-style rigor: authority depends on impact/tier.
+
+4.1 Asset tiering (informal v1)
+
+Tier 0: existential brand + core platform inventions
+
+Tier 1: major product line assets
+
+Tier 2: useful but replaceable
+
+Tier 3: low-value / exploratory
+
+4.2 Approval policy (default)
+
+Tier 0/1 decisions require an explicit decision record and are treated as “high rigor.”
+
+Patent/trade secret decisions always require the disclosure gate.
+
+Trademark naming decisions for public-facing brands are treated as Tier 0/1 by default.
+
+(As the org grows, approvals can be delegated to a legal ops role or governance council; for now this is “founder approval.”)
+
+5) Decision outputs (what a decision must produce)
+
+Every NS-IPR decision must produce:
+
+A Decision Record (routes to GGE)
+
+A State Transition for the IPAsset (routes to quickscope)
+
+Concrete Next Actions (filing pack tasks, search tasks, agreement tasks)
+
+Examples:
+
+“File trademark” → create filing record + docket items + specimen work
+
+“Keep as trade secret” → create controls checklist tasks (access restrictions)
+
+“Open source under Apache-2.0” → AEGIS scan + repo license standardization + module separation tasks
+
+6) Decision record format (canonical)
+
+Decision records should be stored in the registry and emitted to GGE.
+
+Minimum fields:
+
+DecisionId
+
+AssetId
+
+Project
+
+DecisionClass (naming|architecture|security|operations|product|finance|legal)
+
+Choice
+
+Rationale
+
+Consequences
+
+EffectiveDate
+
+OwnerEntity
+
+EvidenceLinks[]
+
+OwnershipPackLink
+
+RiskFlagsOpen[]
+
+NextActions[]
+
+Recommended: add ReversalOfDecisionId if reversing.
+
+7) Reversals and changes
+
+Decisions can change, but reversals must be explicit.
+
+7.1 When reversals happen
+
+name changes
+
+OSS posture changes
+
+filing abandoned
+
+trade secret converted to patent filing
+
+7.2 Reversal rules
+
+never overwrite the original decision
+
+create a new decision with status reversed or made + ReversalOfDecisionId
+
+record what changed and why
+
+update asset state and open new next actions
+
+8) Routing rules (GGE + quickscope)
+
+8.1 GGE routing (governance)
+
+Send to GGE:
+
+protect/publish posture
+
+OSS posture decisions
+
+naming approvals
+
+entity ownership placements
+
+GGE stores the “why” layer.
+
+8.2 quickscope routing (state + tasks)
+
+Send to quickscope:
+
+filing workflow tasks
+
+agreement completion tasks
+
+docket items
+
+disclosure controls tasks
+
+quickscope stores the “what next” layer.
+
+9) Decision checklists (operator quick-use)
+
+9.1 Trademark decision checklist
+
+
+
+9.2 Patent decision checklist
+
+
+
+9.3 Trade secret decision checklist
+
+
+
+9.4 Open-source decision checklist (AEGIS)
+
+
+
+10) Next document
+
+NS-IPR-006 — VERSION (schema evolution, registry versioning, and decision record compatibility)
+

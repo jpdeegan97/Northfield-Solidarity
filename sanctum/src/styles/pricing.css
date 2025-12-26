@@ -1,0 +1,339 @@
+/* Pricing Page Styles */
+
+/* --- Hero --- */
+.pricing-hero {
+  padding: var(--space-8) 0;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, var(--c-brand-light), transparent 60%);
+}
+
+.pricing-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-highlights {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-6);
+  display: flex;
+  justify-content: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  color: var(--c-text-sub);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.hero-highlights li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.hero-highlights li::before {
+  content: "✓";
+  color: var(--c-brand);
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+
+/* --- Billing Toggle --- */
+.billing-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  font-weight: 600;
+  color: var(--c-text-sub);
+}
+
+.billing-toggle-wrapper span.active {
+  color: var(--c-text);
+}
+
+.billing-toggle {
+  width: 50px;
+  height: 28px;
+  background-color: var(--c-border);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 2px;
+}
+
+.billing-toggle.toggled {
+  background-color: var(--c-brand);
+}
+
+.toggle-handle {
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.billing-toggle.toggled .toggle-handle {
+  transform: translateX(22px);
+}
+
+/* --- Pricing Grid --- */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.pricing-card {
+  background: var(--c-card-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--c-brand-light);
+}
+
+.pricing-card.recommended {
+  border-color: var(--c-brand);
+  background: linear-gradient(to bottom, var(--c-brand-light), var(--c-card-bg) 15%);
+  box-shadow: var(--shadow-md);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--c-brand);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.05em;
+}
+
+.card-header {
+  margin-bottom: var(--space-4);
+  text-align: center;
+  border-bottom: 1px solid var(--c-surface);
+  padding-bottom: var(--space-4);
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: var(--space-1);
+  color: var(--c-text);
+}
+
+.currency {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.suffix {
+  font-size: 0.9rem;
+  color: var(--c-text-sub);
+  margin-left: 4px;
+}
+
+.best-for {
+  font-size: 0.875rem;
+  color: var(--c-brand);
+  font-weight: 500;
+  margin-top: var(--space-2);
+}
+
+.card-body {
+  flex: 1;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--c-text-sub);
+}
+
+.feature-list li {
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: flex-start;
+}
+
+.feature-list li::before {
+  content: "•";
+  color: var(--c-brand);
+  display: inline-block;
+  width: 1em;
+  flex-shrink: 0;
+}
+
+.bonus-feature {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background-color: var(--c-surface);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--c-text);
+  border: 1px dashed var(--c-border);
+}
+
+.card-footer {
+  margin-top: var(--space-5);
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* --- Addons --- */
+.addon-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.addon-card .cardTitle {
+  font-size: 1rem;
+}
+
+.addon-price {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin-bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.base-price {
+  color: var(--c-text);
+  font-weight: 600;
+}
+
+.usage-price {
+  color: var(--c-text-sub);
+}
+
+/* --- Services --- */
+.service-section {
+  background-color: var(--c-surface);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.service-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.service-name {
+  font-weight: 600;
+}
+
+.service-price {
+  font-family: var(--font-mono);
+  color: var(--c-text-sub);
+}
+
+/* --- FAQ --- */
+.faq-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--c-border);
+}
+
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.faq-question:hover {
+  color: var(--c-brand);
+}
+
+.faq-toggle-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--c-text-sub);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  opacity: 0;
+  color: var(--c-text-sub);
+}
+
+.faq-item.open .faq-answer {
+  max-height: 200px;
+  opacity: 1;
+  padding-bottom: var(--space-4);
+}
+
+.center-text {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .hero-highlights {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: center;
+  }
+}
