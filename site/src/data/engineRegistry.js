@@ -1,5 +1,11 @@
 // src/data/engineRegistry.js
 
+const COMMON_ENDPOINTS = [
+    { method: "GET", path: "/state", desc: "Current engine state snapshot" },
+    { method: "GET", path: "/health", desc: "Liveness and readiness probe" },
+    { method: "GET", path: "/metrics", desc: "Prometheus metrics endpoint" },
+];
+
 export const NS_ENGINES = [
     {
         code: "GGP",
@@ -18,6 +24,13 @@ export const NS_ENGINES = [
         inputs: ["Domain events", "Identity/role context", "Policies/rules", "Prior state snapshots"],
         outputs: ["Allow/deny decisions", "Approved transitions", "Audit records", "Governance events"],
         integrations: ["IDN", "FLO", "SIG", "MUX", "SIM", "DAT", "DRE", "PIE"],
+        externalIntegrations: ["Open Policy Agent (OPA)", "Casbin", "Keycloak"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/authorize", desc: "Evaluate permission for a subject/resource/action" },
+            { method: "GET", path: "/policies", desc: "List active governance policies" },
+            { method: "POST", path: "/propose", desc: "Submit a new governance proposal" },
+        ],
         status: "Active build",
     },
     {
@@ -31,6 +44,12 @@ export const NS_ENGINES = [
         inputs: ["Market signals", "Operational state"],
         outputs: ["Continuity plans", "Failover triggers"],
         integrations: ["OCP", "GGP"],
+        externalIntegrations: ["PagerDuty", "Twilio", "AWS Route53"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/failover", desc: "Trigger manual failover sequence" },
+            { method: "GET", path: "/readiness", desc: "Get comprehensive system readiness report" },
+        ],
         status: "Planned",
     },
     {
@@ -44,6 +63,12 @@ export const NS_ENGINES = [
         inputs: ["External data"],
         outputs: ["Normalized data"],
         integrations: ["MUX", "SIG"],
+        externalIntegrations: ["Airbyte", "Singer Taps", "Kafka"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/connectors", desc: "List available connectors" },
+            { method: "POST", path: "/sync/{id}", desc: "Force synchronization for a connector" },
+        ],
         status: "Active build",
     },
     {
@@ -57,6 +82,12 @@ export const NS_ENGINES = [
         inputs: ["Raw IP", "Legal frameworks"],
         outputs: ["Registered IP assets"],
         integrations: ["MINT", "IDN"],
+        externalIntegrations: ["USPTO API", "IPFS", "Ethereum (NFTs)"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/register", desc: "Register a new IP asset" },
+            { method: "GET", path: "/assets/{id}", desc: "Get full IP asset details" },
+        ],
         status: "Planned",
     },
     {
@@ -70,6 +101,12 @@ export const NS_ENGINES = [
         inputs: ["Execution requests"],
         outputs: ["Execution results"],
         integrations: ["BCO", "GGP"],
+        externalIntegrations: ["Ethereum", "Polygon", "Chainlink"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/execute", desc: "Submit transaction for onchain execution" },
+            { method: "GET", path: "/gas", desc: "Get current gas estimates" },
+        ],
         status: "Planned",
     },
     {
@@ -83,6 +120,12 @@ export const NS_ENGINES = [
         inputs: ["Inference requests"],
         outputs: ["Model responses"],
         integrations: ["GGP", "SIG"],
+        externalIntegrations: ["OpenAI API", "HuggingFace Inference", "Anthropic Claude"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/infer", desc: "Route inference request to best model" },
+            { method: "GET", path: "/models", desc: "List active external models" },
+        ],
         status: "Planned",
     },
     {
@@ -102,6 +145,12 @@ export const NS_ENGINES = [
         inputs: ["Founder intent", "Legal frameworks", "Asset metadata"],
         outputs: ["Formed entities", "Assigned IP", "Legal artifacts"],
         integrations: ["GGP", "IDN", "FLO"],
+        externalIntegrations: ["Stripe Atlas", "Clerky", "DocuSign"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/incorporate", desc: "Start entity formation workflow" },
+            { method: "POST", path: "/assign", desc: "Execute IP assignment agreement" },
+        ],
         status: "Incubator / Active Build",
     },
     {
@@ -121,6 +170,12 @@ export const NS_ENGINES = [
         inputs: ["Research packs (DRE)", "Signals (SIG)", "Channel data (MUX)"],
         outputs: ["Insight objects", "Ranked opportunities", "Decision briefs"],
         integrations: ["DRE", "SIG", "MUX", "SIM"],
+        externalIntegrations: ["G2 API", "ProductHunt", "Google FactCheck"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/insights", desc: "Query synthesized product insights" },
+            { method: "POST", path: "/score", desc: "Score a product opportunity opportunity" },
+        ],
         status: "Planned / MVP soon",
     },
     {
@@ -139,6 +194,12 @@ export const NS_ENGINES = [
         inputs: ["Approved actions (GGP)", "Signals (SIG)", "Channel connectivity (MUX)"],
         outputs: ["Execution events", "Outcome metrics", "Reconciliation inputs"],
         integrations: ["GGP", "SIG", "MUX", "FLO"],
+        externalIntegrations: ["ccxt (Crypto)", "Interactive Brokers API", "Uniswap SDK"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/execute", desc: "Execute an arbitrage strategy" },
+            { method: "GET", path: "/positions", desc: "Get active holdings/positions" },
+        ],
         status: "Active build",
     },
     {
@@ -158,6 +219,12 @@ export const NS_ENGINES = [
         inputs: ["External API responses", "Outbound action requests"],
         outputs: ["Normalized events", "Action acknowledgements", "Integration telemetry"],
         integrations: ["SIG", "DAT", "PIE", "DRE", "FLO"],
+        externalIntegrations: ["Stripe", "SendGrid", "Twilio", "Shopify"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/dispatch", desc: "Dispatch action to external channel" },
+            { method: "GET", path: "/webhooks", desc: "Manage inbound webhook configurations" },
+        ],
         status: "Active build",
     },
     {
@@ -177,6 +244,12 @@ export const NS_ENGINES = [
         inputs: ["Channel feeds (MUX)", "External datasets", "Manual signals"],
         outputs: ["Scored signals", "Alert/trigger events", "Signal history"],
         integrations: ["MUX", "DRE", "PIE", "SIM"],
+        externalIntegrations: ["Twitter API", "Finnhub", "RSS parsers"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/ingest", desc: "Ingest a raw signal" },
+            { method: "GET", path: "/stream", desc: "Subscribe to signal stream (SSE/WS)" },
+        ],
         status: "Active build",
     },
     {
@@ -195,6 +268,12 @@ export const NS_ENGINES = [
         inputs: ["Insight objects (PIE)", "Signals (SIG)", "Financial constraints (FLO)"],
         outputs: ["Scenario results", "Sensitivity reports", "Projection objects"],
         integrations: ["PIE", "SIG", "FLO", "DRE"],
+        externalIntegrations: ["NumPy/Pandas", "Monte Carlo Libs", "TensorFlow"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/run", desc: "Compute a simulation scenario" },
+            { method: "GET", path: "/results/{id}", desc: "Get detailed simulation results" },
+        ],
         status: "Planned",
     },
     {
@@ -209,11 +288,47 @@ export const NS_ENGINES = [
             "Identity and role model",
             "Entity graph primitives",
             "Authn/authz boundary surfaces (with GGP)",
+            "Sovereign DID issuance",
+            "Verifiable credentials vault",
+            "Trust scoring & reputation"
         ],
-        inputs: ["User/service identity", "Role assignments", "Entity definitions"],
-        outputs: ["Identity context", "Role claims", "Entity graph updates"],
-        integrations: ["GGP", "FLO"],
-        status: "Planned / foundational",
+        capabilities: [
+            // I. Core Identity
+            "Sovereign DID Management",
+            "Verifiable Credentials Vault",
+            "Cross-Context Personas",
+            "Wallet Linkage (SIWE)",
+            "Bio-metric Passkeys",
+            // II. Access & Security
+            "Just-In-Time (JIT) Access",
+            "Session Genealogy Tree",
+            "Anomaly Detection & Circuit Breaking",
+            "Service Identity Provisioning",
+            "Legacy / Dead Man’s Switch",
+            // III. Trust & Governance
+            "Social Recovery Rings",
+            "Reputation Staking",
+            "Dynamic Trust Scoring",
+            "Sybil Resistance",
+            "Delegated Authority",
+            // IV. Entity Management
+            "Visual Org Graph",
+            "Entity 'Masquerade' Mode",
+            "Skill & Capability Tagging",
+            "Vendor/Contractor Guest Passes",
+            "Audit Timeline"
+        ],
+        inputs: ["User/service identity", "Role assignments", "Entity definitions", "Trust signals"],
+        outputs: ["Identity context", "Role claims", "Entity graph updates", "Trust scores"],
+        integrations: ["GGP", "FLO", "SIM"],
+        externalIntegrations: ["Auth0", "AWS Cognito", "LDAP", "Ethereum", "WebAuthn"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/whoami", desc: "Get current caller identity context" },
+            { method: "POST", path: "/roles", desc: "Assign role to entity" },
+            { method: "POST", path: "/recover", desc: "Initiate social recovery protocol" },
+        ],
+        status: "Planned / Foundational",
     },
     {
         code: "FLO",
@@ -231,6 +346,12 @@ export const NS_ENGINES = [
         inputs: ["Execution outcomes (DAT)", "Approvals (GGP)", "External statements (MUX)"],
         outputs: ["Ledger entries", "Reconciliation results", "Financial audit events"],
         integrations: ["DAT", "GGP", "MUX", "SIM"],
+        externalIntegrations: ["Plaid", "QuickBooks Online", "Stripe Connect"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/ledger", desc: "Query general ledger" },
+            { method: "POST", path: "/transaction", desc: "Record a financial transaction" },
+        ],
         status: "Planned",
     },
     {
@@ -249,6 +370,12 @@ export const NS_ENGINES = [
         inputs: ["Documents", "Web research", "Signal bundles (SIG)"],
         outputs: ["Research packs", "Knowledge graph objects", "Summaries/briefs"],
         integrations: ["SIG", "PIE", "SIM"],
+        externalIntegrations: ["OpenAI GPT-4", "Pinecone (Vector DB)", "LangChain"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/research", desc: "Initiate deep research task" },
+            { method: "POST", path: "/query", desc: "Semantic query against knowledge graph" },
+        ],
         status: "Active build (DRE concept)",
     },
     {
@@ -268,6 +395,12 @@ export const NS_ENGINES = [
         inputs: ["Canonical events (All Engines)", "Governance decisions (GGP)"],
         outputs: ["State snapshots", "Delta streams", "Replay/audit logs"],
         integrations: ["GGP", "Firmament", "All Engines"],
+        externalIntegrations: ["Redis Streams", "PostgreSQL", "Apache Kafka"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/events", desc: "Query immutable event log" },
+            { method: "GET", path: "/snapshot", desc: "Get full system state snapshot" },
+        ],
         status: "Active build",
     },
     {
@@ -287,6 +420,12 @@ export const NS_ENGINES = [
         inputs: ["Trigger events", "Manual initiation"],
         outputs: ["Workflow capability", "Completion records", "Efficiency metrics"],
         integrations: ["GGP", "IDN", "INT"],
+        externalIntegrations: ["Jira", "Slack API", "Notion API"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/sops", desc: "List standard operating procedures" },
+            { method: "POST", path: "/start/{sopId}", desc: "Initiate an SOP workflow" },
+        ],
         status: "Planned",
     },
     {
@@ -306,6 +445,12 @@ export const NS_ENGINES = [
         inputs: ["System alerts (All Engines)", "Heartbeat signals"],
         outputs: ["Failover commands", "Resilience reports", "Emergency alerts"],
         integrations: ["INT", "GGP", "Firmament"],
+        externalIntegrations: ["AWS Backup", "Cloudflare"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/emergency", desc: "Declare emergency state" },
+            { method: "GET", path: "/drills", desc: "Get history of recovery drills" },
+        ],
         status: "Planned",
     },
     {
@@ -325,6 +470,12 @@ export const NS_ENGINES = [
         inputs: ["Telemetry streams", "System logs", "Trace data"],
         outputs: ["Alerts", "Incident records", "Dashboard visualizations"],
         integrations: ["All Engines", "GGP"],
+        externalIntegrations: ["Prometheus", "Grafana", "OpenTelemetry", "ELK Stack"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/telemetry", desc: "Ingest generic telemetry (Push)" },
+            { method: "GET", path: "/incidents", desc: "List active incidents" },
+        ],
         status: "Active build",
     },
 
@@ -339,6 +490,11 @@ export const NS_ENGINES = [
         inputs: ["Prototypes (FRK)", "Market signals (PIE)"],
         outputs: ["New Engines", "Ventures"],
         integrations: ["FRK", "PIE", "GGP"],
+        externalIntegrations: ["Crunchbase", "AngelList"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/hatch", desc: "Promote draft to incubator" },
+        ],
         status: "Active",
     },
     {
@@ -352,6 +508,12 @@ export const NS_ENGINES = [
         inputs: ["Daily actions", "Decisions"],
         outputs: ["Morning/Evening briefs", "Continuity state"],
         integrations: ["GGP", "DRE", "LUM"],
+        externalIntegrations: ["Obsidian (md)", "Github Issues"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/entry", desc: "Log a chronicle entry" },
+            { method: "GET", path: "/today", desc: "Get today's context brief" },
+        ],
         status: "Active",
     },
     {
@@ -370,6 +532,11 @@ export const NS_ENGINES = [
         inputs: ["Security alerts (All Engines)", "Anomalous signals (SIG)", "Manual override"],
         outputs: ["Isolation events", "Forensic reports", "Clearance tokens"],
         integrations: ["GGP", "IDN", "INT", "SIG"],
+        externalIntegrations: ["CrowdStrike", "AWS WAF"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/isolate", desc: "Force isolation of an entity" },
+        ],
         status: "Planned"
     },
 ];
@@ -391,6 +558,12 @@ export const SL_ENGINES = [
         inputs: ["Market datasets", "Local signals", "Comparable sales/leases"],
         outputs: ["Target zone scores", "Projection objects", "Risk flags"],
         integrations: ["PTE", "PECA", "NS core (governance)"],
+        externalIntegrations: ["CoStar", "Zillow API", "Redfin Data"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/trends/{zip}", desc: "Get trends for a zip code" },
+            { method: "POST", path: "/project", desc: "Run a future valuation projection" },
+        ],
         status: "Planned",
     },
     {
@@ -409,6 +582,11 @@ export const SL_ENGINES = [
         inputs: ["Acquisition intent", "Asset metadata", "Jurisdiction rules"],
         outputs: ["Entity setup tasks", "Document checklists", "Audit-ready record"],
         integrations: ["PTE", "NS core (governance)"],
+        externalIntegrations: ["LegalZoom", "Secretary of State APIs"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "POST", path: "/form-llc", desc: "Start property LLC formation" },
+        ],
         status: "Planned",
     },
     {
@@ -427,6 +605,12 @@ export const SL_ENGINES = [
         inputs: ["Lease/unit data", "Maintenance/vendor activity", "Budget/reserve policy"],
         outputs: ["KPI dashboards", "Alerts/tasks", "Portfolio audit trail"],
         integrations: ["MRFPE", "PECA", "NS core (governance)"],
+        externalIntegrations: ["AppFolio", "Buildium", "Yardi"],
+        endpoints: [
+            ...COMMON_ENDPOINTS,
+            { method: "GET", path: "/portfolio", desc: "Get full portfolio stats" },
+            { method: "GET", path: "/leases", desc: "List active leases" },
+        ],
         status: "Planned",
     },
 ];

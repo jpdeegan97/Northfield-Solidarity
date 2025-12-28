@@ -121,8 +121,29 @@ export const buf2hex = (buffer) => {
         .join('');
 };
 
+
 export const hex2buf = (hexString) => {
     const bytes = new Uint8Array(Math.ceil(hexString.length / 2));
     for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
     return bytes.buffer;
+};
+
+// 8. Generate Recovery Code
+// Generates a random alphanumeric string (e.g. "A7X9-12M4-99PZ-QA21")
+export const generateRecoveryCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I, 1, O, 0 for clarity
+    const sections = 4;
+    const charsPerSection = 4;
+    const totalChars = sections * charsPerSection;
+
+    // Low-tech but crytographically sourced random indices
+    const randomValues = window.crypto.getRandomValues(new Uint8Array(totalChars));
+    let code = "";
+
+    for (let i = 0; i < totalChars; i++) {
+        if (i > 0 && i % charsPerSection === 0) code += "-";
+        code += chars[randomValues[i] % chars.length];
+    }
+
+    return code;
 };

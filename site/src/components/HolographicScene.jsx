@@ -1,10 +1,9 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Icosahedron, Text, Float, MeshDistortMaterial } from '@react-three/drei';
+import { Sphere, Icosahedron, Text, Float, MeshDistortMaterial, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Utility: Enforce contrast against black background (0x000000)
-// Ensures that any user-provided color has a minimum lightness [0-1] of 0.6
+// --- HYPNOSIS EASTER EGG SHADER ---
 const ensureVisible = (colorHex) => {
     const c = new THREE.Color(colorHex);
     const hsl = {};
@@ -66,11 +65,6 @@ function Constellation({ radius = 3, color = "white", count = 30 }) {
     );
 }
 
-// Simple Spaceship Mesh
-// Spaceship component removed - transformed globe acts as ship
-
-
-// Warp Speed Stars
 // Warp Speed Stars (Streaks)
 function WarpStars() {
     const count = 2000;
@@ -122,114 +116,90 @@ function WarpStars() {
     );
 }
 
-function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = true, isWarping = false }) {
-    const meshRef = useRef();
-    const coreRef = useRef();
-    const sectorsRef = useRef();
-    const risksRef = useRef();
-    const entityRefs = useRef([]);
+// Earth Grid (Latitude/Longitude Lines)
+function EarthGrid({ radius = 2.5, projection = 'sphere' }) {
+    const color = ensureVisible("#0044aa");
 
-    // Reset entity refs array
-    useEffect(() => {
-        entityRefs.current = entityRefs.current.slice(0, 40);
-    }, []);
+    // Sphere Grid
+    const sphereGeo = useMemo(() => {
+        // Create simple ring geometries for lat/long
+        // This is a simplified visual rep using a wireframe sphere
+        return new THREE.WireframeGeometry(new THREE.SphereGeometry(radius, 24, 24));
+    }, [radius]);
 
-    const entityPositions = useMemo(() => {
-        return Array.from({ length: 40 }).map(() => {
+    // Flat Grid
+    const flatGeo = useMemo(() => {
+        // Plane with grid segments
+        return new THREE.WireframeGeometry(new THREE.PlaneGeometry(radius * 3, radius * 1.5, 24, 12));
+    }, [radius]);
+
+    if (projection === 'sphere') {
+        return (
+            <lineSegments geometry={sphereGeo}>
+                <lineBasicMaterial color={color} transparent opacity={0.2} />
+            </lineSegments>
+        );
+    } else {
+        return (
+            <lineSegments geometry={flatGeo}>
+                <lineBasicMaterial color={color} transparent opacity={0.2} />
+            </lineSegments>
+        );
+    }
+}
+
+// Helper for Entities to switch projections
+function EntityCloud({ count, radius, projection, width, height, color = "#00ff9d" }) {
+    const points = useMemo(() => {
+        return Array.from({ length: count }).map(() => {
             const u = Math.random();
             const v = Math.random();
-            const theta = 2 * Math.PI * u;
-            const phi = Math.acos(2 * v - 1);
-            const r = 2.6;
-            return [r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi)];
+
+            if (projection === 'sphere') {
+                const theta = 2 * Math.PI * u;
+                const phi = Math.acos(2 * v - 1);
+                return new THREE.Vector3(
+                    radius * Math.sin(phi) * Math.cos(theta),
+                    radius * Math.sin(phi) * Math.sin(theta),
+                    radius * Math.cos(phi)
+                );
+            } else {
+                // Flat mapping (Equirectangular-ish)
+                const x = (u - 0.5) * width;
+                const y = (v - 0.5) * height;
+                return new THREE.Vector3(x, y, 0);
+            }
         });
-    }, []);
-
-    const eventPositions = useMemo(() => {
-        return Array.from({ length: 8 }).map(() => {
-            const u = Math.random();
-            const v = Math.random();
-            const theta = 2 * Math.PI * u;
-            const phi = Math.acos(2 * v - 1);
-            const r = 3.2 + (Math.random() * 0.5);
-            return [r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi)];
-        });
-    }, []);
-
-    useFrame((state, delta) => {
-        // 1. ROTATION (Normal)
-        if (meshRef.current && enableRotation && !isWarping) {
-            meshRef.current.rotation.y += delta * 0.1;
-
-            // Revert transforms
-            if (sectorsRef.current) sectorsRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 2);
-            if (coreRef.current) coreRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 2);
-            if (risksRef.current) {
-                risksRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 2);
-                risksRef.current.position.lerp(new THREE.Vector3(0, 0, 0), delta * 2);
-            }
-            entityRefs.current.forEach((ref, i) => {
-                if (ref && entityPositions[i]) {
-                    ref.position.lerp(new THREE.Vector3(...entityPositions[i]), delta * 2);
-                }
-            });
-        }
-
-        // 2. TRANSFORM & WARP
-        if (isWarping && meshRef.current) {
-            // Stay in frame but shake violently
-            meshRef.current.position.x = (Math.random() - 0.5) * 0.2;
-            meshRef.current.position.y = (Math.random() - 0.5) * 0.2;
-
-            if (sectorsRef.current) {
-                // Sleek Fuselage (Blackbird style)
-                sectorsRef.current.scale.lerp(new THREE.Vector3(0.8, 0.2, 5), delta * 4);
-                sectorsRef.current.rotation.set(0, 0, 0); // Stabilize
-            }
-            if (coreRef.current) {
-                // Cockpit / Nose
-                coreRef.current.scale.lerp(new THREE.Vector3(0.5, 0.4, 2), delta * 4);
-                coreRef.current.position.lerp(new THREE.Vector3(0, 0.5, 3), delta * 4);
-            }
-            if (risksRef.current) {
-                // Rear Engine Block
-                risksRef.current.scale.lerp(new THREE.Vector3(2.5, 0.5, 1), delta * 4);
-                risksRef.current.position.lerp(new THREE.Vector3(0, 0, -3), delta * 4);
-            }
-
-            // Move entities to Delta Wing formation
-            entityRefs.current.forEach((ref, i) => {
-                if (ref) {
-                    const side = i % 2 === 0 ? 1 : -1;
-                    const idx = Math.floor(i / 2);
-
-                    // Sweep back delta wing
-                    const span = 1 + idx * 0.3; // Width
-                    const sweep = span * 1.2;   // Angle back
-
-                    const x = side * span;
-                    const y = (Math.random() - 0.5) * 0.1; // Slight flutter
-                    const z = -sweep;
-
-                    ref.position.lerp(new THREE.Vector3(x, y, z), delta * 3);
-                    ref.rotation.set(0, 0, side * 0.1); // Slight bank
-                }
-            });
-        }
-    });
-
-    useEffect(() => {
-        if (!isWarping && meshRef.current) {
-            meshRef.current.position.set(0, 0, 0);
-            meshRef.current.rotation.set(0, 0, 0);
-        }
-    }, [isWarping]);
+    }, [count, radius, projection, width, height]);
 
     return (
         <group>
-            <group ref={meshRef}>
-                {/* Core Globe */}
-                <Float speed={enableRotation ? 1 : 0} rotationIntensity={enableRotation ? 0.2 : 0} floatIntensity={enableRotation ? 0.5 : 0}>
+            {points.map((pos, i) => (
+                <mesh key={i} position={pos}>
+                    <boxGeometry args={[0.08, 0.08, 0.08]} />
+                    <meshStandardMaterial color={color} emissive={color} />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = true, isWarping = false }) {
+    const meshRef = useRef();
+    const coreRef = useRef();
+
+    // Basic rotation
+    useFrame((state, delta) => {
+        if (meshRef.current && enableRotation && !isWarping) {
+            meshRef.current.rotation.y += delta * 0.1;
+        }
+    });
+
+    return (
+        <group ref={meshRef}>
+            {/* Core Globe */}
+            <Float speed={enableRotation ? 1 : 0} rotationIntensity={enableRotation ? 0.2 : 0} floatIntensity={enableRotation ? 0.5 : 0}>
+                <group>
                     <Sphere args={[2.5, 32, 32]} ref={coreRef}>
                         <meshStandardMaterial
                             color={ensureVisible("#001a10")}
@@ -240,147 +210,171 @@ function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = 
                             emissiveIntensity={0.2}
                         />
                     </Sphere>
-                </Float>
+                    {/* Earth Outline Layer */}
+                    <EarthGrid radius={2.51} projection="sphere" />
+                </group>
+            </Float>
 
-                {activeLayers.entities && (
-                    <group>
-                        {!isWarping && <Constellation radius={2.6} color="#ff0055" count={40} />}
-                        {entityPositions.map((pos, i) => (
-                            <mesh key={i} position={pos} ref={el => entityRefs.current[i] = el}>
-                                <boxGeometry args={[0.08, 0.08, 0.08]} />
-                                <meshStandardMaterial color={ensureVisible("#00ff9d")} emissive={ensureVisible("#00ff9d")} />
-                            </mesh>
-                        ))}
-                    </group>
-                )}
+            {/* Entities */}
+            {activeLayers.entities && (
+                <group>
+                    {!isWarping && <Constellation radius={2.6} color="#ff0055" count={40} />}
+                    <EntityCloud count={40} radius={2.6} projection="sphere" color="#00ff9d" />
+                </group>
+            )}
 
-                {/* Sectors */}
-                {activeLayers.sectors && (
-                    <Icosahedron args={[2.62, 1]} ref={sectorsRef}>
-                        <meshStandardMaterial
-                            color={ensureVisible("#00aaff")}
-                            wireframe
-                            transparent
-                            opacity={0.5}
-                            emissive={ensureVisible("#00aaff")}
-                            emissiveIntensity={0.5}
-                        />
-                    </Icosahedron>
-                )}
+            {/* Events Feed (New Layer) */}
+            {activeLayers.events && (
+                <group rotation={[0, 0, Math.PI / 4]}>
+                    {/* Warmer color, slightly offset */}
+                    <EntityCloud count={30} radius={2.7} projection="sphere" color="#ffaa00" />
+                </group>
+            )}
 
-                {/* Events */}
-                {activeLayers.events && (
-                    <group>
-                        <Constellation radius={3.4} color="#0099ff" count={30} />
-                        {eventPositions.map((pos, i) => (
-                            <mesh key={`evt-${i}`} position={pos}>
-                                <sphereGeometry args={[0.12, 16, 16]} />
-                                <meshStandardMaterial color={ensureVisible("#ffaa00")} emissive={ensureVisible("#ff0000")} emissiveIntensity={3} toneMapped={false} />
-                            </mesh>
-                        ))}
-                    </group>
-                )}
+            {/* Sectors */}
+            {activeLayers.sectors && (
+                <Icosahedron args={[2.62, 1]}>
+                    <meshStandardMaterial
+                        color={ensureVisible("#00aaff")}
+                        wireframe
+                        transparent
+                        opacity={0.5}
+                        emissive={ensureVisible("#00aaff")}
+                        emissiveIntensity={0.5}
+                    />
+                </Icosahedron>
+            )}
 
-                {/* Risks */}
-                {activeLayers.risks && (
-                    <Sphere args={[2.8, 32, 32]}>
-                        <MeshDistortMaterial
-                            color={ensureVisible("#ff0000")}
-                            wireframe
-                            transparent
-                            opacity={0.6}
-                            distort={0.4}
-                            speed={enableRotation ? 5 : 0}
-                        />
-                    </Sphere>
-                )}
-            </group>
-
-            {/* Warp Effects */}
-            {isWarping ? (
-                <>
-                    <WarpStars />
-                </>
-            ) : (
-                showStars && <Stars />
+            {/* Risk Perimeter (New Layer) */}
+            {activeLayers.risks && (
+                <Sphere args={[3.0, 24, 24]}>
+                    <meshBasicMaterial
+                        color="#ff0000"
+                        wireframe
+                        transparent
+                        opacity={0.15}
+                    />
+                </Sphere>
             )}
         </group>
     );
 }
 
-function EngineObject({ code, enableRotation = true }) {
-    const meshRef = useRef();
+// Flat Projection
+function FirmamentFlat({ activeLayers = {}, enableRotation = true }) {
+    // A flat map version
+    // 2:1 aspect ratio roughly
+    const mapWidth = 8;
+    const mapHeight = 4;
+
+    return (
+        <group>
+            {/* Base Plane */}
+            <mesh>
+                <planeGeometry args={[mapWidth, mapHeight]} />
+                <meshStandardMaterial
+                    color="#001a10"
+                    transparent
+                    opacity={0.8}
+                    side={THREE.DoubleSide}
+                    emissive="#001a10"
+                    emissiveIntensity={0.5}
+                />
+            </mesh>
+
+            {/* Grid Overlay */}
+            <group position={[0, 0, 0.01]}>
+                <EarthGrid radius={2.5} projection="flat" />
+            </group>
+
+            {/* Entities Flattened */}
+            {activeLayers.entities && (
+                <group position={[0, 0, 0.1]}>
+                    <EntityCloud count={40} radius={2.6} projection="flat" width={mapWidth} height={mapHeight} color="#00ff9d" />
+                </group>
+            )}
+
+            {/* Events Flattened */}
+            {activeLayers.events && (
+                <group position={[0, 0, 0.15]}>
+                    <EntityCloud count={30} radius={2.7} projection="flat" width={mapWidth} height={mapHeight} color="#ffaa00" />
+                </group>
+            )}
+
+            {/* Sectors (Hex Grid Flat) */}
+            {activeLayers.sectors && (
+                <group position={[0, 0, 0.05]}>
+                    <mesh>
+                        <planeGeometry args={[mapWidth, mapHeight, 16, 8]} />
+                        <meshBasicMaterial color="#00aaff" wireframe transparent opacity={0.3} />
+                    </mesh>
+                </group>
+            )}
+
+            {/* Risk Perimeter Flattened (Border) */}
+            {activeLayers.risks && (
+                <group position={[0, 0, 0.02]}>
+                    <mesh>
+                        <planeGeometry args={[mapWidth + 0.5, mapHeight + 0.5]} />
+                        <meshBasicMaterial color="#ff0000" wireframe transparent opacity={0.3} />
+                    </mesh>
+                </group>
+            )}
+        </group>
+    );
+}
+
+
+
+// Dummy Engine Object specific visualization
+function EngineObject({ code, enableRotation }) {
+    const mesh = useRef();
 
     useFrame((state, delta) => {
-        if (meshRef.current && enableRotation) {
-            meshRef.current.rotation.x += delta * 0.2;
-            meshRef.current.rotation.y += delta * 0.3;
+        if (mesh.current && enableRotation) {
+            mesh.current.rotation.x += delta * 0.2;
+            mesh.current.rotation.y += delta * 0.3;
         }
     });
 
-    const color = useMemo(() => {
-        const colors = ['#00ff9d', '#00aaff', '#ff00aa', '#ffaa00', '#aa00ff'];
-        let hash = 0;
-        for (let i = 0; i < code.length; i++) hash += code.charCodeAt(i);
-        return ensureVisible(colors[hash % colors.length]);
-    }, [code]);
-
     return (
-        <Float speed={enableRotation ? 2 : 0} rotationIntensity={enableRotation ? 0.5 : 0} floatIntensity={enableRotation ? 1 : 0}>
-            <Icosahedron args={[2, 0]} ref={meshRef}>
-                <MeshDistortMaterial
-                    color={color}
-                    wireframe={true}
-                    speed={enableRotation ? 2 : 0}
-                    distort={0.4}
-                    transparent
-                    opacity={0.8}
-                />
-            </Icosahedron>
+        <group ref={mesh}>
+            <MeshDistortMaterial
+                color="#00aaff"
+                speed={2}
+                distort={0.4}
+                radius={1}
+                transparent
+                opacity={0.6}
+            />
+            <Icosahedron args={[1.5, 1]} />
             <Text
-                position={[0, 0, 0]}
-                fontSize={0.8}
+                position={[0, 0, 2]}
+                fontSize={0.5}
                 color="white"
                 anchorX="center"
                 anchorY="middle"
-                font="/fonts/Inter-Bold.woff" // Ensure this or fallback default
             >
                 {code}
             </Text>
-        </Float>
-    );
+        </group>
+    )
 }
 
-function Stars() {
-    const points = useMemo(() => {
-        const p = [];
-        for (let i = 0; i < 500; i++) {
-            const x = (Math.random() - 0.5) * 20;
-            const y = (Math.random() - 0.5) * 20;
-            const z = (Math.random() - 0.5) * 20;
-            p.push(x, y, z);
-        }
-        return new Float32Array(p);
-    }, []);
-
-    return (
-        <points>
-            <bufferGeometry>
-                <bufferAttribute attach="attributes-position" count={points.length / 3} array={points} itemSize={3} />
-            </bufferGeometry>
-            <pointsMaterial size={0.05} color="#ffffff" transparent opacity={0.6} sizeAttenuation={true} />
-        </points>
-    );
-}
-
-export default function HolographicScene({ activeCode, activeLayers, scale = 1, showStars = true, enableRotation = true, isWarping = false }) {
+export default function HolographicScene({ activeCode, activeLayers, scale = 1, showStars = true, enableRotation = true, isWarping = false, projection = 'sphere' }) {
     return (
         <group scale={[scale, scale, scale]}>
             {activeCode === 'FIRMAMENT' ? (
-                <FirmamentGlobe activeLayers={activeLayers} showStars={showStars} enableRotation={enableRotation} isWarping={isWarping} />
+                projection === 'flat' ? (
+                    <FirmamentFlat activeLayers={activeLayers} enableRotation={enableRotation} />
+                ) : (
+                    <FirmamentGlobe activeLayers={activeLayers} showStars={showStars} enableRotation={enableRotation} isWarping={isWarping} />
+                )
             ) : (
                 <EngineObject code={activeCode} enableRotation={enableRotation} />
             )}
+            {/* Warp Effects layer can persist globally if needed, or inside Globe */}
+            {isWarping ? <WarpStars /> : (showStars && <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />)}
         </group>
     );
 }

@@ -20,7 +20,9 @@ import {
     Landmark,
     Zap,
     GraduationCap,
-    Globe
+    Globe,
+    Folder,
+    ArrowUpCircle
 } from "lucide-react";
 
 export default function Sidebar({ brand, nav }) {
@@ -50,6 +52,7 @@ export default function Sidebar({ brand, nav }) {
         { label: "Wall Street Pro", to: "/wsp", icon: Landmark },
         { type: "divider" },
         { label: "Platform", to: "/platform", icon: MonitorPlay },
+        { label: "Projects", to: "/projects", icon: Folder },
         { label: "Marketplace", to: "/marketplace", icon: Zap },
         { label: "System", to: "/system", icon: Cpu },
         { label: "Features", to: "/features", icon: Box },
@@ -57,6 +60,7 @@ export default function Sidebar({ brand, nav }) {
         { label: "Education", to: "/education", icon: GraduationCap },
         { label: "Pricing", to: "/pricing", icon: DollarSign },
         { label: "Investors", to: "/investors", icon: Activity },
+        { label: "Ascension", to: "/careers", icon: ArrowUpCircle },
         { label: "Docs", to: "/docs", icon: FileText },
         { label: "Contact", to: "/contact", icon: UserCircle },
     ];
@@ -90,13 +94,15 @@ export default function Sidebar({ brand, nav }) {
         if (item.label === "South Lawn") return <Building2 size={18} />;
         if (item.label === "WSP" || item.label === "Wall Street Pro") return <Landmark size={18} />;
         if (item.label === "Platform") return <Layers size={18} />;
+        if (item.label === "Projects") return <Folder size={18} />;
         if (item.label === "Marketplace") return <Zap size={18} />;
         if (item.label === "System") return <Cpu size={18} />;
         if (item.label === "Features") return <Box size={18} />;
         if (item.label === "API Integration") return <Globe size={18} />;
         if (item.label === "Education") return <GraduationCap size={18} />;
         if (item.label === "Pricing") return <DollarSign size={18} />;
-        if (item.label === "Investor Relations" || item.label === "Investors") return <Activity size={18} />;
+        if (item.label === "Investment" || item.label === "Investors") return <Activity size={18} />;
+        if (item.label === "Ascension") return <ArrowUpCircle size={18} />;
         if (item.label === "Documentation" || item.label === "Docs") return <FileText size={18} />;
         if (item.label === "Contact") return <UserCircle size={18} />;
         return <ExternalLink size={18} />;

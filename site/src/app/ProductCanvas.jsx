@@ -53,6 +53,7 @@ export default function ProductCanvas() {
             sectors: true,
             risks: false,
         },
+        firmamentProjection: 'sphere', // 'sphere' or 'flat'
         filterType: 'ALL',
         dockScale: 1.0
     }]);
@@ -272,6 +273,86 @@ export default function ProductCanvas() {
         setActiveWindowId(newId);
     };
 
+
+    const toggleFullScreen = (id) => {
+        setWorkspaces(prev => prev.map(w => {
+            if (w.id !== activeWorkspaceId) return w;
+
+            const targetWin = w.windows.find(win => win.id === id);
+            if (!targetWin) return w;
+
+            const isGoingFullScreen = !targetWin.isFullScreen;
+
+            let newFirmamentState = w.isFirmamentLocked;
+
+            if (isGoingFullScreen) {
+                // Save current state effectively by letting the window store it?
+                // Or just force OFF.
+                // If we force OFF, we lose if it was ON.
+                // The window's restoreState is the place.
+                newFirmamentState = false;
+            } else {
+                // Restoring. We need to check the window's restoreState.isFirmamentLocked
+                if (targetWin.restoreState && targetWin.restoreState.wasFirmamentLocked !== undefined) {
+                    newFirmamentState = targetWin.restoreState.wasFirmamentLocked;
+                }
+            }
+
+            const newWindows = w.windows.map(win => {
+                if (win.id !== id) return win;
+
+                if (win.isFullScreen) {
+                    // RESTORE
+                    return {
+                        ...win,
+                        isFullScreen: false,
+                        x: win.restoreState.x,
+                        y: win.restoreState.y,
+                        width: win.restoreState.width,
+                        height: win.restoreState.height,
+                        isPinned: win.restoreState.isPinned,
+                        z: win.restoreState.z,
+                        restoreState: null
+                    };
+                } else {
+                    // MAXIMIZE
+                    return {
+                        ...win,
+                        isFullScreen: true,
+                        restoreState: {
+                            x: win.x,
+                            y: win.y,
+                            width: win.width,
+                            height: win.height,
+                            isPinned: win.isPinned,
+                            z: win.z,
+                            wasFirmamentLocked: w.isFirmamentLocked // Save firmament state
+                        },
+                        x: 0,
+                        y: 0,
+                        width: '100%',
+                        height: '100%',
+                        isPinned: false,
+                        z: 999999
+                    };
+                }
+            });
+
+            return {
+                ...w,
+                windows: newWindows,
+                isFirmamentLocked: newFirmamentState
+            };
+        }));
+    };
+
+    const toggleEditWindow = (id) => {
+        setWindows(prev => prev.map(w => {
+            if (w.id !== id) return w;
+            return { ...w, isEditing: !w.isEditing };
+        }));
+    };
+
     const closeWindow = (id) => {
         setWindows(prev => prev.filter(w => w.id !== id));
         if (activeWindowId === id) setActiveWindowId(null);
@@ -300,55 +381,6 @@ export default function ProductCanvas() {
 
     const handleWindowActivity = (id) => {
         windowActivityRefs.current[id] = Date.now();
-    };
-
-    const toggleFullScreen = (id) => {
-        setWindows(prev => prev.map(w => {
-            if (w.id !== id) return w;
-
-            if (w.isFullScreen) {
-                // Restore
-                return {
-                    ...w,
-                    isFullScreen: false,
-                    x: w.restoreState.x,
-                    y: w.restoreState.y,
-                    width: w.restoreState.width,
-                    height: w.restoreState.height,
-                    isPinned: w.restoreState.isPinned,
-                    z: w.restoreState.z,
-                    restoreState: null
-                };
-            } else {
-                // Go Full Screen
-                windowActivityRefs.current[id] = Date.now();
-                return {
-                    ...w,
-                    isFullScreen: true,
-                    restoreState: {
-                        x: w.x,
-                        y: w.y,
-                        width: w.width,
-                        height: w.height,
-                        isPinned: w.isPinned,
-                        z: w.z
-                    },
-                    x: 0,
-                    y: 0,
-                    width: '100%',
-                    height: '100%',
-                    isPinned: false, // Force float to cover screen
-                    z: 999999
-                };
-            }
-        }));
-    };
-
-    const toggleEditWindow = (id) => {
-        setWindows(prev => prev.map(w => {
-            if (w.id !== id) return w;
-            return { ...w, isEditing: !w.isEditing };
-        }));
     };
 
     // Inactivity Timer Loop
@@ -664,6 +696,32 @@ export default function ProductCanvas() {
 
                 {/* Firmament Toggle Button */}
                 <button
+                    onClick={() => updateSetting('firmamentProjection', activeWorkspace.firmamentProjection === 'flat' ? 'sphere' : 'flat')}
+                    className={`p-2 rounded-full border transition-all flex items-center gap-2 group ${activeWorkspace.firmamentProjection === 'flat'
+                        ? 'bg-[#00ff9d] text-black border-[#00ff9d] shadow-[0_0_20px_rgba(0,255,157,0.3)]'
+                        : 'bg-black/60 text-white/50 border-white/10 hover:border-white/40 hover:text-white'
+                        }`}
+                    title={activeWorkspace.firmamentProjection === 'flat' ? "Switch to Sphere" : "Switch to Flat Map"}
+                >
+                    {activeWorkspace.firmamentProjection === 'flat' ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <line x1="3" y1="9" x2="21" y2="9" />
+                            <line x1="9" y1="21" x2="9" y2="9" />
+                        </svg>
+                    ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M2.05 12a10 10 0 0 1 19.9 0" />
+                            <path d="M12 2.05a10 10 0 0 1 0 19.9" />
+                        </svg>
+                    )}
+                    <span className="text-[10px] font-bold pr-1 uppercase hidden group-hover:block">
+                        {activeWorkspace.firmamentProjection === 'flat' ? 'FLAT' : 'SPHERE'}
+                    </span>
+                </button>
+
+                <button
                     onClick={() => setIsFirmamentLocked(!isFirmamentLocked)}
                     className={`p-2 rounded-full border transition-all flex items-center gap-2 group ${isFirmamentLocked
                         ? 'bg-[#00ff9d] text-black border-[#00ff9d] shadow-[0_0_20px_rgba(0,255,157,0.3)]'
@@ -862,6 +920,7 @@ export default function ProductCanvas() {
                         activeCode={isFirmamentLocked ? 'FIRMAMENT' : (windows.find(w => w.id === activeWindowId)?.code || 'FIRMAMENT')}
                         activeLayers={firmamentLayers}
                         scale={viewport.scale}
+                        projection={activeWorkspace.firmamentProjection || 'sphere'}
                         showStars={showStars}
                         enableRotation={autoRotate}
                         isWarping={isWarping}
@@ -909,7 +968,10 @@ export default function ProductCanvas() {
                         >
                             <div
                                 className="relative w-full h-full overflow-hidden isolate"
-                                onWheel={(e) => e.stopPropagation()}
+                                onWheel={(e) => {
+                                    e.stopPropagation();
+                                    if (handleWindowActivity) handleWindowActivity(win.id);
+                                }}
                             >
                                 {win.isEditing
                                     ? <EngineEditor engine={getEngineData} onClose={() => toggleEditWindow(win.id)} />
@@ -920,6 +982,17 @@ export default function ProductCanvas() {
                     );
                 })}
             </div>
+
+            {/* Firmament Cockpit (HUD) */}
+            {isFirmamentLocked && (
+                <div className="absolute inset-0 z-40 pointer-events-none">
+                    <FirmamentCockpit
+                        activeLayers={firmamentLayers}
+                        onToggleLayer={toggleLayer}
+                        onLaunch={triggerWarp}
+                    />
+                </div>
+            )}
 
             {/* Overlay UI (Header/Dock) */}
             <div className="absolute inset-0 z-50 pointer-events-none flex flex-col justify-between pt-12">

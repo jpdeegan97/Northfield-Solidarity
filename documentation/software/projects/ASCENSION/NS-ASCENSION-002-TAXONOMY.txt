@@ -1,0 +1,24 @@
+NS-ASCENSION-002-TAXONOMY
+
+Core Entities
+Role: an open position with competencies and gate-specific evaluation criteria.
+Candidate: a person progressing through gates.
+Gate: a stage with entry/exit rules and rubrics.
+Artifact: proof produced by a candidate (portfolio, writing, code, demo, etc.).
+Scorecard: structured evaluation at a gate.
+Decision: pass/hold/close with reasons.
+Offer: final package details (comp, start, contingencies).
+Gate Map
+Gate 0 — The Signal: Application as a ‘ping’ from outside the Firmament.
+Gate 1 — The Echo: Async proof: portfolio, written answers, or short loom.
+Gate 2 — The Trial: A small, paid challenge (time-boxed, scoped, repeatable).
+Gate 3 — The Alignment: Operating style + values + communication calibration.
+Gate 4 — The Door: Final live session: deep dive + mutual fit.
+Gate 5 — The Center: The final landing: intentional conversation + decision.
+Competency categories (suggested)
+Craft (quality and correctness)
+Judgment (tradeoffs, prioritization, constraints)
+Velocity (time-to-signal and pragmatic execution)
+Communication (clarity, empathy, precision)
+Taste (product/UX sensibility where applicable)
+Ownership (initiative and reliability)

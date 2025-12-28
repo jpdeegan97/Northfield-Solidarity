@@ -1,0 +1,20 @@
+NS-ASCENSION-008-INTEGRATIONS-CONCORD-SANCTUM-CADENCE
+
+CONCORD (site sync)
+Careers IA, role pages, and Ascension gate map live in CONCORD registry.
+Any change to gates/copy/roles triggers regeneration and drift checks.
+SANCTUM (timeline)
+Each candidate progression emits Sanctum events (gate_entered, gate_passed, trial_sent, offer_made, hired).
+Sanctum becomes the narrative record: Ascension journeys per role/cycle.
+CADENCE (scheduling)
+Interview blocks and review windows can be produced as calendar events.
+Trial deadlines and feedback SLAs can be exported as ICS feeds.
+Minimal connector contracts (sketch)
+Ascension -> Sanctum export:
+  events[]: { ts, kind, title, refs[candidate, role], tags[gates], summary }
+
+Ascension -> Concord:
+  roles[]: { id, title, status, copy, gate_config_ref }
+
+Ascension -> Cadence:
+  schedule_items[]: { id, kind, start, end, attendees, notes }

@@ -25,6 +25,9 @@ import EngineRoute from "./app/routes/EngineRoute.jsx";
 import OSIdeation from "./app/routes/OSIdeation.jsx";
 import Marketplace from "./app/routes/Marketplace.jsx";
 import ProjectMint from "./app/routes/ProjectMint.jsx";
+import ProjectLanding from "./app/routes/ProjectLanding.jsx";
+import ProjectsGallery from "./app/routes/ProjectsGallery.jsx";
+import Ascension from "./app/routes/Ascension.jsx";
 import Features from "./app/routes/Features.jsx";
 import Education from "./app/routes/Education.jsx";
 import ExternalApi from "./app/routes/ExternalApi.jsx";
@@ -65,8 +68,11 @@ export default function App() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="login" element={<Login />} />
           <Route path="platform" element={<ProductCanvas />} />
+          <Route path="projects" element={<ProjectsGallery />} />
           <Route path="marketplace" element={<Marketplace />} />
+          <Route path="careers" element={<Ascension />} />
           <Route path="project/MINT" element={<ProjectMint />} />
+          <Route path="project/:code" element={<ProjectLanding />} />
           <Route path="ide" element={<IdeRoute />} />
           <Route path="os-ideation" element={<OSIdeation />} />
           <Route path="engine/:code" element={<EngineRoute />} />

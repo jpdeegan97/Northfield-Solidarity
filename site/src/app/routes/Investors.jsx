@@ -5,8 +5,8 @@ import InteractiveGrowthChart from '../../components/InteractiveGrowthChart.jsx'
 import CapitalFlowModel from '../../components/CapitalFlowModel.jsx';
 import MermaidDiagram from '../../components/MermaidDiagram.jsx';
 import { NS_ENGINES, SL_ENGINES, NS_BMP } from '../../data/engineRegistry.js';
-import { NS_PROJECTS } from '../../data/projectRegistry.js';
-import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx'; // Ensure this file exists or remove if not needed. Step 765 didn't show this import but Step 864 uses NS_PROJECTS
+import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx';
+import { useCrowdFunding } from '../../context/CrowdFundingContext.jsx';
 
 // getPhase removed
 
@@ -62,7 +62,7 @@ const TIMELINE_MONTHS = [
     { month: "Apr '26", label: "Firmament Beta" },
     { month: "May '26", label: "Series A Prep" },
     { month: "Jun '26", label: "Governance V1" },
-    { month: "∞", label: "OS", path: "/os-ideation", highlight: true },
+
 ];
 
 const RoadmapTimeline = ({ compact = false }) => {
@@ -91,6 +91,7 @@ const RoadmapTimeline = ({ compact = false }) => {
 };
 
 const SystemImplementationGantt = () => {
+    const { projects } = useCrowdFunding();
     const [expanded, setExpanded] = useState(false);
     const [viewMode, setViewMode] = useState("SYSTEM"); // SYSTEM | PROJECTS
     const [horizon, setHorizon] = useState(3); // Months to show
@@ -101,10 +102,7 @@ const SystemImplementationGantt = () => {
         const interval = setInterval(() => {
             setSurge(true);
             setTimeout(() => setSurge(false), 2500); // Surge lasts 2.5s for "liquid" feel
-        }, 5000 + 2500); // Cycle: 5s rest + 2.5s active? User said "Every 5 seconds". Let's do 5s interval start-to-start or gap? "Every 5s I want you to..." implies event frequency. Let's do 8s total cycle (5s wait).
-
-        // Actually simplest interpretation: Trigger every 5s.
-        // If surge lasts 2s, we trigger at t=0, t=5, t=10.
+        }, 5000 + 2500);
         return () => clearInterval(interval);
     }, []);
 
@@ -117,6 +115,9 @@ const SystemImplementationGantt = () => {
 
         return () => clearTimeout(timer);
     }, []);
+
+    const [velocityMode, setVelocityMode] = useState('standard'); // standard | warp
+    const [selectedSprint, setSelectedSprint] = useState(null);
 
     // Helper to get dynamic months
     const getMonthLabels = (count) => {
@@ -131,9 +132,6 @@ const SystemImplementationGantt = () => {
 
     const monthLabels = getMonthLabels(horizon);
     const totalUnits = horizon * 2; // 2 units per month
-
-    const [velocityMode, setVelocityMode] = useState('standard'); // standard | warp
-    const [selectedSprint, setSelectedSprint] = useState(null);
 
     // Dynamic Data Generation for "Short & Realistic" Timelines
     const getColors = (cat) => {
@@ -207,7 +205,7 @@ const SystemImplementationGantt = () => {
     };
 
     const generateProjectPhases = () => {
-        const tasks = NS_PROJECTS.map((proj, i) => ({
+        const tasks = projects.map((proj, i) => ({
             name: proj.name,
             code: proj.code,
             start: velocityMode === 'warp' ? i * 0.1 : 0.5 + (i * 0.3),
@@ -743,6 +741,7 @@ const EntityStructureView = () => (
 );
 
 const RoadmapView = () => {
+    const { projects } = useCrowdFunding();
     const [isSticky, setIsSticky] = useState(false);
     const staticRef = useRef(null);
 
@@ -784,7 +783,7 @@ const RoadmapView = () => {
                 <div style={{ marginBottom: '4rem' }}></div>
 
                 <RoadmapGroup title="Core Infrastructure (NS Engines)" items={NS_ENGINES || []} />
-                <RoadmapGroup title="Applications & Projects" items={NS_PROJECTS || []} />
+                <RoadmapGroup title="Applications & Projects" items={projects || []} />
                 <RoadmapGroup title="South Lawn Operating Engines" items={SL_ENGINES || []} />
                 <RoadmapGroup title="Business / Media Projects (BMP)" items={NS_BMP || []} />
 
@@ -1057,10 +1056,30 @@ const LoginView = ({ onLogin }) => {
 
 export default function Investors() {
     const { role, login, user } = useAuth();
-    const [activeTab, setActiveTab] = useState('projections');
+    const { projects, leaderboard, makePledge } = useCrowdFunding();
+    const [activeTab, setActiveTab] = useState('funding');
+    const [pledgeModalOpen, setPledgeModalOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [pledgeAmount, setPledgeAmount] = useState(100);
 
     const authorizedRoles = [USER_ROLES.ADMIN, USER_ROLES.INVESTOR, USER_ROLES.SPECIAL_GUEST];
     const isAuthorized = authorizedRoles.includes(role);
+
+    const handlePledgeClick = (project) => {
+        setSelectedProject(project);
+        setPledgeModalOpen(true);
+    };
+
+    const submitPledge = (e) => {
+        e.preventDefault();
+        const result = makePledge(selectedProject.code, pledgeAmount, user || { email: 'anonymous@guest.com', name: 'Anonymous Guest' });
+        if (result.success) {
+            setPledgeModalOpen(false);
+            alert(`Thank you! You successfully pledged $${pledgeAmount} to ${selectedProject.name}.`);
+        } else {
+            alert(result.error);
+        }
+    };
 
     if (!isAuthorized) {
         return <LoginView onLogin={login} />;
@@ -1091,7 +1110,7 @@ export default function Investors() {
                             className={`tab-btn ${activeTab === 'funding' ? 'active' : ''}`}
                             onClick={() => setActiveTab('funding')}
                         >
-                            Series Funding
+                            Crowd Funding
                         </button>
                         <button
                             className={`tab-btn ${activeTab === 'capital' ? 'active' : ''}`}
@@ -1124,6 +1143,44 @@ export default function Investors() {
                             Dev Updates
                         </button>
                     </div>
+
+                    {/* Pledge Modal */}
+                    {pledgeModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                            <div className="bg-slate-900 border border-emerald-500/50 p-8 rounded-xl max-w-md w-full shadow-2xl">
+                                <h3 className="text-xl font-bold text-white mb-2">Back {selectedProject?.name}</h3>
+                                <p className="text-slate-400 text-sm mb-6">Your contribution directly accelerates development of this engine.</p>
+
+                                <form onSubmit={submitPledge}>
+                                    <div className="mb-6">
+                                        <label className="block text-xs uppercase text-emerald-500 mb-2 font-bold tracking-wider">Pledge Amount ($)</label>
+                                        <input
+                                            type="number"
+                                            min="10"
+                                            value={pledgeAmount}
+                                            onChange={(e) => setPledgeAmount(e.target.value)}
+                                            className="w-full bg-black/50 border border-slate-700 rounded p-4 text-2xl text-white focus:border-emerald-500 focus:outline-none font-mono"
+                                        />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPledgeModalOpen(false)}
+                                            className="flex-1 py-3 bg-transparent border border-slate-600 text-slate-300 rounded font-bold hover:bg-white/5 transition"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 py-3 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-500 transition shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                                        >
+                                            Confirm Pledge
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
 
                     {/* TAB CONTENT: Projections */}
                     {activeTab === 'projections' && (
@@ -1164,159 +1221,190 @@ export default function Investors() {
                         </div>
                     )}
 
-                    {/* TAB CONTENT: Series Funding */}
+                    {/* TAB CONTENT: Crowd Funding */}
                     {activeTab === 'funding' && (
                         <div className="tab-content fade-in">
-                            <div className="tab-content fade-in">
-                                <section className="ir-section">
-                                    <h3 className="section-label">Funding Strategy Evaluation</h3>
-                                    <p className="lead ir-subtitle" style={{ marginBottom: '3rem' }}>
-                                        Current status: <strong>Undecided</strong>. Evaluating instruments for optimal capital efficiency and governance alignment.
-                                    </p>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-
-                                        {/* Option 1: SAFE */}
-                                        <div className="funding-card">
-                                            <div className="funding-header">
-                                                <div className="funding-icon">📄</div>
-                                                <h4 className="funding-name">SAFE (Post-Money)</h4>
-                                            </div>
-                                            <p className="funding-desc">
-                                                The industry standard (YC). Simple Agreement for Future Equity. Fast, low legal cost, delays valuation until the next priced round. Make-or-break is the Valuation Cap.
-                                            </p>
-                                            <ul className="funding-pros-cons">
-                                                <li className="pro">Speed to close (days)</li>
-                                                <li className="pro">Minimal legal spend</li>
-                                                <li className="con">Dilution risk if stacked</li>
-                                            </ul>
-                                        </div>
-
-                                        {/* Option 2: Convertible Note */}
-                                        <div className="funding-card">
-                                            <div className="funding-header">
-                                                <div className="funding-icon">⚖️</div>
-                                                <h4 className="funding-name">Convertible Note</h4>
-                                            </div>
-                                            <p className="funding-desc">
-                                                Debt that converts to equity. Carries an interest rate and maturity date. Historically common but largely replaced by SAFEs for early stage.
-                                            </p>
-                                            <ul className="funding-pros-cons">
-                                                <li className="pro">Debt protections for investors</li>
-                                                <li className="con">Interest accrual (complexity)</li>
-                                                <li className="con">Maturity date pressure</li>
-                                            </ul>
-                                        </div>
-
-                                        {/* Option 3: Priced Equity */}
-                                        <div className="funding-card">
-                                            <div className="funding-header">
-                                                <div className="funding-icon">💎</div>
-                                                <h4 className="funding-name">Priced Seed Round</h4>
-                                            </div>
-                                            <p className="funding-desc">
-                                                Selling preferred stock at a fixed valuation now. "Series Seed". Cleanest cap table math but highest friction to execute.
-                                            </p>
-                                            <ul className="funding-pros-cons">
-                                                <li className="pro">Clarity on ownership % immediately</li>
-                                                <li className="pro"> Governance rights defined</li>
-                                                <li className="con">Expensive ($20k+ legal) & Slow</li>
-                                            </ul>
-                                        </div>
-
-                                        {/* Option 4: Reg CF */}
-                                        <div className="funding-card">
-                                            <div className="funding-header">
-                                                <div className="funding-icon">🤝</div>
-                                                <h4 className="funding-name">Reg CF (Crowd)</h4>
-                                            </div>
-                                            <p className="funding-desc">
-                                                Raising from the community/public (up to $5M/yr). Aligns with "Solidarity" values but requires public disclosures and marketing campaign.
-                                            </p>
-                                            <ul className="funding-pros-cons">
-                                                <li className="pro">Community buy-in / loyalty</li>
-                                                <li className="con">Public disclosure requirements</li>
-                                                <li className="con">Marketing heavy</li>
-                                            </ul>
-                                        </div>
-
-                                        {/* Option 5: Venture Debt / Revenue Based */}
-                                        <div className="funding-card">
-                                            <div className="funding-header">
-                                                <div className="funding-icon">💸</div>
-                                                <h4 className="funding-name">RBF / Venture Debt</h4>
-                                            </div>
-                                            <p className="funding-desc">
-                                                Non-dilutive capital repaid from future revenue. Requires predictable cash flow (likely from South Lawn operations).
-                                            </p>
-                                            <ul className="funding-pros-cons">
-                                                <li className="pro">Zero dilution</li>
-                                                <li className="pro">Founder control retained</li>
-                                                <li className="con">Requires existing revenue streams</li>
-                                            </ul>
-                                        </div>
-
+                            <section className="ir-section">
+                                <div className="flex justify-between items-end mb-8">
+                                    <div>
+                                        <h3 className="section-label">Project Marketplace</h3>
+                                        <p className="lead ir-subtitle" style={{ marginBottom: '0', textAlign: 'left' }}>
+                                            Vote with your wallet. Fund the "crazy ideas" you believe in.
+                                            <br />
+                                            <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>Capital allocated here goes directly to the selected project's budget.</span>
+                                        </p>
                                     </div>
-                                </section>
+                                    {leaderboard.length > 0 && (
+                                        <div className="hidden md:block">
+                                            <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 w-64">
+                                                <h4 className="text-xs uppercase text-slate-500 font-bold mb-3 tracking-widest border-b border-slate-800 pb-2">Top Backers</h4>
+                                                <ul className="space-y-2">
+                                                    {leaderboard.map((backer, idx) => (
+                                                        <li key={idx} className="flex justify-between text-xs">
+                                                            <span className="text-slate-300 truncate max-w-[120px]">{backer.email.split('@')[0]}</span>
+                                                            <span className="text-emerald-400 font-mono">${backer.total.toLocaleString()}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
-                                <style>{`
-                                .funding-card {
+                                <div className="funding-grid">
+                                    {projects.map((project) => {
+                                        const goal = project.fundingGoal || 10000;
+                                        const raised = project.raised || 0;
+                                        const percent = Math.min(100, Math.round((raised / goal) * 100));
+
+                                        return (
+                                            <div key={project.code} className="project-fund-card group">
+                                                <div className="p-header">
+                                                    <div className="p-badge">{project.category}</div>
+                                                    <div className="p-status">{project.status}</div>
+                                                </div>
+                                                <h4 className="p-title group-hover:text-emerald-400 transition-colors">{project.name}</h4>
+                                                <div className="p-pitch">"{project.pitch || project.description}"</div>
+
+                                                <div className="p-progress-container">
+                                                    <div className="p-progress-labels">
+                                                        <span>${raised.toLocaleString()} raised</span>
+                                                        <span>{percent}% of ${goal.toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="p-bar-bg">
+                                                        <div className="p-bar-fill" style={{ width: `${percent}%` }}></div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-meta">
+                                                    <span>👥 {project.backers || 0} backers</span>
+                                                    <span>🚀 {project.code}</span>
+                                                </div>
+
+                                                <button
+                                                    className="pledge-btn"
+                                                    onClick={() => handlePledgeClick(project)}
+                                                >
+                                                    Pledge Support
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+
+                            <style>{`
+                                .funding-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                                    gap: 2rem;
+                                }
+
+                                .project-fund-card {
                                     background: var(--c-surface);
                                     border: 1px solid var(--c-border);
                                     border-radius: var(--radius-md);
                                     padding: 2rem;
-                                    transition: all 0.2s ease;
-                                    cursor: pointer;
-                                }
-                                .funding-card:hover {
-                                    border-color: var(--c-brand);
-                                    transform: translateY(-2px);
-                                }
-                                .funding-header {
                                     display: flex;
-                                    align-items: center;
-                                    gap: 1rem;
+                                    flex-direction: column;
+                                    transition: all 0.3s ease;
+                                }
+                                .project-fund-card:hover {
+                                    transform: translateY(-4px);
+                                    border-color: var(--c-brand);
+                                    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+                                }
+
+                                .p-header {
+                                    display: flex;
+                                    justify-content: space-between;
                                     margin-bottom: 1rem;
                                 }
-                                .funding-icon {
-                                    font-size: 1.5rem;
+                                .p-badge {
+                                    font-size: 0.7rem;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    color: var(--c-brand);
+                                    background: rgba(56, 189, 248, 0.1);
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
                                 }
-                                .funding-name {
-                                    font-size: 1.1rem;
-                                    font-weight: 700;
+                                .p-status {
+                                    font-size: 0.7rem;
+                                    color: var(--c-text-sub);
+                                    text-transform: uppercase;
+                                }
+
+                                .p-title {
+                                    font-size: 1.4rem;
+                                    font-weight: 800;
+                                    margin-bottom: 0.5rem;
                                     color: var(--c-text);
                                 }
-                                .funding-desc {
-                                    font-size: 0.9rem;
-                                    line-height: 1.6;
+
+                                .p-pitch {
+                                    font-size: 0.95rem;
                                     color: var(--c-text-sub);
+                                    font-style: italic;
+                                    margin-bottom: 2rem;
+                                    line-height: 1.5;
+                                    flex-grow: 1;
+                                }
+
+                                .p-progress-container {
                                     margin-bottom: 1.5rem;
                                 }
-                                .funding-pros-cons {
-                                    list-style: none;
-                                    padding: 0;
-                                    margin: 0;
-                                    font-size: 0.85rem;
-                                }
-                                .funding-pros-cons li {
+                                .p-progress-labels {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    font-size: 0.8rem;
+                                    color: var(--c-text-sub);
                                     margin-bottom: 0.5rem;
-                                    padding-left: 1.2rem;
-                                    position: relative;
+                                    font-weight: 600;
                                 }
-                                .funding-pros-cons li.pro::before {
-                                    content: '✓';
-                                    position: absolute;
-                                    left: 0;
-                                    color: #10b981;
+                                .p-bar-bg {
+                                    height: 8px;
+                                    background: var(--c-border);
+                                    border-radius: 4px;
+                                    overflow: hidden;
                                 }
-                                .funding-pros-cons li.con::before {
-                                    content: '×';
-                                    position: absolute;
-                                    left: 0;
-                                    color: #ef4444;
+                                .p-bar-fill {
+                                    height: 100%;
+                                    background: linear-gradient(90deg, var(--c-brand), #a855f7);
+                                    border-radius: 4px;
+                                }
+
+                                .p-meta {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    font-size: 0.8rem;
+                                    color: var(--c-text-sub);
+                                    margin-bottom: 1.5rem;
+                                    padding-top: 1rem;
+                                    border-top: 1px solid var(--c-border);
+                                }
+
+                                .pledge-btn {
+                                    width: 100%;
+                                    padding: 12px;
+                                    background: var(--c-text);
+                                    color: var(--c-bg);
+                                    border: none;
+                                    border-radius: var(--radius-sm);
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    transition: all 0.2s;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.05em;
+                                    font-size: 0.9rem;
+                                }
+                                .pledge-btn:hover {
+                                    background: var(--c-brand);
+                                    color: white;
+                                    transform: scale(1.02);
                                 }
                             `}</style>
-                            </div>                        </div>
+                        </div>
                     )}
 
                     {/* TAB CONTENT: Capital Flow */}

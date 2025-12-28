@@ -23,6 +23,7 @@ import INCView from "../engines/INCView";
 import CRNView from "../engines/CRNView";
 import IDEView from "../engines/IDEView";
 import FirmamentCockpit from "../engines/FirmamentCockpit";
+import MINTView from "../engines/MINTView";
 import EngineOverlay from "../../components/EngineOverlay";
 
 import { ALL_ENGINES } from "../../data/engineRegistry";
@@ -63,6 +64,7 @@ export default function EngineRoute() {
             case 'INC': return <INCView {...props} />;
             case 'CRN': return <CRNView {...props} />;
             case 'IDE': return <IDEView {...props} />;
+            case 'MINT': return <MINTView {...props} />;
             default: return <EngineOverlay {...props} />;
         }
     };

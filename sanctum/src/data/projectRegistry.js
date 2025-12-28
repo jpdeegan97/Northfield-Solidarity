@@ -5,7 +5,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "3D Operations Globe for real-time visualization of NS operations.",
         status: "Draft",
-        charterContent: "FIRMAMENT_CHARTER" // Key to map to content
+        charterContent: "FIRMAMENT_CHARTER",
+        timeline: { category: "Firmament Web App", start: 1, duration: 3, color: "#3b82f6" }
     },
     {
         code: "MT",
@@ -13,15 +14,17 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Experiential Business Visualization & Flow Gamification Platform.",
         status: "Draft",
-        charterContent: "MANIFOLD_TRACER_CHARTER"
+        charterContent: "MANIFOLD_TRACER_CHARTER",
+        timeline: { category: "Experimental", start: 4, duration: 4 }
     },
     {
         code: "OS",
-        name: "OFFICE SPACES",
+        name: "FANTASY LAND",
         category: "Project",
         description: "Experiential visualization platform for small & mid-sized businesses.",
         status: "Draft",
-        charterContent: "OFFICE_SPACES_CHARTER"
+        charterContent: "FANTASY_LAND_CHARTER",
+        timeline: { category: "Commercial Apps", start: 5, duration: 4 }
     },
     {
         code: "RELAY",
@@ -29,7 +32,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Project Relay.",
         status: "Draft",
-        charterContent: "RELAY_CHARTER"
+        charterContent: "RELAY_CHARTER",
+        timeline: { category: "Internal Tools", start: 2, duration: 3 }
     },
     {
         code: "AEGIS",
@@ -42,7 +46,8 @@ export const NS_PROJECTS = [
             { id: 'charter', title: 'Project Charter', contentKey: 'AEGIS_CHARTER' },
             { id: 'runbook', title: 'Runbook', contentKey: 'AEGIS_RUNBOOK' },
             { id: 'dataref', title: 'Data Reference', contentKey: 'AEGIS_DATAREF' }
-        ]
+        ],
+        timeline: { category: "Engineering Ops", start: 0, duration: 6, color: "#10b981" }
     },
     {
         code: "WSP",
@@ -50,7 +55,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Wall Street Pro financial tools.",
         status: "Draft",
-        charterContent: "WALL_STREET_PRO_CHARTER"
+        charterContent: "WALL_STREET_PRO_CHARTER",
+        timeline: { category: "Commercial Apps", start: 6, duration: 5 }
     },
     {
         code: "BOOM",
@@ -58,7 +64,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Reciprocal value flow system.",
         status: "Draft",
-        charterContent: "BOOMERANG_CHARTER"
+        charterContent: "BOOMERANG_CHARTER",
+        timeline: { category: "Experimental", start: 7, duration: 3 }
     },
     {
         code: "CRN",
@@ -66,7 +73,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Daily capture and decision journaling.",
         status: "Active",
-        charterContent: "CHRONICLE_CHARTER"
+        charterContent: "CHRONICLE_CHARTER",
+        timeline: { category: "Core Systems", start: 0, duration: 12, color: "#f59e0b" }
     },
     {
         code: "DT",
@@ -74,7 +82,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Intimate idea rambling sessions.",
         status: "Ideation",
-        charterContent: "DUCT_TAPE_CHARTER"
+        charterContent: "DUCT_TAPE_CHARTER",
+        timeline: { category: "Experimental", start: 0, duration: 12 }
     },
     {
         code: "FRK",
@@ -82,7 +91,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Experimental branches and divergence tracking.",
         status: "Active",
-        charterContent: "FORK_CHARTER"
+        charterContent: "FORK_CHARTER",
+        timeline: { category: "Core Systems", start: 0, duration: 12, color: "#f59e0b" }
     },
     {
         code: "INC",
@@ -90,7 +100,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Venture hatching and early-stage maturity.",
         status: "Active",
-        charterContent: "INCUBATOR_CHARTER"
+        charterContent: "INCUBATOR_CHARTER",
+        timeline: { category: "Core Systems", start: 0, duration: 12, color: "#f59e0b" }
     },
     {
         code: "INCP",
@@ -98,7 +109,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Origin point project.",
         status: "Draft",
-        charterContent: "INCEPTION_CHARTER"
+        charterContent: "INCEPTION_CHARTER",
+        timeline: { category: "Experimental", start: 0, duration: 1 }
     },
     {
         code: "INV",
@@ -106,7 +118,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Inverse value models.",
         status: "Draft",
-        charterContent: "INVERSE_CHARTER"
+        charterContent: "INVERSE_CHARTER",
+        timeline: { category: "Experimental", start: 8, duration: 3 }
     },
     {
         code: "MINT",
@@ -114,7 +127,8 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Entity / IP Formation Engine.",
         status: "Incubator",
-        charterContent: "MINT_CHARTER"
+        charterContent: "MINT_CHARTER",
+        timeline: { category: "Internal Tools", start: 4, duration: 4 }
     },
     {
         code: "NUM",
@@ -122,6 +136,7 @@ export const NS_PROJECTS = [
         category: "Project",
         description: "Quantitative analysis and patterns.",
         status: "Draft",
-        charterContent: "NUMBEROLOGY_CHARTER"
-    }
+        charterContent: "NUMBEROLOGY_CHARTER",
+        timeline: { category: "Experimental", start: 5, duration: 3 }
+    },
 ];

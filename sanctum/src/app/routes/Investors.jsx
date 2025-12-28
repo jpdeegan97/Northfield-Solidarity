@@ -6,18 +6,68 @@ import CapitalFlowModel from '../../components/CapitalFlowModel.jsx';
 import MermaidDiagram from '../../components/MermaidDiagram.jsx';
 import { NS_ENGINES, SL_ENGINES } from '../../data/engineRegistry.js';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
-import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx'; // Ensure this file exists or remove if not needed. Step 765 didn't show this import but Step 864 uses NS_PROJECTS
+import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx';
+import { MASTER_PLAN_INDUSTRIES } from '../../data/masterPlan.js';
 
-const getPhase = (status) => {
-    // simplified for brevity, logic inferred from usage
-    return status;
-};
+const MasterPlanView = () => (
+    <div className="tab-content fade-in">
+        <section className="ir-section">
+            <h3 className="section-label">Global Master Plan</h3>
+            <p className="lead ir-subtitle" style={{ marginBottom: '3rem' }}>
+                A comprehensive map of global industries, identifying systemic friction and opportunities for optimization.
+            </p>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '2rem'
+            }}>
+                {MASTER_PLAN_INDUSTRIES.map((industry, index) => (
+                    <div key={index} style={{
+                        padding: '1.5rem',
+                        background: 'var(--c-surface)',
+                        border: '1px solid var(--c-border)',
+                        borderRadius: 'var(--radius-md)',
+                        transition: 'transform 0.2s',
+                    }}>
+                        <h4 style={{
+                            fontSize: '1.1rem',
+                            color: 'var(--c-brand)',
+                            marginBottom: '1rem',
+                            borderBottom: '1px solid var(--c-border)',
+                            paddingBottom: '0.5rem'
+                        }}>
+                            {industry.category}
+                        </h4>
+                        <ul style={{
+                            listStyle: 'none',
+                            padding: 0,
+                            margin: 0
+                        }}>
+                            {industry.items.map((sub, idx) => (
+                                <li key={idx} style={{
+                                    fontSize: '0.9rem',
+                                    color: 'var(--c-text-sub)',
+                                    marginBottom: '0.5rem',
+                                    paddingLeft: '1rem',
+                                    borderLeft: '2px solid rgba(255,255,255,0.05)'
+                                }}>
+                                    {sub}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        </section>
+    </div>
+);
 
 const ProgressTrack = ({ progress }) => {
     // Reconstructing from Step 765 visual context
     return (
         <div className="progress-track">
-            {['concept', 'spec', 'build', 'live'].map((step, i) => {
+            {['concept', 'spec', 'build', 'live'].map((step) => {
                 const stepIndex = ['concept', 'spec', 'build', 'live'].indexOf(step);
                 const currentProgress = ['concept', 'spec', 'build', 'live'].indexOf(progress.toLowerCase());
                 const active = stepIndex <= currentProgress;
@@ -158,6 +208,19 @@ const SystemImplementationGantt = () => {
     const [viewMode, setViewMode] = useState("SYSTEM"); // SYSTEM | PROJECTS
     const [horizon, setHorizon] = useState(3); // Months to show
 
+    const [customItems, setCustomItems] = useState([]);
+
+    const availableItems = [...NS_ENGINES, ...SL_ENGINES, ...NS_PROJECTS].sort((a, b) => a.name.localeCompare(b.name));
+
+    const handleAddCustomItem = (code) => {
+        const item = availableItems.find(i => i.code === code);
+        if (item && !customItems.some(i => i.code === code)) {
+            setCustomItems([...customItems, item]);
+            setViewMode("PLANNER");
+            setExpanded(true);
+        }
+    };
+
     // Helper to get dynamic months
     const getMonthLabels = (count) => {
         const months = [];
@@ -173,60 +236,68 @@ const SystemImplementationGantt = () => {
     const totalUnits = horizon * 2; // 2 units per month
 
     // Mock Gantt Data (start=0 means Current Month)
-    const phases = [
-        {
-            category: "Phase 1: Foundation",
-            tasks: [
-                { name: "System Architecture Specs", start: 0, duration: 3, color: "var(--c-brand)" },
-                { name: "Core Framework (React/Vite)", start: 2, duration: 4, color: "var(--c-brand)" },
-                { name: "Identity Engine (IDN)", start: 4, duration: 3, color: "var(--c-accent)" },
-            ]
-        },
-        {
-            category: "Phase 2: Alpha Engines",
-            tasks: [
-                { name: "DRE Ingestion Layer", start: 3, duration: 4, color: "#a855f7" },
-                { name: "Deep Search Algorithms", start: 5, duration: 5, color: "#a855f7" },
-                { name: "Knowledge Graph (GGP)", start: 6, duration: 4, color: "#e879f9" },
-            ]
-        },
-        {
-            category: "Phase 3: Beta & Release",
-            tasks: [
-                { name: "South Lawn Integration", start: 8, duration: 4, color: "#22c55e" },
-                { name: "Firmament Beta UI", start: 9, duration: 3, color: "#22c55e" },
-                { name: "System Stress Tests", start: 10, duration: 2, color: "#ef4444" }
-            ]
-        }
-    ];
+    // Dynamic Gantt Data Construction
+    const buildGanttData = (items, groupByField = 'phase') => {
+        // defined order for phases if we want to sort them specifically
+        const sortOrder = [
+            "Phase 1: Foundation",
+            "Phase 2: Alpha Engines",
+            "Phase 3: Beta & Release",
+            "South Lawn Expansion",
+            "Firmament Web App",
+            "Core Systems",
+            "Internal Tools",
+            "Commercial Apps",
+            "Experimental"
+        ];
 
-    const projectPhases = [
-        {
-            category: "Firmament Web App",
-            tasks: [
-                { name: "UX Wireframes", start: 1, duration: 3, color: "#3b82f6" },
-                { name: "Frontend Components", start: 3, duration: 5, color: "#3b82f6" },
-                { name: "Integration Testing", start: 7, duration: 3, color: "#3b82f6" },
-            ]
-        },
-        {
-            category: "Mobile Client (iOS)",
-            tasks: [
-                { name: "Concept & Design", start: 4, duration: 3, color: "#f59e0b" },
-                { name: "MVP Build", start: 6, duration: 5, color: "#f59e0b" },
-            ]
-        },
-        {
-            category: "Data Pipeline Ops",
-            tasks: [
-                { name: "Crawler Setup", start: 0, duration: 4, color: "#10b981" },
-                { name: "Vector DB Scaling", start: 3, duration: 6, color: "#10b981" },
-                { name: "Analytic Dashboards", start: 8, duration: 4, color: "#10b981" },
-            ]
-        }
-    ];
+        const groups = {};
 
-    const currentData = viewMode === "SYSTEM" ? phases : projectPhases;
+        items.forEach(item => {
+            const tl = item.timeline;
+            if (!tl) return;
+
+            // For projects, we use 'category' from timeline, for engines 'phase'
+            const groupKey = tl[groupByField] || "Uncategorized";
+
+            if (!groups[groupKey]) {
+                groups[groupKey] = {
+                    category: groupKey,
+                    tasks: []
+                };
+            }
+
+            groups[groupKey].tasks.push({
+                name: item.code ? `${item.name} (${item.code})` : item.name,
+                start: tl.start,
+                duration: tl.duration,
+                color: tl.color || "var(--c-brand)"
+            });
+        });
+
+        const result = Object.values(groups);
+
+        // Sort groups based on defined order
+        result.sort((a, b) => {
+            const idxA = sortOrder.indexOf(a.category);
+            const idxB = sortOrder.indexOf(b.category);
+            if (idxA === -1 && idxB === -1) return 0;
+            if (idxA === -1) return 1;
+            if (idxB === -1) return -1;
+            return idxA - idxB;
+        });
+
+        return result;
+    };
+
+    const phases = buildGanttData([...NS_ENGINES, ...SL_ENGINES], 'phase');
+    const projectPhases = buildGanttData(NS_PROJECTS, 'category');
+    const plannerData = buildGanttData(customItems, 'phase'); // Default to phase grouping, or fallback to whatever
+
+    let currentData;
+    if (viewMode === "SYSTEM") currentData = phases;
+    else if (viewMode === "PROJECTS") currentData = projectPhases;
+    else currentData = plannerData;
 
     return (
         <div className="gantt-container" style={{
@@ -282,12 +353,58 @@ const SystemImplementationGantt = () => {
                                 background: viewMode === "PROJECTS" ? 'var(--c-brand)' : 'transparent',
                                 color: viewMode === "PROJECTS" ? '#fff' : 'var(--c-text-sub)',
                                 border: 'none',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                borderLeft: '1px solid var(--c-border)'
                             }}
                         >
                             PROJECTS
                         </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setViewMode("PLANNER"); if (!expanded) setExpanded(true); }}
+                            style={{
+                                padding: '4px 12px',
+                                fontSize: '0.7rem',
+                                fontWeight: '600',
+                                background: viewMode === "PLANNER" ? 'var(--c-brand)' : 'transparent',
+                                color: viewMode === "PLANNER" ? '#fff' : 'var(--c-text-sub)',
+                                border: 'none',
+                                cursor: 'pointer',
+                                borderLeft: '1px solid var(--c-border)'
+                            }}
+                        >
+                            PLANNER
+                        </button>
                     </div>
+
+                    {/* Planner Dropdown */}
+                    {(viewMode === "PLANNER" || expanded) && (
+                        <div style={{ marginLeft: '1rem' }}>
+                            <select
+                                style={{
+                                    background: 'var(--c-surface)',
+                                    color: 'var(--c-text)',
+                                    border: '1px solid var(--c-border)',
+                                    borderRadius: '4px',
+                                    padding: '4px 8px',
+                                    fontSize: '0.75rem',
+                                    outline: 'none'
+                                }}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        handleAddCustomItem(e.target.value);
+                                        e.target.value = ""; // reset
+                                    }
+                                }}
+                            >
+                                <option value="">+ Add to Planner Lane...</option>
+                                {availableItems.map((item, idx) => (
+                                    <option key={`${item.code}-${idx}`} value={item.code}>
+                                        {item.name} ({item.code})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 {/* Horizon Control */}
@@ -554,6 +671,94 @@ const RoadmapView = () => {
     );
 };
 
+const PartnerRoyaltyView = () => {
+    return (
+        <div className="tab-content fade-in">
+            <section className="ir-section highlight-bg">
+                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                    <div className="badge ir-badge">Genesis Partners Program</div>
+                    <h2 className="deal-title">Turn Ideas Into Perpetual Income</h2>
+                    <p className="deal-desc" style={{ maxWidth: '700px', margin: '0 auto' }}>
+                        Partners who submit Engine blueprints or Project sparks that are accepted by Northfield Solidarity receive a <strong>perpetual royalty</strong> on the net cash flow generated by that entity.
+                    </p>
+                </div>
+
+                <div className="metrics-grid" style={{ marginBottom: '3rem' }}>
+                    {/* TIER 1 */}
+                    <div className="metric-card" style={{ position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'var(--c-text-sub)' }}></div>
+                        <h3 className="section-label" style={{ color: 'var(--c-text)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Tier 1: The Spark</h3>
+                        <div className="metric-value">1.0% - 2.5%</div>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--c-text-sub)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                            You provide a high-level concept or specific problem/solution set. We do the research, spec, build, and operations.
+                        </p>
+                        <ul className="terms-list">
+                            <li><strong>Input:</strong> Validated Idea / Problem</li>
+                            <li><strong>Effort:</strong> Low (One-off submission)</li>
+                            <li><strong>Vesting:</strong> Immediate upon Mainnet</li>
+                        </ul>
+                    </div>
+
+                    {/* TIER 2 */}
+                    <div className="metric-card" style={{ position: 'relative', overflow: 'hidden', borderColor: 'var(--c-brand)' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'var(--c-brand)' }}></div>
+                        <h3 className="section-label" style={{ color: 'var(--c-brand)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Tier 2: The Blueprint</h3>
+                        <div className="metric-value" style={{ color: 'var(--c-brand)' }}>2.5% - 5.0%</div>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--c-text-sub)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                            You deliver a detailed spec, market analysis, or initial architecture. You help shape the MVP but don't operate it.
+                        </p>
+                        <ul className="terms-list">
+                            <li><strong>Input:</strong> Full Spec / Architecture</li>
+                            <li><strong>Effort:</strong> Medium (Workshops / Docs)</li>
+                            <li><strong>Vesting:</strong> Immediate upon Mainnet</li>
+                        </ul>
+                    </div>
+
+                    {/* TIER 3 */}
+                    <div className="metric-card" style={{ position: 'relative', overflow: 'hidden', borderColor: '#a855f7' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: '#a855f7' }}></div>
+                        <h3 className="section-label" style={{ color: '#a855f7', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Tier 3: The Architect</h3>
+                        <div className="metric-value" style={{ color: '#a855f7' }}>5.0% - 10.0%</div>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--c-text-sub)', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                            You bring critical IP, key relationships, or ongoing advisory. You are a pseudo-founder for this specific engine.
+                        </p>
+                        <ul className="terms-list">
+                            <li><strong>Input:</strong> IP / Network / Advisory</li>
+                            <li><strong>Effort:</strong> High (Ongoing Monthly)</li>
+                            <li><strong>Vesting:</strong> 1 Year Cliff / 4 Year Vest</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
+                    <h3 className="section-label">Program Terms & Governance</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        <ul className="terms-list">
+                            <li><strong>Royalty Base:</strong> Net Distributable Cash Flow (post-OpEx/CapEx).</li>
+                            <li><strong>Payment Frequency:</strong> Quarterly distributions via USDC or FIAT.</li>
+                            <li><strong>Cap:</strong> Uncapped earnings upside.</li>
+                        </ul>
+                        <ul className="terms-list">
+                            <li><strong>Buyout Option:</strong> NS retains right to buy out royalty at 10x ARR after Year 5.</li>
+                            <li><strong>Governance:</strong> Economic interest only. No voting rights or control.</li>
+                            <li><strong>Transferability:</strong> Assignable to trusts/entities with approval.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '3rem', textAlign: 'center' }}>
+                    <button className="btn" style={{ fontSize: '1rem', padding: '1rem 2rem' }}>
+                        Submit Engine Proposal
+                    </button>
+                    <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--c-text-sub)' }}>
+                        Proposals are reviewed by the GGP Committee weekly. Acceptance rate is currently ~4%.
+                    </p>
+                </div>
+            </section>
+        </div>
+    );
+};
+
 const LoginView = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [error, setError] = useState(null);
@@ -683,6 +888,12 @@ export default function Investors() {
                             Series Funding
                         </button>
                         <button
+                            className={`tab-btn ${activeTab === 'partner' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('partner')}
+                        >
+                            Partner Royalty
+                        </button>
+                        <button
                             className={`tab-btn ${activeTab === 'capital' ? 'active' : ''}`}
                             onClick={() => setActiveTab('capital')}
                         >
@@ -700,7 +911,16 @@ export default function Investors() {
                         >
                             Entity Structure
                         </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'master-plan' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('master-plan')}
+                        >
+                            Master Plan
+                        </button>
                     </div>
+
+                    {/* TAB CONTENT: Partner Royalty */}
+                    {activeTab === 'partner' && <PartnerRoyaltyView />}
 
                     {/* TAB CONTENT: Projections */}
                     {activeTab === 'projections' && (
@@ -799,6 +1019,10 @@ export default function Investors() {
 
                     {/* TAB CONTENT: Entity Structure */}
                     {activeTab === 'structure' && <EntityStructureView />}
+
+                    {/* TAB CONTENT: Master Plan */}
+                    {activeTab === 'master-plan' && <MasterPlanView />}
+
 
 
 

@@ -10,6 +10,11 @@ export default function IDNView({ engine }) {
     // Form State
     const [newEntity, setNewEntity] = useState({ name: '', type: 'HUMAN', role: 'READ_ONLY' });
 
+    // UI State
+    const [activeTab, setActiveTab] = useState('DIRECTORY'); // DIRECTORY | CAPABILITIES
+    const [showGraph, setShowGraph] = useState(false);
+    const [activePersona, setActivePersona] = useState('OPERATOR'); // For Persona Switcher
+
     useEffect(() => {
         loadData();
     }, []);
@@ -74,85 +79,129 @@ export default function IDNView({ engine }) {
                     <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
                         <h3 className={`text-xs font-bold ${THEME.primary} tracking-widest uppercase flex items-center gap-2`}>
                             <div className={`w-2 h-2 rounded-full ${THEME.bg} animate-pulse`} />
-                            Directory
+                            IDN CORE
                         </h3>
-                        <span className="text-[10px] text-white/40 font-mono">{entities.length} Total</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setActiveTab('DIRECTORY')} className={`text-[9px] font-bold ${activeTab === 'DIRECTORY' ? 'text-white' : 'text-white/40'} hover:text-white transition-colors`}>DIR</button>
+                            <button onClick={() => setActiveTab('CAPABILITIES')} className={`text-[9px] font-bold ${activeTab === 'CAPABILITIES' ? 'text-white' : 'text-white/40'} hover:text-white transition-colors`}>CAPS</button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 overflow-y-auto pr-2 flex-1">
-                        {entities.map((ent) => {
-                            const isSelected = selectedEntity?.id === ent.id;
-                            const typeColor = ent.type === 'HUMAN' ? 'text-blue-300' :
-                                ent.type === 'SERVICE' ? 'text-emerald-300' : 'text-amber-300';
+                    {activeTab === 'DIRECTORY' ? (
+                        <>
+                            <div className="flex justify-between items-center mb-2 px-1">
+                                <span className="text-[10px] text-white/40 font-mono">ENTITIES ({entities.length})</span>
+                                <button onClick={() => setShowGraph(!showGraph)} className="text-[9px] text-fuchsia-400 hover:text-white transition-colors uppercase">
+                                    {showGraph ? 'List View' : 'Graph View'}
+                                </button>
+                            </div>
 
-                            return (
-                                <div
-                                    key={ent.id}
-                                    onClick={() => setSelectedEntity(ent)}
-                                    className={`
+                            <div className="flex flex-col gap-2 overflow-y-auto pr-2 flex-1">
+                                {entities.map((ent) => {
+                                    const isSelected = selectedEntity?.id === ent.id;
+                                    const typeColor = ent.type === 'HUMAN' ? 'text-blue-300' :
+                                        ent.type === 'SERVICE' ? 'text-emerald-300' : 'text-amber-300';
+
+                                    return (
+                                        <div
+                                            key={ent.id}
+                                            onClick={() => setSelectedEntity(ent)}
+                                            className={`
                                         p-3 rounded border cursor-pointer transition-all group
                                         ${isSelected
-                                            ? `${THEME.bgSoft} ${THEME.border} ${THEME.glow}`
-                                            : `bg-white/5 border-transparent ${THEME.hoverBorder}`}
+                                                    ? `${THEME.bgSoft} ${THEME.border} ${THEME.glow}`
+                                                    : `bg-white/5 border-transparent ${THEME.hoverBorder}`}
                                     `}
-                                >
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className={`text-[9px] font-bold ${typeColor} bg-white/5 px-1.5 py-0.5 rounded`}>{ent.type}</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className={`w-1.5 h-1.5 rounded-full ${ent.status === 'ACTIVE' ? 'bg-fuchsia-500' : 'bg-white/20'}`} />
-                                            <span className="text-[9px] font-mono text-white/30">{ent.status}</span>
+                                        >
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className={`text-[9px] font-bold ${typeColor} bg-white/5 px-1.5 py-0.5 rounded`}>{ent.type}</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${ent.status === 'ACTIVE' ? 'bg-fuchsia-500' : 'bg-white/20'}`} />
+                                                    <span className="text-[9px] font-mono text-white/30">{ent.status}</span>
+                                                </div>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-white group-hover:text-fuchsia-200">{ent.name}</h4>
+                                            <div className="text-[10px] text-white/40 font-mono mt-1 flex justify-between">
+                                                <span>{ent.id}</span>
+                                                <span>{ent.lastSeen}</span>
+                                            </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
+
+                            {isCreating ? (
+                                <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded animate-fade-in-up">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        placeholder="Entity Name"
+                                        value={newEntity.name}
+                                        onChange={e => setNewEntity({ ...newEntity, name: e.target.value })}
+                                        className="w-full bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white mb-2 focus:border-fuchsia-500 outline-none"
+                                    />
+                                    <div className="flex gap-2 mb-2">
+                                        {['HUMAN', 'SERVICE', 'BOT'].map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => setNewEntity({ ...newEntity, type: t })}
+                                                className={`flex-1 text-[8px] py-1 rounded border ${newEntity.type === t ? 'bg-fuchsia-500/20 border-fuchsia-500 text-white' : 'border-white/10 text-white/50'}`}
+                                            >
+                                                {t[0]}
+                                            </button>
+                                        ))}
                                     </div>
-                                    <h4 className="text-sm font-bold text-white group-hover:text-fuchsia-200">{ent.name}</h4>
-                                    <div className="text-[10px] text-white/40 font-mono mt-1 flex justify-between">
-                                        <span>{ent.id}</span>
-                                        <span>{ent.lastSeen}</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleCreate} className="flex-1 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-[10px] py-1 rounded">CREATE</button>
+                                        <button onClick={() => setIsCreating(false)} className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] py-1 rounded">CANCEL</button>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    {isCreating ? (
-                        <div className="mt-4 p-3 bg-white/5 border border-white/10 rounded animate-fade-in-up">
-                            <input
-                                autoFocus
-                                type="text"
-                                placeholder="Entity Name"
-                                value={newEntity.name}
-                                onChange={e => setNewEntity({ ...newEntity, name: e.target.value })}
-                                className="w-full bg-black/50 border border-white/20 rounded px-2 py-1 text-xs text-white mb-2 focus:border-fuchsia-500 outline-none"
-                            />
-                            <div className="flex gap-2 mb-2">
-                                {['HUMAN', 'SERVICE', 'BOT'].map(t => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setNewEntity({ ...newEntity, type: t })}
-                                        className={`flex-1 text-[8px] py-1 rounded border ${newEntity.type === t ? 'bg-fuchsia-500/20 border-fuchsia-500 text-white' : 'border-white/10 text-white/50'}`}
-                                    >
-                                        {t[0]}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={handleCreate} className="flex-1 bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-[10px] py-1 rounded">CREATE</button>
-                                <button onClick={() => setIsCreating(false)} className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] py-1 rounded">CANCEL</button>
-                            </div>
-                        </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsCreating(true)}
+                                    className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white text-xs font-bold rounded flex items-center justify-center gap-2 transition-all border border-white/5"
+                                >
+                                    + NEW IDENTITY
+                                </button>
+                            )}
+                        </>
                     ) : (
-                        <button
-                            onClick={() => setIsCreating(true)}
-                            className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white text-xs font-bold rounded flex items-center justify-center gap-2 transition-all border border-white/5"
-                        >
-                            + NEW IDENTITY
-                        </button>
+                        <div className="overflow-y-auto pr-2 flex-1 space-y-4">
+                            {engine?.capabilities ? engine.capabilities.map((cap, i) => (
+                                <div key={i} className="bg-white/5 border border-white/5 p-2 rounded hover:bg-white/10 transition-colors group">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500/50 group-hover:bg-fuchsia-400" />
+                                        <span className="text-[10px] font-bold text-white/70 group-hover:text-white">{cap}</span>
+                                    </div>
+                                    <div className="text-[9px] text-white/30 pl-3.5">
+                                        Status: <span className="text-emerald-400">PLANNED</span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div className="text-center text-white/30 text-[10px] italic">No capabilities listed.</div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
 
-            {/* CENTER: Identity Graph (Placeholder) */}
-            <div className="flex-1 flex flex-col items-center justify-center pointer-events-none opacity-40">
-                {/* 3D Node Map would act here */}
+            {/* CENTER: Identity Graph (Visual Org Graph) */}
+            <div className="flex-1 flex flex-col items-center justify-center pointer-events-none">
+                {showGraph || activeTab === 'CAPABILITIES' ? (
+                    <div className="relative w-full h-full flex items-center justify-center opacity-80">
+                        {/* Placeholder for the Visual Org Graph Component */}
+                        <div className="w-[400px] h-[400px] border border-fuchsia-500/30 rounded-full animate-spin-slow absolute" style={{ animationDuration: '60s' }} />
+                        <div className="w-[300px] h-[300px] border border-dashed border-fuchsia-500/20 rounded-full animate-spin-reverse-slow absolute" />
+                        <div className="w-[100px] h-[100px] bg-fuchsia-500/10 rounded-full blur-xl absolute" />
+                        <div className="text-[10px] text-fuchsia-300 font-mono bg-black/50 px-3 py-1 rounded backdrop-blur border border-fuchsia-500/30">
+                            VISUAL ORG GRAPH :: ACTIVE
+                        </div>
+                    </div>
+                ) : (
+                    <div className="opacity-40 text-center">
+                        <span className="text-white/10 text-6xl font-black">IDN</span>
+                    </div>
+                )}
             </div>
 
             {/* RIGHT: Profile & Permissions */}
@@ -172,12 +221,27 @@ export default function IDNView({ engine }) {
                                 <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-1">Entity Profile</h3>
                                 <p className={`text-[10px] font-mono mb-6 ${THEME.primary}`}>{selectedEntity.id}</p>
                             </div>
-                            <button
-                                onClick={() => toggleStatus(selectedEntity)}
-                                className={`text-[9px] px-2 py-1 rounded border ${selectedEntity.status === 'ACTIVE' ? 'border-emerald-500 text-emerald-400' : 'border-amber-500 text-amber-400'} hover:bg-white/5 transition-colors`}
-                            >
-                                {selectedEntity.status === 'ACTIVE' ? 'PAUSE' : 'ACTIVATE'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => toggleStatus(selectedEntity)}
+                                    className={`text-[9px] px-2 py-1 rounded border ${selectedEntity.status === 'ACTIVE' ? 'border-emerald-500 text-emerald-400' : 'border-amber-500 text-amber-400'} hover:bg-white/5 transition-colors`}
+                                >
+                                    {selectedEntity.status === 'ACTIVE' ? 'PAUSE' : 'ACTIVATE'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Persona Switcher */}
+                        <div className="mt-4 mb-4 flex bg-white/5 rounded p-1 gap-1">
+                            {['OPERATOR', 'INVESTOR', 'ANON'].map(persona => (
+                                <button
+                                    key={persona}
+                                    onClick={() => setActivePersona(persona)}
+                                    className={`flex-1 text-[8px] font-bold py-1 rounded transition-all ${activePersona === persona ? 'bg-fuchsia-500 text-white shadow-sm' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    {persona}
+                                </button>
+                            ))}
                         </div>
 
                         <div className="flex items-center gap-4 mb-6">

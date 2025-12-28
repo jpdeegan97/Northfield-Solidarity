@@ -162,7 +162,10 @@ export default function WindowFrame({
                 onMouseMove={() => onActivity && onActivity(id)}
                 onClick={() => onActivity && onActivity(id)}
                 onKeyDown={() => onActivity && onActivity(id)}
-                onWheel={() => onActivity && onActivity(id)}
+                onWheel={(e) => {
+                    e.stopPropagation();
+                    if (onActivity) onActivity(id);
+                }}
             >
                 {/* Overlay to catch clicks when inactive to focus window */}
                 {!isActive && (

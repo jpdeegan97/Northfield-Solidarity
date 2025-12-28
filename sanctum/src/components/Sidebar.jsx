@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useLocation, Link } from "react-router-dom";
+import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,14 +11,27 @@ import {
     FileText,
     LogOut,
     Clock,
-    Eye
+    Eye,
+    BookLock,
+    Trophy,
+    ShieldAlert,
+    Cpu,
+    Activity,
+    Users,
+    Settings,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
+import { useSecurity } from "../context/SecurityContext";
 
 export default function Sidebar() {
     const location = useLocation();
+    const navigate = useNavigate();
     const { isAuthenticated, user, logout } = useAuth();
+    const { activeUsers, alert } = useSecurity();
     const [isOpen, setIsOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isPersonnelOpen, setIsPersonnelOpen] = useState(false);
 
     // Responsive check
     useEffect(() => {
@@ -38,29 +51,36 @@ export default function Sidebar() {
     const navItems = [
         { label: "DASHBOARD", to: "/", icon: Home },
         { label: "MARKETPLACE", to: "/marketplace", icon: DollarSign },
+        { label: "ENGINE BUILDER", to: "/builder", icon: Layers },
+        { label: "SIMULATION", to: "/sim", icon: Activity },
+        { label: "OS PROSPECTUS", to: "/os-ideation", icon: Cpu },
+        { label: "JOURNAL", to: "/journal", icon: BookLock },
         { label: "TIMELINE", to: "/timeline", icon: Clock },
         { label: "VISUALIZER", to: "/visualizer", icon: Eye },
         { label: "DOCUMENTS", to: "/docs", icon: FileText },
+        { label: "INVESTORS", to: "/investors", icon: Layers },
+        { label: "DREAMS & NIGHTMARES", to: "/dreams", icon: Trophy },
+        { label: "ADMIN PORTAL", to: "/admin", icon: Settings },
     ];
 
-    // Sanctum Styling Constants
-    const themeColor = "text-[#00ff9d]";
-    const themeBg = "bg-[#00ff9d]/10";
-    const themeBorder = "border-[#00ff9d]/20";
-    const themeHover = "hover:bg-[#00ff9d]/10 hover:text-[#00ff9d]";
+    // Sanctum Styling Constants - Theme Aware
+    const themeColor = "text-brand";
+    const themeBg = "bg-brand/10";
+    const themeBorder = "border-brand/20";
+    const themeHover = "hover:bg-brand/10 hover:text-brand";
 
     return (
         <>
             {/* Mobile Toggle */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 z-50">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-bg/90 backdrop-blur-md border-b border-border flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-3">
-                    <button onClick={toggleSidebar} className="p-2 -ml-2 text-white/70 hover:text-white">
+                    <button onClick={toggleSidebar} className="p-2 -ml-2 text-text-sub hover:text-text">
                         {isOpen ? <X /> : <Menu />}
                     </button>
-                    <span className="font-bold text-white tracking-tight font-mono">SANCTUM</span>
+                    <span className="font-bold text-text tracking-tight font-mono">SANCTUM</span>
                 </div>
                 {isAuthenticated && (
-                    <div className="w-8 h-8 rounded-full bg-[#00ff9d]/20 border border-[#00ff9d]/50 flex items-center justify-center text-xs font-bold text-[#00ff9d]">
+                    <div className="w-8 h-8 rounded-full bg-brand/20 border border-brand/50 flex items-center justify-center text-xs font-bold text-brand">
                         {user?.email?.charAt(0).toUpperCase()}
                     </div>
                 )}
@@ -81,12 +101,12 @@ export default function Sidebar() {
 
             {/* Sidebar Container */}
             <motion.aside
-                className={`fixed top-0 left-0 h-full w-64 bg-[#050505] border-r ${themeBorder} z-50 flex flex-col shadow-2xl transition-all duration-300 lg:translate-x-0 font-mono`}
+                className={`fixed top-0 left-0 h-full w-64 bg-bg border-r border-border z-50 flex flex-col shadow-2xl transition-all duration-300 lg:translate-x-0 font-mono`}
                 animate={{ x: (isMobile && !isOpen) ? -320 : 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
                 {/* Brand Header */}
-                <div className={`p-6 border-b ${themeBorder}`}>
+                <div className={`p-6 border-b border-border`}>
                     <Link to="/" className="block group">
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
@@ -95,7 +115,7 @@ export default function Sidebar() {
                         >
                             SANCTUM
                         </motion.div>
-                        <div className="text-[10px] text-white/40 uppercase tracking-[0.2em] group-hover:text-white transition-colors">
+                        <div className="text-[10px] text-text-sub uppercase tracking-[0.2em] group-hover:text-text transition-colors">
                             Operations Interface
                         </div>
                     </Link>
@@ -110,9 +130,11 @@ export default function Sidebar() {
                             end={item.to === "/"}
                             className={({ isActive }) => `
                                 flex items-center gap-3 px-3 py-3 rounded text-xs font-bold tracking-widest transition-all duration-200 group uppercase
-                                ${isActive
-                                    ? `${themeBg} ${themeColor} border ${themeBorder}`
-                                    : `text-white/40 ${themeHover} border border-transparent`
+                                ${item.label === "OS PROSPECTUS"
+                                    ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
+                                    : isActive
+                                        ? `${themeBg} ${themeColor} border ${themeBorder}`
+                                        : `text-text-sub ${themeHover} border border-transparent`
                                 }
                             `}
                         >
@@ -120,10 +142,10 @@ export default function Sidebar() {
                                 <>
                                     <item.icon size={16} className={isActive ? "" : "opacity-70 group-hover:opacity-100"} />
                                     <span>{item.label}</span>
-                                    {isActive && (
+                                    {isActive && item.label !== "OS PROSPECTUS" && (
                                         <motion.div
                                             layoutId="activeIndicator"
-                                            className="ml-auto w-1.5 h-1.5 rounded-full bg-[#00ff9d] shadow-[0_0_8px_#00ff9d]"
+                                            className="ml-auto w-1.5 h-1.5 rounded-full bg-brand shadow-[0_0_8px_var(--c-brand)]"
                                         />
                                     )}
                                 </>
@@ -132,30 +154,99 @@ export default function Sidebar() {
                     ))}
                 </div>
 
+
+
+                {/* Security & Presence Widget */}
+                <div className="p-4 border-t border-border bg-black/40">
+                    {/* Active Personnel (Ubiquitous) */}
+                    <div className="mb-4">
+                        <div
+                            onClick={() => setIsPersonnelOpen(!isPersonnelOpen)}
+                            className="flex items-center justify-between cursor-pointer group mb-2 select-none"
+                        >
+                            <div className="flex items-center gap-2 text-text-sub group-hover:text-text transition-colors">
+                                <Users size={12} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Active Operators</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-brand">{activeUsers.filter(u => u.status === 'ONLINE').length}</span>
+                                {isPersonnelOpen ? <ChevronDown size={12} className="text-text-sub" /> : <ChevronUp size={12} className="text-text-sub" />}
+                            </div>
+                        </div>
+
+                        <AnimatePresence>
+                            {isPersonnelOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="space-y-1 pl-1 border-l border-border ml-1.5">
+                                        {activeUsers.filter(u => u.status === 'ONLINE').map(u => (
+                                            <div
+                                                key={u.id}
+                                                onClick={() => navigate('/engine/IDN')}
+                                                className="flex items-center gap-2 p-1.5 rounded hover:bg-white/5 cursor-pointer group/user transition-colors"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-sm bg-brand shadow-[0_0_5px_var(--c-brand)]" />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-[10px] font-bold text-text-sub group-hover/user:text-text truncate transition-colors">{u.name}</div>
+                                                    <div className="text-[8px] text-text-sub opacity-50 truncate uppercase font-mono">{u.role}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Alert Area */}
+                    <AnimatePresence>
+                        {alert && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mb-3 bg-red-500/10 border border-red-500/20 p-2 rounded overflow-hidden"
+                            >
+                                <div className="flex items-center gap-2 text-red-400 mb-1">
+                                    <ShieldAlert size={12} />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Security Alert</span>
+                                </div>
+                                <div className="text-[10px] text-white/60 leading-tight">
+                                    {alert.message}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
                 {/* User / Footer */}
-                <div className="p-4 border-t border-white/10 bg-black/20">
+                <div className="p-4 border-t border-border bg-black/20">
                     {isAuthenticated ? (
                         <div className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors cursor-pointer group">
-                            <div className={`w-8 h-8 rounded bg-[#00ff9d]/10 border border-[#00ff9d]/30 flex items-center justify-center text-xs font-bold text-[#00ff9d]`}>
+                            <div className={`w-8 h-8 rounded bg-brand/10 border border-brand/30 flex items-center justify-center text-xs font-bold text-brand`}>
                                 {user?.email?.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-xs font-bold text-white truncate">{user.email}</div>
-                                <div className="text-[10px] text-white/40 truncate uppercase tracking-wider">{user.role || 'Member'}</div>
+                                <div className="text-xs font-bold text-text truncate">{user.email}</div>
+                                <div className="text-[10px] text-text-sub truncate uppercase tracking-wider">{user.role || 'Member'}</div>
                             </div>
-                            <button onClick={logout} className="p-1.5 text-white/30 hover:text-red-400 transition-colors">
+                            <button onClick={logout} className="p-1.5 text-text-sub hover:text-red-400 transition-colors">
                                 <LogOut size={14} />
                             </button>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2">
-                            <Link to="/login" className="flex items-center justify-center px-4 py-2 rounded border border-white/10 text-xs font-bold text-white/60 hover:bg-white/5 hover:text-white hover:border-white/30 transition-all uppercase tracking-wider">
+                            <Link to="/login" className="flex items-center justify-center px-4 py-2 rounded border border-border text-xs font-bold text-text-sub hover:bg-white/5 hover:text-text hover:border-text transition-all uppercase tracking-wider">
                                 Log In
                             </Link>
                         </div>
                     )}
                 </div>
-            </motion.aside>
+            </motion.aside >
         </>
     );
 }

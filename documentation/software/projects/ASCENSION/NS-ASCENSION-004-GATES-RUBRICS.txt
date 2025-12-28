@@ -1,0 +1,48 @@
+NS-ASCENSION-004-GATES-RUBRICS
+
+Gate 0 — The Signal
+Input: resume/LinkedIn, portfolio, short intro, role preference.
+Goal: filter for baseline fit and genuine interest.
+Pass criteria: clear work evidence + alignment to role scope.
+Rubric (0–4 each)
+Relevance to role
+Evidence of shipping
+Communication clarity
+Motivation fit
+Gate 1 — The Echo (Async proof)
+Input: 4–6 questions (written) or a 3–5 minute loom.
+Goal: confirm thinking style and clarity.
+Timebox: 30–45 minutes.
+Rubric (0–4 each)
+Structured thinking
+Tradeoff awareness
+Conciseness
+Truthfulness (flags uncertainty honestly)
+Gate 2 — The Trial (Paid)
+Input: a scoped, paid project aligned to the role.
+Goal: observe real execution under constraints.
+Timebox: 2–6 hours depending on role; paid at a published rate.
+Deliverable: artifact + short README + optional demo.
+Rubric (0–4 each)
+Correctness / quality
+Pragmatism
+Documentation / handoff
+Taste / user empathy (where applicable)
+Speed-to-signal
+Gate 3 — The Alignment
+Format: 30–45 minute conversation.
+Goal: verify operating style, collaboration, and alignment with how NS works.
+Topics: autonomy, feedback loops, disagreement style, reliability.
+Rubric (0–4 each)
+Ownership mindset
+Feedback receptivity
+Communication under ambiguity
+Values alignment
+Gate 4 — The Door (Deep dive)
+Format: 60–90 minutes (live).
+Goal: go deep into the trial or a prior project; stress-test judgment.
+Output: final scorecard + offer recommendation.
+Gate 5 — The Center (Final landing)
+Format: in-person if possible; otherwise a deliberate final session.
+Goal: final mutual decision and expectation setting.
+Output: offer or clear close.

@@ -1,0 +1,15 @@
+NS-ASCENSION-011-ROADMAP
+
+Phase 0 (MVP)
+Careers + Ascension pages in CONCORD
+Role templates and published gate map
+Rubrics + scorecards + comms templates
+Sanctum export for candidate timeline events
+Phase 1
+Lightweight pipeline tracker (Notion/Airtable or internal minimal DB)
+CADENCE integration: scheduling blocks and SLA reminders as calendar feeds
+Public transparency page: how we evaluate and why
+Phase 2
+Candidate portal: status + next gate + artifact upload
+Automated payments for trials
+Hiring analytics: time-to-hire, gate conversion, evaluator calibration

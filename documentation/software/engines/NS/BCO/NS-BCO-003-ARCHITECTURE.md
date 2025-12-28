@@ -4,7 +4,7 @@
 
 *   **BCO Owner:** accountable for program health.
 *   **Service Owners:** accountable for their services meeting continuity requirements.
-*   **Incident Commander (IC):** leads during incidents.
+*   **Incident Commander (IC):** leads during in    `+cidents.
 *   **Scribe/Comms Lead:** timeline + comms.
 
 ## 2. Continuity architecture (technical)

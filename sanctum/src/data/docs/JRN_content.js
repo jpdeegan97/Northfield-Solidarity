@@ -40,7 +40,34 @@ The system uses a 2-tier key architecture to allow for secure updates without to
 - **Storage:** Stored in LocalStorage *only* in wrapped form (Encrypted by KEK).
 - **Usage:** Encrypts the actual Journal Content.
 
-## 5. Rotational Strategy (“Unbeatable Encryption”)
+## 5. Recovery Architecture (Dual-Key Encapsulation)
+To mitigate the risk of password loss without compromising the Zero-Knowledge model, the system implements a **Parallel Key Encapsulation** strategy.
+
+### Mechanism
+The Data Encryption Key (DEK) is wrapped (encrypted) **twice** using two different Key Encryption Keys (KEKs):
+
+// ... (content above)
+
+1.  **Primary Wrapping:** \`Wrap(KEK_Password, DEK)\`
+    *   \`KEK_Password\` is derived from the user's input password.
+    *   This is used for standard daily access.
+
+2.  **Recovery Wrapping:** \`Wrap(KEK_Recovery, DEK)\`
+    *   \`KEK_Recovery\` is derived from a cryptographically random **Master Recovery Code** generated at vault creation.
+    *   This code is displayed *once* to the user and never stored in plain text.
+
+### Recovery Process
+1.  User authenticates with the **Master Recovery Code**.
+2.  System derives \`KEK_Recovery\` from the input code.
+3.  System unwraps the \`DEK\` using the recovery wrapper.
+4.  User provides a **New Password**.
+5.  System derives a new \`KEK_Password\`.
+6.  System *re-wraps* the \`DEK\` with the new \`KEK_Password\`.
+7.  The old password wrapper is overwritten.
+
+*Note: The Recovery Code itself does not change during this process, allowing it to function as a permanent safety net.*
+
+## 6. Rotational Strategy (“Unbeatable Encryption”)
 To prevent traffic analysis and side-channel attacks based on file size or static patterns, the system implements **Continuous IV Rotation**.
 
 ### The Process (On Save):
@@ -53,7 +80,8 @@ To prevent traffic analysis and side-channel attacks based on file size or stati
 \`Encrypt(Key, Data, IV1) !== Encrypt(Key, Data, IV2)\`
 Even if the user saves the exact same text 100 times, the stored binary blob will be completely different 100 times.
 
-## 6. Implementation Reference
+
+## 7. Implementation Reference
 
 \`\`\`javascript
 // 1. Derivation
@@ -73,11 +101,14 @@ const ciphertext = await window.crypto.subtle.encrypt(
 );
 \`\`\`
 
-## 7. Threat Model Analysis
+## 8. Threat Model Analysis
 - **At Rest:** Attacker has full access to LocalStorage.
   - *Mitigation:* Data is AES-256 encrypted. Key is wrapped. Attacker needs Password.
 - **Brute Force:** Attacker tries to guess Password.
   - *Mitigation:* PBKDF2 with 100k iterations makes brute-forcing computationally expensive.
+- **Lost Recovery Code:**
+  - *Impact:* Catastrophic if password is also lost.
+  - *Mitigation:* User is warned to store code offline (physical medium).
 - **Browser Compromise:** Malicious extension reads memory.
   - *Mitigation:* Threat exists. Users must maintain a clean browser environment. (Out of scope).
 

@@ -27,6 +27,7 @@ export const MOCK_USERS = [
 
     // Admin (1)
     { id: 'ADM-001', email: 'admin@northfieldsolidarity.ai', role: USER_ROLES.ADMIN, name: 'System Admin', password: 'admin1234' },
+    { id: 'ADM-002', email: 'john.deegan@northfieldsolidarity.ai', role: USER_ROLES.ADMIN, name: 'John Deegan' },
 
     // Special Guest (2)
     { id: 'SPG-001', email: 'kiran.pampari@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest One' },
@@ -34,7 +35,7 @@ export const MOCK_USERS = [
     { id: 'SPG-003', email: 'kalp.oza@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Threeq' },
     { id: 'SPG-004', email: 'effie.deegan@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
     { id: 'SPG-005', email: 'kelsey.bagen@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
-    { id: 'SPG-006', email: 'melody.ector@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }, 
+    { id: 'SPG-006', email: 'melody.ector@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' },
     { id: 'SPG-007', email: 'rory.stello@northfieldsolidarity.ai', role: USER_ROLES.SPECIAL_GUEST, name: 'Special Guest Two' }
 ];
 

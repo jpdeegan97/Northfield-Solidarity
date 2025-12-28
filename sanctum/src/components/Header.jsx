@@ -13,6 +13,7 @@ export default function Header({ brand, nav }) {
         { type: "divider" },
         { label: "Platform", to: "/platform" },
         { label: "System", to: "/system" },
+        { label: "Networking", to: "/networking" },
         { label: "Pricing", to: "/pricing" },
         { label: "Investor Relations", to: "/investors" },
         { label: "Documentation", to: "/docs" },

@@ -1,0 +1,29 @@
+NS-ASCENSION-007-DATA-MODEL
+
+Entities
+Candidate(id, name, contact, role_applied, status, created_at)
+GateProgress(candidate_id, gate_id, entered_at, exited_at, outcome, notes_ref)
+Artifact(id, candidate_id, type, url, hash, submitted_at)
+Scorecard(id, candidate_id, gate_id, evaluator, scores{}, summary, decision)
+TrialPayment(id, candidate_id, amount, status, paid_at)
+Offer(id, candidate_id, terms_ref, status)
+Statuses
+applied
+gate0_pass
+gate1_pass
+trial_sent
+trial_received
+gate3_pass
+final
+offer
+hired
+closed
+Example JSON (scorecard)
+{
+  "candidate_id": "cand_0123",
+  "gate_id": "gate2_trial",
+  "scores": { "quality": 3, "pragmatism": 4, "documentation": 3, "taste": 3, "speed_to_signal": 4 },
+  "summary": "Strong execution with clear README. Minor edge-case handling missing.",
+  "decision": "pass",
+  "notes": ["Move to Gate 3; ask about tradeoffs and constraints."]
+}

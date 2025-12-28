@@ -4,7 +4,7 @@ import { FlowerOfLife } from "./SacredGeometry.jsx";
 
 export default function Layout({ children }) {
     return (
-        <div className="siteLayout min-h-screen bg-[#050505] text-white font-mono selection:bg-[#00ff9d] selection:text-black">
+        <div className="siteLayout min-h-screen bg-bg text-text font-mono selection:bg-[#00ff9d] selection:text-black">
             <FlowerOfLife opacity={0.03} />
 
             <Sidebar />

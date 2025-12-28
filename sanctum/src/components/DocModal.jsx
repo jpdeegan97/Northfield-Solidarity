@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../context/AuthContext';
 import { useDocs } from '../context/DocsContext';
-import { Edit2, Save, X } from 'lucide-react';
+import { Edit2, Save, X, FileText, ChevronRight } from 'lucide-react';
 
 export default function DocModal({ activeDocModal, setActiveDocModal }) {
     const { hasPermission } = useAuth();
@@ -12,7 +12,7 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
     const [editContent, setEditContent] = useState('');
     const [editTitle, setEditTitle] = useState('');
 
-    const canEdit = hasPermission('builder'); // Allow builders/admins to edit
+    const canEdit = hasPermission('builder');
 
     const activeItem = activeDocModal.activeItem;
 
@@ -45,29 +45,41 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
     const handleClose = () => setActiveDocModal(null);
 
     return (
-        <div className="modal-overlay" onClick={handleClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm transition-opacity animate-in fade-in duration-200" onClick={handleClose}>
+            <div
+                className="bg-bg w-full max-w-7xl h-[90vh] rounded-2xl border border-border shadow-2xl flex overflow-hidden animate-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+            >
                 {/* Sidebar */}
-                <div className="modal-sidebar">
-                    <div className="modal-sidebar-header">
-                        <h3>{activeDocModal.category.category}</h3>
+                <div className="w-64 md:w-72 bg-surface border-r border-border flex flex-col flex-shrink-0">
+                    <div className="p-4 border-b border-border bg-surface/50">
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-text-sub truncate">
+                            {activeDocModal.category.category}
+                        </h3>
                     </div>
-                    <div className="modal-nav">
+
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                         {activeDocModal.category.items.map(item => (
                             <button
                                 key={item.id}
-                                className={`modal-nav-item ${activeItem.id === item.id ? 'active' : ''}`}
+                                className={`
+                                    w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2
+                                    ${activeItem.id === item.id
+                                        ? 'bg-brand/10 text-brand font-medium'
+                                        : 'text-text-sub hover:bg-white/5 hover:text-text'}
+                                `}
                                 onClick={() => setActiveDocModal({ ...activeDocModal, activeItem: item })}
                             >
-                                {item.title}
+                                <FileText size={14} className={activeItem.id === item.id ? 'opacity-100' : 'opacity-50'} />
+                                <span className="truncate">{item.title}</span>
                             </button>
                         ))}
                     </div>
 
-                    <div className="mt-auto flex flex-col gap-2">
+                    <div className="p-4 border-t border-border bg-surface/50 flex flex-col gap-2">
                         {canEdit && !isEditing && (
                             <button
-                                className="btn sm outline full-width flex items-center justify-center gap-2"
+                                className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg border border-border hover:bg-white/5 text-sm font-medium transition-colors"
                                 onClick={() => setIsEditing(true)}
                             >
                                 <Edit2 size={14} /> Edit Page
@@ -76,72 +88,72 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
                         {canEdit && isEditing && (
                             <div className="flex gap-2">
                                 <button
-                                    className="btn sm primary flex-1 flex items-center justify-center gap-1"
+                                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-bold shadow-lg shadow-brand/20 transition-all"
                                     onClick={handleSave}
                                 >
                                     <Save size={14} /> Save
                                 </button>
                                 <button
-                                    className="btn sm ghost flex-1 flex items-center justify-center gap-1"
+                                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-border hover:bg-white/5 text-sm font-medium transition-colors"
                                     onClick={() => setIsEditing(false)}
                                 >
                                     <X size={14} /> Cancel
                                 </button>
                             </div>
                         )}
-                        <button className="btn sm ghost full-width" onClick={handleClose}>Close</button>
+                        <button
+                            className="w-full py-2 px-3 rounded-lg text-text-sub hover:bg-white/5 text-sm transition-colors"
+                            onClick={handleClose}
+                        >
+                            Close
+                        </button>
                     </div>
                 </div>
 
                 {/* Body */}
-                <div className="modal-body">
-                    {isEditing ? (
-                        <div className="edit-form flex flex-col h-full gap-4">
-                            <div>
-                                <label className="text-xs uppercase text-secondary font-bold mb-1 block">Title</label>
-                                <input
-                                    type="text"
-                                    className="input full-width"
-                                    value={editTitle}
-                                    onChange={(e) => setEditTitle(e.target.value)}
-                                />
+                <div className="flex-1 flex flex-col bg-bg min-w-0">
+                    {/* Header */}
+                    <div className="h-14 border-b border-border flex items-center px-6 md:px-8 justify-between bg-bg/50 backdrop-blur-sm sticky top-0 z-10">
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                className="text-lg font-bold bg-transparent border-b border-brand/50 focus:border-brand outline-none w-full py-1"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                placeholder="Document Title"
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <h2 className="text-lg font-bold truncate">{activeItem.title}</h2>
+                                {activeItem.desc && <span className="text-text-sub hidden md:inline-block text-sm truncate max-w-md border-l border-border pl-2 ml-2">{activeItem.desc}</span>}
                             </div>
-                            <div className="flex-1 flex flex-col">
-                                <label className="text-xs uppercase text-secondary font-bold mb-1 block">Content (Markdown)</label>
+                        )}
+                        <button onClick={handleClose} className="md:hidden p-2 -mr-2 text-text-sub hover:text-text"><X size={20} /></button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                        {isEditing ? (
+                            <div className="h-full flex flex-col">
                                 <textarea
-                                    className="input full-width"
-                                    style={{ flex: 1, fontFamily: 'monospace', lineHeight: '1.5', resize: 'none' }}
+                                    className="flex-1 w-full bg-surface/50 rounded-xl border border-border p-4 text-sm font-mono leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all custom-scrollbar"
                                     value={editContent}
                                     onChange={(e) => setEditContent(e.target.value)}
+                                    placeholder="# Start writing..."
                                 />
                             </div>
-                        </div>
-                    ) : (
-                        <>
-                            <h2 className="mb-4">{activeItem.title}</h2>
-                            <div className="markdown-content prose" style={{ whiteSpace: 'normal', overflowWrap: 'break-word' }}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {activeItem.content || "Content coming soon..."}
-                                </ReactMarkdown>
+                        ) : (
+                            <div className="max-w-4xl mx-auto">
+                                <div className="prose prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-code:text-accent prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {activeItem.content || "Content coming soon..."}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
-                        </>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
-            <style>{`
-                .input {
-                    background: var(--c-surface);
-                    border: 1px solid var(--c-border);
-                    color: var(--c-text);
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    font-size: 0.9rem;
-                }
-                .input:focus {
-                    outline: none;
-                    border-color: var(--c-brand);
-                }
-            `}</style>
         </div>
     );
 }

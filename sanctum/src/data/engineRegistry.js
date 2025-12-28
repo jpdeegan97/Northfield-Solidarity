@@ -19,6 +19,7 @@ export const NS_ENGINES = [
         outputs: ["Allow/deny decisions", "Approved transitions", "Audit records", "Governance events"],
         integrations: ["IDN", "FLO", "SIG", "MUX", "SIM", "DAT", "DRE", "PIE"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 0, duration: 6, color: "var(--c-brand)" }
     },
     {
         code: "PIE",
@@ -38,6 +39,7 @@ export const NS_ENGINES = [
         outputs: ["Insight objects", "Ranked opportunities", "Decision briefs"],
         integrations: ["DRE", "SIG", "MUX", "SIM"],
         status: "Planned / MVP soon",
+        timeline: { phase: "Phase 3: Beta & Release", start: 6, duration: 4, color: "#e879f9" }
     },
     {
         code: "DAT",
@@ -56,6 +58,7 @@ export const NS_ENGINES = [
         outputs: ["Execution events", "Outcome metrics", "Reconciliation inputs"],
         integrations: ["GGP", "SIG", "MUX", "FLO"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 1, duration: 4, color: "var(--c-brand)" }
     },
     {
         code: "MUX",
@@ -75,6 +78,7 @@ export const NS_ENGINES = [
         outputs: ["Normalized events", "Action acknowledgements", "Integration telemetry"],
         integrations: ["SIG", "DAT", "PIE", "DRE", "FLO"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 0, duration: 4, color: "var(--c-brand)" }
     },
     {
         code: "SIG",
@@ -94,6 +98,7 @@ export const NS_ENGINES = [
         outputs: ["Scored signals", "Alert/trigger events", "Signal history"],
         integrations: ["MUX", "DRE", "PIE", "SIM"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 2, duration: 4, color: "var(--c-brand)" }
     },
     {
         code: "SIM",
@@ -112,6 +117,7 @@ export const NS_ENGINES = [
         outputs: ["Scenario results", "Sensitivity reports", "Projection objects"],
         integrations: ["PIE", "SIG", "FLO", "DRE"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 7, duration: 4 }
     },
     {
         code: "IDN",
@@ -130,6 +136,7 @@ export const NS_ENGINES = [
         outputs: ["Identity context", "Role claims", "Entity graph updates"],
         integrations: ["GGP", "FLO"],
         status: "Planned / foundational",
+        timeline: { phase: "Phase 3: Beta & Release", start: 6, duration: 5 }
     },
     {
         code: "FLO",
@@ -148,6 +155,7 @@ export const NS_ENGINES = [
         outputs: ["Ledger entries", "Reconciliation results", "Financial audit events"],
         integrations: ["DAT", "GGP", "MUX", "SIM"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 8, duration: 6 }
     },
     {
         code: "DRE",
@@ -166,6 +174,7 @@ export const NS_ENGINES = [
         outputs: ["Research packs", "Knowledge graph objects", "Summaries/briefs"],
         integrations: ["SIG", "PIE", "SIM"],
         status: "Active build (DRE concept)",
+        timeline: { phase: "Phase 2: Alpha Engines", start: 3, duration: 5, color: "#a855f7" }
     },
     {
         code: "INT",
@@ -185,6 +194,7 @@ export const NS_ENGINES = [
         outputs: ["State snapshots", "Delta streams", "Replay/audit logs"],
         integrations: ["GGP", "Firmament", "All Engines"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 0, duration: 6, color: "var(--c-brand)" }
     },
     {
         code: "CWP",
@@ -204,6 +214,7 @@ export const NS_ENGINES = [
         outputs: ["Workflow capability", "Completion records", "Efficiency metrics"],
         integrations: ["GGP", "IDN", "INT"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 7, duration: 3 }
     },
     {
         code: "BCP",
@@ -223,6 +234,7 @@ export const NS_ENGINES = [
         outputs: ["Failover commands", "Resilience reports", "Emergency alerts"],
         integrations: ["INT", "GGP", "Firmament"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 9, duration: 3 }
     },
     {
         code: "LUM",
@@ -242,6 +254,7 @@ export const NS_ENGINES = [
         outputs: ["Alerts", "Incident records", "Dashboard visualizations"],
         integrations: ["All Engines", "GGP"],
         status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 1, duration: 5, color: "var(--c-brand)" }
     },
     {
         code: "FRK",
@@ -255,6 +268,7 @@ export const NS_ENGINES = [
         outputs: ["Prototypes", "Incubator candidates"],
         integrations: ["INC", "DRE"],
         status: "Active",
+        timeline: { phase: "Phase 2: Alpha Engines", start: 4, duration: 6, color: "#a855f7" }
     },
     {
         code: "INC",
@@ -268,6 +282,7 @@ export const NS_ENGINES = [
         outputs: ["New Engines", "Ventures"],
         integrations: ["FRK", "PIE", "GGP"],
         status: "Active",
+        timeline: { phase: "Phase 2: Alpha Engines", start: 4, duration: 6, color: "#a855f7" }
     },
     {
         code: "CRN",
@@ -281,6 +296,7 @@ export const NS_ENGINES = [
         outputs: ["Morning/Evening briefs", "Continuity state"],
         integrations: ["GGP", "DRE", "LUM"],
         status: "Active",
+        timeline: { phase: "Phase 1: Foundation", start: 0, duration: 12, color: "var(--c-brand)" }
     },
     {
         code: "BCO",
@@ -294,6 +310,7 @@ export const NS_ENGINES = [
         outputs: ["Continuity plans", "Failover triggers"],
         integrations: ["OCP", "GGP"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 9, duration: 3 }
     },
     {
         code: "CON",
@@ -307,6 +324,7 @@ export const NS_ENGINES = [
         outputs: ["Normalized data"],
         integrations: ["MUX", "SIG"],
         status: "Active build",
+        timeline: { phase: "Phase 2: Alpha Engines", start: 3, duration: 3 }
     },
     {
         code: "IPR",
@@ -320,6 +338,7 @@ export const NS_ENGINES = [
         outputs: ["Registered IP assets"],
         integrations: ["MINT", "IDN"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 8, duration: 4 }
     },
     {
         code: "OCP",
@@ -333,6 +352,7 @@ export const NS_ENGINES = [
         outputs: ["Execution results"],
         integrations: ["BCO", "GGP"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 10, duration: 6 }
     },
     {
         code: "SWB",
@@ -346,6 +366,7 @@ export const NS_ENGINES = [
         outputs: ["Model responses"],
         integrations: ["GGP", "SIG"],
         status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 10, duration: 5 }
     },
     {
         code: "QTN",
@@ -363,7 +384,8 @@ export const NS_ENGINES = [
         inputs: ["Security alerts (All Engines)", "Anomalous signals (SIG)", "Manual override"],
         outputs: ["Isolation events", "Forensic reports", "Clearance tokens"],
         integrations: ["GGP", "IDN", "INT", "SIG"],
-        status: "Planned"
+        status: "Planned",
+        timeline: { phase: "Phase 3: Beta & Release", start: 8, duration: 4 }
     },
 ];
 
@@ -385,6 +407,7 @@ export const SL_ENGINES = [
         outputs: ["Target zone scores", "Projection objects", "Risk flags"],
         integrations: ["PTE", "PECA", "NS core (governance)"],
         status: "Planned",
+        timeline: { phase: "South Lawn Expansion", start: 6, duration: 6, color: "#eab308" }
     },
     {
         code: "PECA",
@@ -403,6 +426,7 @@ export const SL_ENGINES = [
         outputs: ["Entity setup tasks", "Document checklists", "Audit-ready record"],
         integrations: ["PTE", "NS core (governance)"],
         status: "Planned",
+        timeline: { phase: "South Lawn Expansion", start: 7, duration: 5, color: "#eab308" }
     },
     {
         code: "PTE",
@@ -421,6 +445,7 @@ export const SL_ENGINES = [
         outputs: ["KPI dashboards", "Alerts/tasks", "Portfolio audit trail"],
         integrations: ["MRFPE", "PECA", "NS core (governance)"],
         status: "Planned",
+        timeline: { phase: "South Lawn Expansion", start: 8, duration: 6, color: "#eab308" }
     },
 ];
 

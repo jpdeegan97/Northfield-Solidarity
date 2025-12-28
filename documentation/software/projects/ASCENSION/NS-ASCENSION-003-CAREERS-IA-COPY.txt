@@ -1,0 +1,30 @@
+NS-ASCENSION-003-CAREERS-IA-COPY
+
+Site IA (Careers)
+/careers (landing)
+/careers/ascension (the gate map)
+/careers/roles (index)
+/careers/roles/<role-id> (role page)
+/careers/faq
+/careers/values (optional)
+/careers/trial (how paid trials work)
+Landing page copy (draft)
+Welcome to Ascension. Northfield Solidarity is a Firmament—built to ship engines and systems at high velocity. If you want to work close to the core, you’ll pass through gates designed to reward signal, not noise.
+What we value
+High agency and clean execution
+Clear writing and honest constraints
+Taste, craft, and shipping muscle
+Curiosity + calm under ambiguity
+What you can expect
+A transparent gate map
+Short, time-boxed steps
+Paid trials for meaningful work
+Fast decisions when signal is clear
+Ascension page copy (draft)
+Ascension is our hiring journey: a sequence of doors from the edge of the Firmament to the Center. Each gate is designed to confirm one thing: you can ship with us.
+Gate 0 — The Signal — Application as a ‘ping’ from outside the Firmament.
+Gate 1 — The Echo — Async proof: portfolio, written answers, or short loom.
+Gate 2 — The Trial — A small, paid challenge (time-boxed, scoped, repeatable).
+Gate 3 — The Alignment — Operating style + values + communication calibration.
+Gate 4 — The Door — Final live session: deep dive + mutual fit.
+Gate 5 — The Center — The final landing: intentional conversation + decision.

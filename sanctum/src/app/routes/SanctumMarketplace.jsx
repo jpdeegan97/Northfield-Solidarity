@@ -2,20 +2,20 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import { ShoppingCart, ChevronRight, Search, CheckCircle } from 'lucide-react';
+import { ShoppingCart, ChevronRight, Search, CheckCircle, X, Code, Terminal, Shield, Zap, Activity } from 'lucide-react';
 import { useCart } from '../../context/CartContext.jsx';
 import { useOwnership } from '../../context/OwnershipContext.jsx';
 
 const MOCK_ASSETS = [
-    { id: 'a1', name: 'Quantum Ledger Core', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 25000, tier: 'HYPER', desc: 'High-throughput consensus engine.' },
-    { id: 'a2', name: 'Neural Arb Bot v9', category: 'ALGORITHMS', group: 'ENGINES', price: 12500, tier: 'PERFORMANCE', desc: 'Cross-exchange arbitrage execution.' },
-    { id: 'a3', name: 'Global Liquidity Feed', category: 'DATA', group: 'API INTEGRATIONS', price: 5000, tier: 'TUNED', desc: 'Real-time aggregated order book streams.' },
-    { id: 'a4', name: 'Zero-Knowledge Auth', category: 'SECURITY', group: 'PROJECTS', price: 8000, tier: 'TUNED', desc: 'Privacy-preserving identity module.' },
-    { id: 'a5', name: 'Dark Pool Connector', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 15000, tier: 'PERFORMANCE', desc: 'Direct access to non-displayed liquidity.' },
-    { id: 'a6', name: 'Sentient Market Maker', category: 'ALGORITHMS', group: 'ENGINES', price: 50000, tier: 'HYPER', desc: 'Self-learning liquidity provision AI.' },
-    { id: 'a7', name: 'Social Sentiment API', category: 'DATA', group: 'API INTEGRATIONS', price: 2000, tier: 'STOCK', desc: 'Twitter/Reddit NLP sentiment analysis.' },
-    { id: 'a8', name: 'Secure Enclave Host', category: 'SECURITY', group: 'PROJECTS', price: 10000, tier: 'PERFORMANCE', desc: 'Hardware-level key management hosting.' },
-    { id: 'a9', name: 'Cross-Chain Bridge', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 18500, tier: 'HYPER', desc: 'Trustless asset transfer protocol.' },
+    { id: 'a1', name: 'Quantum Ledger Core', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 25000, tier: 'HYPER', desc: 'High-throughput consensus engine.', specs: ['TPS: 100k+', 'Latency: <10ms', 'Consensus: PoH'] },
+    { id: 'a2', name: 'Neural Arb Bot v9', category: 'ALGORITHMS', group: 'ENGINES', price: 12500, tier: 'PERFORMANCE', desc: 'Cross-exchange arbitrage execution.', specs: ['Exchanges: 50+', 'Strategy: ML-Driven', 'Risk: Dynamic'] },
+    { id: 'a3', name: 'Global Liquidity Feed', category: 'DATA', group: 'API INTEGRATIONS', price: 5000, tier: 'TUNED', desc: 'Real-time aggregated order book streams.', specs: ['Update Rate: 1ms', 'Format: JSON/gRPC', 'Depth: L3'] },
+    { id: 'a4', name: 'Zero-Knowledge Auth', category: 'SECURITY', group: 'PROJECTS', price: 8000, tier: 'TUNED', desc: 'Privacy-preserving identity module.', specs: ['Protocol: zk-SNARKs', 'Compliance: GDPR', 'Identity: SSI'] },
+    { id: 'a5', name: 'Dark Pool Connector', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 15000, tier: 'PERFORMANCE', desc: 'Direct access to non-displayed liquidity.', specs: ['Venues: 15+', 'Anonymity: High', 'Execution: TWAP/VWAP'] },
+    { id: 'a6', name: 'Sentient Market Maker', category: 'ALGORITHMS', group: 'ENGINES', price: 50000, tier: 'HYPER', desc: 'Self-learning liquidity provision AI.', specs: ['Learning: RL', 'Adaptability: Real-time', 'Profit: Optimized'] },
+    { id: 'a7', name: 'Social Sentiment API', category: 'DATA', group: 'API INTEGRATIONS', price: 2000, tier: 'STOCK', desc: 'Twitter/Reddit NLP sentiment analysis.', specs: ['Sources: Twitter, Reddit', 'Analysis: NLP/Bert', 'Volume: High'] },
+    { id: 'a8', name: 'Secure Enclave Host', category: 'SECURITY', group: 'PROJECTS', price: 10000, tier: 'PERFORMANCE', desc: 'Hardware-level key management hosting.', specs: ['Hardware: SGX', 'Encryption: AES-256', 'Access: Role-based'] },
+    { id: 'a9', name: 'Cross-Chain Bridge', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 18500, tier: 'HYPER', desc: 'Trustless asset transfer protocol.', specs: ['Chains: ETH, SOL, DOT', 'Security: Multi-sig', 'Speed: Fast'] },
 ];
 
 const GROUPS = ['ALL', 'ENGINES', 'PROJECTS', 'API INTEGRATIONS', 'MISC'];
@@ -26,6 +26,7 @@ export default function SanctumMarketplace() {
     const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL', 'ACTIVE', 'AVAILABLE'
     const [searchQuery, setSearchQuery] = useState('');
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [selectedAsset, setSelectedAsset] = useState(null);
 
     const { cart, addToCart: contextAddToCart, removeFromCart, getCartTotal } = useCart();
     const { isOwned } = useOwnership();
@@ -67,6 +68,7 @@ export default function SanctumMarketplace() {
     const addToCart = (asset) => {
         contextAddToCart(asset);
         setIsCartOpen(true);
+        setSelectedAsset(null);
     };
 
     const currentItems = cart.items || [];
@@ -103,8 +105,8 @@ export default function SanctumMarketplace() {
 
                     <div className="flex items-center gap-6">
                         <div className="flex flex-col items-end">
-                            <span className="text-[10px] text-white/40 tracking-widest">AVAILABLE CREDITS</span>
-                            <span className="text-lg font-bold text-[#00ff9d]">∞ 84,000.00</span>
+                            <span className="text-[10px] text-white/40 tracking-widest">AVAILABLE BALANCE</span>
+                            <span className="text-lg font-bold text-[#00ff9d]">$ 84,000.00</span>
                         </div>
 
                         <button
@@ -199,7 +201,7 @@ export default function SanctumMarketplace() {
                                         asset={asset}
                                         accentColor={accentColor}
                                         isOwned={isOwned(asset.id)}
-                                        onAdd={() => !isOwned(asset.id) && addToCart(asset)}
+                                        onClick={() => setSelectedAsset(asset)}
                                     />
                                 ))}
                             </AnimatePresence>
@@ -211,6 +213,7 @@ export default function SanctumMarketplace() {
                         )}
                     </div>
                 </div>
+
                 {/* Cart Drawer Overlay */}
                 <AnimatePresence>
                     {isCartOpen && (
@@ -241,8 +244,8 @@ export default function SanctumMarketplace() {
 
                                 <div className="p-6 border-b border-white/10 bg-white/5">
                                     <div className="flex justify-between items-center mb-4">
-                                        <span className="text-white/50 text-xs tracking-widest uppercase">Total Required Credits</span>
-                                        <span className="text-xl font-bold text-[#00ff9d]">{currentTotal.toLocaleString()} CR</span>
+                                        <span className="text-white/50 text-xs tracking-widest uppercase">Total Cost</span>
+                                        <span className="text-xl font-bold text-[#00ff9d]">${currentTotal.toLocaleString()}</span>
                                     </div>
                                     <button
                                         onClick={() => navigate('/marketplace/checkout')}
@@ -264,7 +267,7 @@ export default function SanctumMarketplace() {
                                                 <div>
                                                     <div className="text-white font-bold text-sm">{item.name}</div>
                                                     <div className="text-[10px] text-white/40 mt-1 uppercase">{item.category}</div>
-                                                    <div className="text-[#00ff9d] text-xs font-bold mt-2">{item.price.toLocaleString()} CR</div>
+                                                    <div className="text-[#00ff9d] text-xs font-bold mt-2">${item.price.toLocaleString()}</div>
                                                 </div>
                                                 <button
                                                     onClick={() => removeFromCart(item.id)}
@@ -280,12 +283,25 @@ export default function SanctumMarketplace() {
                         </>
                     )}
                 </AnimatePresence>
+
+                {/* Asset Detail Modal */}
+                <AnimatePresence>
+                    {selectedAsset && (
+                        <AssetDetailModal
+                            asset={selectedAsset}
+                            onClose={() => setSelectedAsset(null)}
+                            onAddToCart={() => addToCart(selectedAsset)}
+                            isOwned={isOwned(selectedAsset.id)}
+                            accentColor={accentColor}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </Layout>
     );
 }
 
-function AssetCard({ asset, accentColor, onAdd, isOwned }) {
+function AssetCard({ asset, accentColor, onClick, isOwned }) {
     const tierColor = {
         'HYPER': { text: '#fbbf24', bg: 'rgba(251, 191, 36, 0.1)', border: 'rgba(251, 191, 36, 0.4)' }, // Amber-400
         'PERFORMANCE': { text: '#c084fc', bg: 'rgba(192, 132, 252, 0.1)', border: 'rgba(192, 132, 252, 0.4)' }, // Purple-400
@@ -302,7 +318,7 @@ function AssetCard({ asset, accentColor, onAdd, isOwned }) {
             whileHover={{ y: -5 }}
             className="bg-[#111] border border-white/10 group cursor-pointer relative overflow-hidden flex flex-col h-64 rounded-md transition-colors duration-300 shadow-lg"
             style={{ '--hover-color': accentColor, opacity: isOwned ? 0.8 : 1 }}
-            onClick={onAdd}
+            onClick={onClick}
         >
             {/* Status Decoration if Owned */}
             {isOwned && (
@@ -346,31 +362,128 @@ function AssetCard({ asset, accentColor, onAdd, isOwned }) {
 
                 <div className="flex items-center justify-between mt-4">
                     <span className="text-xs text-white/20">{asset.category}</span>
-                    <span className="font-bold text-sm" style={{ color: accentColor }}>{asset.price.toLocaleString()} CR</span>
+                    <span className="font-bold text-sm" style={{ color: accentColor }}>${asset.price.toLocaleString()}</span>
                 </div>
             </div>
 
-            {/* Hover overlay for 'ADD TO CART' */}
-            {!isOwned && (
-                <div
-                    className="absolute inset-x-0 bottom-0 h-0 transition-all duration-300 flex items-center justify-center overflow-hidden group-hover:h-8"
-                    style={{ backgroundColor: accentColor }}
-                >
-                    <span className="text-black font-bold text-xs tracking-widest flex items-center gap-1">
-                        <ShoppingCart size={12} className="text-black" /> ADD TO CART
-                    </span>
-                </div>
-            )}
-            {/* Hover overlay for 'OWNED' */}
-            {isOwned && (
-                <div
-                    className="absolute inset-x-0 bottom-0 h-0 transition-all duration-300 flex items-center justify-center overflow-hidden group-hover:h-8 bg-white/5 backdrop-blur-sm border-t border-white/10"
-                >
-                    <span className="text-white/50 font-bold text-[10px] tracking-widest flex items-center gap-1">
-                        ASSET ACTIVE
-                    </span>
-                </div>
-            )}
+            {/* Hover overlay for 'VIEW DETAILS' */}
+            <div
+                className="absolute inset-x-0 bottom-0 h-0 transition-all duration-300 flex items-center justify-center overflow-hidden group-hover:h-8"
+                style={{ backgroundColor: accentColor }}
+            >
+                <span className="text-black font-bold text-xs tracking-widest flex items-center gap-1 uppercase">
+                    View Details
+                </span>
+            </div>
         </motion.div>
+    );
+}
+
+function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+
+            <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-10"
+            >
+                {/* Header */}
+                <div className="p-6 border-b border-white/10 flex justify-between items-start bg-white/5 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20" />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.group}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.category}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 border rounded bg-black/20" style={{ color: accentColor, borderColor: `${accentColor}4D` }}>{asset.tier}</span>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-1">{asset.name}</h2>
+                        <div className="flex items-center gap-2 text-white/40 text-xs">
+                            <span>ID: {asset.id}</span>
+                            <span>•</span>
+                            <span>v2.4.0 (Stable)</span>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white z-10">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-6">
+                        {/* Description */}
+                        <div>
+                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Activity size={12} /> Overview
+                            </h3>
+                            <p className="text-white/80 leading-relaxed text-sm">
+                                {asset.desc}
+                                <br /><br />
+                                Designed for high-performance implementation within the Sanctum ecosystem. This module provides specialized capabilities for {asset.category.toLowerCase()} operations, ensuring seamless integration with existing architecture.
+                            </p>
+                        </div>
+
+                        {/* Specs */}
+                        <div>
+                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Code size={12} /> Technical Specifications
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(asset.specs || ['Latency: <5ms', 'Uptime: 99.99%', 'Support: 24/7']).map((spec, i) => (
+                                    <div key={i} className="bg-white/5 border border-white/5 rounded px-3 py-2 text-xs text-white/70 font-mono">
+                                        {spec}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* Integration Info */}
+                        <div className="bg-black/40 border border-white/10 rounded-lg p-4">
+                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Terminal size={12} /> Integration
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-xs text-white/60">
+                                    <Zap size={12} className="text-yellow-500" />
+                                    <span>Instant Activation</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-white/60">
+                                    <Shield size={12} className="text-green-500" />
+                                    <span>Verified Secure</span>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-white/10">
+                                    <div className="text-[10px] text-white/30 uppercase mb-1">Pricing Model</div>
+                                    <div className="text-2xl font-bold" style={{ color: accentColor }}>${asset.price.toLocaleString()}</div>
+                                    <div className="text-[10px] text-white/40">One-time license fee</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <button
+                            onClick={isOwned ? null : onAddToCart}
+                            disabled={isOwned}
+                            className={`w-full py-3 rounded font-bold text-sm uppercase tracking-widest transition-all ${isOwned
+                                ? 'bg-white/10 text-white/30 cursor-not-allowed border border-white/5'
+                                : 'text-black hover:brightness-110 shadow-lg'
+                                }`}
+                            style={!isOwned ? { backgroundColor: accentColor, boxShadow: `0 0 15px ${accentColor}4D` } : {}}
+                        >
+                            {isOwned ? 'Already Active' : 'Add to Integration'}
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
     );
 }

@@ -1,0 +1,22 @@
+NS-ASCENSION-000-CHARTER
+
+Name: NS-ASCENSION
+One-liner: A mythic, gate-based hiring system that treats onboarding into Northfield Solidarity as an ‘Ascension’ from outside the Firmament to the Center—mapped to a rigorous, fair, repeatable selection process.
+Mission
+Create a hiring experience that is unforgettable and high-signal: candidates progress through clear gates that validate craft, judgment, and alignment—ending in a final ‘Center’ conversation.
+Principles
+Mythos that maps to real process (fun and functional).
+High signal / low ceremony: each gate exists to reduce ambiguity.
+Respect candidates: clarity, speed, and paid work where possible.
+Auditability: consistent rubrics, logs, and outcome reasons.
+Anti-drift: CONCORD owns careers IA + copy; SANCTUM owns timeline; CADENCE schedules.
+Success Criteria (MVP)
+A published Careers section with a clear gate map and role pages.
+A repeatable evaluation rubric per gate with consistent outcomes.
+A candidate can complete Gate 0→3 fully asynchronously.
+Paid Trial is standardized and can be issued quickly.
+All steps are logged into SANCTUM as a timeline per candidate/role.
+Non-Goals (MVP)
+Building a full ATS replacement on day one.
+Long multi-week interview loops without compensation.
+Mystery process: mythos is visible, criteria are explicit.

@@ -93,8 +93,8 @@ export default function SanctumCheckout() {
                                         <div className="space-y-2">
                                             <label className="text-xs text-white/40 font-bold uppercase">Credit Allocation Source</label>
                                             <select className="w-full bg-black border border-white/10 rounded px-4 py-3 text-white focus:outline-none focus:border-[#00ff9d]/50 appearance-none">
-                                                <option>Main Liquidity Pool (∞ 84,000.00 CR)</option>
-                                                <option>Reserve Fund (∞ 12,000.00 CR)</option>
+                                                <option>Main Liquidity Pool ($ 84,000.00)</option>
+                                                <option>Reserve Fund ($ 12,000.00)</option>
                                             </select>
                                         </div>
 
@@ -108,7 +108,7 @@ export default function SanctumCheckout() {
                                                     <span className="animate-pulse">PROCESSING TRANSFER...</span>
                                                 ) : (
                                                     <>
-                                                        INITIALIZE TRANSFER <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">{getCartTotal().toLocaleString()} CR</span>
+                                                        INITIALIZE TRANSFER <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">${getCartTotal().toLocaleString()}</span>
                                                     </>
                                                 )}
                                             </button>
@@ -132,7 +132,7 @@ export default function SanctumCheckout() {
                                                     <div className="text-[10px] text-white/40 mt-1 uppercase">{item.category}</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-[#00ff9d] font-bold">{item.price.toLocaleString()}</div>
+                                                    <div className="text-[#00ff9d] font-bold">${item.price.toLocaleString()}</div>
                                                     <button onClick={() => removeFromCart(item.id)} className="text-[10px] text-red-500 hover:text-red-400 mt-1 uppercase">Remove</button>
                                                 </div>
                                             </div>
@@ -141,7 +141,7 @@ export default function SanctumCheckout() {
 
                                     <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                                         <span className="text-white/40 text-xs font-bold uppercase">Total Required</span>
-                                        <span className="text-xl font-bold text-[#00ff9d]">{getCartTotal().toLocaleString()} CR</span>
+                                        <span className="text-xl font-bold text-[#00ff9d]">${getCartTotal().toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>

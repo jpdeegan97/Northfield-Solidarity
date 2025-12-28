@@ -6,7 +6,7 @@ export default function Consulting() {
             <h2 className="h2" style={{ marginBottom: '2rem' }}>Consulting & Private Advisory</h2>
             <p className="lead" style={{ maxWidth: '800px', marginBottom: '3rem' }}>
                 For sovereign entities and founders requiring direct operational alignment.
-                Bypass the queue and work directly with the architect.
+                Bypass the queue and work directly with the architect, good ol' Johnny Boy.
             </p>
 
             <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
@@ -26,13 +26,18 @@ export default function Consulting() {
 
                 {/* System Audit */}
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <div className="recommended-badge" style={{ alignSelf: 'flex-start', border: '1px solid var(--text-secondary)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.5rem', opacity: 0.8 }}>
+                        STRICTLY LIMITED
+                    </div>
                     <h3 className="cardTitle">Governance Audit & System Mapping</h3>
                     <div className="price-tag" style={{ fontSize: '1.5rem', fontFamily: 'var(--font-mono)', color: 'var(--primary-color)', margin: '1rem 0' }}>
-                        $8,500 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ one-time</span>
+                        $25,000 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ one-time</span>
                     </div>
                     <p style={{ flex: 1, marginBottom: '2rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                         A rigorous 2-week deep dive into your current operations. I will map your hidden dependencies,
                         identify fragility, and deliver a "Sovereign Architecture" blueprint for your organization.
+                        <br /><br />
+                        <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>* Capped at 2 audits per quarter to ensure quality.</span>
                     </p>
                     <a href="mailto:jp@northfieldsolidarity.com?subject=Audit%20Inquiry" className="btn ghost full-width">Book Audit</a>
                 </div>
@@ -44,7 +49,7 @@ export default function Consulting() {
                     </div>
                     <h3 className="cardTitle">The Founder's Residency</h3>
                     <div className="price-tag" style={{ fontSize: '1.5rem', fontFamily: 'var(--font-mono)', color: 'var(--primary-color)', margin: '1rem 0' }}>
-                        $50,000 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ quarter</span>
+                        $100,000 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>/ quarter</span>
                     </div>
                     <p style={{ flex: 1, marginBottom: '2rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                         Total immersion. I become your shadow co-founder. We deploy the Northfield Operating System together,

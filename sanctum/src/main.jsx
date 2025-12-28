@@ -10,6 +10,8 @@ import { DocsProvider } from "./context/DocsContext.jsx";
 import { OwnershipProvider } from "./context/OwnershipContext.jsx";
 import { JournalProvider } from "./context/JournalContext.jsx";
 
+import { SecurityProvider } from "./context/SecurityContext.jsx";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -18,7 +20,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <OwnershipProvider>
             <JournalProvider>
               <DocsProvider>
-                <App />
+                <SecurityProvider>
+                  <App />
+                </SecurityProvider>
               </DocsProvider>
             </JournalProvider>
           </OwnershipProvider>

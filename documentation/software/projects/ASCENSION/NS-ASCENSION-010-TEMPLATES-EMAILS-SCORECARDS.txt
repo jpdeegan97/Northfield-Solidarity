@@ -1,0 +1,67 @@
+NS-ASCENSION-010-TEMPLATES-EMAILS-SCORECARDS
+
+Candidate comms templates
+Gate 0 -> Gate 1 (invite)
+Subject: Ascension — Gate 1 (The Echo)
+
+Hey <Name> —
+
+You’re through Gate 0. Next is Gate 1: The Echo.
+Please answer the questions below (short and direct is best). Timebox: ~30–45 min.
+
+1) …
+2) …
+3) …
+
+When you’re done, reply with your answers (or a short loom).
+
+— NS-ASCENSION
+Gate 1 close (respectful)
+Subject: Ascension — Update
+
+Hey <Name> —
+
+Thanks for taking the time. We’re going to close the loop for this role.
+Reason (concise): <one-liner>.
+If you want, you’re welcome to apply again if <condition> changes.
+
+— NS-ASCENSION
+Trial brief (paid)
+Subject: Ascension — Gate 2 (The Trial)
+
+Hey <Name> —
+
+Next is Gate 2: The Trial (paid).
+Timebox: <X> hours.
+Rate: <$/hr> or fixed <amount>.
+Deadline: <date>.
+
+Deliverable:
+- <artifact>
+- README (how to run + decisions)
+- Optional demo video (3–5 min)
+
+Evaluation rubric:
+- quality, pragmatism, documentation, taste, speed-to-signal
+
+If you accept, reply “accepted” and confirm preferred payment method.
+
+— NS-ASCENSION
+Scorecard template
+Candidate: <name>
+Role: <role>
+Gate: <gate>
+
+Scores (0–4):
+- Craft/Quality:
+- Judgment/Tradeoffs:
+- Communication:
+- Ownership:
+- Velocity:
+
+Evidence:
+- Bullet evidence points.
+
+Decision: PASS | HOLD | CLOSE
+Reason (1–3 lines):
+Next steps:

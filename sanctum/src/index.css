@@ -10,16 +10,112 @@
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #050505;
-  /* Matching Sanctum Dashboard bg */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Default Theme (Water/Northfield) */
+  --c-brand: #3b82f6;
+  /* blue-500 */
+  --c-brand-light: #60a5fa;
+  /* blue-400 */
+  --c-accent: #06b6d4;
+  /* cyan-500 */
+  --c-bg: #050505;
+  /* Matches original Layout bg */
+  --c-surface: #1e293b;
+  /* slate-800 */
+  --c-text: #f1f5f9;
+  /* slate-100 */
+  --c-text-sub: #94a3b8;
+  /* slate-400 */
+  --c-border: #334155;
+  /* slate-700 */
+  --c-card-bg: #1e293b;
+}
+
+[data-theme='green'] {
+  /* South Lawn Theme */
+  --c-brand: #10b981;
+  /* emerald-500 */
+  --c-brand-light: #34d399;
+  /* emerald-400 */
+  --c-accent: #84cc16;
+  /* lime-500 */
+  --c-bg: #022c22;
+  /* emerald-950 (custom dark) */
+  --c-surface: #064e3b;
+  /* emerald-900 */
+  --c-text: #ecfdf5;
+  /* emerald-50 */
+  --c-text-sub: #6ee7b7;
+  /* emerald-300 */
+  --c-border: #065f46;
+  /* emerald-800 */
+  --c-card-bg: #064e3b;
+}
+
+[data-theme='gold'] {
+  /* WSP Theme */
+  --c-brand: #f59e0b;
+  /* amber-500 */
+  --c-brand-light: #fbbf24;
+  /* amber-400 */
+  --c-accent: #d97706;
+  /* amber-600 */
+  --c-bg: #1c1917;
+  /* stone-900 */
+  --c-surface: #292524;
+  /* stone-800 */
+  --c-text: #fafaf9;
+  /* stone-50 */
+  --c-text-sub: #a8a29e;
+  /* stone-400 */
+  --c-border: #44403c;
+  /* stone-700 */
+  --c-card-bg: #292524;
+}
+
+[data-theme='water'] {
+  /* Explicit Water Theme (same as root/default) */
+  --c-brand: #3b82f6;
+  --c-brand-light: #60a5fa;
+  --c-accent: #06b6d4;
+  --c-bg: #0f172a;
+  --c-surface: #1e293b;
+  --c-text: #f1f5f9;
+  --c-text-sub: #94a3b8;
+  --c-border: #334155;
+  --c-card-bg: #1e293b;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--c-border);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--c-text-sub);
+  }
 }

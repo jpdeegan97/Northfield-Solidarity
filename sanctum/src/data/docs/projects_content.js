@@ -305,7 +305,7 @@ Workplay makes the invisible visible—and makes progress feel real.
 Workplay™ transforms business operations into a living, explorable world.
 By grounding play in truth, and delight in reality, it offers a new way to experience work—not as a list of tasks, but as a system in motion.`;
 
-export const OFFICE_SPACES_CHARTER = `spaces™
+export const FANTASY_LAND_CHARTER = `Fantasy Land™
 Experiential Business Visualization & Flow Gamification Platform
 Document ID: NP-WP-000
 Status: Draft (Concept Charter)

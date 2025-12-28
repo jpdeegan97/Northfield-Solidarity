@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import Layout from "../../components/Layout.jsx";
-import Section from "../../components/Section.jsx";
 import { Link } from "react-router-dom";
-// import { DOCS_REGISTRY } from "../../data/docsRegistry.js"; // Removed in favor of Context
 import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
 import {
     Folder, FolderOpen, FileText, ChevronRight, ChevronDown,
-    LayoutGrid, ListTree, File, Plus
+    LayoutGrid, ListTree, Plus, BookOpen
 } from "lucide-react";
 
 import { useDocs } from "../../context/DocsContext.jsx";
@@ -16,39 +14,30 @@ import DocModal from "../../components/DocModal.jsx";
 import { NS_PROJECTS } from "../../data/projectRegistry.js";
 import * as ProjectContent from "../../data/docs/projects_content.js";
 
-// ... FileTreeNode and FileExplorer components remain ... (omitted for brevity)
+// --- Components ---
+
 const FileTreeNode = ({ label, type = "file", isOpen, onToggle, onClick, depth = 0, isActive }) => {
-    // ... same as before
     return (
         <div
             onClick={type === "folder" ? onToggle : onClick}
-            style={{
-                paddingLeft: `${depth * 20 + 12}px`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                paddingTop: '6px',
-                paddingBottom: '6px',
-                cursor: 'pointer',
-                color: isActive ? 'var(--c-brand)' : 'var(--c-text)',
-                background: isActive ? 'var(--c-bg-active)' : 'transparent',
-                borderRadius: '4px',
-                userSelect: 'none'
-            }}
-            className="file-tree-node hover:bg-white/5"
+            className={`
+                flex items-center gap-2 py-1.5 px-2 cursor-pointer rounded-md transition-colors select-none text-sm
+                ${isActive ? 'bg-brand/10 text-brand' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}
+            `}
+            style={{ paddingLeft: `${depth * 20 + 8}px` }}
         >
-            {type === "folder" && (
-                <span style={{ opacity: 0.5, display: 'flex' }}>
-                    {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </span>
-            )}
-            <span style={{ color: type === "folder" ? 'var(--c-accent)' : 'inherit', display: 'flex' }}>
+            <span className="opacity-70 flex-shrink-0 w-4">
+                {type === "folder" && (
+                    isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                )}
+            </span>
+            <span className={`flex-shrink-0 ${type === "folder" ? "text-amber-400" : "text-slate-500"}`}>
                 {type === "folder"
                     ? (isOpen ? <FolderOpen size={16} /> : <Folder size={16} />)
                     : <FileText size={16} />
                 }
             </span>
-            <span style={{ fontSize: '0.9rem', opacity: type === "folder" ? 1 : 0.9 }}>
+            <span className={`truncate ${type === "folder" ? "font-semibold" : ""}`}>
                 {label}
             </span>
         </div>
@@ -56,7 +45,6 @@ const FileTreeNode = ({ label, type = "file", isOpen, onToggle, onClick, depth =
 };
 
 const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFile }) => {
-    // ... same as before but need access to standard props
     const [openFolders, setOpenFolders] = useState({});
 
     const toggleFolder = (id) => {
@@ -64,121 +52,123 @@ const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFi
     };
 
     return (
-        <div className="card p-4" style={{ minHeight: '600px', alignSelf: 'stretch' }}>
-            <div className="mb-4 text-xs font-bold text-secondary uppercase tracking-wider">File System</div>
-            {/* ... same implementation ... */}
-            {/* General Docs */}
-            <FileTreeNode
-                label="General Documentation"
-                type="folder"
-                isOpen={openFolders['general']}
-                onToggle={() => toggleFolder('general')}
-            />
-            {openFolders['general'] && generalDocs.map(cat => (
-                <div key={cat.category}>
-                    <FileTreeNode
-                        label={cat.category}
-                        type="folder"
-                        depth={1}
-                        isOpen={openFolders[cat.category]}
-                        onToggle={() => toggleFolder(cat.category)}
-                    />
-                    {openFolders[cat.category] && cat.items.map(doc => (
+        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4 min-h-[600px] shadow-inner">
+            <div className="mb-4 text-xs font-bold text-slate-500 uppercase tracking-widest px-2">File System</div>
+            <div className="flex flex-col gap-0.5">
+                {/* General Docs */}
+                <FileTreeNode
+                    label="General Documentation"
+                    type="folder"
+                    isOpen={openFolders['general']}
+                    onToggle={() => toggleFolder('general')}
+                />
+                {openFolders['general'] && generalDocs.map(cat => (
+                    <div key={cat.category}>
                         <FileTreeNode
-                            key={doc.id}
-                            label={doc.title}
-                            depth={2}
-                            onClick={() => onOpenFile(cat, doc)}
+                            label={cat.category}
+                            type="folder"
+                            depth={1}
+                            isOpen={openFolders[cat.category]}
+                            onToggle={() => toggleFolder(cat.category)}
                         />
-                    ))}
-                </div>
-            ))}
-
-            {/* Engine Specs */}
-            <div style={{ marginTop: '8px' }}></div>
-            <FileTreeNode
-                label="Engine Specifications"
-                type="folder"
-                isOpen={openFolders['engines']}
-                onToggle={() => toggleFolder('engines')}
-            />
-            {openFolders['engines'] && orderedEngineDocs.map(cat => (
-                <div key={cat.category}>
-                    <FileTreeNode
-                        label={cat.category}
-                        type="folder"
-                        depth={1}
-                        isOpen={openFolders[cat.category]}
-                        onToggle={() => toggleFolder(cat.category)}
-                    />
-                    {openFolders[cat.category] && cat.items.map(doc => (
-                        <FileTreeNode
-                            key={doc.id}
-                            label={doc.title}
-                            depth={2}
-                            onClick={() => onOpenFile(cat, doc)}
-                        />
-                    ))}
-                </div>
-            ))}
-            {/* Projects */}
-            {activeProjects.length > 0 && (
-                <>
-                    <div style={{ marginTop: '8px' }}></div>
-                    <FileTreeNode
-                        label="Active Projects"
-                        type="folder"
-                        isOpen={openFolders['projects']}
-                        onToggle={() => toggleFolder('projects')}
-                    />
-                    {openFolders['projects'] && activeProjects.map(proj => (
-                        <div key={proj.code}>
+                        {openFolders[cat.category] && cat.items.map(doc => (
                             <FileTreeNode
-                                label={proj.name}
-                                type="folder"
-                                depth={1}
-                                isOpen={openFolders[proj.code]}
-                                onToggle={() => toggleFolder(proj.code)}
+                                key={doc.id}
+                                label={doc.title}
+                                depth={2}
+                                onClick={() => onOpenFile(cat, doc)}
                             />
-                            {openFolders[proj.code] && (
-                                <>
-                                    {proj.documents ? (
-                                        proj.documents.map(doc => (
+                        ))}
+                    </div>
+                ))}
+
+                {/* Engine Specs */}
+                <div className="my-2"></div>
+                <FileTreeNode
+                    label="Engine Specifications"
+                    type="folder"
+                    isOpen={openFolders['engines']}
+                    onToggle={() => toggleFolder('engines')}
+                />
+                {openFolders['engines'] && orderedEngineDocs.map(cat => (
+                    <div key={cat.category}>
+                        <FileTreeNode
+                            label={cat.category}
+                            type="folder"
+                            depth={1}
+                            isOpen={openFolders[cat.category]}
+                            onToggle={() => toggleFolder(cat.category)}
+                        />
+                        {openFolders[cat.category] && cat.items.map(doc => (
+                            <FileTreeNode
+                                key={doc.id}
+                                label={doc.title}
+                                depth={2}
+                                onClick={() => onOpenFile(cat, doc)}
+                            />
+                        ))}
+                    </div>
+                ))}
+
+                {/* Projects */}
+                {activeProjects.length > 0 && (
+                    <>
+                        <div className="my-2"></div>
+                        <FileTreeNode
+                            label="Active Projects"
+                            type="folder"
+                            isOpen={openFolders['projects']}
+                            onToggle={() => toggleFolder('projects')}
+                        />
+                        {openFolders['projects'] && activeProjects.map(proj => (
+                            <div key={proj.code}>
+                                <FileTreeNode
+                                    label={proj.name}
+                                    type="folder"
+                                    depth={1}
+                                    isOpen={openFolders[proj.code]}
+                                    onToggle={() => toggleFolder(proj.code)}
+                                />
+                                {openFolders[proj.code] && (
+                                    <>
+                                        {proj.documents ? (
+                                            proj.documents.map(doc => (
+                                                <FileTreeNode
+                                                    key={doc.id}
+                                                    label={doc.title}
+                                                    depth={2}
+                                                    onClick={() => onOpenFile(
+                                                        { category: proj.name, items: [] },
+                                                        { id: doc.id, title: doc.title, content: ProjectContent[doc.contentKey] }
+                                                    )}
+                                                />
+                                            ))
+                                        ) : (
                                             <FileTreeNode
-                                                key={doc.id}
-                                                label={doc.title}
+                                                label="Project Charter"
                                                 depth={2}
                                                 onClick={() => onOpenFile(
                                                     { category: proj.name, items: [] },
-                                                    { id: doc.id, title: doc.title, content: ProjectContent[doc.contentKey] }
+                                                    { id: 'charter', title: 'Project Charter', content: ProjectContent[proj.charterContent] }
                                                 )}
                                             />
-                                        ))
-                                    ) : (
-                                        <FileTreeNode
-                                            label="Project Charter"
-                                            depth={2}
-                                            onClick={() => onOpenFile(
-                                                { category: proj.name, items: [] }, // Mock category for modal
-                                                { id: 'charter', title: 'Project Charter', content: ProjectContent[proj.charterContent] }
-                                            )}
-                                        />
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    ))}
-                </>
-            )}
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </>
+                )}
+            </div>
         </div>
     );
 };
 
-export default function Documentation({ context }) {
-    const { docsRegistry, addDoc } = useDocs(); // Use context
-    const { hasPermission } = useAuth(); // Use auth
+// --- Main Page Component ---
 
-    // Fallback to empty array if registry isn't loaded yet (though initial state handles it)
+export default function Documentation({ context }) {
+    const { docsRegistry, addDoc } = useDocs();
+    const { hasPermission } = useAuth();
     const registry = docsRegistry || [];
 
     const isSL = context === "SL";
@@ -189,19 +179,16 @@ export default function Documentation({ context }) {
 
     const canEdit = hasPermission('builder');
 
-    // 1. Engine Docs
-    const orderedEngineDocs = activeEngines.map(engine =>
-        registry.find(cat => cat.category.startsWith(engine.code))
-    ).filter(Boolean);
+    // Categorize Docs
+    const orderedEngineDocs = activeEngines.map(engine => {
+        const cat = registry.find(cat => cat.category.startsWith(engine.code));
+        return cat ? { ...cat, category: `${engine.code} - ${engine.name}` } : null;
+    }).filter(Boolean);
 
-    // 2. General Docs
-    const generalDocs = registry.filter(cat =>
-        !cat.category.includes("Engine")
-    );
-
-    // 3. Project Docs
+    const generalDocs = registry.filter(cat => !cat.category.includes("Engine"));
     const activeProjects = !isSL && !isWSP ? NS_PROJECTS : [];
 
+    // Navigation setup
     const nav = isSL ? [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
@@ -238,7 +225,6 @@ export default function Documentation({ context }) {
     };
 
     const handleAddDoc = (categoryName) => {
-        // Create a new blank document and add it to the category
         const newDoc = {
             id: `new-doc-${Date.now()}`,
             title: "Untitled Document",
@@ -247,27 +233,15 @@ export default function Documentation({ context }) {
         };
         addDoc(categoryName, newDoc);
 
-        // Find the category object to pass to modal
         const catObj = registry.find(c => c.category === categoryName) || { category: categoryName, items: [newDoc] };
-
-        // Open it in the modal
-        // Note: addedDoc needs to be in the registry for this to work perfectly 'live', 
-        // but addDoc updates the context which triggers re-render, so registry passed here might need to be refreshed or we rely on the state update.
-        // It's safer to just set the modal state, and since we just added it, it might not be in the 'catObj' derived from 'registry' variable from THIS render cycle.
-        // But the context update triggers a re-render.
-        // For IMMEDIATE feedback, let's open it manually.
-
         setActiveDocModal({
-            category: {
-                ...catObj,
-                items: [...(catObj.items || []), newDoc]
-            },
+            category: { ...catObj, items: [...(catObj.items || []), newDoc] },
             activeItem: newDoc
         });
     };
 
     return (
-        <div data-theme={theme}>
+        <div data-theme={theme} className="min-h-screen bg-bg text-text">
             <Layout
                 nav={nav}
                 brand={isSL ? {
@@ -282,55 +256,63 @@ export default function Documentation({ context }) {
                     footerNote: "Limited Disclosure.",
                 } : undefined}
             >
-                <div className="docs-page-container">
-                    {/* Sidebar Navigation - Only show in Grid View */}
+                <div className="max-w-[1600px] mx-auto px-6 py-8 flex flex-col lg:flex-row gap-8 items-start">
+
+                    {/* Sidebar Navigation - Only show in Grid View on Desktop */}
                     {viewMode === 'grid' && (
-                        <aside className="docs-sidebar">
-                            <div className="sidebar-group">
-                                <h4 className="sidebar-heading">Start Here</h4>
-                                {generalDocs.map(s => (
-                                    <a key={s.category} href={`#${s.category.replace(/\s+/g, '-').toLowerCase()}`} className="sidebar-link">
-                                        {s.icon} {s.category}
-                                    </a>
-                                ))}
-                            </div>
-                            <div className="sidebar-group">
-                                <h4 className="sidebar-heading">Reference</h4>
-                                <a href="#engine-registry" className="sidebar-link">⚙️ Engine Registry</a>
-                            </div>
-                            {activeProjects.length > 0 && (
-                                <div className="sidebar-group">
-                                    <h4 className="sidebar-heading">Projects</h4>
-                                    <a href="#project-registry" className="sidebar-link">🏗️ Project Registry</a>
-                                </div>
-                            )}
-                            <div className="sidebar-group">
-                                <h4 className="sidebar-heading">Engine Specs</h4>
-                                {orderedEngineDocs.map(s => (
-                                    <a key={s.category} href={`#${s.category.replace(/\s+/g, '-').toLowerCase()}`} className="sidebar-link">
-                                        {s.icon} {s.category}
-                                    </a>
-                                ))}
-                            </div>
-                            {activeProjects.length > 0 && (
-                                <div className="sidebar-group">
-                                    <h4 className="sidebar-heading">Project Specs</h4>
-                                    {activeProjects.map(p => (
-                                        <a key={p.code} href={`#project-${p.code.toLowerCase()}`} className="sidebar-link">
-                                            🏗️ {p.name}
+                        <aside className="hidden lg:block w-64 sticky top-28 flex-shrink-0 space-y-8 pr-4 border-r border-border/50 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-text-sub uppercase tracking-wider">Start Here</h4>
+                                <nav className="space-y-1">
+                                    {generalDocs.map(s => (
+                                        <a key={s.category} href={`#${s.category.replace(/\s+/g, '-').toLowerCase()}`}
+                                            className="block text-sm text-text-sub hover:text-brand transition-colors py-1 truncate">
+                                            {s.icon} <span className="ml-2">{s.category}</span>
                                         </a>
                                     ))}
+                                </nav>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-text-sub uppercase tracking-wider">Reference</h4>
+                                <a href="#engine-registry" className="block text-sm text-text-sub hover:text-brand transition-colors py-1">
+                                    ⚙️ <span className="ml-2">Engine Registry</span>
+                                </a>
+                            </div>
+
+                            {activeProjects.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-text-sub uppercase tracking-wider">Projects</h4>
+                                    <a href="#project-registry" className="block text-sm text-text-sub hover:text-brand transition-colors py-1">
+                                        🏗️ <span className="ml-2">Project Registry</span>
+                                    </a>
                                 </div>
                             )}
+
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-text-sub uppercase tracking-wider">Engine Specs</h4>
+                                <nav className="space-y-1">
+                                    {orderedEngineDocs.map(s => (
+                                        <a key={s.category} href={`#${s.category.replace(/\s+/g, '-').toLowerCase()}`}
+                                            className="block text-sm text-text-sub hover:text-brand transition-colors py-1 truncate">
+                                            {s.icon} <span className="ml-2">{s.category}</span>
+                                        </a>
+                                    ))}
+                                </nav>
+                            </div>
                         </aside>
                     )}
 
                     {/* Main Content */}
-                    <main className="docs-content">
-                        <div className="docs-header">
-                            <div className="eyebrow">{isSL ? "SouthLawn Operations" : (isWSP ? "WSP Protocols" : "Knowledge Base")}</div>
-                            <h1 className="h1">{isSL ? "SouthLawn Documentation" : (isWSP ? "Strategic Documentation" : "System Documentation")}</h1>
-                            <p className="lead">
+                    <main className="flex-1 min-w-0 w-full">
+                        <div className="flex flex-col items-center text-center mb-16">
+                            <div className="text-brand font-bold uppercase text-xs tracking-widest mb-3">
+                                {isSL ? "SouthLawn Operations" : (isWSP ? "WSP Protocols" : "Knowledge Base")}
+                            </div>
+                            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-text to-text-sub">
+                                {isSL ? "SouthLawn Documentation" : (isWSP ? "Strategic Documentation" : "System Documentation")}
+                            </h1>
+                            <p className="text-lg text-text-sub max-w-2xl mx-auto leading-relaxed">
                                 {isSL
                                     ? "Operational standards and engine references for the SouthLawn portfolio."
                                     : isWSP
@@ -340,20 +322,18 @@ export default function Documentation({ context }) {
                             </p>
 
                             {/* View Toggle */}
-                            <div className="view-toggle" style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', gap: '8px' }}>
+                            <div className="flex bg-surface border border-border rounded-full p-1 mt-8 shadow-sm">
                                 <button
-                                    className={`btn sm ${viewMode === 'grid' ? 'primary' : 'ghost'}`}
                                     onClick={() => setViewMode('grid')}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'grid' ? 'bg-brand text-white shadow' : 'text-text-sub hover:text-text'}`}
                                 >
-                                    <LayoutGrid size={16} /> Grid View
+                                    <LayoutGrid size={16} /> Grid
                                 </button>
                                 <button
-                                    className={`btn sm ${viewMode === 'explorer' ? 'primary' : 'ghost'}`}
                                     onClick={() => setViewMode('explorer')}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${viewMode === 'explorer' ? 'bg-brand text-white shadow' : 'text-text-sub hover:text-text'}`}
                                 >
-                                    <ListTree size={16} /> File Tree
+                                    <ListTree size={16} /> Explorer
                                 </button>
                             </div>
                         </div>
@@ -366,33 +346,38 @@ export default function Documentation({ context }) {
                                 onOpenFile={handleOpenFile}
                             />
                         ) : (
-                            <>
+                            <div className="space-y-16">
                                 {/* 1. General Documentation */}
                                 {generalDocs.map((section) => (
-                                    <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="docs-section">
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
-                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
-                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
+                                    <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="pt-8 scroll-mt-32">
+                                        <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-8">
+                                            <h2 className="text-2xl font-bold flex items-center gap-3">
+                                                <span className="p-2 bg-surface rounded-lg border border-border/50 text-xl">{section.icon}</span>
                                                 {section.category}
                                             </h2>
                                             {canEdit && (
                                                 <button
-                                                    className="btn icon sm ghost"
                                                     onClick={() => handleAddDoc(section.category)}
+                                                    className="p-2 text-text-sub hover:text-brand hover:bg-surface rounded-full transition-colors"
                                                     title="Add Document"
                                                 >
-                                                    <Plus size={18} />
+                                                    <Plus size={20} />
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="grid">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {section.items.map((item) => (
-                                                <Link key={item.id} to={`/docs/${item.id}`} className="card doc-link-card">
-                                                    <div className="cardTop">
-                                                        <div className="badge">Draft</div>
+                                                <Link
+                                                    key={item.id}
+                                                    to={`/docs/${item.id}`}
+                                                    className="group flex flex-col bg-surface hover:bg-surface/80 border border-border hover:border-brand/30 rounded-xl p-5 transition-all hover:shadow-lg hover:-translate-y-1"
+                                                >
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <BookOpen size={20} className="text-brand opacity-80" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider bg-bg px-2 py-0.5 rounded text-text-sub">Draft</span>
                                                     </div>
-                                                    <div className="cardTitle">{item.title}</div>
-                                                    <p className="cardBody">{item.desc}</p>
+                                                    <h3 className="font-bold text-lg mb-2 group-hover:text-brand transition-colors">{item.title}</h3>
+                                                    <p className="text-sm text-text-sub leading-relaxed line-clamp-3">{item.desc}</p>
                                                 </Link>
                                             ))}
                                         </div>
@@ -400,20 +385,18 @@ export default function Documentation({ context }) {
                                 ))}
 
                                 {/* 2. Engine Registry */}
-                                <section id="engine-registry" className="docs-section registry-section" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
-                                    <h2 className="section-title">
-                                        <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>⚙️</span>
+                                <section id="engine-registry" className="pt-8 scroll-mt-32 border-t border-border/30">
+                                    <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                                        <span className="p-2 bg-surface rounded-lg border border-border/50 text-xl">⚙️</span>
                                         Engine Registry
                                     </h2>
-                                    <div className="grid sm-grid">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {activeEngines.map((engine) => (
-                                            <div key={engine.code} className="card doc-link-card compact">
-                                                <div className="cardTop">
-                                                    <div className="badge brand-badge">{engine.code}</div>
-                                                </div>
-                                                <div className="cardTitle sm">{engine.name}</div>
-                                                <p className="cardBody sm">{engine.category}</p>
-                                                <Link to={`/system?engine=${engine.code}`} className="btn sm ghost full-width">View in System</Link>
+                                            <div key={engine.code} className="bg-surface rounded-lg p-4 border border-border/50 hover:border-brand/40 transition-colors">
+                                                <div className="inline-block px-2 py-0.5 rounded text-xs font-bold bg-brand text-white mb-2 shadow-sm">{engine.code}</div>
+                                                <div className="font-bold text-sm mb-1">{engine.name}</div>
+                                                <div className="text-xs text-text-sub mb-3 truncate">{engine.category}</div>
+                                                <Link to={`/system?engine=${engine.code}`} className="text-xs font-semibold text-brand hover:underline block">View System Node →</Link>
                                             </div>
                                         ))}
                                     </div>
@@ -421,27 +404,25 @@ export default function Documentation({ context }) {
 
                                 {/* 3. Project Registry */}
                                 {activeProjects.length > 0 && (
-                                    <section id="project-registry" className="docs-section registry-section">
-                                        <h2 className="section-title">
-                                            <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>🏗️</span>
+                                    <section id="project-registry" className="pt-8 scroll-mt-32 border-t border-border/30">
+                                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+                                            <span className="p-2 bg-surface rounded-lg border border-border/50 text-xl">🏗️</span>
                                             Project Registry
                                         </h2>
-                                        <div className="grid sm-grid">
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                             {activeProjects.map((project) => (
-                                                <div key={project.code} className="card doc-link-card compact">
-                                                    <div className="cardTop">
-                                                        <div className="badge brand-badge" style={{ background: 'var(--c-accent)' }}>{project.code}</div>
-                                                    </div>
-                                                    <div className="cardTitle sm">{project.name}</div>
-                                                    <p className="cardBody sm">{project.description}</p>
+                                                <div key={project.code} className="bg-surface rounded-lg p-4 border border-border/50 hover:border-accent/40 transition-colors">
+                                                    <div className="inline-block px-2 py-0.5 rounded text-xs font-bold bg-accent text-slate-900 mb-2 shadow-sm">{project.code}</div>
+                                                    <div className="font-bold text-sm mb-1">{project.name}</div>
+                                                    <div className="text-xs text-text-sub mb-3 line-clamp-2">{project.description}</div>
                                                     <button
-                                                        className="btn sm ghost full-width"
+                                                        className="text-xs font-semibold text-accent hover:underline block text-left"
                                                         onClick={() => setActiveDocModal({
                                                             category: { category: project.name, items: [{ id: 'charter', title: 'Project Charter', content: ProjectContent[project.charterContent] }] },
                                                             activeItem: { id: 'charter', title: 'Project Charter', content: ProjectContent[project.charterContent] }
                                                         })}
                                                     >
-                                                        Open Charter
+                                                        Read Charter →
                                                     </button>
                                                 </div>
                                             ))}
@@ -451,81 +432,46 @@ export default function Documentation({ context }) {
 
                                 {/* 4. Engine Specific Documentation */}
                                 {orderedEngineDocs.map((section) => (
-                                    <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="docs-section">
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
-                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
-                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
+                                    <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="pt-8 scroll-mt-32">
+                                        <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-8">
+                                            <h2 className="text-2xl font-bold flex items-center gap-3">
+                                                <span className="p-2 bg-surface rounded-lg border border-border/50 text-xl">{section.icon}</span>
                                                 {section.category}
                                             </h2>
                                             {canEdit && (
                                                 <button
-                                                    className="btn icon sm ghost"
                                                     onClick={() => handleAddDoc(section.category)}
+                                                    className="p-2 text-text-sub hover:text-brand hover:bg-surface rounded-full transition-colors"
                                                     title="Add Document"
                                                 >
-                                                    <Plus size={18} />
+                                                    <Plus size={20} />
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="card p-6 flex flex-col items-start gap-4">
-                                            <p className="mb-4 text-secondary">
-                                                Full technical documentation, architectural decisions, and operational runbooks for the {section.category}.
+                                        <div className="bg-surface/50 rounded-xl border border-border/50 p-6">
+                                            <p className="text-text-sub mb-6 text-sm">
+                                                Technical specifications, decisions, and runbooks for {section.category}.
                                             </p>
-                                            <div className="grid full-width" style={{ marginTop: '1rem', width: '100%' }}>
+                                            <div className="grid grid-cols-1 gap-2">
                                                 {section.items.map(item => (
                                                     <button
                                                         key={item.id}
-                                                        className="card doc-link-card"
+                                                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all group text-left w-full"
                                                         onClick={() => handleOpenFile(section, item)}
-                                                        style={{ textAlign: 'left', border: '1px solid var(--c-border)', background: 'var(--c-bg)' }}
                                                     >
-                                                        <div className="cardTitle sm">{item.title}</div>
-                                                        <div className="cardBody sm">{item.desc}</div>
+                                                        <FileText className="text-slate-500 group-hover:text-brand transition-colors" size={20} />
+                                                        <div>
+                                                            <div className="font-medium text-sm group-hover:text-white transition-colors">{item.title}</div>
+                                                            <div className="text-xs text-text-sub line-clamp-1">{item.desc}</div>
+                                                        </div>
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                     </section>
                                 ))}
-
-                                {/* 5. Project Specific Documentation */}
-                                {activeProjects.map((project) => (
-                                    <section key={project.code} id={`project-${project.code.toLowerCase()}`} className="docs-section">
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
-                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
-                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>🏗️</span>
-                                                {project.name}
-                                            </h2>
-                                            {canEdit && (
-                                                <button
-                                                    className="btn icon sm ghost"
-                                                    onClick={() => handleAddDoc(project.name)}
-                                                    title="Add Document"
-                                                >
-                                                    <Plus size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="card p-6 flex flex-col items-start gap-4">
-                                            <p className="mb-4 text-secondary">
-                                                Full technical documentation, architectural decisions, and operational runbooks for the {project.name}.
-                                            </p>
-                                            <button
-                                                className="btn primary"
-                                                onClick={() => setActiveDocModal({
-                                                    category: { category: project.name, items: [{ id: 'charter', title: 'Project Charter', content: ProjectContent[project.charterContent] }] },
-                                                    activeItem: { id: 'charter', title: 'Project Charter', content: ProjectContent[project.charterContent] }
-                                                })}
-                                            >
-                                                Open Project Charter
-                                            </button>
-                                        </div>
-                                    </section>
-                                ))}
-                            </>
+                            </div>
                         )}
-
 
                         {/* Doc Modal Overlay */}
                         {activeDocModal && (
@@ -534,215 +480,9 @@ export default function Documentation({ context }) {
                                 setActiveDocModal={setActiveDocModal}
                             />
                         )}
-
-
                     </main>
                 </div>
-
-                <style>{`
-                    .docs-page-container {
-                        display: flex;
-                        max-width: 1400px;
-                        margin: 0 auto;
-                        padding: var(--space-6) var(--space-4);
-                        gap: var(--space-8);
-                        align-items: flex-start;
-                    }
-
-                    /* Sidebar */
-                    .docs-sidebar {
-                        width: 240px;
-                        position: sticky;
-                        top: 100px;
-                        flex-shrink: 0;
-                        padding-right: var(--space-4);
-                        border-right: 1px solid var(--c-border);
-                        max-height: calc(100vh - 120px);
-                        overflow-y: auto;
-                    }
-
-                    .sidebar-group {
-                        margin-bottom: var(--space-6);
-                    }
-
-                    .sidebar-heading {
-                        font-size: 0.75rem;
-                        text-transform: uppercase;
-                        letter-spacing: 0.05em;
-                        color: var(--c-text-sub);
-                        margin-bottom: var(--space-3);
-                        font-weight: 700;
-                    }
-
-                    .sidebar-link {
-                        display: block;
-                        padding: 6px 0;
-                        font-size: 0.9rem;
-                        color: var(--c-text);
-                        text-decoration: none;
-                        transition: color 0.2s;
-                    }
-                    .sidebar-link:hover {
-                        color: var(--c-brand);
-                    }
-
-                    /* Content */
-                    .docs-content {
-                        flex: 1;
-                        min-width: 0; 
-                    }
-
-                    .docs-header {
-                        margin-bottom: var(--space-8);
-                        text-align: center;
-                    }
-
-                    .docs-section {
-                        margin-bottom: var(--space-20, 5rem);
-                        padding-bottom: var(--space-10);
-                        scroll-margin-top: 120px; 
-                    }
-
-                    .section-title {
-                        font-size: 1.5rem;
-                        font-weight: 700;
-                        margin-bottom: var(--space-6);
-                        border-bottom: 1px solid var(--c-border);
-                        padding-bottom: var(--space-3);
-                    }
-
-                    .brand-badge {
-                        background: var(--c-brand); 
-                        color: #fff;
-                    }
-
-                    .registry-section {
-                        margin-top: var(--space-10);
-                        padding-top: var(--space-10);
-                        border-top: 1px solid var(--c-border);
-                    }
-                    
-                    .sm-grid {
-                         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    }
-                    
-                    .card.compact {
-                        padding: 1rem;
-                    }
-                    .cardTitle.sm { font-size: 1rem; margin-bottom: 0.25rem; }
-                    .cardBody.sm { font-size: 0.8rem; margin-bottom: 1rem; }
-                    .full-width { width: 100%; justify-content: center; }
-
-                    @media (max-width: 900px) {
-                        .docs-page-container { flex-direction: column; }
-                        .docs-sidebar { 
-                            width: 100%; 
-                            position: static; 
-                            border-right: none; 
-                            border-bottom: 1px solid var(--c-border);
-                            margin-bottom: var(--space-6);
-                            padding-bottom: var(--space-4);
-                        }
-                    }
-
-                    /* Modal Overlay */
-                    .modal-overlay {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background: rgba(0,0,0,0.85);
-                        z-index: 1000;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        padding: var(--space-6);
-                        -webkit-backdrop-filter: blur(5px);
-                        backdrop-filter: blur(5px);
-                    }
-
-                    .modal-content {
-                        background: var(--c-bg);
-                        width: 100%;
-                        max-width: 1200px;
-                        height: 90vh;
-                        border-radius: var(--radius-lg);
-                        border: 1px solid var(--c-border);
-                        display: flex;
-                        overflow: hidden;
-                        box-shadow: var(--shadow-xl);
-                        animation: fadeIn 0.2s ease-out;
-                    }
-
-                    .modal-sidebar {
-                        width: 280px;
-                        background: var(--c-surface);
-                        border-right: 1px solid var(--c-border);
-                        display: flex;
-                        flex-direction: column;
-                        padding: var(--space-4);
-                        flex-shrink: 0;
-                    }
-
-                    .modal-sidebar-header {
-                        padding-bottom: var(--space-4);
-                        border-bottom: 1px solid var(--c-border);
-                        margin-bottom: var(--space-4);
-                    }
-                    .modal-sidebar-header h3 {
-                        margin: 0;
-                        font-size: 1.1rem;
-                        font-weight: 700;
-                    }
-
-                    .modal-nav {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 2px;
-                        overflow-y: auto;
-                        flex: 1;
-                    }
-
-                    .modal-nav-item {
-                        text-align: left;
-                        background: none;
-                        border: none;
-                        padding: 10px 12px;
-                        border-radius: var(--radius-sm);
-                        cursor: pointer;
-                        color: var(--c-text-sub);
-                        transition: all 0.2s;
-                        font-size: 0.9rem;
-                    }
-                    .modal-nav-item:hover {
-                        background: var(--c-bg-hover);
-                        color: var(--c-text);
-                    }
-                    .modal-nav-item.active {
-                        background: var(--c-bg-active);
-                        color: var(--c-brand);
-                        font-weight: 600;
-                    }
-
-                    .modal-body {
-                        flex: 1;
-                        padding: var(--space-8);
-                        overflow-y: auto;
-                        background: var(--c-bg);
-                    }
-
-                    .markdown-content {
-                        line-height: 1.6;
-                        max-width: 800px;
-                    }
-
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: scale(0.98); }
-                        to { opacity: 1; transform: scale(1); }
-                    }
-`}</style>
-            </Layout >
-        </div >
+            </Layout>
+        </div>
     );
 }

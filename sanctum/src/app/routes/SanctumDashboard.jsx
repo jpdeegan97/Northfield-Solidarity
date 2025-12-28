@@ -3,14 +3,11 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
 
+import { NS_PROJECTS } from '../../data/projectRegistry';
+
 export default function SanctumDashboard() {
-    const projects = [
-        { id: 'MINT', name: 'PROJECT MINT', status: 'ACTIVE', desc: 'Entity / IP formation engine.' },
-        { id: 'alpha', name: 'PROJECT ALPHA', status: 'ACTIVE', desc: 'Next-gen financial primitive.' },
-        { id: 'beta', name: 'STEALTH OPS', status: 'IDEATION', desc: 'Secure communication layer.' },
-        { id: 'gamma', name: 'VENTUR XT', status: 'DORMANT', desc: 'Unrevealed asset class.' },
-        { id: 'delta', name: 'OMEGA PROTOCOL', status: 'BUILD', desc: 'Decentralized trust fabric.' },
-    ];
+    const projects = NS_PROJECTS.filter(p => p.status !== 'Draft' && p.status !== 'Ideation').slice(0, 6); // Showing top active projects
+
 
     return (
         <Layout>
@@ -28,20 +25,20 @@ export default function SanctumDashboard() {
                 {/* Grid */}
                 <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {projects.map((p) => (
-                        <Link to={`/project/${p.id}`} key={p.id}>
+                        <Link to={`/project/${p.code}`} key={p.code}>
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
                                 className="group relative h-64 bg-white/5 border border-white/10 hover:border-[#00ff9d]/50 p-6 flex flex-col justify-between cursor-pointer transition-colors backdrop-blur-sm"
                             >
                                 <div className="absolute top-0 right-0 p-4">
-                                    <span className={`text-[10px] font-bold px-2 py-1 rounded border border-white/20 ${p.status === 'ACTIVE' ? 'text-[#00ff9d] border-[#00ff9d]/30' : p.status === 'BUILD' ? 'text-yellow-400 border-yellow-400/30' : 'text-white/40'}`}>
-                                        {p.status}
+                                    <span className={`text-[10px] font-bold px-2 py-1 rounded border border-white/20 ${p.status === 'Active' ? 'text-[#00ff9d] border-[#00ff9d]/30' : p.status === 'Incubator' ? 'text-yellow-400 border-yellow-400/30' : 'text-white/40'}`}>
+                                        {p.status.toUpperCase()}
                                     </span>
                                 </div>
 
                                 <div className="mt-8">
                                     <h3 className="text-xl font-bold tracking-widest text-white group-hover:text-[#00ff9d] transition-colors">{p.name}</h3>
-                                    <p className="text-white/40 text-xs mt-2 leading-relaxed">{p.desc}</p>
+                                    <p className="text-white/40 text-xs mt-2 leading-relaxed">{p.description}</p>
                                 </div>
 
                                 <div className="flex justify-end">

@@ -1,0 +1,37 @@
+NS-ASCENSION-005-ROLE-TEMPLATES
+
+Role page template
+Role: <Title>
+Level: <Senior / Founding>
+Type: <FT/Contract>
+Location: <Remote/Hybrid/Onsite>
+Comp: <Range or 'Competitive'>
+
+Mission:
+- What you will build and why it matters.
+
+What you'll do:
+- 5–7 bullets.
+
+What 'great' looks like:
+- Observable traits.
+
+Requirements:
+- Hard requirements.
+
+Nice-to-haves:
+- Optional.
+
+Ascension gates for this role:
+- Gate 0: what to submit
+- Gate 1: questions
+- Gate 2: trial spec (paid)
+- Gate 3+: what we discuss
+
+How to apply:
+- link/form/email
+Trial templates (examples)
+FE: build a responsive component pack + one interactive flow (timeboxed).
+BE: implement a small API + validation + tests + README.
+DevOps: write a deployment runbook + minimal IaC + verification steps.
+Design: deliver a small system spec + UI frames + rationale.

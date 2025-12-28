@@ -148,7 +148,26 @@ Firmament v0 is “done” when:
 •	adjust the risk/ambition slider and see the recommended actions change,
 •	and key actions route into CWP ownership and GGE governance.`;
 
-export const MANIFOLD_TRACER_CHARTER = `ManifoldTracer™
+export const MANIFOLD_TRACER_CHARTER = `Manifold Tracer™
+Business Graph Extraction & Topology Engine
+Document ID: NS-MT-001
+Status: Draft
+Owner: Northfield Solidarity
+Origin System: GGE HoloMap / Governance Graph Engine
+
+1. Purpose
+Manifold Tracer is the foundational engine that "traces" the business. It identifies, maps, and continuously indexes every node (person, asset, entity, task) and edge (relationship, dependency, flow) within the organization.
+
+2. Core Function
+- Graph Extraction: Pulls data from GGE, IDN, and CWP to build a complete topology.
+- Node Resolution: Discovers hidden links and transitive dependencies.
+- Flow Tracing: Monitors the movement of value and work through the graph.
+
+3. Role
+It provides the "Physics" and "Geography" that other engines (like Fantasy Land) use to render the world. It does not visualize; it traces.
+`;
+
+export const FANTASY_LAND_CHARTER = `Fantasy Land™
 Experiential Business Visualization & Flow Gamification Platform
 Document ID: NP-WP-001
 Status: Draft (Concept Charter)
@@ -157,22 +176,16 @@ Origin System: GGE HoloMap / Governance Graph Engine
 Audience: Founders, Small & Mid-Sized Businesses, Product Teams, Operations Leaders
 
 1. Purpose & Vision
-Workplay™ is an experiential visualization platform that transforms real business operations into a game-like, living world—allowing teams to see work move, understand flow intuitively, and feel progress.
+Fantasy Land (formerly Workplay) is an experiential visualization platform that transforms real business operations into a game-like, living world—allowing teams to see work move, understand flow intuitively, and feel progress.
 
-The vision of Workplay is simple but radical:
+The vision is simple but radical:
 Make work visible, embodied, and engaging—without falsifying reality.
 
-Workplay does not gamify work by adding artificial points or rewards. Instead, it makes the actual system legible and emotionally resonant through carefully designed metaphors.
+It does not gamify work by adding artificial points or rewards. Instead, it makes the actual system legible and emotionally resonant through carefully designed metaphors.
 
 2. Core Philosophy
-Traditional productivity tools fail because they are:
-  Abstract
-  Text-heavy
-  Fragmented
-  Emotionally flat
-
-Workplay replaces abstraction with spatial metaphor.
-In Workplay:
+Traditional productivity tools fail because they are abstract, text-heavy, and broken.
+Fantasy Land replaces abstraction with spatial metaphor:
   Progress is motion
   Blockages are obstacles
   Backlogs are congestion
@@ -182,14 +195,8 @@ In Workplay:
 Nothing is simulated. Everything is real.
 
 3. Product Positioning
-Workplay is not:
-  A project management tool
-  A task tracker
-  A dashboard
-  A productivity game
-
-Workplay is:
-  A living map of how a business operates
+Fantasy Land is:
+  A living map of how a business operates (powered by Manifold Tracer)
   A shared mental model for teams
   A motivational observability layer
   A narrative interface for operational reality
@@ -199,268 +206,13 @@ Tagline concepts:
   “Turn your business into a living world.”
   “Make work visible.”
 
-4. Target Users & Use Cases
-Primary Users
-  Founders and operators at 5–50 person companies
-  Agencies, ecommerce brands, ops-heavy SMBs
-  Teams overwhelmed by invisible work and hidden bottlenecks
-
-Primary Use Cases
-  Daily operational awareness
-  Team standups and async check-ins
-  Bottleneck discovery
-  Motivation through visible momentum
-  Explaining work to non-technical stakeholders
-
-5. World Metaphor System
-Workplay presents business operations through curated worlds. Each world is a visual skin over the same underlying data.
-
-Solar System World
-  Departments = planets
-  Processes = orbits
-  Work items = ships
-  Approvals = gravity wells or jump gates
-
-City World
-  Teams = districts
-  Workflows = roads
-  Tasks = vehicles or citizens
-  Bottlenecks = traffic jams
-
-Factory World
-  Inputs = raw materials
-  Jobs = conveyor items
-  QA / approvals = inspection stations
-  Outputs = shipped goods
-
-Worlds are interchangeable without changing the underlying system.
-
-6. Data Integrity & Fidelity
-Workplay is powered by real operational data.
-  All visual entities map directly to real processes or flows
-  State changes are driven by live or near-real-time events
-  No synthetic scores or fictional success metrics are introduced
-
-The system never lies to make the game feel better.
-
-7. Interaction Model
-Users can:
-  Zoom and pan through their operational world
-  Click entities to reveal lightweight context
-  Filter by team, process, or time window
-  Replay recent activity as a time-lapse
-
-Workplay is primarily observational, not a control plane.
-
-8. Technical Architecture (High-Level)
+4. Technical Architecture (High-Level)
   Rendering Engine: Unreal Engine (desktop-first)
   Backend: Lightweight event and snapshot API
   Integration: Event-driven ingestion from source systems
   Data Contract: Neutral flow and entity events
 
-Workplay functions as a renderer, not a decision-maker.
-
-9. Relationship to GGE & HoloMap
-Workplay is a derivative product built on top of the same foundational abstractions as GGE HoloMap.
-
-GGE HoloMap
-Workplay
-Accurate, exhaustive
-Stylized, simplified
-Governance-first
-Motivation-first
-Operator-focused
-Team-focused
-Serious tone
-Playful tone
-
-Both products share a common event model but serve different audiences.
-
-10. Security & Simplification Rules
-  Sensitive data may be masked or aggregated
-  Not all flows or entities must be visible
-  Access levels determine world visibility
-
-Workplay prioritizes clarity over completeness.
-
-11. Non-Goals
-Workplay explicitly does not:
-  Replace source-of-truth systems
-  Enforce policy or governance
-  Introduce artificial incentives or scoring
-  Encourage performative productivity
-
-It exists to make reality understandable and engaging.
-
-12. Long-Term Vision
-Over time, Workplay evolves into:
-  A daily ritual for teams
-  A narrative replay tool for retrospectives
-  A sales and onboarding visualization
-  A cultural artifact of how work gets done
-
-Workplay makes the invisible visible—and makes progress feel real.
-
-13. Summary
-Workplay™ transforms business operations into a living, explorable world.
-By grounding play in truth, and delight in reality, it offers a new way to experience work—not as a list of tasks, but as a system in motion.`;
-
-export const OFFICE_SPACES_CHARTER = `spaces™
-Experiential Business Visualization & Flow Gamification Platform
-Document ID: NP-WP-000
-Status: Draft (Concept Charter)
-Owner: Northfield Solidarity
-Origin System: GGE HoloMap / Governance Graph Engine
-Audience: Founders, Small & Mid-Sized Businesses, Product Teams, Operations Leaders
-
-1. Purpose & Vision
-Workspaces™ is an experiential visualization platform that transforms real business operations into a game-like, living world—allowing teams to see work move, understand flow intuitively, and feel progress.
-
-The vision of Workplay is simple but radical:
-Make work visible, embodied, and engaging—without falsifying reality.
-
-Workplay does not gamify work by adding artificial points or rewards. Instead, it makes the actual system legible and emotionally resonant through carefully designed metaphors.
-
-2. Core Philosophy
-Traditional productivity tools fail because they are:
-  Abstract
-  Text-heavy
-  Fragmented
-  Emotionally flat
-
-Workplay replaces abstraction with spatial metaphor.
-In Workplay:
-  Progress is motion
-  Blockages are obstacles
-  Backlogs are congestion
-  Success is arrival
-  Failure is visible and instructive
-
-Nothing is simulated. Everything is real.
-
-3. Product Positioning
-Workplay is not:
-  A project management tool
-  A task tracker
-  A dashboard
-  A productivity game
-
-Workplay is:
-  A living map of how a business operates
-  A shared mental model for teams
-  A motivational observability layer
-  A narrative interface for operational reality
-
-Tagline concepts:
-  “See your work move.”
-  “Turn your business into a living world.”
-  “Make work visible.”
-
-4. Target Users & Use Cases
-Primary Users
-  Founders and operators at 5–50 person companies
-  Agencies, ecommerce brands, ops-heavy SMBs
-  Teams overwhelmed by invisible work and hidden bottlenecks
-
-Primary Use Cases
-  Daily operational awareness
-  Team standups and async check-ins
-  Bottleneck discovery
-  Motivation through visible momentum
-  Explaining work to non-technical stakeholders
-
-5. World Metaphor System
-Workplay presents business operations through curated worlds. Each world is a visual skin over the same underlying data.
-
-Solar System World
-  Departments = planets
-  Processes = orbits
-  Work items = ships
-  Approvals = gravity wells or jump gates
-
-City World
-  Teams = districts
-  Workflows = roads
-  Tasks = vehicles or citizens
-  Bottlenecks = traffic jams
-
-Factory World
-  Inputs = raw materials
-  Jobs = conveyor items
-  QA / approvals = inspection stations
-  Outputs = shipped goods
-
-Worlds are interchangeable without changing the underlying system.
-
-6. Data Integrity & Fidelity
-Workplay is powered by real operational data.
-  All visual entities map directly to real processes or flows
-  State changes are driven by live or near-real-time events
-  No synthetic scores or fictional success metrics are introduced
-
-The system never lies to make the game feel better.
-
-7. Interaction Model
-Users can:
-  Zoom and pan through their operational world
-  Click entities to reveal lightweight context
-  Filter by team, process, or time window
-  Replay recent activity as a time-lapse
-
-Workplay is primarily observational, not a control plane.
-
-8. Technical Architecture (High-Level)
-  Rendering Engine: Unreal Engine (desktop-first)
-  Backend: Lightweight event and snapshot API
-  Integration: Event-driven ingestion from source systems
-  Data Contract: Neutral flow and entity events
-
-Workplay functions as a renderer, not a decision-maker.
-
-9. Relationship to GGE & HoloMap
-Workplay is a derivative product built on top of the same foundational abstractions as GGE HoloMap.
-
-GGE HoloMap
-Workplay
-Accurate, exhaustive
-Stylized, simplified
-Governance-first
-Motivation-first
-Operator-focused
-Team-focused
-Serious tone
-Playful tone
-
-Both products share a common event model but serve different audiences.
-
-10. Security & Simplification Rules
-  Sensitive data may be masked or aggregated
-  Not all flows or entities must be visible
-  Access levels determine world visibility
-
-Workplay prioritizes clarity over completeness.
-
-11. Non-Goals
-Workplay explicitly does not:
-  Replace source-of-truth systems
-  Enforce policy or governance
-  Introduce artificial incentives or scoring
-  Encourage performative productivity
-
-It exists to make reality understandable and engaging.
-
-12. Long-Term Vision
-Over time, Workplay evolves into:
-  A daily ritual for teams
-  A narrative replay tool for retrospectives
-  A sales and onboarding visualization
-  A cultural artifact of how work gets done
-
-Workplay makes the invisible visible—and makes progress feel real.
-
-13. Summary
-Workplay™ transforms business operations into a living, explorable world.
-By grounding play in truth, and delight in reality, it offers a new way to experience work—not as a list of tasks, but as a system in motion.`;
+Fantasy Land functions as a renderer, not a decision-maker. It takes the "tracer" data from Manifold Tracer and breathes life into it.`;
 
 export const RELAY_CHARTER = `Project: RELAY
 Status: Draft
@@ -1530,3 +1282,101 @@ Evidence object store integration
 Event bus topic names + minimal payload schemas
 
 Clear contracts for GGE approvals and SIG signals`;
+
+export const MINDMIX_CHARTER = `NS-MINDMIX-000 — CHARTER
+
+Project: Mind Mix
+Status: Draft
+Origin: User Uploaded Documentation (DOCX)
+
+1. Identity
+- Project Name: Mind Mix
+- Document ID: NS-MINDMIX-000-CHARTER
+
+2. Overview
+(Content unavailable in markdown. Please refer to NS-MINDMIX-000-CHARTER.docx in documentation/software/projects/MINDMIX/)
+`;
+
+export const MINDMIX_OVERVIEW = `NS-MINDMIX-001 — OVERVIEW
+
+Overview content unavailable in markdown.
+Please refer to NS-MINDMIX-001-OVERVIEW.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_TAXONOMY = `NS-MINDMIX-002 — TAXONOMY
+
+Taxonomy content unavailable in markdown.
+Please refer to NS-MINDMIX-002-TAXONOMY.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_ARCHITECTURE = `NS-MINDMIX-003 — ARCHITECTURE
+
+Architecture content unavailable in markdown.
+Please refer to NS-MINDMIX-003-ARCHITECTURE.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_LIFECYCLE = `NS-MINDMIX-004 — LIFECYCLE
+
+Lifecycle content unavailable in markdown.
+Please refer to NS-MINDMIX-004-LIFECYCLE.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_DECISION_RECORDS = `NS-MINDMIX-005 — DECISION RECORDS
+
+Decision Records content unavailable in markdown.
+Please refer to NS-MINDMIX-005-DECISION-RECORDS.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_COMPLIANCE = `NS-MINDMIX-006 — COMPLIANCE
+
+Compliance content unavailable in markdown.
+Please refer to NS-MINDMIX-006-COMPLIANCE-LICENSING.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_DATA_MODEL = `NS-MINDMIX-007 — DATA MODEL
+
+Data Model content unavailable in markdown.
+Please refer to NS-MINDMIX-007-DATA-MODEL.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_API_MAP = `NS-MINDMIX-008 — API MAP
+
+API Map content unavailable in markdown.
+Please refer to NS-MINDMIX-008-API-MAP.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_IMPLEMENTATION = `NS-MINDMIX-009 — IMPLEMENTATION
+
+Implementation content unavailable in markdown.
+Please refer to NS-MINDMIX-009-IMPLEMENTATION.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_FE_SPEC = `NS-MINDMIX-010 — FE SPEC
+
+FE Spec content unavailable in markdown.
+Please refer to NS-MINDMIX-010-FE-SPEC.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_RUNBOOK = `NS-MINDMIX-011 — RUNBOOK
+
+Runbook content unavailable in markdown.
+Please refer to NS-MINDMIX-011-RUNBOOK.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_DEMO_SCENARIOS = `NS-MINDMIX-012 — DEMO SCENARIOS
+
+Demo Scenarios content unavailable in markdown.
+Please refer to NS-MINDMIX-012-DEMO-SCENARIOS.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_ROADMAP = `NS-MINDMIX-013 — ROADMAP
+
+Roadmap content unavailable in markdown.
+Please refer to NS-MINDMIX-013-ROADMAP.docx in documentation/software/projects/MINDMIX/
+`;
+
+export const MINDMIX_REFERENCES = `NS-MINDMIX-014 — REFERENCES
+
+References content unavailable in markdown.
+Please refer to NS-MINDMIX-014-REFERENCES.docx in documentation/software/projects/MINDMIX/
+`;

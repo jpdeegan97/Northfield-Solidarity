@@ -1,0 +1,21 @@
+NS-ASCENSION-009-RUNBOOK
+
+Runbook: operating Ascension
+1) Intake
+Review Gate 0 submissions daily.
+Respond with either Gate 1 prompt or a clear close.
+2) Echo evaluation
+Score via rubric; store decision reasons.
+If pass: issue Trial package and payment terms.
+3) Trial
+Send trial brief + deadline + payment terms.
+On submission: acknowledge receipt; schedule review window.
+Complete scorecard; decide pass/close.
+4) Alignment + Door + Center
+Run alignment call with set questions.
+Deep dive on trial; ensure mutual expectations.
+Final Center conversation: decision + next steps.
+Quality bar controls
+Calibrate rubrics monthly (reduce evaluator drift).
+Keep trials consistent; vary only when role demands it.
+Keep a golden role template and scorecard baseline.

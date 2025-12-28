@@ -1,0 +1,16 @@
+NS-ASCENSION-006-OPERATING-MODEL
+
+Core roles
+Owner (Center): final decision maker; maintains mythos and bar.
+Gatekeeper: runs the pipeline, comms, and scheduling.
+Evaluators: role-specific reviewers; fill scorecards.
+Ops: payments for trials, doc handling, and records.
+Cadence (rhythm)
+Daily: review new signals and move candidates forward or close quickly.
+Weekly: pipeline review, role updates, publish changes via CONCORD.
+Monthly: calibrate rubrics and adjust trial scopes/rates.
+SLA targets
+Gate 0 response: 72 hours
+Gate 1 evaluation: 5 days
+Gate 2 trial review: 5 days
+Offer decision after Gate 4: 72 hours

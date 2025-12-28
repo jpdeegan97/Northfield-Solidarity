@@ -1,12 +1,17 @@
-import { Routes, Route, useLocation } from "react-router-dom";
 import React, { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import AppShell from "./app/AppShell.jsx";
 import SanctumDashboard from "./app/routes/SanctumDashboard.jsx";
 import SanctumProjectDetail from "./app/routes/SanctumProjectDetail.jsx";
 import SacredVisualizer from "./app/routes/SacredVisualizer.jsx";
 import SanctumMarketplace from "./app/routes/SanctumMarketplace.jsx";
 import SanctumCheckout from "./app/routes/SanctumCheckout.jsx"; // Import new component
+import SanctumEngineBuilder from "./app/routes/SanctumEngineBuilder.jsx"; // Import Builder
+import SanctumSim from "./app/routes/SanctumSim.jsx"; // Import SIM
 import SanctumTimeline from "./app/routes/SanctumTimeline.jsx";
+import SanctumJournal from "./app/routes/SanctumJournal.jsx";
+import Dreams from "./app/routes/Dreams.jsx";
+import Networking from "./app/routes/Networking.jsx";
 import Documentation from "./app/routes/Documentation.jsx";
 import ProductCanvas from "./app/ProductCanvas.jsx";
 import DocDetail from "./app/routes/DocDetail.jsx";
@@ -28,6 +33,7 @@ import ScrollToTop from "./components/ScrollToTop.jsx";
 import IdeRoute from "./app/routes/IdeRoute.jsx";
 import EngineRoute from "./app/routes/EngineRoute.jsx";
 import OSIdeation from "./app/routes/OSIdeation.jsx";
+import NSAdmin from "./app/routes/NSAdmin.jsx";
 
 import SouthLawnInvestors from "./app/routes/SouthLawnInvestors.jsx";
 import SouthLawnThesis from "./app/routes/SouthLawnThesis.jsx";
@@ -55,8 +61,11 @@ export default function App() {
           <Route path="visualizer" element={<SacredVisualizer />} />
           <Route path="marketplace" element={<SanctumMarketplace />} />
           <Route path="marketplace/checkout" element={<SanctumCheckout />} />
+          <Route path="builder" element={<SanctumEngineBuilder />} />
+          <Route path="sim" element={<SanctumSim />} />
           <Route path="timeline" element={<SanctumTimeline />} />
           <Route path="journal" element={<SanctumJournal />} />
+          <Route path="dreams" element={<Dreams />} />
           <Route path="docs" element={<Documentation />} />
           <Route path="docs/:docId" element={<DocDetail />} />
           <Route path="system" element={<SystemExplorer />} />
@@ -68,9 +77,11 @@ export default function App() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="login" element={<Login />} />
           <Route path="platform" element={<ProductCanvas />} />
+          <Route path="networking" element={<Networking />} />
           <Route path="ide" element={<IdeRoute />} />
           <Route path="os-ideation" element={<OSIdeation />} />
           <Route path="engine/:code" element={<EngineRoute />} />
+          <Route path="admin" element={<NSAdmin />} />
           <Route path="southlawn" element={<SouthLawnLanding />} />
           <Route path="southlawn/pricing" element={<SouthLawnPricing />} />
           <Route path="southlawn/thesis" element={<SouthLawnThesis />} />

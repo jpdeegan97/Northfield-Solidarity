@@ -190,9 +190,10 @@ export default function Documentation({ context }) {
     const canEdit = hasPermission('builder');
 
     // 1. Engine Docs
-    const orderedEngineDocs = activeEngines.map(engine =>
-        registry.find(cat => cat.category.startsWith(engine.code))
-    ).filter(Boolean);
+    const orderedEngineDocs = activeEngines.map(engine => {
+        const cat = registry.find(cat => cat.category.startsWith(engine.code));
+        return cat ? { ...cat, category: `${engine.code} - ${engine.name}` } : null;
+    }).filter(Boolean);
 
     // 2. General Docs
     const generalDocs = registry.filter(cat =>
@@ -563,6 +564,9 @@ export default function Documentation({ context }) {
                         color: var(--c-text-sub);
                         margin-bottom: var(--space-3);
                         font-weight: 700;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
 
                     .sidebar-link {
@@ -572,6 +576,9 @@ export default function Documentation({ context }) {
                         color: var(--c-text);
                         text-decoration: none;
                         transition: color 0.2s;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
                     .sidebar-link:hover {
                         color: var(--c-brand);

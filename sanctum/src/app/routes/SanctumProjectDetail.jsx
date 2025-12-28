@@ -3,8 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Layout from '../../components/Layout';
 
+import { NS_PROJECTS } from '../../data/projectRegistry';
+import { Eye, Layers } from 'lucide-react';
+
 export default function SanctumProjectDetail() {
     const { projectId } = useParams();
+    const project = NS_PROJECTS.find(p => p.code === projectId) || {
+        name: projectId,
+        description: "Project data restricted or unavailable.",
+        status: "UNKNOWN"
+    };
 
     return (
         <Layout>
@@ -14,12 +22,21 @@ export default function SanctumProjectDetail() {
 
                 {/* Navigation / Header */}
                 <div className="relative z-10 flex items-center justify-between p-8 border-b border-white/10 bg-black/50 backdrop-blur-md">
-                    <Link to="/" className="flex items-center gap-2 group text-white/60 hover:text-[#00ff9d] transition-colors">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M19 12H5M12 19l-7-7 7-7" />
-                        </svg>
-                        <span className="text-xs font-bold tracking-widest uppercase">Return to Sanctum</span>
-                    </Link>
+                    <div className="flex items-center gap-6">
+                        <Link to="/" className="flex items-center gap-2 group text-white/60 hover:text-[#00ff9d] transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7" />
+                            </svg>
+                            <span className="text-xs font-bold tracking-widest uppercase">Return to Sanctum</span>
+                        </Link>
+
+                        {/* Engine Toggle */}
+                        <Link to={`/engine/${projectId}`} className="flex items-center gap-2 px-3 py-1.5 bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 rounded hover:bg-[#00ff9d]/20 transition-all text-[10px] font-bold uppercase tracking-wider">
+                            <Layers size={12} />
+                            <span>Open Engine</span>
+                        </Link>
+                    </div>
+
                     <div className="flex items-center gap-4">
                         <div className="h-2 w-2 rounded-full bg-[#00ff9d] animate-pulse" />
                         <span className="text-xs font-bold tracking-widest text-[#00ff9d]">SECURE CONNECTION ESTABLISHED</span>
@@ -35,13 +52,13 @@ export default function SanctumProjectDetail() {
                     >
                         <div className="flex items-start justify-between mb-16">
                             <div>
-                                <h1 className="text-6xl font-bold tracking-tight text-white mb-4">PROJECT: {projectId}</h1>
+                                <h1 className="text-6xl font-bold tracking-tight text-white mb-4">PROJECT: {project.name}</h1>
                                 <p className="text-white/40 text-lg max-w-2xl">
-                                    Accessing restricted project data. Authorization level: ALPHA-1.
+                                    {project.description}
                                 </p>
                             </div>
                             <div className="border border-[#00ff9d]/30 bg-[#00ff9d]/5 px-6 py-3 rounded">
-                                <span className="text-[#00ff9d] font-bold tracking-widest text-sm">STATUS: ACTIVE</span>
+                                <span className="text-[#00ff9d] font-bold tracking-widest text-sm">STATUS: {project.status.toUpperCase()}</span>
                             </div>
                         </div>
 
