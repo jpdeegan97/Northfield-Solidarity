@@ -29,6 +29,7 @@ import INCView from './engines/INCView';
 import CRNView from './engines/CRNView';
 import IDEView from './engines/IDEView';
 import FirmamentCockpit from './engines/FirmamentCockpit';
+import ManifoldView from './engines/ManifoldView';
 
 export default function ProductCanvas() {
     // --- MULTI-INSTANCE STATE (Tabularization) ---
@@ -50,6 +51,7 @@ export default function ProductCanvas() {
             events: false,
             sectors: true,
             risks: false,
+            manifold: true,
         },
         filterType: 'ALL',
         dockScale: 1.0
@@ -148,6 +150,7 @@ export default function ProductCanvas() {
                 events: false,
                 sectors: true,
                 risks: false,
+                manifold: true,
             },
             filterType: 'ALL',
             dockScale: 1.0
@@ -185,7 +188,7 @@ export default function ProductCanvas() {
             };
         });
 
-        const ENGINE_CODES = ['GGP', 'DRE', 'PIE', 'INT', 'MUX', 'SIG', 'IDN', 'SIM', 'DAT', 'FLO', 'BCP'];
+        const ENGINE_CODES = ['GGP', 'DRE', 'PIE', 'INT', 'MUX', 'SIG', 'IDN', 'SIM', 'DAT', 'FLO', 'BCP', 'MTR'];
         const engines = ENGINE_CODES.map(code => {
             const registryItem = ALL_ENGINES.find(e => e.code === code);
             return {
@@ -494,6 +497,44 @@ export default function ProductCanvas() {
         setResetPhrase('');
     };
 
+    // --- GRID LAYOUT (Requested Feature) ---
+    const tileWindows = () => {
+        if (windows.length === 0) return;
+
+        const count = windows.length;
+        const totalWidth = window.innerWidth; // Use full screen width
+        const totalHeight = window.innerHeight; // Use full screen height minus header/dock if needed, sticking to simple full for now
+
+        // Calculate Rows/Cols
+        // N=1 -> 1x1
+        // N=2 -> 2x1 (2 cols)
+        // N=3 -> 2x2 (last one empty) vs 3x1. Usually specific ratio is better.
+        // Simple algo: sqrt
+        const cols = Math.ceil(Math.sqrt(count));
+        const rows = Math.ceil(count / cols);
+
+        const tileW = totalWidth / cols;
+        const tileH = totalHeight / rows;
+
+        const newWindows = windows.map((w, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            return {
+                ...w,
+                x: col * tileW,
+                y: row * tileH,
+                width: tileW,
+                height: tileH,
+                z: getNextZ(), // Bring all to front in order? Or keep relative? Resetting Z helps clarity.
+                isFullScreen: false, // Exit FS if active
+                restoreState: null // Clear restore state as this is a destructive layout change
+            };
+        });
+
+        // Update state
+        setWindows(newWindows);
+    };
+
     // --- INTERACTION HANDLERS ---
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCanvasDragging, setIsCanvasDragging] = useState(false);
@@ -540,7 +581,7 @@ export default function ProductCanvas() {
         const engineData = getActiveEngineData(code);
         const props = { engine: engineData };
         switch (code) {
-            case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={firmamentLayers} onToggleLayer={toggleLayer} />;
+            case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={firmamentLayers} onToggleLayer={toggleLayer} onTileWindows={tileWindows} />;
             case 'PIE': return <PIEView {...props} />;
             case 'DAT': return <DATView {...props} />;
             case 'MUX': return <MUXView {...props} />;
@@ -561,6 +602,7 @@ export default function ProductCanvas() {
             case 'INC': return <INCView {...props} />;
             case 'CRN': return <CRNView {...props} />;
             case 'IDE': return <IDEView {...props} />;
+            case 'MTR': return <ManifoldView {...props} />;
             default: return <EngineOverlay {...props} />;
         }
     };
@@ -641,7 +683,10 @@ export default function ProductCanvas() {
 
                 {/* HARD RESET BUTTON */}
                 <button
-                    onClick={() => setIsResetting(true)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsResetting(true);
+                    }}
                     className="h-full px-4 flex items-center gap-2 bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white font-mono font-bold text-[10px] tracking-widest transition-all border-l border-white/10"
                 >
                     <span className="hidden sm:inline">RESET SPACE</span>
@@ -655,7 +700,10 @@ export default function ProductCanvas() {
             {/* SETTINGS MENU (Top Right) */}
             <div className="absolute top-12 right-6 z-[60] flex flex-col items-end gap-2 pointer-events-auto">
                 <button
-                    onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsSettingsOpen(!isSettingsOpen);
+                    }}
                     className={`p-2 rounded-full border transition-all ${isSettingsOpen ? 'bg-[#00ff9d] text-black border-[#00ff9d]' : 'bg-black/60 text-[#00ff9d] border-[#00ff9d]/30 hover:bg-[#00ff9d]/10'}`}
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={isSettingsOpen ? 'animate-spin-slow' : ''}>
@@ -776,7 +824,7 @@ export default function ProductCanvas() {
 
             {/* RESET CONFIRMATION MODAL */}
             {isResetting && (
-                <div className="absolute inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="absolute inset-0 z-[10000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-black border border-red-500 w-full max-w-md p-6 flex flex-col gap-4 shadow-[0_0_50px_rgba(220,38,38,0.2)]">
                         <div className="flex items-center gap-3 text-red-500 border-b border-red-500/30 pb-4">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-pulse">

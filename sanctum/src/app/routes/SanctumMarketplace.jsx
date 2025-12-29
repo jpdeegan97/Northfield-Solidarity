@@ -5,17 +5,72 @@ import Layout from '../../components/Layout';
 import { ShoppingCart, ChevronRight, Search, CheckCircle, X, Code, Terminal, Shield, Zap, Activity } from 'lucide-react';
 import { useCart } from '../../context/CartContext.jsx';
 import { useOwnership } from '../../context/OwnershipContext.jsx';
+import EndpointDocOverlay from '../../components/EndpointDocOverlay'; // Import Overlay
 
 const MOCK_ASSETS = [
-    { id: 'a1', name: 'Quantum Ledger Core', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 25000, tier: 'HYPER', desc: 'High-throughput consensus engine.', specs: ['TPS: 100k+', 'Latency: <10ms', 'Consensus: PoH'] },
-    { id: 'a2', name: 'Neural Arb Bot v9', category: 'ALGORITHMS', group: 'ENGINES', price: 12500, tier: 'PERFORMANCE', desc: 'Cross-exchange arbitrage execution.', specs: ['Exchanges: 50+', 'Strategy: ML-Driven', 'Risk: Dynamic'] },
-    { id: 'a3', name: 'Global Liquidity Feed', category: 'DATA', group: 'API INTEGRATIONS', price: 5000, tier: 'TUNED', desc: 'Real-time aggregated order book streams.', specs: ['Update Rate: 1ms', 'Format: JSON/gRPC', 'Depth: L3'] },
-    { id: 'a4', name: 'Zero-Knowledge Auth', category: 'SECURITY', group: 'PROJECTS', price: 8000, tier: 'TUNED', desc: 'Privacy-preserving identity module.', specs: ['Protocol: zk-SNARKs', 'Compliance: GDPR', 'Identity: SSI'] },
-    { id: 'a5', name: 'Dark Pool Connector', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 15000, tier: 'PERFORMANCE', desc: 'Direct access to non-displayed liquidity.', specs: ['Venues: 15+', 'Anonymity: High', 'Execution: TWAP/VWAP'] },
-    { id: 'a6', name: 'Sentient Market Maker', category: 'ALGORITHMS', group: 'ENGINES', price: 50000, tier: 'HYPER', desc: 'Self-learning liquidity provision AI.', specs: ['Learning: RL', 'Adaptability: Real-time', 'Profit: Optimized'] },
-    { id: 'a7', name: 'Social Sentiment API', category: 'DATA', group: 'API INTEGRATIONS', price: 2000, tier: 'STOCK', desc: 'Twitter/Reddit NLP sentiment analysis.', specs: ['Sources: Twitter, Reddit', 'Analysis: NLP/Bert', 'Volume: High'] },
-    { id: 'a8', name: 'Secure Enclave Host', category: 'SECURITY', group: 'PROJECTS', price: 10000, tier: 'PERFORMANCE', desc: 'Hardware-level key management hosting.', specs: ['Hardware: SGX', 'Encryption: AES-256', 'Access: Role-based'] },
-    { id: 'a9', name: 'Cross-Chain Bridge', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 18500, tier: 'HYPER', desc: 'Trustless asset transfer protocol.', specs: ['Chains: ETH, SOL, DOT', 'Security: Multi-sig', 'Speed: Fast'] },
+    {
+        id: 'a1', name: 'Quantum Ledger Core', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 25000, tier: 'HYPER',
+        desc: 'High-throughput consensus engine.',
+        specs: ['TPS: 100k+', 'Latency: <10ms', 'Consensus: PoH'],
+        vendorApis: ['AWS Quantum Ledger', 'Kaleido Node'],
+        offeredApis: ['gRPC Consensus Stream', 'JSON-RPC v2']
+    },
+    {
+        id: 'a2', name: 'Neural Arb Bot v9', category: 'ALGORITHMS', group: 'ENGINES', price: 12500, tier: 'PERFORMANCE',
+        desc: 'Cross-exchange arbitrage execution.',
+        specs: ['Exchanges: 50+', 'Strategy: ML-Driven', 'Risk: Dynamic'],
+        vendorApis: ['Binance Spot API', 'Coinbase Pro API', 'Kraken socket'],
+        offeredApis: ['WSS /signals', 'REST /v1/positions']
+    },
+    {
+        id: 'a3', name: 'Global Liquidity Feed', category: 'DATA', group: 'API INTEGRATIONS', price: 5000, tier: 'TUNED',
+        desc: 'Real-time aggregated order book streams.',
+        specs: ['Update Rate: 1ms', 'Format: JSON/gRPC', 'Depth: L3'],
+        vendorApis: ['Nasdaq TotalView', 'Polygon.io Levels'],
+        offeredApis: ['FIX 4.4 Stream', 'WSS /book/L3']
+    },
+    {
+        id: 'a4', name: 'Zero-Knowledge Auth', category: 'SECURITY', group: 'PROJECTS', price: 8000, tier: 'TUNED',
+        desc: 'Privacy-preserving identity module.',
+        specs: ['Protocol: zk-SNARKs', 'Compliance: GDPR', 'Identity: SSI'],
+        vendorApis: ['Civic Identity', 'Auth0 Enterprise'],
+        offeredApis: ['OIDC Provider', 'POST /verify/zkp']
+    },
+    {
+        id: 'a5', name: 'Dark Pool Connector', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 15000, tier: 'PERFORMANCE',
+        desc: 'Direct access to non-displayed liquidity.',
+        specs: ['Venues: 15+', 'Anonymity: High', 'Execution: TWAP/VWAP'],
+        vendorApis: ['Liquidnet API', 'XTX Direct'],
+        offeredApis: ['FIX 5.0 Order Entry', 'REST /execution/report']
+    },
+    {
+        id: 'a6', name: 'Sentient Market Maker', category: 'ALGORITHMS', group: 'ENGINES', price: 50000, tier: 'HYPER',
+        desc: 'Self-learning liquidity provision AI.',
+        specs: ['Learning: RL', 'Adaptability: Real-time', 'Profit: Optimized'],
+        vendorApis: ['OpenAI GPT-4 Turbo', 'HuggingFace Inference'],
+        offeredApis: ['WSS /market-making/status', 'POST /control/parameters']
+    },
+    {
+        id: 'a7', name: 'Social Sentiment API', category: 'DATA', group: 'API INTEGRATIONS', price: 2000, tier: 'STOCK',
+        desc: 'Twitter/Reddit NLP sentiment analysis.',
+        specs: ['Sources: Twitter, Reddit', 'Analysis: NLP/Bert', 'Volume: High'],
+        vendorApis: ['Twitter Firehose', 'Reddit Data API', 'StockTwits'],
+        offeredApis: ['GET /v1/sentiment/ticker', 'WSS /stream/social-spikes']
+    },
+    {
+        id: 'a8', name: 'Secure Enclave Host', category: 'SECURITY', group: 'PROJECTS', price: 10000, tier: 'PERFORMANCE',
+        desc: 'Hardware-level key management hosting.',
+        specs: ['Hardware: SGX', 'Encryption: AES-256', 'Access: Role-based'],
+        vendorApis: ['Intel SGX SDK', 'Azure Confidential Compute'],
+        offeredApis: ['gRPC /enclave/sign', 'POST /vault/seal']
+    },
+    {
+        id: 'a9', name: 'Cross-Chain Bridge', category: 'INFRASTRUCTURE', group: 'ENGINES', price: 18500, tier: 'HYPER',
+        desc: 'Trustless asset transfer protocol.',
+        specs: ['Chains: ETH, SOL, DOT', 'Security: Multi-sig', 'Speed: Fast'],
+        vendorApis: ['LayerZero SDK', 'Circle CCTP'],
+        offeredApis: ['POST /bridge/initiate', 'GET /transfer/status/:txid']
+    },
 ];
 
 const GROUPS = ['ALL', 'ENGINES', 'PROJECTS', 'API INTEGRATIONS', 'MISC'];
@@ -27,6 +82,7 @@ export default function SanctumMarketplace() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState(null);
+    const [selectedEndpoint, setSelectedEndpoint] = useState(null); // Track selected endpoint for overlay
 
     const { cart, addToCart: contextAddToCart, removeFromCart, getCartTotal } = useCart();
     const { isOwned } = useOwnership();
@@ -284,6 +340,17 @@ export default function SanctumMarketplace() {
                     )}
                 </AnimatePresence>
 
+                {/* Endpoint Doc Overlay */}
+                <AnimatePresence>
+                    {selectedEndpoint && (
+                        <EndpointDocOverlay
+                            endpoint={selectedEndpoint}
+                            onClose={() => setSelectedEndpoint(null)}
+                            accentColor={accentColor}
+                        />
+                    )}
+                </AnimatePresence>
+
                 {/* Asset Detail Modal */}
                 <AnimatePresence>
                     {selectedAsset && (
@@ -293,6 +360,7 @@ export default function SanctumMarketplace() {
                             onAddToCart={() => addToCart(selectedAsset)}
                             isOwned={isOwned(selectedAsset.id)}
                             accentColor={accentColor}
+                            onEndpointClick={setSelectedEndpoint}
                         />
                     )}
                 </AnimatePresence>
@@ -379,7 +447,7 @@ function AssetCard({ asset, accentColor, onClick, isOwned }) {
     );
 }
 
-function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor }) {
+function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor, onEndpointClick }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -465,6 +533,45 @@ function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor })
                                     <div className="text-[10px] text-white/30 uppercase mb-1">Pricing Model</div>
                                     <div className="text-2xl font-bold" style={{ color: accentColor }}>${asset.price.toLocaleString()}</div>
                                     <div className="text-[10px] text-white/40">One-time license fee</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* API Architecture Grid */}
+                        <div className="bg-black/40 border border-white/10 rounded-lg p-4 space-y-4">
+                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider flex items-center gap-2">
+                                <Code size={12} /> API Architecture
+                            </h3>
+
+                            {/* Vendor/Upstream Dependencies */}
+                            <div>
+                                <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-blue-500"></span> External Dependencies
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(asset.vendorApis || ['None']).map((api, i) => (
+                                        <span key={i} className="text-[10px] font-mono text-blue-300 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded">
+                                            {api}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Offered/Downstream Interfaces */}
+                            <div>
+                                <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-emerald-500"></span> Exposed Interfaces
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(asset.offeredApis || ['Standard REST']).map((api, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => onEndpointClick && onEndpointClick(api)}
+                                            className="text-[10px] font-mono text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-colors cursor-pointer"
+                                        >
+                                            {api}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>

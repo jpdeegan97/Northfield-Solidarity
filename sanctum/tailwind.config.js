@@ -9,15 +9,15 @@ export default {
     theme: {
         extend: {
             colors: {
-                brand: 'var(--c-brand)',
-                'brand-light': 'var(--c-brand-light)',
-                accent: 'var(--c-accent)',
-                bg: 'var(--c-bg)',
-                surface: 'var(--c-surface)',
-                text: 'var(--c-text)',
-                'text-sub': 'var(--c-text-sub)',
-                border: 'var(--c-border)',
-                'card-bg': 'var(--c-card-bg)',
+                brand: 'rgb(var(--c-brand) / <alpha-value>)',
+                'brand-light': 'rgb(var(--c-brand-light) / <alpha-value>)',
+                accent: 'rgb(var(--c-accent) / <alpha-value>)',
+                bg: 'rgb(var(--c-bg) / <alpha-value>)',
+                surface: 'rgb(var(--c-surface) / <alpha-value>)',
+                text: 'rgb(var(--c-text) / <alpha-value>)',
+                'text-sub': 'rgb(var(--c-text-sub) / <alpha-value>)',
+                border: 'rgb(var(--c-border) / <alpha-value>)',
+                'card-bg': 'rgb(var(--c-card-bg) / <alpha-value>)',
             }
         },
     },

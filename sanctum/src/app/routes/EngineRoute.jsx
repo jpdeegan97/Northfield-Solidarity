@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 // Import all engine views
@@ -24,6 +24,8 @@ import CRNView from "../engines/CRNView";
 import IDEView from "../engines/IDEView";
 import FirmamentCockpit from "../engines/FirmamentCockpit";
 import MINTView from "../engines/MINTView";
+import ManifoldView from "../engines/ManifoldView";
+import APMView from "../engines/APMView";
 import EngineOverlay from "../../components/EngineOverlay";
 
 import { ALL_ENGINES } from "../../data/engineRegistry";
@@ -41,11 +43,30 @@ export default function EngineRoute() {
     // Common props for full-screen view
     const props = { engine: engineData };
 
+    // Firmament State Management
+    const [firmamentLayers, setFirmamentLayers] = useState({
+        entities: true,
+        sectors: true,
+        risks: true,
+        events: true,
+        manifold: true, // Enable Manifold Trace by default
+        apm: true // Enable APM by default
+    });
+
+    const toggleFirmamentLayer = (id) => {
+        setFirmamentLayers(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
     const renderEngine = () => {
         switch (upperCode) {
-            case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={{ entities: true, sectors: true, risks: true, events: true }} />;
+            case 'FIRMAMENT': return <FirmamentCockpit
+                {...props}
+                activeLayers={firmamentLayers}
+                onToggleLayer={toggleFirmamentLayer}
+            />;
             case 'PIE': return <PIEView {...props} />;
             case 'DAT': return <DATView {...props} />;
+            case 'APM': return <APMView {...props} />;
             case 'MUX': return <MUXView {...props} />;
             case 'SIG': return <SIGView {...props} />;
             case 'SIM': return <SIMView {...props} />;
@@ -65,6 +86,7 @@ export default function EngineRoute() {
             case 'CRN': return <CRNView {...props} />;
             case 'IDE': return <IDEView {...props} />;
             case 'MINT': return <MINTView {...props} />;
+            case 'MTR': return <ManifoldView {...props} />;
             default: return <EngineOverlay {...props} />;
         }
     };

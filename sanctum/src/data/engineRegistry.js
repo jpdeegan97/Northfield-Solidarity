@@ -2,6 +2,26 @@
 
 export const NS_ENGINES = [
     {
+        code: "APM",
+        org: "NS",
+        name: "API Policy Manager",
+        category: "Infrastructure",
+        oneLiner: "Automanaged API gateway, rate limits, and policy enforcement.",
+        description:
+            "APM provides a centrally managed API gateway and control plane that enforces consistent policy (rate limits, quotas, auth requirements) and emits standardized telemetry for every NS API.",
+        responsibilities: [
+            "Service registration & route definition",
+            "Rate limiting & quota management",
+            "Credential issuance (API keys)",
+            "Policy enforcement & telemetry"
+        ],
+        inputs: ["Service definitions", "Traffic signals", "Policy bundles"],
+        outputs: ["Gateway config", "Telemetry stream", "Access decisions"],
+        integrations: ["LUM", "IDN", "GGP"],
+        status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 2, duration: 6, color: "var(--c-brand)" }
+    },
+    {
         code: "GGP",
         org: "NS",
         name: "Governance Graph Processor",
@@ -20,6 +40,26 @@ export const NS_ENGINES = [
         integrations: ["IDN", "FLO", "SIG", "MUX", "SIM", "DAT", "DRE", "PIE"],
         status: "Active build",
         timeline: { phase: "Phase 1: Foundation", start: 0, duration: 6, color: "var(--c-brand)" }
+    },
+    {
+        code: "MTR",
+        org: "NS",
+        name: "Manifold Tracer",
+        category: "Core",
+        oneLiner: "Business Graph Extraction & Topology Engine.",
+        description:
+            "Manifold Tracer is the foundational engine that 'traces' the business. It identifies, maps, and continuously indexes every node (person, asset, entity, task) and edge (relationship, dependency, flow) within the organization.",
+        responsibilities: [
+            "Graph Extraction",
+            "Node Resolution",
+            "Flow Tracing",
+            "Productivity quantification"
+        ],
+        inputs: ["GGE", "IDN", "CWP"],
+        outputs: ["Business Graph Topology", "Flow Metrics"],
+        integrations: ["GGE", "IDN", "CWP", "Fantasy Land"],
+        status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 1, duration: 8, color: "var(--c-brand)" }
     },
     {
         code: "PIE",

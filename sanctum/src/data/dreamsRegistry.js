@@ -86,7 +86,7 @@ export const DREAMS_DATA = [
         title: "Gulfstream G700",
         category: "Vehicles",
         price: 78000000,
-        image: "", // INTENTIONALLY EMPTY FOR CWP SCRAPER
+        image: "https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=80&w=2070&auto=format&fit=crop", // Placeholder for Jet
         status: "LOCKED",
         description: "The flagship of the Gulfstream fleet. Intercontinental range and speed."
     }

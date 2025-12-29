@@ -2,17 +2,21 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import { Plus, X, Tag } from 'lucide-react';
+import { Plus, X, Tag, Minus, ChevronRight, Calendar } from 'lucide-react';
 import { ALL_ENGINES } from '../../data/engineRegistry.js';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
-import SanctumVisualizer from '../../components/SanctumVisualizer';
 
 
-const TRACKS = [
+
+const INITIAL_TRACKS = [
     { id: 'deep_work', name: 'DEEP WORK', color: '#00ff9d' },
+    { id: 'execution', name: 'EXECUTION / OPS', color: '#a855f7' }, // Purple
     { id: 'meetings', name: 'SYNCS / COMMS', color: '#3b82f6' },
-    { id: 'wellness', name: 'BIO-MAINTENANCE', color: '#f43f5e' },
+    { id: 'strategy', name: 'STRATEGY / VISION', color: '#06b6d4' }, // Cyan
+    { id: 'creative', name: 'CREATIVE / OUTPUT', color: '#ec4899' }, // Pink
     { id: 'learning', name: 'R&D / STUDY', color: '#fbbf24' },
+    { id: 'admin', name: 'ADMIN / LOGISTICS', color: '#94a3b8' }, // Slate
+    { id: 'wellness', name: 'BIO-MAINTENANCE', color: '#f43f5e' },
 ];
 
 // Layout Constants
@@ -25,9 +29,16 @@ const INITIAL_BLOCKS = [
     { id: 1, trackId: 'deep_work', start: '06:00', end: '08:00', title: 'Core Architecture', desc: 'System design for Firmament.', linkedType: 'PROJECT', linkedId: 'FRMT' },
     { id: 2, trackId: 'wellness', start: '08:00', end: '09:00', title: 'Physical Training', desc: 'Zone 2 cardio + resistance.' },
     { id: 3, trackId: 'meetings', start: '09:00', end: '10:00', title: 'Team Sync', desc: 'Daily standup & blockers.' },
-    { id: 4, trackId: 'deep_work', start: '10:00', end: '13:00', title: 'Code Implementation', desc: 'Building out the Timeline Engine.', linkedType: 'ENGINE', linkedId: 'INT' },
+    { id: 4, trackId: 'execution', start: '10:00', end: '13:00', title: 'Code Implementation', desc: 'Building out the Timeline Engine.', linkedType: 'ENGINE', linkedId: 'INT' },
     { id: 5, trackId: 'learning', start: '14:00', end: '15:30', title: 'Market Research', desc: 'Competitor analysis & trend spotting.' },
 ];
+
+const INITIAL_SUMMARY_DATA = {
+    overview: '',
+    goals: '' // List of checkboxes? Just text for now.
+};
+
+// ... helpers ...
 
 // Helper to convert time "HH:MM" to pixels
 const timeToPx = (time) => {
@@ -84,7 +95,106 @@ const INITIAL_FORM_STATE = {
 export default function SanctumTimeline() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [blocks, setBlocks] = useState(INITIAL_BLOCKS);
+    const [activeTracks, setActiveTracks] = useState(INITIAL_TRACKS); // Dynamic Tracks
+    const [trackSummaries, setTrackSummaries] = useState({}); // { trackId: { daily: { overview, goals }, weekly... } }
+
+    // Summary Overlay State
+    const [selectedTrackForSummary, setSelectedTrackForSummary] = useState(null);
+    const [activePeriod, setActivePeriod] = useState('DAILY');
     const [selectedBlock, setSelectedBlock] = useState(null);
+
+    const handleSummaryChange = (trackId, period, field, value) => {
+        setTrackSummaries(prev => ({
+            ...prev,
+            [trackId]: {
+                ...prev[trackId],
+                [period]: {
+                    ...prev[trackId]?.[period],
+                    [field]: value
+                }
+            }
+        }));
+    };
+
+    // ... (rest of code)
+
+    {/* Track Summary Overlay */ }
+    <AnimatePresence>
+        {selectedTrackForSummary && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setSelectedTrackForSummary(null)}>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="bg-[#050505] border border-white/10 rounded-xl w-[800px] h-[600px] shadow-2xl overflow-hidden flex flex-col"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+                        <div className="flex items-center gap-4">
+                            <div className="w-2 h-8 rounded-full" style={{ backgroundColor: selectedTrackForSummary.color }} />
+                            <div>
+                                <h2 className="text-xl font-bold text-white tracking-widest">{selectedTrackForSummary.name}</h2>
+                                <div className="text-xs text-white/40 font-mono tracking-widest">TRACK INTELLIGENCE // {activePeriod}</div>
+                            </div>
+                        </div>
+                        <button onClick={() => setSelectedTrackForSummary(null)} className="text-white/40 hover:text-white transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 flex overflow-hidden">
+                        {/* Summary Tabs / Sidebar */}
+                        <div className="w-48 border-r border-white/10 bg-black/20 p-4 space-y-2">
+                            {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map(period => (
+                                <div
+                                    key={period}
+                                    onClick={() => setActivePeriod(period)}
+                                    className={`px-4 py-3 rounded text-xs font-bold tracking-widest border cursor-pointer transition-all flex items-center gap-2 ${activePeriod === period
+                                        ? 'bg-white/10 text-white border-white/20'
+                                        : 'bg-transparent border-transparent text-white/40 hover:text-white hover:bg-white/5'
+                                        }`}
+                                >
+                                    <Calendar size={12} />
+                                    {period}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-1 p-8 overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-8 h-full">
+                                <div className="flex flex-col h-full">
+                                    <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                        OVERVIEW / STATUS
+                                    </h3>
+                                    <textarea
+                                        className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-blue-500/50 resize-none selection:bg-blue-500/30 font-mono"
+                                        placeholder={`Enter ${activePeriod.toLowerCase()} overview...`}
+                                        value={trackSummaries[selectedTrackForSummary.id]?.[activePeriod]?.overview || ""}
+                                        onChange={(e) => handleSummaryChange(selectedTrackForSummary.id, activePeriod, 'overview', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col h-full">
+                                    <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                        GOALS & TARGETS
+                                    </h3>
+                                    <textarea
+                                        className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-green-500/50 resize-none selection:bg-green-500/30 font-mono"
+                                        placeholder={`Define goals for this ${activePeriod.toLowerCase()}...`}
+                                        value={trackSummaries[selectedTrackForSummary.id]?.[activePeriod]?.goals || ""}
+                                        onChange={(e) => handleSummaryChange(selectedTrackForSummary.id, activePeriod, 'goals', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+    </AnimatePresence>
     const [selectedIds, setSelectedIds] = useState([]); // Multi-select IDs
     const [selectionBox, setSelectionBox] = useState(null); // { x, y, w, h }
     const [dragDelta, setDragDelta] = useState({ x: 0, y: 0 }); // Visual delta for group drag
@@ -136,6 +246,21 @@ export default function SanctumTimeline() {
         setNewBlock(INITIAL_FORM_STATE);
         setSelectedBlock(null);
     }, []);
+
+    const handleAddTrack = () => {
+        const name = prompt("Enter new track name:");
+        if (!name) return;
+        const color = prompt("Enter hex color (e.g. #ff0000):", "#ffffff");
+        const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+        setActiveTracks([...activeTracks, { id, name: name.toUpperCase(), color: color || '#fff' }]);
+    };
+
+    const handleRemoveTrack = (e, trackId) => {
+        e.stopPropagation();
+        if (confirm("Remove this track? Blocks will be hidden but preserved in data temporarily.")) {
+            setActiveTracks(activeTracks.filter(t => t.id !== trackId));
+        }
+    };
 
 
 
@@ -356,17 +481,10 @@ export default function SanctumTimeline() {
 
         setSelectionBox({ x, y, w, h });
 
-        // Calc Intersections
-        // We need block rects:
-        // X = timeToPx(start)
-        // Y = TRACK_TOP_PAD + trackIndex * (TRACK_HEIGHT + TRACK_GAP) + 32
-        // W = timeToPx(end) - X
-        // H = 48 (h-12)
-
         const newSelected = [];
 
         blocks.forEach(block => {
-            const trackIndex = TRACKS.findIndex(t => t.id === block.trackId);
+            const trackIndex = activeTracks.findIndex(t => t.id === block.trackId);
             if (trackIndex === -1) return;
 
             const bX = timeToPx(block.start);
@@ -396,25 +514,18 @@ export default function SanctumTimeline() {
             // We need to calc track from Y
             const start = selectionStartRef.current;
             // The Y includes the sticky header offset and padding if we used clientY relative to container top?
-            // handlePointerDown used `e.clientY - containerRect.top`.
-            // containerRect.top is viewport top of ScrollContainer.
-            // Inside ScrollContainer:
-            // Header (40px)
-            // pt-2 (8px)
-            // Tracks Container p-4 (16px) -> Start of first track.
+            // handlePointerDown used `e.clientY - containerRect.left + ...` wait
+            // handlePointerDown: e.clientY - containerRect.top + scrollContainerRef.current.scrollTop
 
             const trackStartOffset = 40 + 8 + 16;
-            const relativeY = start.y - trackStartOffset; // start.y was relative to Container Top
+            const relativeY = start.y - trackStartOffset; // start.y was relative to Container Top (+ scrollTop)
 
             if (relativeY >= 0) {
                 const rawIndex = relativeY / (TRACK_HEIGHT + TRACK_GAP);
-                // Check if we clicked "in" a track row (height 96). Gap is 16.
-                // localIndex = rawIndex % 1. 
-                // Actually rawIndex floor is index.
                 const trackIndex = Math.floor(rawIndex);
                 const offsetInTrack = relativeY - trackIndex * (TRACK_HEIGHT + TRACK_GAP);
 
-                if (trackIndex >= 0 && trackIndex < TRACKS.length && offsetInTrack <= TRACK_HEIGHT) {
+                if (trackIndex >= 0 && trackIndex < activeTracks.length && offsetInTrack <= TRACK_HEIGHT) {
                     // Clicked valid track area
                     const clickedTime = pxToTime(start.x);
                     const endTime = addMinutes(clickedTime, 30);
@@ -424,7 +535,7 @@ export default function SanctumTimeline() {
                         title: 'New Block',
                         start: clickedTime,
                         end: endTime,
-                        trackId: TRACKS[trackIndex].id
+                        trackId: activeTracks[trackIndex].id
                     });
                     setIsCreating(true);
                     setIsEditing(false);
@@ -473,9 +584,9 @@ export default function SanctumTimeline() {
         const relativeY = info.point.y - containerRect.top;
         const trackStartOffset = 40 + 8 + 16;
         const rawIndex = (relativeY - trackStartOffset) / (TRACK_HEIGHT + TRACK_GAP);
-        const newTrackIndex = Math.max(0, Math.min(TRACKS.length - 1, Math.round(rawIndex)));
+        const newTrackIndex = Math.max(0, Math.min(activeTracks.length - 1, Math.round(rawIndex)));
 
-        const oldTrackIndex = TRACKS.findIndex(t => t.id === block.trackId);
+        const oldTrackIndex = activeTracks.findIndex(t => t.id === block.trackId);
         const trackIndexDelta = newTrackIndex - oldTrackIndex;
 
         // Apply to ALL active blocks
@@ -495,14 +606,14 @@ export default function SanctumTimeline() {
                 const newBEnd = pxToTime(newBStartPx + duration);
 
                 // Track
-                const currentTrackIdx = TRACKS.findIndex(t => t.id === b.trackId);
-                const nextTrackIdx = Math.max(0, Math.min(TRACKS.length - 1, currentTrackIdx + trackIndexDelta));
+                const currentTrackIdx = activeTracks.findIndex(t => t.id === b.trackId);
+                const nextTrackIdx = Math.max(0, Math.min(activeTracks.length - 1, currentTrackIdx + trackIndexDelta));
 
                 return {
                     ...b,
                     start: newBStart,
                     end: newBEnd,
-                    trackId: TRACKS[nextTrackIdx].id
+                    trackId: activeTracks[nextTrackIdx].id
                 };
             }
             return b;
@@ -564,30 +675,48 @@ export default function SanctumTimeline() {
                     {/* Visualizer / Sidebar (Left) */}
                     <div className="w-80 border-r border-white/10 bg-black/40 flex flex-col z-20">
                         <div className="p-6 border-b border-white/10">
-                            <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest">ACTIVE TRACKS</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xs font-bold text-white/40 tracking-widest">ACTIVE TRACKS</h3>
+                                <button onClick={handleAddTrack} className="text-white/40 hover:text-[#00ff9d] transition-colors">
+                                    <Plus size={14} />
+                                </button>
+                            </div>
                             <div className="flex flex-col gap-3">
-                                {TRACKS.map(track => (
-                                    <div key={track.id} className="flex items-center gap-3 group cursor-pointer hover:bg-white/5 p-2 rounded transition-colors">
+                                {activeTracks.map(track => (
+                                    <div
+                                        key={track.id}
+                                        onClick={() => setSelectedTrackForSummary(track)}
+                                        className="flex items-center gap-3 group cursor-pointer hover:bg-white/5 p-2 rounded transition-colors relative"
+                                    >
                                         <div className="w-1 h-8 rounded-full" style={{ backgroundColor: track.color }} />
-                                        <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-[#00ff9d] transition-colors">{track.name}</div>
+                                        <div className="flex-1">
+                                            <div className="text-xs font-bold text-white group-hover:text-[#00ff9d] transition-colors flex items-center justify-between">
+                                                {track.name}
+                                                <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
                                             <div className="text-[9px] text-white/30 uppercase">{blocks.filter(b => b.trackId === track.id).length} Active Blocks</div>
                                         </div>
+
+                                        {/* Remove Button (Hover) */}
+                                        <button
+                                            onClick={(e) => handleRemoveTrack(e, track.id)}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black border border-white/10 rounded-full text-white/40 hover:text-red-500 hover:border-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
+                                        >
+                                            <Minus size={12} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="flex-1 relative border-t border-white/10">
-                            <SanctumVisualizer />
-                        </div>
+
                     </div>
 
 
                     {/* Timeline Canvas (Right) */}
                     <div
                         ref={scrollContainerRef}
-                        className="flex-1 overflow-x-auto overflow-y-hidden relative bg-[#0a0a0a] cursor-default custom-scrollbar"
+                        className="flex-1 overflow-auto relative bg-[#0a0a0a] cursor-default custom-scrollbar"
                     >
                         {/* Time Scale Overlay (Sticky Header) */}
                         <div className="sticky top-0 left-0 h-10 min-w-full flex pointer-events-none border-b border-white/10 bg-black/60 z-30" style={{ width: `${24 * 60 * 2}px` }}>
@@ -620,7 +749,7 @@ export default function SanctumTimeline() {
                             {/* BLOCKS LAYER (Overlaid) */}
                             <div className="absolute inset-0 z-20 pointer-events-none">
                                 {blocks.map(block => {
-                                    const trackIndex = TRACKS.findIndex(t => t.id === block.trackId);
+                                    const trackIndex = activeTracks.findIndex(t => t.id === block.trackId);
                                     if (trackIndex === -1) return null;
 
                                     // Calc top position
@@ -631,7 +760,7 @@ export default function SanctumTimeline() {
                                     const startPx = timeToPx(block.start);
                                     const widthPx = timeToPx(block.end) - startPx;
                                     const entityLabel = getEntityLabel(block.linkedType, block.linkedId);
-                                    const track = TRACKS[trackIndex];
+                                    const track = activeTracks[trackIndex];
 
                                     return (
                                         <motion.div
@@ -724,7 +853,7 @@ export default function SanctumTimeline() {
                                 onPointerUp={handlePointerUp}
                                 onPointerLeave={handlePointerUp}
                             >
-                                {TRACKS.map((track) => (
+                                {activeTracks.map((track) => (
                                     <div
                                         key={track.id}
                                         className="relative h-24 w-full border-b border-white/5 group/track hover:bg-white/[0.02] transition-colors"
@@ -876,7 +1005,7 @@ export default function SanctumTimeline() {
                                     <div>
                                         <label className="text-[10px] text-white/40 uppercase mb-1 block">Track / Category</label>
                                         <div className="grid grid-cols-2 gap-2">
-                                            {TRACKS.map(track => (
+                                            {activeTracks.map(track => (
                                                 <button
                                                     key={track.id}
                                                     onClick={() => setNewBlock({ ...newBlock, trackId: track.id })}
@@ -936,12 +1065,12 @@ export default function SanctumTimeline() {
                                 onClick={e => e.stopPropagation()}
                             >
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: TRACKS.find(t => t.id === selectedBlock.trackId)?.color }} />
+                                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: activeTracks.find(t => t.id === selectedBlock.trackId)?.color }} />
                                     <div>
                                         <h3 className="text-lg font-bold text-white">{selectedBlock.title}</h3>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs text-white/40 font-mono tracking-widest uppercase">
-                                                {TRACKS.find(t => t.id === selectedBlock.trackId)?.name}
+                                                {activeTracks.find(t => t.id === selectedBlock.trackId)?.name}
                                             </span>
                                             {selectedBlock.linkedType && selectedBlock.linkedType !== 'NONE' && (
                                                 <span className="text-[10px] bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 px-2 py-0.5 rounded">
@@ -976,6 +1105,74 @@ export default function SanctumTimeline() {
                                     >
                                         EDIT BLOCK
                                     </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+                {/* Track Summary Overlay */}
+                <AnimatePresence>
+                    {selectedTrackForSummary && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setSelectedTrackForSummary(null)}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                className="bg-[#050505] border border-white/10 rounded-xl w-[800px] h-[600px] shadow-2xl overflow-hidden flex flex-col"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-2 h-8 rounded-full" style={{ backgroundColor: selectedTrackForSummary.color }} />
+                                        <div>
+                                            <h2 className="text-xl font-bold text-white tracking-widest">{selectedTrackForSummary.name}</h2>
+                                            <div className="text-xs text-white/40 font-mono">TRACK INTELLIGENCE & GOALS</div>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setSelectedTrackForSummary(null)} className="text-white/40 hover:text-white transition-colors">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 flex overflow-hidden">
+                                    {/* Summary Tabs / Sidebar */}
+                                    <div className="w-48 border-r border-white/10 bg-black/20 p-4 space-y-2">
+                                        {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map(period => (
+                                            <div key={period} className="px-4 py-3 rounded text-xs font-bold tracking-widest bg-white/5 border border-white/5 text-white/60 hover:text-white hover:bg-white/10 cursor-pointer transition-all flex items-center gap-2">
+                                                <Calendar size={12} />
+                                                {period}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Content Area */}
+                                    <div className="flex-1 p-8 overflow-y-auto">
+                                        <div className="grid grid-cols-2 gap-8 h-full">
+                                            <div className="flex flex-col h-full">
+                                                <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                    OVERVIEW / STATUS
+                                                </h3>
+                                                <textarea
+                                                    className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-blue-500/50 resize-none selection:bg-blue-500/30"
+                                                    placeholder="Enter current status overview..."
+                                                    defaultValue={trackSummaries[selectedTrackForSummary.id]?.daily?.overview || ""}
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col h-full">
+                                                <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                    GOALS & TARGETS
+                                                </h3>
+                                                <textarea
+                                                    className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-green-500/50 resize-none selection:bg-green-500/30"
+                                                    placeholder="Define goals for this period..."
+                                                    defaultValue={trackSummaries[selectedTrackForSummary.id]?.daily?.goals || ""}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         </div>

@@ -4,6 +4,7 @@ import { Plus, Trophy, Car, MapPin, DollarSign, Star, TrendingUp, Activity, Glob
 import Layout from '../../components/Layout';
 
 import { DREAMS_DATA } from '../../data/dreamsRegistry';
+import DreamDetailOverlay from '../../components/DreamDetailOverlay';
 
 export default function Dreams() {
     // Initial mock data based on user request
@@ -15,6 +16,7 @@ export default function Dreams() {
     const categories = ["All", "Real Estate", "Vehicles", "Yachts", "Watches", "Memberships", "Lifestyle"];
     const [activeCategory, setActiveCategory] = useState("All");
     const [showMarketData, setShowMarketData] = useState(false);
+    const [selectedDream, setSelectedDream] = useState(null);
 
     // Mock Market Data
     const marketData = {
@@ -219,6 +221,7 @@ export default function Dreams() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                             className="group relative bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-[#00ff9d]/30 transition-all cursor-pointer"
+                            onClick={() => setSelectedDream(dream)}
                         >
                             {/* Image Overlay */}
                             <div className="h-64 overflow-hidden relative">
@@ -230,6 +233,7 @@ export default function Dreams() {
                                 <img
                                     src={dream.image}
                                     alt={dream.title}
+                                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop'; }} // Fallback texture
                                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100 grayscale group-hover:grayscale-0"
                                 />
                             </div>
@@ -264,6 +268,16 @@ export default function Dreams() {
                     ))}
                 </div>
             </div>
+
+            {/* Detail Overlay */}
+            <AnimatePresence>
+                {selectedDream && (
+                    <DreamDetailOverlay
+                        dream={selectedDream}
+                        onClose={() => setSelectedDream(null)}
+                    />
+                )}
+            </AnimatePresence>
 
         </Layout >
     );

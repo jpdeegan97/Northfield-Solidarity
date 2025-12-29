@@ -3,7 +3,8 @@ import {
     Play, Pause, RefreshCw, Zap, ShieldAlert,
     Activity, GitBranch, Terminal,
     TrendingUp, TrendingDown, AlertTriangle,
-    Settings, Target, Copy, Layers, ChevronRight
+    Settings, Target, Copy, Layers, ChevronRight,
+    Trash2, List, Save
 } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext.jsx";
 import Layout from '../../components/Layout';
@@ -98,6 +99,89 @@ export default function SanctumSim() {
 
     // Active Shocks (Point 7)
     const [activeShocks, setActiveShocks] = useState([]);
+
+    // -- SCENARIO MANAGEMENT --
+    const [scenarios, setScenarios] = useState(() => {
+        const saved = localStorage.getItem('sanctum_sim_scenarios');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        return [{
+            id: 'default',
+            name: 'Baseline V1',
+            params: {
+                seed: "Northfield",
+                iterations: 120,
+                rate: 0.01,
+                volatility: 0.05,
+                activeModel: 'GROWTH_V1',
+                chaosMode: false,
+                tripwireEnabled: true,
+                activeShocks: []
+            }
+        }];
+    });
+    const [activeScenarioId, setActiveScenarioId] = useState('default');
+    const [showScenarioManager, setShowScenarioManager] = useState(false);
+
+    // Persistence
+    useEffect(() => {
+        localStorage.setItem('sanctum_sim_scenarios', JSON.stringify(scenarios));
+    }, [scenarios]);
+
+    const handleForkScenario = () => {
+        const currentParams = {
+            seed, iterations, rate, volatility, activeModel, chaosMode, tripwireEnabled, activeShocks
+        };
+        const newId = Math.random().toString(36).substr(2, 9);
+        const sourceName = scenarios.find(s => s.id === activeScenarioId)?.name || 'Unknown';
+        const newName = `Fork of ${sourceName}`; // Simple naming strategy
+
+        const newScenario = {
+            id: newId,
+            name: newName,
+            timestamp: Date.now(),
+            params: currentParams
+        };
+
+        setScenarios([...scenarios, newScenario]);
+        setActiveScenarioId(newId);
+        addLog(`Scenario Forked: ${newName} [${newId}]`);
+    };
+
+    const deleteScenario = (id) => {
+        if (id === 'default') {
+            addLog("Error: Cannot delete Baseline scenario.");
+            return;
+        }
+        const newScenarios = scenarios.filter(s => s.id !== id);
+        setScenarios(newScenarios);
+
+        if (activeScenarioId === id) {
+            switchToScenario('default');
+        }
+        addLog(`Scenario Deleted: ${id}`);
+    };
+
+    const switchToScenario = (id) => {
+        const s = scenarios.find(x => x.id === id);
+        if (!s) return;
+
+        // Load params into state
+        setActiveScenarioId(id);
+        setSeed(s.params.seed);
+        setIterations(s.params.iterations);
+        setRate(s.params.rate);
+        setVolatility(s.params.volatility);
+        setActiveModel(s.params.activeModel);
+        setChaosMode(s.params.chaosMode);
+        setTripwireEnabled(s.params.tripwireEnabled);
+        setActiveShocks(s.params.activeShocks);
+
+        addLog(`Switched to Scenario: ${s.name}`);
+        setResults(null); // Clear previous results
+        setShowScenarioManager(false); // Close manager if open
+    };
 
     // Results
     const [results, setResults] = useState(null);
@@ -228,6 +312,26 @@ export default function SanctumSim() {
                         <div className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Kernel v0.9.4-RC</div>
                     </div>
 
+                    {/* Scenario Selector */}
+                    <div className="p-6 border-b border-white/10 bg-white/5">
+                        <div className="flex items-center justify-between mb-2 text-white/50 text-xs font-bold uppercase">
+                            <span className="flex items-center gap-2"><GitBranch size={12} /> Active Scenario</span>
+                            <button onClick={() => setShowScenarioManager(true)} className="hover:text-white flex items-center gap-1"><List size={10} /> Manage</button>
+                        </div>
+                        <select
+                            value={activeScenarioId}
+                            onChange={(e) => switchToScenario(e.target.value)}
+                            className="w-full bg-black/50 border border-white/20 rounded px-2 py-1.5 text-xs text-[#00ff9d] focus:border-[#00ff9d] outline-none font-bold mb-1"
+                        >
+                            {scenarios.map(s => (
+                                <option key={s.id} value={s.id}>{s.name} {s.id === 'default' ? '(Locked)' : ''}</option>
+                            ))}
+                        </select>
+                        <div className="text-[9px] text-white/30 text-right">
+                            {scenarios.length} available
+                        </div>
+                    </div>
+
                     {/* Point 1: Determinism */}
                     <div className="p-6 border-b border-white/10 space-y-6">
                         <div>
@@ -337,9 +441,20 @@ export default function SanctumSim() {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <button className="px-3 py-1.5 border border-white/20 text-xs text-white/70 uppercase tracking-wider hover:bg-white/5 flex items-center gap-2">
-                                <GitBranch size={12} /> Fork Scenario
+                            <button
+                                onClick={handleForkScenario}
+                                className="px-3 py-1.5 border border-white/20 text-xs text-white/70 uppercase tracking-wider hover:bg-white/5 flex items-center gap-2 transition-colors hover:text-[#00ff9d] hover:border-[#00ff9d]/30"
+                            >
+                                <GitBranch size={12} /> Fork
                             </button>
+                            {activeScenarioId !== 'default' && (
+                                <button
+                                    onClick={() => deleteScenario(activeScenarioId)}
+                                    className="px-3 py-1.5 border border-white/20 text-xs text-red-400 uppercase tracking-wider hover:bg-red-500/10 flex items-center gap-2 transition-colors border-red-500/30"
+                                >
+                                    <Trash2 size={12} /> Delete
+                                </button>
+                            )}
                             <button className="px-3 py-1.5 border border-white/20 text-xs text-white/70 uppercase tracking-wider hover:bg-white/5 flex items-center gap-2">
                                 <Settings size={12} /> Config
                             </button>
@@ -479,53 +594,69 @@ export default function SanctumSim() {
                             </div>
 
                             {/* Point 5: Monte Carlo Stats */}
-                            {monteCarloStats && (
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                                    <h3 className="text-xs font-bold uppercase text-white/50 mb-4 flex items-center gap-2"><Layers size={14} /> Monte Carlo Distribution</h3>
-                                    <div className="space-y-2 text-xs">
-                                        <div className="flex justify-between">
-                                            <span className="text-white/50">P95 (Best)</span>
-                                            <span className="text-[#00ff9d]">${monteCarloStats.p95.toFixed(0)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/50">P50 (Median)</span>
-                                            <span className="text-white">${monteCarloStats.p50.toFixed(0)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold text-red-400">
-                                            <span>P05 (Worst Case)</span>
-                                            <span>${monteCarloStats.p05.toFixed(0)}</span>
-                                        </div>
-                                        {/* Histogram bars */}
-                                        <div className="flex h-12 items-end gap-1 mt-4">
-                                            {monteCarloStats.all.filter((_, i) => i % 5 === 0).map((v, i) => (
-                                                <div key={i} style={{ height: (v / monteCarloStats.p95) * 100 + '%' }} className="flex-1 bg-white/10 hover:bg-[#00ff9d] transition-colors rounded-t-sm"></div>
-                                            ))}
-                                        </div>
+                        </div>
+
+                        {/* --- SCENARIO MANAGER MODAL --- */}
+                        {showScenarioManager && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-sm">
+                                <div className="bg-[#050505] border border-white/20 rounded-lg w-full max-w-2xl max-h-full flex flex-col shadow-2xl">
+                                    <div className="flex items-center justify-between p-6 border-b border-white/10">
+                                        <h2 className="text-xl font-bold tracking-widest text-white flex items-center gap-3">
+                                            <List size={20} className="text-[#00ff9d]" /> Scenario Manager
+                                        </h2>
+                                        <button onClick={() => setShowScenarioManager(false)} className="text-white/40 hover:text-white">Close</button>
+                                    </div>
+                                    <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                                        <table className="w-full text-left text-xs text-white/70">
+                                            <thead>
+                                                <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider">
+                                                    <th className="pb-2">Name</th>
+                                                    <th className="pb-2">Config (Seed / Model)</th>
+                                                    <th className="pb-2 text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {scenarios.map(s => (
+                                                    <tr key={s.id} className="group hover:bg-white/5 transition-colors">
+                                                        <td className="py-3 font-bold text-white">
+                                                            {s.name}
+                                                            {s.id === activeScenarioId && <span className="ml-2 text-[10px] text-[#00ff9d] border border-[#00ff9d]/30 px-1 rounded">ACTIVE</span>}
+                                                        </td>
+                                                        <td className="py-3 font-mono text-[10px]">
+                                                            {s.params.seed} / {s.params.activeModel}
+                                                        </td>
+                                                        <td className="py-3 text-right flex justify-end gap-2">
+                                                            <button
+                                                                onClick={() => switchToScenario(s.id)}
+                                                                className="px-2 py-1 border border-white/20 hover:bg-white/10 text-white/60 rounded"
+                                                            >
+                                                                Load
+                                                            </button>
+                                                            {s.id !== 'default' && (
+                                                                <button
+                                                                    onClick={() => deleteScenario(s.id)}
+                                                                    className="px-2 py-1 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded"
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="p-4 bg-white/5 border-t border-white/10 text-[10px] text-white/30 flex justify-between">
+                                        <span>{scenarios.length} scenarios stored locally.</span>
+                                        <span>Local Storage: sanctum_sim_scenarios</span>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Self Diagnostics */}
-                            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                                <h3 className="text-xs font-bold uppercase text-white/50 mb-4 flex items-center gap-2"><Terminal size={14} /> Implementation Status</h3>
-                                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                    {[
-                                        "1. Determinism", "2. Sandboxing", "3. Time-Step", "4. Tripwires",
-                                        "5. Monte Carlo", "6. Snapshotting", "7. Synth Signals", "8. Ver Hashing",
-                                        "9. Compression", "10. Drift Detect"
-                                    ].map(p => (
-                                        <div key={p} className="flex items-center gap-2 text-white/40">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#00ff9d]"></div>
-                                            {p}
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
+                        )}
 
-                        </div>
                     </div>
                 </div>
-
+                {/* Closing the flex container */}
             </div>
         </Layout>
     );

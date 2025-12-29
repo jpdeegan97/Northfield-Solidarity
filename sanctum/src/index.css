@@ -16,87 +16,158 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Default Theme (Water/Northfield) */
-  --c-brand: #3b82f6;
-  /* blue-500 */
-  --c-brand-light: #60a5fa;
-  /* blue-400 */
-  --c-accent: #06b6d4;
-  /* cyan-500 */
-  --c-bg: #050505;
-  /* Matches original Layout bg */
-  --c-surface: #1e293b;
-  /* slate-800 */
-  --c-text: #f1f5f9;
-  /* slate-100 */
-  --c-text-sub: #94a3b8;
-  /* slate-400 */
-  --c-border: #334155;
-  /* slate-700 */
-  --c-card-bg: #1e293b;
+  /* Default Theme (Water/Northfield) - DARK MODE DEFAULT */
+  --c-brand: 59 130 246;
+  /* #3b82f6 */
+  --c-brand-light: 96 165 250;
+  /* #60a5fa */
+  --c-accent: 6 182 212;
+  /* #06b6d4 */
+  --c-bg: 5 5 5;
+  /* #050505 */
+  --c-surface: 30 41 59;
+  /* #1e293b */
+  --c-text: 241 245 249;
+  /* #f1f5f9 */
+  --c-text-sub: 148 163 184;
+  /* #94a3b8 */
+  --c-border: 51 65 85;
+  /* #334155 */
+  --c-card-bg: 30 41 59;
+  /* #1e293b */
 }
 
+/* GLOBAL LIGHT MODE OVERRIDES */
+:root[data-mode='light'] {
+  color-scheme: light;
+  color: #0f172a;
+  background-color: #ffffff;
+
+  --c-bg: 255 255 255;
+  /* #ffffff */
+  --c-surface: 241 245 249;
+  /* #f1f5f9 */
+  --c-text: 15 23 42;
+  /* #0f172a */
+  --c-text-sub: 100 116 139;
+  /* #64748b */
+  --c-border: 203 213 225;
+  /* #cbd5e1 */
+  --c-card-bg: 248 250 252;
+  /* #f8fafc */
+}
+
+/* THEME SPECIFIC OVERRIDES */
+
 [data-theme='green'] {
-  /* South Lawn Theme */
-  --c-brand: #10b981;
-  /* emerald-500 */
-  --c-brand-light: #34d399;
-  /* emerald-400 */
-  --c-accent: #84cc16;
-  /* lime-500 */
-  --c-bg: #022c22;
-  /* emerald-950 (custom dark) */
-  --c-surface: #064e3b;
-  /* emerald-900 */
-  --c-text: #ecfdf5;
-  /* emerald-50 */
-  --c-text-sub: #6ee7b7;
-  /* emerald-300 */
-  --c-border: #065f46;
-  /* emerald-800 */
-  --c-card-bg: #064e3b;
+  /* South Lawn Theme - DARK */
+  --c-brand: 16 185 129;
+  /* #10b981 */
+  --c-brand-light: 52 211 153;
+  /* #34d399 */
+  --c-accent: 132 204 22;
+  /* #84cc16 */
+  --c-bg: 2 44 34;
+  /* #022c22 */
+  --c-surface: 6 78 59;
+  /* #064e3b */
+  --c-text: 236 253 245;
+  /* #ecfdf5 */
+  --c-text-sub: 110 231 183;
+  /* #6ee7b7 */
+  --c-border: 6 95 70;
+  /* #065f46 */
+  --c-card-bg: 6 78 59;
+  /* #064e3b */
+}
+
+/* South Lawn Theme - LIGHT */
+:root[data-mode='light'] [data-theme='green'] {
+  --c-bg: 236 253 245;
+  /* #ecfdf5 */
+  --c-surface: 209 250 229;
+  /* #d1fae5 */
+  --c-text: 6 78 59;
+  /* #064e3b */
+  --c-text-sub: 4 120 87;
+  /* #047857 */
+  --c-border: 110 231 183;
+  /* #6ee7b7 */
+  --c-card-bg: 209 250 229;
+  /* #d1fae5 */
+
+  /* Override brand colors for better contrast in light mode if needed, 
+     but for now keeping brand identity consistent */
 }
 
 [data-theme='gold'] {
-  /* WSP Theme */
-  --c-brand: #f59e0b;
-  /* amber-500 */
-  --c-brand-light: #fbbf24;
-  /* amber-400 */
-  --c-accent: #d97706;
-  /* amber-600 */
-  --c-bg: #1c1917;
-  /* stone-900 */
-  --c-surface: #292524;
-  /* stone-800 */
-  --c-text: #fafaf9;
-  /* stone-50 */
-  --c-text-sub: #a8a29e;
-  /* stone-400 */
-  --c-border: #44403c;
-  /* stone-700 */
-  --c-card-bg: #292524;
+  /* WSP Theme - DARK */
+  --c-brand: 245 158 11;
+  /* #f59e0b */
+  --c-brand-light: 251 191 36;
+  /* #fbbf24 */
+  --c-accent: 217 119 6;
+  /* #d97706 */
+  --c-bg: 28 25 23;
+  /* #1c1917 */
+  --c-surface: 41 37 36;
+  /* #292524 */
+  --c-text: 250 250 249;
+  /* #fafaf9 */
+  --c-text-sub: 168 162 158;
+  /* #a8a29e */
+  --c-border: 68 64 60;
+  /* #44403c */
+  --c-card-bg: 41 37 36;
+  /* #292524 */
+}
+
+/* WSP Theme - LIGHT */
+:root[data-mode='light'] [data-theme='gold'] {
+  --c-bg: 250 250 249;
+  /* #fafaf9 */
+  --c-surface: 245 245 244;
+  /* #f5f5f4 */
+  --c-text: 41 37 36;
+  /* #292524 */
+  --c-text-sub: 120 113 108;
+  /* #78716c */
+  --c-border: 214 211 209;
+  /* #d6d3d1 */
+  --c-card-bg: 245 245 244;
+  /* #f5f5f4 */
 }
 
 [data-theme='water'] {
   /* Explicit Water Theme (same as root/default) */
-  --c-brand: #3b82f6;
-  --c-brand-light: #60a5fa;
-  --c-accent: #06b6d4;
-  --c-bg: #0f172a;
-  --c-surface: #1e293b;
-  --c-text: #f1f5f9;
-  --c-text-sub: #94a3b8;
-  --c-border: #334155;
-  --c-card-bg: #1e293b;
+  --c-brand: 59 130 246;
+  --c-brand-light: 96 165 250;
+  --c-accent: 6 182 212;
+  --c-bg: 5 5 5;
+  --c-surface: 30 41 59;
+  --c-text: 241 245 249;
+  --c-text-sub: 148 163 184;
+  --c-border: 51 65 85;
+  --c-card-bg: 30 41 59;
+}
+
+/* Water Theme - LIGHT */
+:root[data-mode='light'] [data-theme='water'] {
+  --c-bg: 255 255 255;
+  --c-surface: 241 245 249;
+  --c-text: 15 23 42;
+  --c-text-sub: 100 116 139;
+  --c-border: 203 213 225;
+  --c-card-bg: 248 250 252;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--c-bg);
-  color: var(--c-text);
+  /* Use rgb(...) wrapper just for manual usage if needed, but Tailwind classes handle this now */
+  background-color: rgb(var(--c-bg));
+  color: rgb(var(--c-text));
   transition: background-color 0.3s, color 0.3s;
 }
 
@@ -111,11 +182,11 @@ body {
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--c-border);
+    background: rgb(var(--c-border));
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: var(--c-text-sub);
+    background: rgb(var(--c-text-sub));
   }
 }

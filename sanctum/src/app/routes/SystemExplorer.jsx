@@ -6,6 +6,11 @@ import { DOCS_REGISTRY } from "../../data/docsRegistry.js";
 import SystemTopology3D from "../../components/SystemTopology3D.jsx";
 import MermaidDiagram from "../../components/MermaidDiagram.jsx";
 import { getDiagram } from "../../data/diagramRegistry.js";
+import {
+    nsGridAreas, nsNodeCoords, nsConnections3d,
+    slGridAreas, slNodeCoords, slConnections3d,
+    wspGridAreas, wspNodeCoords, wspConnections3d
+} from "../../data/topologyData.js";
 
 export default function SystemExplorer({ context }) {
     const isSL = context === "SL";
@@ -22,6 +27,8 @@ export default function SystemExplorer({ context }) {
     const [showSpecModal, setShowSpecModal] = useState(false);
     const [showSystemModal, setShowSystemModal] = useState(false);
     const [systemModalMode, setSystemModalMode] = useState("DETAILED");
+
+
 
     // Helper to find engine data
     const activeRegistry = isSL ? SL_ENGINES : (isWSP ? [] : NS_ENGINES);
@@ -40,87 +47,10 @@ export default function SystemExplorer({ context }) {
         return activeRegistry.find((e) => e.code === code) || {};
     };
 
-    // Define the grid positions for the "Circuit Layout"
-    // NS Topology
-    const nsGridAreas = [
-        { code: "SIG", label: "Inputs" },
-        { code: "MUX", label: "Inputs" },
-        { code: "DRE", label: "Research" },
-        { code: "PIE", label: "Research" },
-        { code: "GGP", label: "Nucleus" },
-        { code: "IDN", label: "Nucleus" },
-        { code: "INT", label: "State" },
-        { code: "SIM", label: "Simulation" },
-        { code: "DAT", label: "Execution" },
-        { code: "FLO", label: "Finance" },
-        { code: "BCP", label: "Blockchain" },
-    ];
-
-    // SL Topology
-    const slGridAreas = [
-        { code: "MRFPE", label: "Feasibility" },
-        { code: "PTE", label: "Portfolio" },
-        { code: "PECA", label: "Structuring" },
-    ];
-
-    // WSP Topology
-    const wspGridAreas = [
-        { code: "WSP-1", label: "Formation" },
-        { code: "WSP-2", label: "Deployment" },
-    ];
-
     const gridAreas = isSL ? slGridAreas : (isWSP ? wspGridAreas : nsGridAreas);
     const currentPayload = getEngine(activeEngine);
 
-    // 3D Coordinates Configuration (X, Y, Z)
-    const nsNodeCoords = {
-        SIG: { x: -200, y: -250, z: 0 },
-        MUX: { x: 200, y: -250, z: 0 },
-        DRE: { x: -150, y: -100, z: 50 },
-        PIE: { x: 150, y: -100, z: 50 },
-        GGP: { x: 0, y: 0, z: 100 }, // Nucleus high
-        IDN: { x: 200, y: 0, z: -50 },
-        INT: { x: -200, y: 0, z: -50 },
-        SIM: { x: -150, y: 150, z: 50 },
-        DAT: { x: 150, y: 150, z: 50 },
-        FLO: { x: 0, y: 250, z: 0 },
-        BCP: { x: 0, y: -350, z: 0 },
-    };
-
-    const slNodeCoords = {
-        MRFPE: { x: -200, y: 0, z: 0 },
-        PTE: { x: 0, y: 0, z: 50 },
-        PECA: { x: 200, y: 0, z: 0 },
-    };
-
-    const wspNodeCoords = {
-        "WSP-1": { x: -100, y: 0, z: 0 },
-        "WSP-2": { x: 100, y: 0, z: 0 },
-    };
-
     const nodeCoords = isSL ? slNodeCoords : (isWSP ? wspNodeCoords : nsNodeCoords);
-
-    // Define connections to render as 3D beams [StartCode, EndCode]
-    const nsConnections3d = [
-        ["SIG", "DRE"], ["MUX", "PIE"],
-        ["DRE", "GGP"], ["PIE", "GGP"],
-        ["GGP", "IDN"],
-        ["GGP", "SIM"], ["GGP", "DAT"],
-        ["GGP", "INT"],
-        ["INT", "SIM"], ["INT", "DAT"],
-        ["SIM", "FLO"], ["DAT", "FLO"],
-        ["BCP", "SIG"], ["BCP", "FLO"]
-    ];
-
-    const slConnections3d = [
-        ["MRFPE", "PTE"],
-        ["PTE", "PECA"]
-    ];
-
-    const wspConnections3d = [
-        ["WSP-1", "WSP-2"]
-    ];
-
     const connections3d = isSL ? slConnections3d : (isWSP ? wspConnections3d : nsConnections3d);
 
     // Custom SL / WSP Nav
@@ -407,11 +337,10 @@ export default function SystemExplorer({ context }) {
 }
 
 .topology-split {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-6);
     margin-top: var(--space-6);
-    align-items: start;
 }
 
 /* --- Circuit Board --- */
@@ -420,7 +349,8 @@ export default function SystemExplorer({ context }) {
     border: 1px solid var(--c-border);
     border-radius: 24px;
     padding: var(--space-6);
-    min-height: 600px;
+    height: 60vh;
+    min-height: 500px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -432,10 +362,8 @@ export default function SystemExplorer({ context }) {
     background: var(--c-surface);
     border: 1px solid var(--c-border);
     border-radius: 20px;
-    padding: var(--space-6);
-    position: sticky;
-    top: 100px;
-    backdrop-filter: blur(10px);
+    padding: var(--space-8);
+    /* Removed sticky positioning as requested */
     z-index: 50;
 }
 

@@ -14,21 +14,27 @@ import {
     Eye,
     BookLock,
     Trophy,
+    Globe,
     ShieldAlert,
     Cpu,
     Activity,
     Users,
     Settings,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Sun,
+    Moon,
+    Mail
 } from "lucide-react";
 import { useSecurity } from "../context/SecurityContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Sidebar() {
     const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated, user, logout } = useAuth();
     const { activeUsers, alert } = useSecurity();
+    const { isDarkMode, toggleTheme } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isPersonnelOpen, setIsPersonnelOpen] = useState(false);
@@ -53,6 +59,7 @@ export default function Sidebar() {
         { label: "MARKETPLACE", to: "/marketplace", icon: DollarSign },
         { label: "ENGINE BUILDER", to: "/builder", icon: Layers },
         { label: "SIMULATION", to: "/sim", icon: Activity },
+        { label: "MAIL", to: "/mail", icon: Mail },
         { label: "OS PROSPECTUS", to: "/os-ideation", icon: Cpu },
         { label: "JOURNAL", to: "/journal", icon: BookLock },
         { label: "TIMELINE", to: "/timeline", icon: Clock },
@@ -61,6 +68,7 @@ export default function Sidebar() {
         { label: "INVESTORS", to: "/investors", icon: Layers },
         { label: "DREAMS & NIGHTMARES", to: "/dreams", icon: Trophy },
         { label: "ADMIN PORTAL", to: "/admin", icon: Settings },
+        { label: "NORTHFIELD SITE", to: "http://localhost:5173", icon: Globe },
     ];
 
     // Sanctum Styling Constants - Theme Aware
@@ -123,41 +131,69 @@ export default function Sidebar() {
 
                 {/* Navigation */}
                 <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            end={item.to === "/"}
-                            className={({ isActive }) => `
+                    {navItems.map((item) => {
+                        const isExternal = item.to.startsWith('http');
+                        const commonClasses = `
                                 flex items-center gap-3 px-3 py-3 rounded text-xs font-bold tracking-widest transition-all duration-200 group uppercase
                                 ${item.label === "OS PROSPECTUS"
-                                    ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
-                                    : isActive
-                                        ? `${themeBg} ${themeColor} border ${themeBorder}`
-                                        : `text-text-sub ${themeHover} border border-transparent`
-                                }
-                            `}
-                        >
-                            {({ isActive }) => (
-                                <>
-                                    <item.icon size={16} className={isActive ? "" : "opacity-70 group-hover:opacity-100"} />
+                                ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
+                                : item.label === "NORTHFIELD SITE"
+                                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 mt-4"
+                                    : `text-text-sub ${themeHover} border border-transparent`
+                            }
+                            `;
+
+                        if (isExternal) {
+                            return (
+                                <a
+                                    key={item.to}
+                                    href={item.to}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={commonClasses}
+                                >
+                                    <item.icon size={16} className="opacity-70 group-hover:opacity-100" />
                                     <span>{item.label}</span>
-                                    {isActive && item.label !== "OS PROSPECTUS" && (
-                                        <motion.div
-                                            layoutId="activeIndicator"
-                                            className="ml-auto w-1.5 h-1.5 rounded-full bg-brand shadow-[0_0_8px_var(--c-brand)]"
-                                        />
-                                    )}
-                                </>
-                            )}
-                        </NavLink>
-                    ))}
+                                </a>
+                            );
+                        }
+
+                        return (
+                            <NavLink
+                                key={item.to}
+                                to={item.to}
+                                end={item.to === "/"}
+                                className={({ isActive }) => `
+                                flex items-center gap-3 px-3 py-3 rounded text-xs font-bold tracking-widest transition-all duration-200 group uppercase
+                                ${item.label === "OS PROSPECTUS"
+                                        ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
+                                        : isActive
+                                            ? `${themeBg} ${themeColor} border ${themeBorder}`
+                                            : `text-text-sub ${themeHover} border border-transparent`
+                                    }
+                            `}
+                            >
+                                {({ isActive }) => (
+                                    <>
+                                        <item.icon size={16} className={isActive ? "" : "opacity-70 group-hover:opacity-100"} />
+                                        <span>{item.label}</span>
+                                        {isActive && item.label !== "OS PROSPECTUS" && (
+                                            <motion.div
+                                                layoutId="activeIndicator"
+                                                className="ml-auto w-1.5 h-1.5 rounded-full bg-brand shadow-[0_0_8px_var(--c-brand)]"
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </NavLink>
+                        );
+                    })}
                 </div>
 
 
 
                 {/* Security & Presence Widget */}
-                <div className="p-4 border-t border-border bg-black/40">
+                <div className="p-4 border-t border-border bg-surface/50">
                     {/* Active Personnel (Ubiquitous) */}
                     <div className="mb-4">
                         <div
@@ -187,7 +223,7 @@ export default function Sidebar() {
                                             <div
                                                 key={u.id}
                                                 onClick={() => navigate('/engine/IDN')}
-                                                className="flex items-center gap-2 p-1.5 rounded hover:bg-white/5 cursor-pointer group/user transition-colors"
+                                                className="flex items-center gap-2 p-1.5 rounded hover:bg-brand/10 cursor-pointer group/user transition-colors"
                                             >
                                                 <div className="w-1.5 h-1.5 rounded-sm bg-brand shadow-[0_0_5px_var(--c-brand)]" />
                                                 <div className="flex-1 min-w-0">
@@ -215,7 +251,7 @@ export default function Sidebar() {
                                     <ShieldAlert size={12} />
                                     <span className="text-[10px] font-bold uppercase tracking-widest">Security Alert</span>
                                 </div>
-                                <div className="text-[10px] text-white/60 leading-tight">
+                                <div className="text-[10px] text-text-sub leading-tight">
                                     {alert.message}
                                 </div>
                             </motion.div>
@@ -224,9 +260,9 @@ export default function Sidebar() {
                 </div>
 
                 {/* User / Footer */}
-                <div className="p-4 border-t border-border bg-black/20">
+                <div className="p-4 border-t border-border bg-surface/30">
                     {isAuthenticated ? (
-                        <div className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors cursor-pointer group">
+                        <div className="flex items-center gap-3 p-2 rounded hover:bg-brand/10 transition-colors cursor-pointer group">
                             <div className={`w-8 h-8 rounded bg-brand/10 border border-brand/30 flex items-center justify-center text-xs font-bold text-brand`}>
                                 {user?.email?.charAt(0).toUpperCase()}
                             </div>
@@ -240,11 +276,25 @@ export default function Sidebar() {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2">
-                            <Link to="/login" className="flex items-center justify-center px-4 py-2 rounded border border-border text-xs font-bold text-text-sub hover:bg-white/5 hover:text-text hover:border-text transition-all uppercase tracking-wider">
+                            <Link to="/login" className="flex items-center justify-center px-4 py-2 rounded border border-border text-xs font-bold text-text-sub hover:bg-brand/10 hover:text-text hover:border-text transition-all uppercase tracking-wider">
                                 Log In
                             </Link>
                         </div>
                     )}
+                </div>
+
+                {/* Theme Toggle & Footer */}
+                <div className="px-4 pb-4 bg-surface/30 flex justify-center relative z-50">
+                    <button
+                        onClick={() => {
+                            console.log("Toggling theme");
+                            toggleTheme();
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface hover:bg-surface/80 text-xs text-text-sub hover:text-text transition-all border border-border hover:border-text-sub/30"
+                    >
+                        {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+                        <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+                    </button>
                 </div>
             </motion.aside >
         </>
