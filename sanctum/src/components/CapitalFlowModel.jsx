@@ -134,13 +134,49 @@ export default function CapitalFlowModel() {
         }).join(' ');
     };
 
+    // --- MAX BUTTON ACTION ---
+    const handleMax = () => {
+        setUsersOperator(100);
+        setUsersArchitect(50);
+        setUsersSovereign(10);
+
+        setGhostRuns(100);
+        setPersonas(100);
+        setContexts(200);
+
+        setFracCTO(5);
+        setResidencies(4);
+        setAudits(10);
+
+        setGrowthMode('AGGRESSIVE');
+    };
+
     return (
         <div className="cfm-container">
             <div className="cfm-grid">
 
                 {/* --- CONTROLS --- */}
                 <div className="cfm-controls">
-                    <h3 className="control-heading">Model Inputs (Year 0)</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--c-border)', paddingBottom: '1rem' }}>
+                        <h3 className="control-heading" style={{ margin: 0, border: 'none', padding: 0 }}>Model Inputs (Year 0)</h3>
+                        <button
+                            onClick={handleMax}
+                            style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '1px solid var(--c-border)',
+                                color: 'var(--c-brand)',
+                                padding: '4px 12px',
+                                borderRadius: '4px',
+                                fontSize: '0.7rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                letterSpacing: '0.05em'
+                            }}
+                            className="hover:bg-white/20 transition-colors"
+                        >
+                            MAX
+                        </button>
+                    </div>
 
                     <div className="input-group">
                         <label className="group-label" style={{ color: COLORS.OPERATOR }}>Operator ({usersOperator})</label>

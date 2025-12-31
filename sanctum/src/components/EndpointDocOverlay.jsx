@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Copy, Play, Server, Code, FileJson, CheckCircle } from 'lucide-react';
+import { X, Copy, Play, Server, Code, FileJson, CheckCircle, Activity } from 'lucide-react';
+import WPVView from '../app/engines/WPVView';
 
 const ENDPOINT_DOCS = {
     'GET /v1/sentiment/ticker': {
@@ -48,6 +49,8 @@ const ENDPOINT_DOCS = {
 };
 
 export default function EndpointDocOverlay({ endpoint, onClose, accentColor = '#00ff9d' }) {
+    const [showVisual, setShowVisual] = useState(false);
+
     // Basic parser to find matching doc or use default
     const doc = ENDPOINT_DOCS[endpoint] || {
         ...ENDPOINT_DOCS['DEFAULT'],
@@ -62,119 +65,150 @@ export default function EndpointDocOverlay({ endpoint, onClose, accentColor = '#
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 onClick={e => e.stopPropagation()}
-                className="w-full max-w-3xl bg-[#0f0f0f] border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="w-full max-w-3xl bg-[#0f0f0f] border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] h-[80vh]"
             >
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10 bg-[#141414]">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                            <Server size={24} style={{ color: accentColor }} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-white/60 border border-white/10">
-                                    {doc.method}
-                                </span>
-                                <span className="text-xs text-white/40 uppercase tracking-widest">Endpoint Reference</span>
+                {showVisual ? (
+                    <div className="flex flex-col h-full bg-slate-950">
+                        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#141414]">
+                            <div className="flex items-center gap-2">
+                                <Activity size={18} style={{ color: accentColor }} />
+                                <span className="font-bold text-white text-sm">LOGIC VISUALIZER</span>
                             </div>
-                            <h2 className="text-xl font-bold text-white font-mono">{doc.path}</h2>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
-                    >
-                        <X size={24} />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-8 space-y-8 font-mono">
-
-                    {/* Description */}
-                    <div>
-                        <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">Description</h3>
-                        <p className="text-white/80 text-sm leading-relaxed max-w-2xl">
-                            {doc.desc}
-                        </p>
-                    </div>
-
-                    {/* Parameters */}
-                    <div>
-                        <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">Request Parameters</h3>
-                        {doc.params && doc.params.length > 0 ? (
-                            <div className="border border-white/10 rounded-lg overflow-hidden">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-white/5 text-white/50">
-                                        <tr>
-                                            <th className="p-3 font-medium text-xs uppercase">Name</th>
-                                            <th className="p-3 font-medium text-xs uppercase">Type</th>
-                                            <th className="p-3 font-medium text-xs uppercase">Required</th>
-                                            <th className="p-3 font-medium text-xs uppercase">Description</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {doc.params.map((param, i) => (
-                                            <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                <td className="p-3 text-white font-bold">{param.name}</td>
-                                                <td className="p-3 text-fuchsia-400">{param.type}</td>
-                                                <td className="p-3">
-                                                    {param.required ? (
-                                                        <span className="text-[10px] text-red-400 border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 rounded">YES</span>
-                                                    ) : (
-                                                        <span className="text-[10px] text-white/30">NO</span>
-                                                    )}
-                                                </td>
-                                                <td className="p-3 text-white/60">{param.desc}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="text-white/30 italic text-sm p-4 bg-white/5 rounded border border-white/5 border-dashed">
-                                No parameters required.
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Response Example */}
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                            <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest">Response Example</h3>
-                            <button className="text-[10px] flex items-center gap-1 text-white/40 hover:text-white transition-colors">
-                                <Copy size={12} /> Copy JSON
+                            <button
+                                onClick={() => setShowVisual(false)}
+                                className="text-xs font-bold text-white/50 hover:text-white border border-white/10 hover:bg-white/10 px-3 py-1 rounded transition-colors"
+                            >
+                                BACK TO DOCS
                             </button>
                         </div>
-                        <div className="relative group">
-                            <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded font-bold border border-emerald-500/30">
-                                    200 OK
+                        <div className="flex-1 relative overflow-hidden">
+                            <WPVView
+                                title={`Endpoint Logic: ${doc.path}`}
+                                content={`# ${doc.method} ${doc.path}\n\n**Description:** ${doc.desc}\n\n## Data Flow\n1. Receive Request\n2. Validate Parameters (${doc.params?.length || 0})\n3. Query Internal Engine\n4. Format Response JSON\n5. Return 200 OK`}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-[#141414]">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                                    <Server size={24} style={{ color: accentColor }} />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-white/60 border border-white/10">
+                                            {doc.method}
+                                        </span>
+                                        <span className="text-xs text-white/40 uppercase tracking-widest">Endpoint Reference</span>
+                                    </div>
+                                    <h2 className="text-xl font-bold text-white font-mono">{doc.path}</h2>
                                 </div>
                             </div>
-                            <pre className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 text-xs text-blue-300 overflow-x-auto custom-scrollbar">
-                                <code>{JSON.stringify(doc.response, null, 2)}</code>
-                            </pre>
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
+                            >
+                                <X size={24} />
+                            </button>
                         </div>
-                    </div>
-                </div>
 
-                {/* Footer / Actions */}
-                <div className="p-6 border-t border-white/10 bg-[#141414] flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="w-6 h-6 rounded-full bg-white/10 border border-[#141414] flex items-center justify-center text-[8px] text-white/40">
-                                    U{i}
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8 font-mono">
+
+                            {/* Description */}
+                            <div>
+                                <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">Description</h3>
+                                <p className="text-white/80 text-sm leading-relaxed max-w-2xl">
+                                    {doc.desc}
+                                </p>
+                            </div>
+
+                            {/* Parameters */}
+                            <div>
+                                <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">Request Parameters</h3>
+                                {doc.params && doc.params.length > 0 ? (
+                                    <div className="border border-white/10 rounded-lg overflow-hidden">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-white/5 text-white/50">
+                                                <tr>
+                                                    <th className="p-3 font-medium text-xs uppercase">Name</th>
+                                                    <th className="p-3 font-medium text-xs uppercase">Type</th>
+                                                    <th className="p-3 font-medium text-xs uppercase">Required</th>
+                                                    <th className="p-3 font-medium text-xs uppercase">Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {doc.params.map((param, i) => (
+                                                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                        <td className="p-3 text-white font-bold">{param.name}</td>
+                                                        <td className="p-3 text-fuchsia-400">{param.type}</td>
+                                                        <td className="p-3">
+                                                            {param.required ? (
+                                                                <span className="text-[10px] text-red-400 border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 rounded">YES</span>
+                                                            ) : (
+                                                                <span className="text-[10px] text-white/30">NO</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-3 text-white/60">{param.desc}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="text-white/30 italic text-sm p-4 bg-white/5 rounded border border-white/5 border-dashed">
+                                        No parameters required.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Response Example */}
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <h3 className="text-xs font-bold text-white/30 uppercase tracking-widest">Response Example</h3>
+                                    <button className="text-[10px] flex items-center gap-1 text-white/40 hover:text-white transition-colors">
+                                        <Copy size={12} /> Copy JSON
+                                    </button>
                                 </div>
-                            ))}
+                                <div className="relative group">
+                                    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded font-bold border border-emerald-500/30">
+                                            200 OK
+                                        </div>
+                                    </div>
+                                    <pre className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 text-xs text-blue-300 overflow-x-auto custom-scrollbar">
+                                        <code>{JSON.stringify(doc.response, null, 2)}</code>
+                                    </pre>
+                                </div>
+                            </div>
                         </div>
-                        <span className="text-[10px] text-white/30">Used by 12 other projects</span>
-                    </div>
-                    <button className="flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white font-bold text-xs uppercase tracking-wider transition-all hover:border-white/30 group">
-                        <Play size={14} className="group-hover:text-emerald-400 transition-colors" /> Run Test Request
-                    </button>
-                </div>
+
+                        {/* Footer / Actions */}
+                        <div className="p-6 border-t border-white/10 bg-[#141414] flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="flex -space-x-2">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-6 h-6 rounded-full bg-white/10 border border-[#141414] flex items-center justify-center text-[8px] text-white/40">
+                                            U{i}
+                                        </div>
+                                    ))}
+                                </div>
+                                <span className="text-[10px] text-white/30">Used by 12 other projects</span>
+                            </div>
+                            <button className="flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white font-bold text-xs uppercase tracking-wider transition-all hover:border-white/30 group">
+                                <Play size={14} className="group-hover:text-emerald-400 transition-colors" /> Run Test Request
+                            </button>
+                            <button
+                                onClick={() => setShowVisual(true)}
+                                className="flex items-center gap-2 px-6 py-2 bg-[#00ff9d]/10 hover:bg-[#00ff9d]/20 border border-[#00ff9d]/30 rounded-lg text-[#00ff9d] font-bold text-xs uppercase tracking-wider transition-all hover:border-[#00ff9d]/60 group ml-2"
+                            >
+                                <Activity size={14} /> Visualize Logic
+                            </button>
+                        </div>
+                    </>
+                )}
             </motion.div>
         </div>
     );

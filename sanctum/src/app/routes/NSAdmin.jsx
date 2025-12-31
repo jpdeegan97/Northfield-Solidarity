@@ -458,6 +458,19 @@ const SystemTab = ({ flags, setFlags, broadcastMsg, setBroadcastMsg, addLog }) =
                 </div>
             </Card>
 
+            <Card title="Neural Interface Config">
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-white">Chat Widget Active</span>
+                        <ToggleWithLocalStorage keyName="ns_chat_active" onToggle={(val) => addLog('INFO', `Chat Widget is now ${val ? 'Active' : 'Inactive'}`)} />
+                    </div>
+                    <div>
+                        <label className="text-xs text-white/40 uppercase tracking-wider block mb-2">System Prompt</label>
+                        <PromptEditor onSave={(val) => addLog('SUCCESS', 'System Prompt updated')} />
+                    </div>
+                </div>
+            </Card>
+
             <div className="space-y-6">
                 <Card title="Emergency Broadcast">
                     <form onSubmit={handleBroadcast} className="flex gap-2">
@@ -514,3 +527,43 @@ const ActionButton = ({ icon: Icon, label, onClick }) => (
         <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
     </button>
 );
+
+const ToggleWithLocalStorage = ({ keyName, onToggle }) => {
+    const [val, setVal] = useState(localStorage.getItem(keyName) !== 'false');
+
+    return (
+        <button onClick={() => {
+            const newVal = !val;
+            setVal(newVal);
+            localStorage.setItem(keyName, newVal);
+            window.dispatchEvent(new Event('storage'));
+            if (onToggle) onToggle(newVal);
+        }} className={`transition-colors ${val ? 'text-[#00ff9d]' : 'text-white/20'}`}>
+            {val ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
+        </button>
+    );
+};
+
+const PromptEditor = ({ onSave }) => {
+    const defaultPrompt = "You are the AI interface for Northfield Solidarity, a sovereign equity management system.";
+    const [val, setVal] = useState(localStorage.getItem('ns_chat_prompt') || defaultPrompt);
+
+    const handleSave = () => {
+        localStorage.setItem('ns_chat_prompt', val);
+        window.dispatchEvent(new Event('storage'));
+        if (onSave) onSave(val);
+    };
+
+    return (
+        <div className="flex gap-2">
+            <textarea
+                value={val}
+                onChange={(e) => setVal(e.target.value)}
+                className="flex-1 bg-black/20 border border-white/10 rounded p-2 text-xs text-white/80 h-24 focus:border-[#00ff9d] outline-none resize-none"
+            />
+            <button onClick={handleSave} className="self-end p-2 bg-[#00ff9d]/10 text-[#00ff9d] rounded hover:bg-[#00ff9d]/20 transition-colors">
+                <Save size={16} />
+            </button>
+        </div>
+    );
+};

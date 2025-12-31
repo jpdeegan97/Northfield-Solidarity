@@ -112,36 +112,40 @@ function TopologyConnections({ connections, coords, color = "#38bdf8" }) {
 }
 
 // Scene Setup
-function Scene({ nodes, connections, nodeCoords, activeEngine, setActiveEngine, primaryColor }) {
+function Scene({ nodes, connections, nodeCoords, activeEngine, setActiveEngine, primaryColor, contentPosition, children }) {
     return (
         <>
             <ambientLight intensity={0.5} />
             <pointLight position={[10, 10, 10]} intensity={1} />
             <pointLight position={[-10, -10, -10]} intensity={0.5} color={primaryColor} />
 
-            <TopologyConnections
-                connections={connections}
-                coords={nodeCoords}
-                color={primaryColor}
-            />
-
-            {nodes.map(node => (
-                <TopologyNode
-                    key={node.code}
-                    position={nodeCoords[node.code]} // Expecting [x, y, z] array
-                    code={node.code}
-                    label={node.label}
-                    isActive={activeEngine === node.code}
-                    onClick={setActiveEngine}
+            <group position={contentPosition}>
+                <TopologyConnections
+                    connections={connections}
+                    coords={nodeCoords}
                     color={primaryColor}
                 />
-            ))}
+
+                {nodes.map(node => (
+                    <TopologyNode
+                        key={node.code}
+                        position={nodeCoords[node.code]} // Expecting [x, y, z] array
+                        code={node.code}
+                        label={node.label}
+                        isActive={activeEngine === node.code}
+                        onClick={setActiveEngine}
+                        color={primaryColor}
+                    />
+                ))}
+            </group>
+
+            {children}
 
             <OrbitControls
                 enablePan={true}
                 enableZoom={true}
                 minDistance={5}
-                maxDistance={20}
+                maxDistance={50}
                 autoRotate={true}
                 autoRotateSpeed={0.5}
             />
@@ -149,7 +153,7 @@ function Scene({ nodes, connections, nodeCoords, activeEngine, setActiveEngine, 
     );
 }
 
-export default function SystemTopology3D({ nodes, connections, nodeCoords, activeEngine, setActiveEngine, theme = "water", background = '#0f172a' }) {
+export default function SystemTopology3D({ nodes, connections, nodeCoords, activeEngine, setActiveEngine, theme = "water", background = '#0f172a', contentPosition = [0, 0, 0], children }) {
     // Convert coord objects {x,y,z} to arrays [x,y,z] and scale down if necessary
     // The previous CSS coords were pixels (hundreds). Three.js works better with smaller units.
     // Let's scale by 0.02
@@ -167,7 +171,7 @@ export default function SystemTopology3D({ nodes, connections, nodeCoords, activ
 
     return (
         <div style={{ width: '100%', height: '100%', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <Canvas camera={{ position: [0, 0, 12], fov: 50 }}>
+            <Canvas camera={{ position: [0, 0, 15], fov: 50 }}>
                 {background !== 'transparent' && <color attach="background" args={[background]} />}
                 {/* Background stars or particles could be nice */}
                 <Scene
@@ -177,7 +181,10 @@ export default function SystemTopology3D({ nodes, connections, nodeCoords, activ
                     activeEngine={activeEngine}
                     setActiveEngine={setActiveEngine}
                     primaryColor={primaryColor}
-                />
+                    contentPosition={contentPosition}
+                >
+                    {children}
+                </Scene>
             </Canvas>
         </div>
     );

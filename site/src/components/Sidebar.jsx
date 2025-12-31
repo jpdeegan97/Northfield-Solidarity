@@ -50,17 +50,20 @@ export default function Sidebar({ brand, nav }) {
         { label: "Home", to: "/", icon: Home },
         { label: "South Lawn", to: "/southlawn", icon: Building2 },
         { label: "Wall Street Pro", to: "/wsp", icon: Landmark },
+        { label: "More Than Enough", to: "/mte", icon: GraduationCap },
         { type: "divider" },
-        { label: "Platform", to: "/platform", icon: MonitorPlay },
+        { label: "Firmament", to: "/firmament", icon: MonitorPlay },
         { label: "Projects", to: "/projects", icon: Folder },
         { label: "Marketplace", to: "/marketplace", icon: Zap },
         { label: "System", to: "/system", icon: Cpu },
         { label: "Features", to: "/features", icon: Box },
         { label: "API Integration", to: "/api", icon: Globe },
         { label: "Education", to: "/education", icon: GraduationCap },
+        { label: "Consulting", to: "/consulting", icon: Zap },
         { label: "Pricing", to: "/pricing", icon: DollarSign },
         { label: "Investors", to: "/investors", icon: Activity },
         { label: "Ascension", to: "/careers", icon: ArrowUpCircle },
+        { label: "NS Halo", to: "http://localhost:5174/os-ideation", icon: Cpu },
         { label: "Docs", to: "/docs", icon: FileText },
         { label: "Contact", to: "/contact", icon: UserCircle },
     ];
@@ -78,14 +81,15 @@ export default function Sidebar({ brand, nav }) {
     if (location.pathname.startsWith("/wsp")) brandLink = "/wsp";
 
     // Sidebar Variations based on theme/context
-    const isWater = !location.pathname.startsWith("/southlawn") && !location.pathname.startsWith("/wsp");
+    const isWater = !location.pathname.startsWith("/southlawn") && !location.pathname.startsWith("/wsp") && !location.pathname.startsWith("/mte");
     const isGreen = location.pathname.startsWith("/southlawn");
     const isGold = location.pathname.startsWith("/wsp");
+    const isPurple = location.pathname.startsWith("/mte");
 
-    const themeColor = isGreen ? "text-green-500" : isGold ? "text-amber-500" : "text-brand";
-    const themeBg = isGreen ? "bg-green-500/10" : isGold ? "bg-amber-500/10" : "bg-brand/10";
-    const themeBorder = isGreen ? "border-green-500/20" : isGold ? "border-amber-500/20" : "border-brand/20";
-    const themeHover = isGreen ? "hover:bg-green-500/10 hover:text-green-400" : isGold ? "hover:bg-amber-500/10 hover:text-amber-400" : "hover:bg-brand/10 hover:text-brand";
+    const themeColor = isGreen ? "text-green-500" : isGold ? "text-amber-500" : isPurple ? "text-purple-400" : "text-brand";
+    const themeBg = isGreen ? "bg-green-500/10" : isGold ? "bg-amber-500/10" : isPurple ? "bg-purple-500/10" : "bg-brand/10";
+    const themeBorder = isGreen ? "border-green-500/20" : isGold ? "border-amber-500/20" : isPurple ? "border-purple-500/20" : "border-brand/20";
+    const themeHover = isGreen ? "hover:bg-green-500/10 hover:text-green-400" : isGold ? "hover:bg-amber-500/10 hover:text-amber-400" : isPurple ? "hover:bg-purple-500/10 hover:text-purple-400" : "hover:bg-brand/10 hover:text-brand";
 
     // Icon helper if nav items pass strings or components
     const getIcon = (item) => {
@@ -190,7 +194,7 @@ export default function Sidebar({ brand, nav }) {
                                         {isActive && (
                                             <motion.div
                                                 layoutId="activeIndicator"
-                                                className={`ml-auto w-1.5 h-1.5 rounded-full ${isGreen ? 'bg-green-500' : isGold ? 'bg-amber-500' : 'bg-brand'}`}
+                                                className={`ml-auto w-1.5 h-1.5 rounded-full ${isGreen ? 'bg-green-500' : isGold ? 'bg-amber-500' : isPurple ? 'bg-purple-500' : 'bg-brand'}`}
                                             />
                                         )}
                                     </>
@@ -220,7 +224,7 @@ export default function Sidebar({ brand, nav }) {
                             <Link to="/login" className="flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all border border-white/10">
                                 Log In
                             </Link>
-                            <Link to="/signup" className={`flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold text-white shadow-lg transition-all hover:brightness-110 ${isGreen ? 'bg-green-600' : isGold ? 'bg-amber-600' : 'bg-brand'}`}>
+                            <Link to="/signup" className={`flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold text-white shadow-lg transition-all hover:brightness-110 ${isGreen ? 'bg-green-600' : isGold ? 'bg-amber-600' : isPurple ? 'bg-purple-600' : 'bg-brand'}`}>
                                 Sign Up
                             </Link>
                         </div>

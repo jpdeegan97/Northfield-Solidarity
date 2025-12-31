@@ -155,6 +155,55 @@ import {
     NS_INT_005_DECISION
 } from "./docs/INT_content.js";
 
+import {
+    NS_OS_000_CHARTER,
+    NS_OS_001_NON_GOALS,
+    NS_OS_002_PRIMITIVES,
+    NS_OS_003_WORLDVIEW,
+    NS_OS_004_VISION,
+    NS_OS_005_ABI,
+    NS_OS_006_HCG,
+    NS_OS_007_SCHEDULER,
+    NS_OS_008_TSU,
+    NS_OS_009_PRS,
+    NS_OS_010_INTEGRATION,
+    NS_OS_011_OBSERVABILITY,
+    NS_OS_012_SECURITY,
+    NS_OS_013_ROADMAP,
+    NS_OS_014_GLOSSARY,
+    NS_OS_015_REFERENCES
+} from "./docs/OS_content.js";
+
+import {
+    SEC_00_CHARTER,
+    SEC_01_THREAT_MODEL,
+    SEC_01_TRUST_BOUNDARIES,
+    SEC_02_K8S_HARDENING,
+    SEC_02_NETWORK_SEGMENTATION,
+    SEC_02_REFERENCE_ARCH,
+    SEC_03_SERVICE_IDENTITY,
+    SEC_03_STANDARDS,
+    SEC_04_DATA,
+    SEC_04_EDGE_API,
+    SEC_04_PLATFORM,
+    SEC_05_POLICY_EXAMPLES,
+    SEC_05_ENVELOPE,
+    SEC_06_CICD_HARDENING,
+    SEC_06_PROGRAM,
+    SEC_07_ALERTS,
+    SEC_07_LOGGING,
+    SEC_08_PROGRAM,
+    SEC_08_TOOLING,
+    SEC_09_GUIDE,
+    SEC_09_RUNBOOKS,
+    SEC_10_PRE_PROD,
+    SEC_10_THIS_WEEK,
+    SEC_11_INCIDENT_TMPL,
+    SEC_11_PENTEST_TMPL,
+    SEC_11_RISK_REG_TMPL,
+    SEC_12_ROADMAP
+} from "./docs/SEC_content.js";
+
 export const DOCS_REGISTRY = [
     {
         category: "GGP Engine",
@@ -345,7 +394,7 @@ export const DOCS_REGISTRY = [
         category: "CWP Engine",
         icon: "📋",
         items: [
-            { id: "cwp-overview", title: "001 Overview", desc: "Critical Workflows & Procedures.", content: "# CWP\n\nOverview coming soon." }
+            { id: "cwp-overview", title: "001 Overview", desc: "Cognitive Worker Plane.", content: "# Cognitive Worker Plane\n\nAgentic orchestration and MSP server overview coming soon." }
         ]
     },
     {
@@ -404,6 +453,28 @@ export const DOCS_REGISTRY = [
             { id: "int-charter", title: "000 Charter", desc: "Engine identity and mission.", content: NS_INT_000_CHARTER },
             { id: "int-overview", title: "001 Overview", desc: "Purpose and role of Intervention.", content: NS_INT_001_OVERVIEW },
             { id: "int-decision", title: "005 Decision", desc: "Architectural decisions log.", content: NS_INT_005_DECISION },
+        ]
+    },
+    {
+        category: "NS Halo",
+        icon: "🌌",
+        items: [
+            { id: "os-000", title: "OS 000 - Charter", desc: "NS OS Philosophy.", content: NS_OS_000_CHARTER },
+            { id: "os-001", title: "OS 001 - Non-Goals", desc: "Explicit refusals & boundaries.", content: NS_OS_001_NON_GOALS },
+            { id: "os-002", title: "OS 002 - Primitives", desc: "Core conceptual primitives.", content: NS_OS_002_PRIMITIVES },
+            { id: "os-003", title: "OS 003 - Worldview", desc: "Compute worldview & planes.", content: NS_OS_003_WORLDVIEW },
+            { id: "os-004", title: "OS 004 - Vision", desc: "Vision & Principles.", content: NS_OS_004_VISION },
+            { id: "os-005", title: "OS 005 - ABI", desc: "Probabilistic Primitives & ABI.", content: NS_OS_005_ABI },
+            { id: "os-006", title: "OS 006 - HCG", desc: "Heterogeneous Compute Graph.", content: NS_OS_006_HCG },
+            { id: "os-007", title: "OS 007 - Scheduler", desc: "Scheduler & QoS.", content: NS_OS_007_SCHEDULER },
+            { id: "os-008", title: "OS 008 - TSU", desc: "TSU Device Model.", content: NS_OS_008_TSU },
+            { id: "os-009", title: "OS 009 - PRS", desc: "Probabilistic Runtime Service API.", content: NS_OS_009_PRS },
+            { id: "os-010", title: "OS 010 - Integration", desc: "Engine Integration Map.", content: NS_OS_010_INTEGRATION },
+            { id: "os-011", title: "OS 011 - Observability", desc: "Observability & Audit.", content: NS_OS_011_OBSERVABILITY },
+            { id: "os-012", title: "OS 012 - Security", desc: "Security & Isolation.", content: NS_OS_012_SECURITY },
+            { id: "os-013", title: "OS 013 - Roadmap", desc: "MVP Roadmap.", content: NS_OS_013_ROADMAP },
+            { id: "os-014", title: "OS 014 - Glossary", desc: "Terminology.", content: NS_OS_014_GLOSSARY },
+            { id: "os-015", title: "OS 015 - References", desc: "External References.", content: NS_OS_015_REFERENCES },
         ]
     },
     {
@@ -510,7 +581,6 @@ This engine exists to define, enforce, and audit governance rules across all NSD
 ---
 
 ## 8. Governance & Constraints (Self-Governance)
-
 - All policies must be versioned  
 - Rule changes must be auditable  
 - Emergency override paths must be explicit  
@@ -526,7 +596,6 @@ This engine exists to define, enforce, and audit governance rules across all NSD
 ### Expected Failures
 - Over-restrictive policies blocking execution  
 - Misconfigured thresholds  
-- 
 
 ### Worst-Case Failure
 - Unauthorized action allowed or valid action blocked  
@@ -636,15 +705,60 @@ GGP relies on shared primitives including:
         ]
     },
     {
+        category: "Strategic Planning",
+        icon: "🧭",
+        items: [
+            {
+                id: "strategic-planning-overview",
+                title: "Strategic Planning Overview",
+                desc: "Long-term vision and execution strategy.",
+                content: "Strategic planning documentation coming soon..."
+            }
+        ]
+    },
+    {
         category: "Security",
         icon: "🔒",
         items: [
+            { id: "sec-00-charter", title: "Charter", desc: "Mission and non-negotiables.", content: SEC_00_CHARTER },
+            { id: "sec-01-threat-model", title: "Threat Model v1", desc: "Assets, adversaries, risks.", content: SEC_01_THREAT_MODEL },
+            { id: "sec-01-trust-boundaries", title: "Trust Boundaries", desc: "Internal vs external trust.", content: SEC_01_TRUST_BOUNDARIES },
+            { id: "sec-02-ref-arch", title: "Reference Architecture", desc: "Layered security overlay.", content: SEC_02_REFERENCE_ARCH },
+            { id: "sec-02-k8s", title: "Kubernetes Hardening", desc: "Cluster security checklist.", content: SEC_02_K8S_HARDENING },
+            { id: "sec-02-network", title: "Network Segmentation", desc: "Zones and traffic rules.", content: SEC_02_NETWORK_SEGMENTATION },
+            { id: "sec-03-standards", title: "Security Standards", desc: "MUST / SHOULD / MAY.", content: SEC_03_STANDARDS },
+            { id: "sec-03-identity", title: "Service Identity", desc: "Workload identity principles.", content: SEC_03_SERVICE_IDENTITY },
+            { id: "sec-04-platform", title: "Platform Controls", desc: "Host and K8s controls.", content: SEC_04_PLATFORM },
+            { id: "sec-04-data", title: "Data Controls", desc: "Encryption and access.", content: SEC_04_DATA },
+            { id: "sec-04-edge", title: "Edge & API", desc: "Ingress and API security.", content: SEC_04_EDGE_API },
+            { id: "sec-05-envelope", title: "Secure RPC Envelope", desc: "Engine-to-engine contract.", content: SEC_05_ENVELOPE },
+            { id: "sec-05-policy", title: "Policy Examples", desc: "Scopes and allowlists.", content: SEC_05_POLICY_EXAMPLES },
+            { id: "sec-06-program", title: "Supply Chain Program", desc: "Goals and controls.", content: SEC_06_PROGRAM },
+            { id: "sec-06-cicd", title: "CI/CD Hardening", desc: "Pipeline security checklist.", content: SEC_06_CICD_HARDENING },
+            { id: "sec-07-logging", title: "Logging & Audit", desc: "What to log and how.", content: SEC_07_LOGGING },
+            { id: "sec-07-alerts", title: "Alerts", desc: "High-signal starter set.", content: SEC_07_ALERTS },
+            { id: "sec-08-program", title: "Pentest Program", desc: "Rules, cadence, coverage.", content: SEC_08_PROGRAM },
+            { id: "sec-08-tooling", title: "Defensive Tooling", desc: "Scanner menu.", content: SEC_08_TOOLING },
+            { id: "sec-09-guide", title: "IR Guide", desc: "Phases and actions.", content: SEC_09_GUIDE },
+            { id: "sec-09-runbooks", title: "Runbooks", desc: "Core 5 scenarios.", content: SEC_09_RUNBOOKS },
+            { id: "sec-10-this-week", title: "This Week", desc: "Immediate impact moves.", content: SEC_10_THIS_WEEK },
+            { id: "sec-10-pre-prod", title: "Pre-Prod Release", desc: "Go/No-Go release checks.", content: SEC_10_PRE_PROD },
+            { id: "sec-11-risk-reg", title: "Risk Register", desc: "Tracking table template.", content: SEC_11_RISK_REG_TMPL },
+            { id: "sec-11-incident", title: "Incident Report", desc: "Postmortem template.", content: SEC_11_INCIDENT_TMPL },
+            { id: "sec-11-pentest", title: "Pentest Report", desc: "Findings template.", content: SEC_11_PENTEST_TMPL },
+            { id: "sec-12-roadmap", title: "Roadmap", desc: "Phased rollout plan.", content: SEC_12_ROADMAP },
+        ]
+    },
+    {
+        category: "Cryptography",
+        icon: "🔑",
+        items: [
             {
-                id: "security",
-                title: "Security + IP lockdown strategy",
-                desc: "Zero-trust networking and intellectual property protection.",
-                content: "Security protocols coming soon..."
-            },
+                id: "crypto-standards",
+                title: "Cryptography Standards",
+                desc: "Algorithms, keys, and protocols.",
+                content: "Cryptography standards documentation coming soon..."
+            }
         ]
     }
 ];

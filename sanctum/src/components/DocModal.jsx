@@ -3,7 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../context/AuthContext';
 import { useDocs } from '../context/DocsContext';
-import { Edit2, Save, X, FileText, ChevronRight } from 'lucide-react';
+import { Edit2, Save, X, FileText, ChevronRight, Share2 } from 'lucide-react';
+import WPVView from '../app/engines/WPVView';
 
 export default function DocModal({ activeDocModal, setActiveDocModal }) {
     const { hasPermission } = useAuth();
@@ -11,6 +12,7 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState('');
     const [editTitle, setEditTitle] = useState('');
+    const [viewMode, setViewMode] = useState('text'); // 'text' | 'visual'
 
     const canEdit = hasPermission('builder');
 
@@ -22,8 +24,9 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
             setEditContent(activeItem.content || '');
             setEditTitle(activeItem.title || '');
             setIsEditing(false);
+            setViewMode('text'); // Reset to text
         }
-    }, [activeItem]);
+    }, [activeItem?.id]);
 
     const handleSave = () => {
         updateDoc(activeItem.id, {
@@ -77,6 +80,22 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
                     </div>
 
                     <div className="p-4 border-t border-border bg-surface/50 flex flex-col gap-2">
+                        {/* VIEW MODE TOGGLE */}
+                        <div className="flex bg-black/20 p-1 rounded-lg mb-2">
+                            <button
+                                onClick={() => setViewMode('text')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-2 ${viewMode === 'text' ? 'bg-white/10 text-white' : 'text-text-sub hover:text-white'}`}
+                            >
+                                <FileText size={12} /> Text
+                            </button>
+                            <button
+                                onClick={() => setViewMode('visual')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded flex items-center justify-center gap-2 ${viewMode === 'visual' ? 'bg-brand text-black' : 'text-text-sub hover:text-white'}`}
+                            >
+                                <Share2 size={12} /> Visual
+                            </button>
+                        </div>
+
                         {canEdit && !isEditing && (
                             <button
                                 className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg border border-border hover:bg-white/5 text-sm font-medium transition-colors"
@@ -132,9 +151,9 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-0 md:p-0 custom-scrollbar h-full">
                         {isEditing ? (
-                            <div className="h-full flex flex-col">
+                            <div className="h-full flex flex-col p-6">
                                 <textarea
                                     className="flex-1 w-full bg-surface/50 rounded-xl border border-border p-4 text-sm font-mono leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all custom-scrollbar"
                                     value={editContent}
@@ -143,13 +162,17 @@ export default function DocModal({ activeDocModal, setActiveDocModal }) {
                                 />
                             </div>
                         ) : (
-                            <div className="max-w-4xl mx-auto">
-                                <div className="prose prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-code:text-accent prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {activeItem.content || "Content coming soon..."}
-                                    </ReactMarkdown>
+                            viewMode === 'visual' ? (
+                                <WPVView title={activeItem.title} content={activeItem.content} />
+                            ) : (
+                                <div className="max-w-4xl mx-auto p-6 md:p-12">
+                                    <div className="prose prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-code:text-accent prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {activeItem.content || "Content coming soon..."}
+                                        </ReactMarkdown>
+                                    </div>
                                 </div>
-                            </div>
+                            )
                         )}
                     </div>
                 </div>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SystemTopology3D from './SystemTopology3D';
+import { Search, X } from 'lucide-react';
 
 // Layout Modes
 const LAYOUTS = {
@@ -51,14 +52,57 @@ const nsConnections3d = [
 ];
 
 export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filterType, scale = 1 }) {
-    const [mode, setMode] = useState(LAYOUTS.WHEEL);
-    // filterType coming from props now
+    // Initialize mode from localStorage or default to WHEEL
+    const [mode, setMode] = useState(() => {
+        try {
+            const saved = localStorage.getItem('NS_DOCK_LAYOUT_MODE');
+            return saved && LAYOUTS[saved] ? saved : LAYOUTS.WHEEL;
+        } catch {
+            return LAYOUTS.WHEEL;
+        }
+    });
+
+    // Persist mode changes
+    const changeMode = (newMode) => {
+        setMode(newMode);
+        try {
+            localStorage.setItem('NS_DOCK_LAYOUT_MODE', newMode);
+        } catch {
+            // Ignore storage errors
+        }
+    };
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
+    const searchInputRef = useRef(null);
+
+    // Focus input when opened
+    useEffect(() => {
+        if (showSearch && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [showSearch]);
 
     // Filter Logic
     const visibleTabs = React.useMemo(() => {
-        if (filterType === 'ALL') return tabs;
-        return tabs.filter(t => t.type === filterType);
-    }, [tabs, filterType]);
+        let filtered = tabs;
+
+        // 1. Type Filter
+        if (filterType !== 'ALL') {
+            filtered = filtered.filter(t => t.type === filterType);
+        }
+
+        // 2. Search Filter
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(t =>
+                t.code.toLowerCase().includes(q) ||
+                t.name.toLowerCase().includes(q)
+            );
+        }
+
+        return filtered;
+    }, [tabs, filterType, searchQuery]);
 
     // Helpers
     const activeIndex = visibleTabs.findIndex(t => t.code === activeTab);
@@ -67,16 +111,7 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
     // --- RENDERERS ---
 
     // 1. SPIN WHEEL (The Arc) - Continuous Sliding
-    const [dragState, setDragState] = useState({
-        isDragging: false,
-        startX: 0,
-        startVisualIndex: 0,
-        hasMoved: false
-    });
-
     const [visualIndex, setVisualIndex] = useState(safeVisualIndex);
-
-    // Sync visual index when active tab/filter changes
 
     // Sync visual index when active tab/filter changes OR primedTab changes
     React.useEffect(() => {
@@ -92,11 +127,8 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
             if (activeIdx >= 0) setVisualIndex(activeIdx);
         } else {
             // Default 0
-            // setVisualIndex(0); // Optional: don't reset if just hovering away?
         }
     }, [activeTab, primedTab, filterType, visibleTabs]);
-
-    // ... (rest of renderWheel logic) ...
 
     const renderWheel = () => {
         return (
@@ -151,16 +183,14 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
                             key={tab.code}
                             className="absolute flex flex-col items-center justify-center cursor-pointer group pointer-events-auto transition-all duration-300 ease-out"
                             style={{
-                                transform: `translate(${x}px, ${y}px) scale(${1 - distFromCenter * 0.1})`,
+                                transform: `translate(${x}px, ${y}px) rotate(${angle}deg) scale(${1 - distFromCenter * 0.1})`,
                                 opacity: opacity,
                                 zIndex: 100 - Math.round(distFromCenter * 10),
                                 filter: `blur(${Math.abs(offset) * 2}px)`
                             }}
                             onClick={(e) => {
-                                if (!dragState.hasMoved) {
-                                    e.stopPropagation();
-                                    onSelect(tab.code);
-                                }
+                                e.stopPropagation();
+                                onSelect(tab.code);
                             }}
                         >
                             {/* Card Content */}
@@ -186,12 +216,10 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
         );
     };
 
-
-
     // 2. CLASSIC BAR (Horizontal Scroll)
     const renderBar = () => (
         <div className="flex gap-3 p-3 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-full w-fit max-w-[95vw] mx-auto overflow-x-auto pointer-events-auto shadow-2xl items-center no-scrollbar">
-            {tabs.map((tab) => {
+            {visibleTabs.map((tab) => {
                 const isActive = tab.code === activeTab;
                 const isPrimed = tab.code === primedTab;
 
@@ -229,7 +257,7 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
             className="flex flex-col gap-2 p-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl pointer-events-auto max-h-[50vh] overflow-y-auto w-64 shadow-2xl overscroll-contain"
             onWheel={(e) => e.stopPropagation()}
         >
-            {tabs.map((tab) => {
+            {visibleTabs.map((tab) => {
                 const isActive = tab.code === activeTab;
                 return (
                     <div
@@ -274,10 +302,10 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
                 </div>
 
                 {/* Satellites */}
-                {tabs.map((tab, i) => {
+                {visibleTabs.map((tab, i) => {
                     if (tab.code === activeTab) return null; // Center handles active
 
-                    const angle = (i / tabs.length) * 2 * Math.PI;
+                    const angle = (i / visibleTabs.length) * 2 * Math.PI;
                     const x = Math.cos(angle) * radius;
                     const y = Math.sin(angle) * radius;
 
@@ -321,26 +349,60 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
         );
     };
 
-
     return (
         <div className="relative w-full flex flex-col items-center justify-end pb-4 pointer-events-none">
-
-
-
             {/* DOCK CONTAINER: Switcher + Interface */}
-            {/* DOCK CONTAINER: Switcher + Interface */}
-            {/* Main container is pointer-events-none to prevent invisible blocking; children MUST be pointer-events-auto */}
             <div
                 className={`relative flex items-end gap-4 z-50 transition-all duration-500 pointer-events-none ${mode === LAYOUTS.LIST ? 'w-full justify-start px-8' : 'justify-center'}`}
                 style={{ transform: `scale(${scale})`, transformOrigin: 'bottom center' }}
             >
 
                 {/* 1. Layout Switcher (Left Side) - Pointer Events AUTO */}
-                <div className="flex flex-col gap-1 p-1 mb-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl pointer-events-auto">
+                <div className="relative flex flex-col gap-1 p-1 mb-6 bg-black/60 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl pointer-events-auto">
+
+                    {/* Search Toggle */}
+                    <button
+                        onClick={() => {
+                            setShowSearch(!showSearch);
+                            if (showSearch) setSearchQuery('');
+                        }}
+                        className={`
+                            w-6 h-6 flex items-center justify-center rounded transition-all duration-200 mb-1
+                            ${showSearch ? 'bg-brand text-black shadow-lg scale-105' : 'bg-transparent text-white/30 hover:bg-white/10 hover:text-white'}
+                        `}
+                        title="Search Engines"
+                    >
+                        <Search size={12} strokeWidth={3} />
+                    </button>
+
+                    {/* Search Input Popout */}
+                    <div className={`
+                        absolute left-0 bottom-full mb-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-lg p-1.5 flex items-center
+                        transition-all duration-200 origin-bottom-left shadow-2xl
+                        ${showSearch ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-90 -translate-x-4 pointer-events-none'}
+                     `} style={{ width: '200px' }}>
+                        <Search size={12} className="text-white/40 ml-1 mr-2" />
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Find..."
+                            className="w-full bg-transparent border-none outline-none text-xs font-bold text-white placeholder-white/20 uppercase tracking-wider h-6"
+                        />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} className="p-1 hover:text-white text-white/40">
+                                <X size={10} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="h-px bg-white/10 mx-1 mb-1" />
+
                     {Object.values(LAYOUTS).map((l) => (
                         <button
                             key={l}
-                            onClick={() => setMode(l)}
+                            onClick={() => changeMode(l)}
                             className={`
                                 w-6 h-6 flex items-center justify-center rounded transition-all duration-200
                                 ${mode === l
@@ -368,11 +430,7 @@ export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filt
                     {mode === LAYOUTS.ORBIT && renderOrbit()}
                     {mode === LAYOUTS.SYSTEM && renderSystem()}
                 </div>
-
-
-
             </div>
-
         </div>
     );
 }

@@ -2,6 +2,7 @@ import React from "react";
 import Layout from "../components/Layout.jsx";
 import Section from "../components/Section.jsx";
 import { Link } from "react-router-dom";
+import { Activity } from "lucide-react";
 
 export default function SouthLawnLanding() {
 
@@ -15,17 +16,69 @@ export default function SouthLawnLanding() {
                     footerNote: "Quiet execution. Long-horizon compounding.",
                 }}
                 nav={[
-                    { label: "Northfield Solidarity", to: "/" },
-                    { label: "South Lawn", to: "/southlawn" },
-                    { label: "WSP", to: "/wsp" },
-                    { type: "divider" },
                     { label: "Documentation", to: "/southlawn/docs" },
                     { label: "Pricing", to: "/southlawn/pricing" },
                     { label: "System", to: "/southlawn/system" },
                     { label: "Investor Relations", to: "/southlawn/investors" },
+                    { type: "divider" },
+                    { label: "Northfield Solidarity", to: "/" },
+                    { label: "South Lawn", to: "/southlawn" },
+                    { label: "Wall Street Pro", to: "/wsp" },
+                    { label: "More Than Enough", to: "/mte" },
+                    { label: "Iron Logic", to: "/iron" },
                 ]}
             >
                 <HeroSL />
+
+                <div className="max-w-5xl mx-auto px-6 py-20">
+                    <div className="border border-white/10 bg-white/5 p-8 rounded-xl backdrop-blur-md">
+                        <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+                            <h2 className="text-2xl font-bold flex items-center gap-3 text-white">
+                                <Activity size={24} style={{ color: '#22c55e' }} />
+                                System Status
+                            </h2>
+                            <div className="flex items-center gap-2 text-xs font-mono opacity-50 text-white">
+                                <span className="w-2 h-2 rounded-full animate-pulse bg-green-500" />
+                                LIVE SIGNAL
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8 mb-8">
+                            <div className="space-y-4">
+                                <StatusRow label="Portfolio Value" value="$42.5M" themeColor="#22c55e" />
+                                <StatusRow label="Active Units" value="1,240" themeColor="#22c55e" />
+                                <StatusRow label="Occupancy" value="94.2%" themeColor="#22c55e" highlight />
+                            </div>
+                            <div className="space-y-4">
+                                <StatusRow label="Reserve Ratio" value="12%" themeColor="#22c55e" />
+                                <StatusRow label="Maintenance Tix" value="14 Open" themeColor="#22c55e" />
+                                <StatusRow label="Uptime" value="100%" themeColor="#22c55e" />
+                            </div>
+                        </div>
+
+                        {/* Health Bars Visualization */}
+                        <div className="border-t border-white/5 pt-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-4 text-[#22c55e]">Portfolio Health</h4>
+                            <div className="flex items-end gap-1 h-24 bg-black/20 rounded-lg p-4 border border-white/5 relative overflow-hidden">
+                                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+
+                                {[40, 65, 55, 80, 45, 90, 70, 35, 60, 75, 50, 85, 65, 40, 95, 60, 70, 50, 80, 65, 45, 75, 60, 85].map((h, i) => (
+                                    <div key={i}
+                                        className="flex-1 rounded-t-sm transition-all duration-500 hover:opacity-100 bg-green-500"
+                                        style={{
+                                            height: `${h}%`,
+                                            opacity: 0.3 + (h / 200)
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <div className="flex justify-between items-center mt-2 text-[10px] font-mono opacity-50 uppercase text-[#22c55e]">
+                                <span>Yield: 6.8%</span>
+                                <span>Collections: 98%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <Section
                     eyebrow="What this is"
@@ -178,5 +231,19 @@ function HeroSL() {
                 }
             `}</style>
         </section>
+    );
+}
+
+function StatusRow({ label, value, themeColor, highlight }) {
+    return (
+        <div className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+            <span className="text-white/40 text-sm font-mono uppercase tracking-wider">{label}</span>
+            <span
+                className="font-bold font-mono text-lg"
+                style={{ color: highlight ? themeColor : 'white' }}
+            >
+                {value}
+            </span>
+        </div>
     );
 }

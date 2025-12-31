@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '../../components/Layout.jsx';
-import { NS_ENGINES, SL_ENGINES, NS_BMP } from '../../data/engineRegistry.js';
+import { NS_ENGINES, SL_ENGINES, NS_BMP } from '@shared/data/engineRegistry';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
 import { ShoppingCart, X, Trash2, CreditCard, ChevronRight, Scale, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

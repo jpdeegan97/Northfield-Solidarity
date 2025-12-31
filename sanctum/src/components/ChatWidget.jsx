@@ -1,8 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Minimize2, Maximize2, Save, FileLock2, RefreshCw } from 'lucide-react';
 import OpenAI from 'openai';
+import { useAuth } from '../context/AuthContext';
 
 export default function ChatWidget() {
+    // Auth integration although context might be provided higher up
+    let auth = {};
+    try {
+        auth = useAuth();
+    } catch (e) {
+        auth = { user: null, isAuthenticated: false };
+    }
+    const { user, isAuthenticated } = auth;
+
+    const [isActive] = useState(localStorage.getItem('ns_chat_active') !== 'false');
+    // Updated system prompt to reflect the new "Jewel" aesthetic
+    const [systemPrompt] = useState(localStorage.getItem('ns_chat_prompt') || "You are the AI interface for Northfield Solidarity. You are helpful, precise, and favor a 'Jewel' and 'Glass' aesthetic theme (premium, transparent, valuable). You have access to real estate and capital strategy context.");
+
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [messages, setMessages] = useState([
@@ -12,6 +26,7 @@ export default function ChatWidget() {
     const [isLoading, setIsLoading] = useState(false);
     const [apiKey, setApiKey] = useState(localStorage.getItem('ns_openai_key') || '');
     const [showKeyInput, setShowKeyInput] = useState(!localStorage.getItem('ns_openai_key'));
+    const [saveStatus, setSaveStatus] = useState(null); // 'saving', 'saved', 'error'
 
     const messagesEndRef = useRef(null);
 
@@ -19,9 +34,30 @@ export default function ChatWidget() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Load History
+    useEffect(() => {
+        const loadHistory = () => {
+            const savedData = localStorage.getItem('ns_chat_vectors');
+            if (savedData) {
+                try {
+                    const decrypted = JSON.parse(decodeURIComponent(atob(savedData)));
+                    setMessages(decrypted);
+                } catch (e) {
+                    console.error("Failed to decrypt chat vectors", e);
+                }
+            }
+        };
+
+        if (isAuthenticated) {
+            loadHistory();
+        }
+    }, [isAuthenticated]);
+
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    if (!isActive) return null;
 
     const handleSaveKey = () => {
         if (apiKey.trim()) {
@@ -36,6 +72,22 @@ export default function ChatWidget() {
         setShowKeyInput(true);
     };
 
+    const handleSaveAndEncrypt = () => {
+        try {
+            setSaveStatus('saving');
+            const encrypted = btoa(encodeURIComponent(JSON.stringify(messages)));
+            localStorage.setItem('ns_chat_vectors', encrypted);
+
+            setTimeout(() => {
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus(null), 2000);
+            }, 600);
+        } catch (e) {
+            console.error("Encryption failed", e);
+            setSaveStatus('error');
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
@@ -48,16 +100,16 @@ export default function ChatWidget() {
         try {
             const openai = new OpenAI({
                 apiKey: apiKey,
-                dangerouslyAllowBrowser: true // Required for client-side usage
+                dangerouslyAllowBrowser: true
             });
 
             const completion = await openai.chat.completions.create({
                 messages: [
-                    { role: "system", content: "You are the AI interface for Northfield Solidarity, a sovereign equity management system. You are helpful, precise, and favor the 'Gold' and 'Water' aesthetic themes in your language (calm, structured). You have access to the context that this is a React application managing real estate (South Lawn) and strategic capital (WSP)." },
+                    { role: "system", content: systemPrompt },
                     ...messages,
                     userMsg
                 ],
-                model: "gpt-4-turbo-preview", // Or standard gpt-4/3.5 depending on access
+                model: "gpt-4-turbo-preview",
             });
 
             const aiMsg = completion.choices[0].message;
@@ -84,33 +136,58 @@ export default function ChatWidget() {
                 aria-label="Open AI Assistant"
             >
                 <div className="trigger-pulse"></div>
-                <MessageSquare size={24} />
+                <div className="trigger-inner">
+                    <MessageSquare size={24} />
+                </div>
             </button>
         );
     }
 
     return (
         <div className={`ai-widget-window ${isExpanded ? 'expanded' : ''}`}>
+            {/* Ambient Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/5 via-transparent to-[#D4AF37]/5 pointer-events-none" />
+
             <div className="ai-header">
                 <div className="ai-status">
-                    <div className="status-dot"></div>
-                    <span className="ai-title">System Intelligence</span>
+                    <div className="status-ring">
+                        <div className={`status-dot ${isLoading ? 'animate-pulse bg-amber-400' : 'bg-emerald-400'}`}></div>
+                    </div>
+                    <span className="ai-title font-serif tracking-wider text-[#D4AF37]">ORACLE</span>
                 </div>
                 <div className="ai-controls">
+                    <button
+                        onClick={handleSaveAndEncrypt}
+                        className={`icon-btn ${saveStatus === 'saved' ? 'text-emerald-400' : ''}`}
+                        title="Save & Encrypt Vectors"
+                    >
+                        {saveStatus === 'saved' ? <FileLock2 size={16} /> : <Save size={16} />}
+                    </button>
                     <button onClick={() => setIsExpanded(!isExpanded)} className="icon-btn">
                         {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                     </button>
-                    <button onClick={() => setIsOpen(false)} className="icon-btn">
+                    <button onClick={() => setIsOpen(false)} className="icon-btn close">
                         <X size={18} />
                     </button>
                 </div>
             </div>
 
-            <div className="ai-body">
+            <div className="ai-body custom-scrollbar">
+                {saveStatus === 'saved' && (
+                    <div className="mx-4 mt-2 mb-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] py-1 px-4 text-center font-mono border border-emerald-500/20 shadow-[0_0_15px_-5px_var(--c-emerald)]">
+                        SESSION VECTORS SECURED
+                    </div>
+                )}
+
                 {showKeyInput ? (
                     <div className="key-setup">
-                        <h3>Configuration Required</h3>
-                        <p>Please enter your OpenAI API key to activate the neural interface. Values are stored locally in your browser.</p>
+                        <div className="w-12 h-12 rounded-full border border-[#D4AF37]/30 flex items-center justify-center mb-4 shadow-[0_0_20px_-5px_rgba(212,175,55,0.3)]">
+                            <Save className="text-[#D4AF37]" size={20} />
+                        </div>
+                        <h3 className="text-lg font-serif text-[#D4AF37] mb-2">Initialize Uplink</h3>
+                        <p className="text-xs text-neutral-400 max-w-[240px] mb-6 leading-relaxed">
+                            Secure connection requires an OpenAI key. Data is locally encrypted.
+                        </p>
                         <input
                             type="password"
                             value={apiKey}
@@ -118,268 +195,339 @@ export default function ChatWidget() {
                             placeholder="sk-..."
                             className="key-input"
                         />
-                        <button onClick={handleSaveKey} className="btn sm full-width">Initialize Link</button>
+                        <button onClick={handleSaveKey} className="init-btn">
+                            Connect
+                        </button>
                     </div>
                 ) : (
                     <>
-                        <div className="messages-list">
+                        <div className="messages-list" style={{ fontFamily: isExpanded ? 'monospace' : 'inherit' }}>
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`message ${msg.role}`}>
-                                    <div className="message-bubble">
-                                        {msg.content}
+                                    <div className="message-content-wrapper">
+                                        <div className="message-bubble">
+                                            {msg.content}
+                                        </div>
+                                        <div className="message-timestamp">
+                                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                             {isLoading && (
                                 <div className="message assistant">
                                     <div className="message-bubble typing">
-                                        <span>.</span><span>.</span><span>.</span>
+                                        <span>•</span><span>•</span><span>•</span>
                                     </div>
                                 </div>
                             )}
                             <div ref={messagesEndRef} />
                         </div>
 
-                        <div className="input-area-wrapper">
-                            <form onSubmit={handleSubmit} className="input-area">
+                        <div className="input-area-container">
+                            <form onSubmit={handleSubmit} className="input-area-glass">
                                 <input
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Query the system..."
+                                    placeholder={isLoading ? "Processing..." : "Enter command..."}
                                     autoFocus
+                                    disabled={isLoading}
                                 />
-                                <button type="submit" disabled={!input.trim() || isLoading}>
-                                    <Send size={18} />
+                                <button type="submit" disabled={!input.trim() || isLoading} className={input.trim() ? "active" : ""}>
+                                    {isLoading ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
                                 </button>
                             </form>
-                            <button onClick={handleClearKey} className="text-xs text-sub mt-2 hover:text-brand">Reset Key</button>
+                            <div className="flex justify-between items-center px-2 mt-2">
+                                <button onClick={handleClearKey} className="text-[10px] text-neutral-500 hover:text-[#D4AF37] transition-colors">Reset Key</button>
+                                <div className="text-[10px] text-[#D4AF37]/40 font-mono tracking-widest uppercase">
+                                    {user ? `Operator: ${user.email.split('@')[0]}` : 'Guest Node'}
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}
             </div>
 
             <style>{`
+                /* --- Trigger Button --- */
                 .ai-widget-trigger {
                     position: fixed;
-                    bottom: 24px;
-                    right: 24px;
-                    width: 56px;
-                    height: 56px;
+                    bottom: 32px;
+                    right: 32px;
+                    width: 64px;
+                    height: 64px;
                     border-radius: 50%;
-                    background: var(--c-brand);
-                    color: #fff;
-                    border: none;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    background: rgba(10, 10, 10, 0.4);
+                    border: 1px solid rgba(212, 175, 55, 0.3);
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                    backdrop-filter: blur(12px);
                     cursor: pointer;
-                    z-index: 2147483647; /* Max z-index to ensure visibility */
+                    z-index: 9999;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    transition: transform 0.2s;
+                    transition: all 0.3s ease;
                 }
                 .ai-widget-trigger:hover {
-                    transform: scale(1.05);
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 40px rgba(212, 175, 55, 0.2);
+                    border-color: rgba(212, 175, 55, 0.6);
                 }
-                .trigger-pulse {
-                    position: absolute;
-                    top: 0; left: 0; right: 0; bottom: 0;
+                .trigger-inner {
+                    width: 48px;
+                    height: 48px;
                     border-radius: 50%;
-                    border: 2px solid var(--c-brand);
-                    animation: pulse 2s infinite;
-                    opacity: 0;
+                    background: linear-gradient(135deg, rgba(212, 175, 55, 0.8), rgba(180, 148, 31, 1));
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: black;
                 }
                 
+                /* --- Main Window --- */
                 .ai-widget-window {
                     position: fixed;
-                    bottom: 24px;
-                    right: 24px;
-                    width: 380px;
-                    height: 600px;
-                    max-height: calc(100vh - 48px);
-                    background: var(--c-surface);
-                    border: 1px solid var(--c-border);
-                    border-radius: 16px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+                    bottom: 32px;
+                    right: 32px;
+                    width: 400px;
+                    height: 650px;
+                    max-height: calc(100vh - 64px);
+                    background: rgba(15, 15, 15, 0.65);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 32px;
+                    box-shadow: 
+                        0 20px 50px rgba(0,0,0,0.5),
+                        0 0 0 1px rgba(212, 175, 55, 0.1) inset;
                     display: flex;
                     flex-direction: column;
-                    z-index: 2147483647;
+                    z-index: 9999;
                     overflow: hidden;
-                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                    backdrop-filter: blur(10px);
+                    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+                    backdrop-filter: blur(24px);
+                    font-family: 'Inter', sans-serif;
                 }
-                
                 .ai-widget-window.expanded {
-                    width: 800px;
-                    height: 800px;
+                    width: 900px;
+                    height: 80vh;
+                    border-radius: 24px;
                 }
 
+                /* --- Header --- */
                 .ai-header {
-                    padding: 16px;
-                    border-bottom: 1px solid var(--c-border);
+                    padding: 20px 24px;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    background: rgba(0,0,0,0.2);
-                    flex-shrink: 0;
+                    background: linear-gradient(to bottom, rgba(255,255,255,0.03), transparent);
+                    border-bottom: 1px solid rgba(255,255,255,0.03);
                 }
-                .ai-status {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
+                .status-ring {
+                    padding: 3px;
+                    border-radius: 50%;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    margin-right: 10px;
                 }
                 .status-dot {
-                    width: 8px;
-                    height: 8px;
+                    width: 6px;
+                    height: 6px;
                     border-radius: 50%;
-                    background: #10b981;
-                    box-shadow: 0 0 8px #10b981;
+                    box-shadow: 0 0 10px currentColor;
                 }
-                .ai-title {
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    color: var(--c-text);
-                }
+                
                 .icon-btn {
                     background: none;
                     border: none;
-                    color: var(--c-text-sub);
+                    color: rgba(255, 255, 255, 0.4);
                     cursor: pointer;
-                    padding: 4px;
-                    border-radius: 4px;
+                    padding: 8px;
+                    border-radius: 50%;
+                    transition: all 0.2s;
+                    margin-left: 4px;
                 }
                 .icon-btn:hover {
-                    background: var(--c-bg-hover);
-                    color: var(--c-text);
+                    background: rgba(255, 255, 255, 0.1);
+                    color: #fff;
+                }
+                .icon-btn.close:hover {
+                    background: rgba(239, 68, 68, 0.2);
+                    color: #ef4444;
                 }
 
+                /* --- Body --- */
                 .ai-body {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
-                    background: var(--c-bg);
                 }
 
                 .messages-list {
                     flex: 1;
                     overflow-y: auto;
-                    padding: 20px;
+                    padding: 24px;
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
+                    gap: 24px;
                 }
 
+                /* --- Bubbles --- */
                 .message {
                     display: flex;
-                    justify-content: flex-start;
+                    width: 100%;
                 }
                 .message.user {
                     justify-content: flex-end;
                 }
                 
-                .message-bubble {
-                    max-width: 85%;
-                    padding: 12px 16px;
-                    border-radius: 12px;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                }
-                .message.assistant .message-bubble {
-                    background: var(--c-surface);
-                    color: var(--c-text);
-                    border: 1px solid var(--c-border);
-                    border-top-left-radius: 2px;
-                }
-                .message.user .message-bubble {
-                    background: var(--c-brand);
-                    color: white;
-                    border-top-right-radius: 2px;
-                }
-
-                .typing span {
-                    animation: blink 1.4s infinite both;
-                    font-size: 1.2rem;
-                    line-height: 1rem;
-                    margin: 0 1px;
-                }
-                .typing span:nth-child(2) { animation-delay: 0.2s; }
-                .typing span:nth-child(3) { animation-delay: 0.4s; }
-
-                .input-area-wrapper {
-                     padding: 16px;
-                     border-top: 1px solid var(--c-border);
-                     background: var(--c-surface);
-                     flex-shrink: 0;
-                }
-
-                .input-area {
+                .message-content-wrapper {
+                    max-width: 80%;
                     display: flex;
-                    gap: 8px;
+                    flex-direction: column;
+                }
+                .message.user .message-content-wrapper {
+                    align-items: flex-end;
                 }
 
-                .input-area input {
+                .message-bubble {
+                    padding: 14px 20px;
+                    border-radius: 20px;
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    position: relative;
+                    backdrop-filter: blur(5px);
+                }
+
+                .message.assistant .message-bubble {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    color: rgba(255, 255, 255, 0.9);
+                    border-bottom-left-radius: 4px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }
+
+                .message.user .message-bubble {
+                    background: linear-gradient(135deg, rgba(212, 175, 55, 0.8), rgba(160, 130, 20, 0.9));
+                    color: #000;
+                    font-weight: 500;
+                    border-bottom-right-radius: 4px;
+                    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+                }
+
+                .message-timestamp {
+                    font-size: 0.65rem;
+                    color: rgba(255,255,255,0.2);
+                    margin-top: 6px;
+                    padding: 0 4px;
+                }
+
+                /* --- Input Area --- */
+                .input-area-container {
+                     padding: 20px 24px 24px;
+                     background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+                }
+
+                .input-area-glass {
+                    display: flex;
+                    align-items: center;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 100px; /* Fully rounded capsule */
+                    padding: 6px 6px 6px 20px;
+                    transition: all 0.3s ease;
+                }
+                .input-area-glass:focus-within {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(212, 175, 55, 0.3);
+                    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.05);
+                }
+
+                .input-area-glass input {
                     flex: 1;
-                    background: var(--c-bg);
-                    border: 1px solid var(--c-border);
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    color: var(--c-text);
-                    outline: none;
-                }
-                .input-area input:focus {
-                    border-color: var(--c-brand);
-                }
-                .input-area button {
-                    background: var(--c-brand);
-                    color: white;
+                    background: transparent;
                     border: none;
-                    border-radius: 8px;
+                    color: white;
+                    outline: none;
+                    font-size: 0.95rem;
+                }
+                .input-area-glass input::placeholder {
+                    color: rgba(255, 255, 255, 0.2);
+                }
+
+                .input-area-glass button {
                     width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: rgba(255, 255, 255, 0.4);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
+                    transition: all 0.2s;
                 }
-                .input-area button:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
+                .input-area-glass button.active {
+                    background: #D4AF37;
+                    color: black;
+                }
+                .input-area-glass button:hover.active {
+                    transform: scale(1.05);
+                    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
                 }
 
+                /* --- Key Setup --- */
                 .key-setup {
                     padding: 40px;
                     text-align: center;
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
                     align-items: center;
                     margin: auto;
                 }
                 .key-input {
-                    background: var(--c-bg);
-                    border: 1px solid var(--c-border);
-                    padding: 8px;
-                    border-radius: 6px;
+                    background: rgba(0,0,0,0.3);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    padding: 12px;
+                    border-radius: 12px;
                     width: 100%;
-                    color: var(--c-text);
+                    color: white;
+                    font-family: monospace;
+                    margin-bottom: 16px;
+                    transition: border 0.2s;
+                }
+                .key-input:focus {
+                    border-color: #D4AF37;
+                    outline: none;
+                }
+                .init-btn {
+                     background: linear-gradient(135deg, #D4AF37, #B4941F);
+                     color: black;
+                     border: none;
+                     padding: 10px 32px;
+                     border-radius: 100px;
+                     font-weight: bold;
+                     font-size: 0.9rem;
+                     cursor: pointer;
+                     transition: transform 0.2s;
+                }
+                .init-btn:hover {
+                    transform: scale(1.05);
                 }
 
-                @keyframes pulse {
-                    0% { transform: scale(1); opacity: 0.5; }
-                    100% { transform: scale(1.5); opacity: 0; }
+                /* --- Utils --- */
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
                 }
-                @keyframes blink {
-                    0% { opacity: 0.2; }
-                    20% { opacity: 1; }
-                    100% { opacity: 0.2; }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
                 }
-
-                @media (max-width: 480px) {
-                    .ai-widget-window {
-                        right: 0; bottom: 0; left: 0; top: 0;
-                        width: 100%; height: 100%;
-                        border-radius: 0;
-                    }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.2);
                 }
             `}</style>
         </div>

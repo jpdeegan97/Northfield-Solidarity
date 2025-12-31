@@ -49,7 +49,8 @@ export default function WSPContact() {
     const nav = [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
         { type: "divider" },
         { label: "Documentation", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },

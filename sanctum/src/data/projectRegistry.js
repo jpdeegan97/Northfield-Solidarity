@@ -18,7 +18,7 @@ export const NS_PROJECTS = [
         timeline: { category: "Experimental", start: 4, duration: 4 }
     },
     {
-        code: "OS",
+        code: "FL",
         name: "FANTASY LAND",
         category: "Project",
         description: "Experiential visualization platform for small & mid-sized businesses.",
@@ -81,17 +81,17 @@ export const NS_PROJECTS = [
         name: "DUCT TAPE",
         category: "Project",
         description: "Intimate idea rambling sessions.",
-        status: "Ideation",
+        status: "Active",
         charterContent: "DUCT_TAPE_CHARTER",
         timeline: { category: "Experimental", start: 0, duration: 12 }
     },
     {
-        code: "FRK",
-        name: "FORK",
+        code: "TINE",
+        name: "TINE",
         category: "Project",
-        description: "Experimental branches and divergence tracking.",
+        description: "Culinary & Cuisine Project - Exploring culture through food.",
         status: "Active",
-        charterContent: "FORK_CHARTER",
+        charterContent: "NS_TINE_000_CHARTER",
         timeline: { category: "Core Systems", start: 0, duration: 12, color: "#f59e0b" }
     },
     {
@@ -131,6 +131,15 @@ export const NS_PROJECTS = [
         timeline: { category: "Internal Tools", start: 4, duration: 4 }
     },
     {
+        code: "HP",
+        name: "HOT POTATO",
+        category: "Project",
+        description: "Hot Lead Generator + CWP (Conversion Workflow Playbook).",
+        status: "Draft",
+        charterContent: "HP_CHARTER",
+        timeline: { category: "Internal Tools", start: 6, duration: 4, color: "#ea580c" }
+    },
+    {
         code: "NUM",
         name: "NUMBEROLOGY",
         category: "Project",
@@ -139,4 +148,26 @@ export const NS_PROJECTS = [
         charterContent: "NUMBEROLOGY_CHARTER",
         timeline: { category: "Experimental", start: 5, duration: 3 }
     },
+    {
+        code: "DAT",
+        name: "DEAL ATLAS",
+        category: "Project",
+        description: "Global Capital Deployment Registry & Analytics.",
+        status: "Draft",
+        charterContent: "DEAL_ATLAS_CHARTER",
+        documents: [
+            { id: 'charter', title: 'Project Charter', contentKey: 'DEAL_ATLAS_CHARTER' },
+            { id: 'dataref', title: 'Data Reference', contentKey: 'DEAL_ATLAS_DATAREF' }
+        ],
+        timeline: { category: "Core Systems", start: 8, duration: 4, color: "#2563eb" }
+    },
+    {
+        code: "ASC",
+        name: "Ascention",
+        category: "Project",
+        description: "Employee Portal, Leaderboards & Equity Management.",
+        status: "Draft",
+        charterContent: "ASCENTION_CHARTER",
+        timeline: { category: "Internal Tools", start: 9, duration: 3 }
+    }
 ];

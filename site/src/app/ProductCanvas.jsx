@@ -12,8 +12,10 @@ import WindowFrame from '../components/WindowFrame';
 // Engine Views
 import GGPView from './engines/GGPView';
 import IDNView from './engines/IDNView';
+import ManifoldView from './engines/ManifoldView';
+import FLView from './engines/FLView';
 import PIEView from './engines/PIEView';
-import DATView from './engines/DATView';
+import ATLView from './engines/ATLView';
 import MUXView from './engines/MUXView';
 import SIGView from './engines/SIGView';
 import SIMView from './engines/SIMView';
@@ -24,6 +26,7 @@ import CWPView from './engines/CWPView';
 import BCPView from './engines/BCPView';
 import LUMView from './engines/LUMView';
 import PTEView from './engines/PTEView';
+import RELAYView from './engines/RELAYView';
 import MRFPEView from './engines/MRFPEView';
 import PECAView from './engines/PECAView';
 import FRKView from './engines/FRKView';
@@ -31,6 +34,8 @@ import INCView from './engines/INCView';
 import CRNView from './engines/CRNView';
 import IDEView from './engines/IDEView';
 import FirmamentCockpit from './engines/FirmamentCockpit';
+import TineView from './engines/project/tine/TineView';
+import HPView from './engines/HPView';
 
 export default function ProductCanvas() {
     // --- MULTI-INSTANCE STATE (Tabularization) ---
@@ -198,7 +203,7 @@ export default function ProductCanvas() {
                 description: p.description
             }));
 
-        const ENGINE_CODES = ['GGP', 'DRE', 'PIE', 'INT', 'MUX', 'SIG', 'IDN', 'SIM', 'DAT', 'FLO', 'BCP'];
+        const ENGINE_CODES = ['RL', 'MT', 'FL', 'GGP', 'DRE', 'PIE', 'INT', 'MUX', 'SIG', 'IDN', 'SIM', 'ATL', 'FLO', 'BCP'];
         const engines = ENGINE_CODES.map(code => {
             const registryItem = ALL_ENGINES.find(e => e.code === code);
             return {
@@ -563,9 +568,11 @@ export default function ProductCanvas() {
         const engineData = getActiveEngineData(code);
         const props = { engine: engineData };
         switch (code) {
-            case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={firmamentLayers} onToggleLayer={toggleLayer} onLaunch={triggerWarp} />;
+            case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={firmamentLayers} onToggleLayer={toggleLayer} onLaunch={triggerWarp} onOpenWindow={openWindow} />;
+            case 'MT': return <ManifoldView {...props} />;
+            case 'FL': return <FLView {...props} />;
             case 'PIE': return <PIEView {...props} />;
-            case 'DAT': return <DATView {...props} />;
+            case 'ATL': return <ATLView {...props} />;
             case 'MUX': return <MUXView {...props} />;
             case 'SIG': return <SIGView {...props} />;
             case 'SIM': return <SIMView {...props} />;
@@ -577,6 +584,7 @@ export default function ProductCanvas() {
             case 'CWP': return <CWPView {...props} />;
             case 'BCP': return <BCPView {...props} />;
             case 'LUM': return <LUMView {...props} />;
+            case 'RL': return <RELAYView {...props} />;
             case 'PTE': return <PTEView {...props} />;
             case 'MRFPE': return <MRFPEView {...props} />;
             case 'PECA': return <PECAView {...props} />;
@@ -584,6 +592,8 @@ export default function ProductCanvas() {
             case 'INC': return <INCView {...props} />;
             case 'CRN': return <CRNView {...props} />;
             case 'IDE': return <IDEView {...props} />;
+            case 'TINE': return <TineView {...props} />;
+            case 'HP': return <HPView {...props} />;
             default: return <EngineOverlay {...props} />;
         }
     };
@@ -990,6 +1000,7 @@ export default function ProductCanvas() {
                         activeLayers={firmamentLayers}
                         onToggleLayer={toggleLayer}
                         onLaunch={triggerWarp}
+                        onOpenWindow={openWindow}
                     />
                 </div>
             )}

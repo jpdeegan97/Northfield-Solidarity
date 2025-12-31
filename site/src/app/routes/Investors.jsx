@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
 import InteractiveGrowthChart from '../../components/InteractiveGrowthChart.jsx';
 import CapitalFlowModel from '../../components/CapitalFlowModel.jsx';
 import MermaidDiagram from '../../components/MermaidDiagram.jsx';
-import { NS_ENGINES, SL_ENGINES, NS_BMP } from '../../data/engineRegistry.js';
+import { NS_ENGINES, SL_ENGINES, NS_BMP } from '@shared/data/engineRegistry';
 import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx';
 import { useCrowdFunding } from '../../context/CrowdFundingContext.jsx';
 
@@ -596,6 +596,7 @@ graph TD
         OPS[NSDC Operations LLC]
         MGMT[NS MGMT LLC]
         EDU[NSDC Educational Services LLC]
+        MTE[More Than Enough Tutors]
     end
 
     subgraph "IP & R&D"
@@ -611,23 +612,24 @@ graph TD
     NS --> OPS
     NS --> MGMT
     NS --> EDU
+    NS --> MTE
     NS --> IP
     NS --> LAB
     NS --> EXP
 
     %% Logic
-    IP -.->|License| OPS & EDU
+    IP -.->|License| OPS & EDU & MTE
     LAB -.->|Assigns IP| IP
     EXP -.->|Assigns IP| IP
     SL -.->|Leases| OPS
-    MGMT -.->|Services| OPS & SL & IP & EDU
+    MGMT -.->|Services| OPS & SL & IP & EDU & MTE
 
     classDef holdco fill:#0f172a,stroke:#3b82f6,color:#fff,stroke-width:2px;
     classDef op fill:#1e293b,stroke:#94a3b8,color:#fff;
     classDef trust fill:#4c1d95,stroke:#a78bfa,color:#fff,stroke-width:2px;
     
     class NS holdco;
-    class SL,OPS,MGMT,IP,LAB,EXP,EDU op;
+    class SL,OPS,MGMT,IP,LAB,EXP,EDU,MTE op;
     class TRUST,CAYMAN trust;
 `;
 
@@ -682,56 +684,94 @@ const EntityStructureView = () => (
                 </div>
 
                 {/* IP Co */}
-                <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#a855f7' }}>NSDC IP Holdings LLC</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>IP Owner</div>
-                    <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Owns all codebase, workflows, docs, trademarks, and datasets. Licenses platform IP to OpCo. Receives IP assignments from R&D Labs.
-                    </p>
-                </div>
+                {/* IP Co */}
+                <Link to="/investors/ip" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer', transition: 'all 0.2s', ':hover': { borderColor: '#a855f7' } }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#a855f7' }}>NSDC IP Holdings LLC</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>IP Owner</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Owns all codebase, workflows, docs, trademarks, and datasets. Licenses platform IP to OpCo. Receives IP assignments from R&D Labs.
+                        </p>
+                    </div>
+                </Link>
 
                 {/* OpCo */}
-                <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#22c55e' }}>NSDC Operations LLC</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Customer OpCo</div>
-                    <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Signs customer contracts (DPA, SLA). Runs billing, support, & customer success. Holds operational vendor contracts.
-                    </p>
-                </div>
+                {/* OpCo */}
+                <Link to="/investors/ops" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#22c55e' }}>NSDC Operations LLC</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Customer OpCo</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Signs customer contracts (DPA, SLA). Runs billing, support, & customer success. Holds operational vendor contracts.
+                        </p>
+                    </div>
+                </Link>
 
                 {/* Real Estate */}
-                <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#eab308' }}>South Lawn LLC</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Facilities / RE</div>
-                    <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Holds leases for physical space and facilities. Leases office/facility use to sister entities via intercompany agreements.
-                    </p>
-                </div>
+                {/* Real Estate */}
+                <Link to="/southlawn" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#eab308' }}>South Lawn LLC</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Facilities / RE</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Holds leases for physical space and facilities. Leases office/facility use to sister entities via intercompany agreements.
+                        </p>
+                    </div>
+                </Link>
 
                 {/* Labs */}
-                <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#f97316' }}>Innovations & Experimental Labs</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>R&D Subsidiaries</div>
-                    <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Isolated environments for prototyping and high-risk experiments. All resulting IP is assigned up to IP Holdings LLC.
-                    </p>
-                </div>
+                {/* Labs */}
+                <Link to="/investors/labs" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#f97316' }}>Innovations Lab</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>R&D Subsidiaries</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Isolated environments for prototyping and high-risk experiments. All resulting IP is assigned up to IP Holdings LLC.
+                        </p>
+                    </div>
+                </Link>
+
+                {/* Experimental */}
+                <Link to="/investors/experimental" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'rgba(239, 68, 68, 0.05)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#ef4444' }}>Experimental Lab</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Classified </div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Black ops research division for exotic economic models and containment.
+                        </p>
+                    </div>
+                </Link>
 
                 {/* MGMT */}
-                <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#64748b' }}>NS MGMT LLC</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Shared Services</div>
-                    <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Centralized employment and contractor management. Charges sister entities via intercompany services + cost allocation.
-                    </p>
-                </div>
+                {/* MGMT */}
+                <Link to="/investors/mgmt" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#64748b' }}>NS MGMT LLC</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Shared Services</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Centralized employment and contractor management. Charges sister entities via intercompany services + cost allocation.
+                        </p>
+                    </div>
+                </Link>
 
                 {/* EDU */}
+                {/* EDU */}
+                <Link to="/investors/education" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)', cursor: 'pointer' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#00ff9d' }}>NSDC Educational Services LLC</h3>
+                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Education & Training</div>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
+                            Provides educational content, training workshops, and certification programs. Utilizes IP licensed from NSDC IP Holdings.
+                        </p>
+                    </div>
+                </Link>
+
+                {/* MTE */}
                 <div style={{ padding: '2rem', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', background: 'var(--c-surface)' }}>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#00ff9d' }}>NSDC Educational Services LLC</h3>
-                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>Education & Training</div>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#d97706' }}>More Than Enough Tutors</h3>
+                    <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-sub)', marginBottom: '0.5rem' }}>AI Education Platform</div>
                     <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--c-text-sub)' }}>
-                        Provides educational content, training workshops, and certification programs. Utilizes IP licensed from NSDC IP Holdings.
+                        Specialized AI tutors designed to elevate financial and operational cognition. The primary educational interface for the Northfield ecosystem.
                     </p>
                 </div>
 

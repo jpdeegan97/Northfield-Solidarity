@@ -1,5 +1,6 @@
 import React from "react";
 import Sidebar from "./Sidebar.jsx";
+import ChatWidget from "./ChatWidget.jsx";
 import { FlowerOfLife } from "./SacredGeometry.jsx";
 
 export default function Layout({ children }) {
@@ -21,6 +22,8 @@ export default function Layout({ children }) {
                     </div>
                 </footer>
             </main>
+
+            <ChatWidget />
         </div>
     );
 }

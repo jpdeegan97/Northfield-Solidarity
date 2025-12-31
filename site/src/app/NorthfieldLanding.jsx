@@ -2,8 +2,23 @@ import React from "react";
 import Layout from "../components/Layout.jsx";
 import Section from "../components/Section.jsx";
 import EngineGrid from "../components/EngineGrid.jsx";
-import { NS_ENGINES } from "../data/engineRegistry.js";
+import { NS_ENGINES } from "@shared/data/engineRegistry";
 import { Link } from "react-router-dom";
+import {
+    Home,
+    Layers,
+    Cpu,
+    Box,
+    Globe,
+    DollarSign,
+    Activity,
+    FileText,
+    UserCircle,
+    Building2,
+    Landmark,
+    GraduationCap,
+    Flame
+} from "lucide-react";
 
 export default function NorthfieldLanding() {
     // Theme: Water
@@ -88,25 +103,10 @@ export default function NorthfieldLanding() {
                             "Idempotency + retry + DLQ standards",
                             "Deployment topology (PowerEdge / containers)",
                             "Security + IP lockdown strategy",
+                            "Security + IP lockdown strategy",
                         ].map((t) => (
                             <div key={t} className="p-4 bg-card-bg border border-border rounded font-medium text-center flex items-center justify-center min-h-[5rem] hover:border-brand hover:text-brand transition-colors cursor-default">{t}</div>
                         ))}
-                    </div>
-                </Section>
-
-                <Section
-                    eyebrow="Ecosystem"
-                    title="Operating companies can branch without duplicating the core stack."
-                    subtitle="South Lawn RE Holdings is a real-estate-only operator that consumes NS governance and infrastructure."
-                >
-                    <div className="w-full flex justify-center mt-8">
-                        <div className="bg-surface border border-border p-8 rounded-xl flex flex-col gap-4 items-center text-center max-w-2xl">
-                            <div className="text-2xl font-bold">South Lawn RE Holdings</div>
-                            <div className="max-w-lg text-text-sub">
-                                Real estate only. Domain engines focused on market research, entity creation automation, and portfolio tracking.
-                            </div>
-                            <Link className="inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md bg-brand text-white hover:brightness-110 transition-all" to="/southlawn">Visit South Lawn</Link>
-                        </div>
                     </div>
                 </Section>
 
@@ -130,7 +130,7 @@ function HeroNS() {
                     </p>
                     <div className="flex gap-4 justify-center">
                         <Link className="inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md bg-brand text-white hover:brightness-110 transition-all" to="/system">Explore the System</Link>
-                        <Link className="inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md bg-[#00ff9d] text-[#001a10] border border-[#00ff9d] hover:brightness-110 transition-all" to="/platform">Launch Platform</Link>
+                        <Link className="inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md bg-[#00ff9d] text-[#001a10] border border-[#00ff9d] hover:brightness-110 transition-all" to="/firmament">Launch Firmament</Link>
                         <Link className="inline-flex items-center justify-center px-6 py-3 font-semibold rounded-md bg-transparent text-text border border-current hover:text-brand hover:border-brand transition-all" to="/docs">View Documentation</Link>
                     </div>
                 </div>

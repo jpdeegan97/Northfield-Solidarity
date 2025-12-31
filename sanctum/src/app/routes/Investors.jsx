@@ -8,60 +8,99 @@ import { NS_ENGINES, SL_ENGINES } from '../../data/engineRegistry.js';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
 import { useAuth, USER_ROLES } from '../../context/AuthContext.jsx';
 import { MASTER_PLAN_INDUSTRIES } from '../../data/masterPlan.js';
+import SectorIntelligenceModal from '../../components/SectorIntelligenceModal.jsx';
 
-const MasterPlanView = () => (
-    <div className="tab-content fade-in">
-        <section className="ir-section">
-            <h3 className="section-label">Global Master Plan</h3>
-            <p className="lead ir-subtitle" style={{ marginBottom: '3rem' }}>
-                A comprehensive map of global industries, identifying systemic friction and opportunities for optimization.
-            </p>
+const MasterPlanView = () => {
+    const [selectedSector, setSelectedSector] = useState(null);
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '2rem'
-            }}>
-                {MASTER_PLAN_INDUSTRIES.map((industry, index) => (
-                    <div key={index} style={{
-                        padding: '1.5rem',
-                        background: 'var(--c-surface)',
-                        border: '1px solid var(--c-border)',
-                        borderRadius: 'var(--radius-md)',
-                        transition: 'transform 0.2s',
-                    }}>
-                        <h4 style={{
-                            fontSize: '1.1rem',
-                            color: 'var(--c-brand)',
-                            marginBottom: '1rem',
-                            borderBottom: '1px solid var(--c-border)',
-                            paddingBottom: '0.5rem'
+    return (
+        <div className="tab-content fade-in">
+            <SectorIntelligenceModal
+                key={selectedSector?.name || 'modal'}
+                isOpen={!!selectedSector}
+                onClose={() => setSelectedSector(null)}
+                sector={selectedSector?.name}
+                category={selectedSector?.category}
+            />
+            <section className="ir-section">
+                <h3 className="section-label">Global Master Plan</h3>
+                <p className="lead ir-subtitle" style={{ marginBottom: '3rem' }}>
+                    A comprehensive map of global industries, identifying systemic friction and opportunities for optimization.
+                    <span className="block mt-2 text-xs text-[#00ff9d] opacity-70 uppercase tracking-widest animate-pulse">
+                        * Click any sector node to access Firmament Intelligence feed
+                    </span>
+                </p>
+
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '2rem'
+                }}>
+                    {MASTER_PLAN_INDUSTRIES.map((industry, index) => (
+                        <div key={index} style={{
+                            padding: '1.5rem',
+                            background: 'var(--c-surface)',
+                            border: '1px solid var(--c-border)',
+                            borderRadius: 'var(--radius-md)',
+                            transition: 'transform 0.2s',
                         }}>
-                            {industry.category}
-                        </h4>
-                        <ul style={{
-                            listStyle: 'none',
-                            padding: 0,
-                            margin: 0
-                        }}>
-                            {industry.items.map((sub, idx) => (
-                                <li key={idx} style={{
-                                    fontSize: '0.9rem',
-                                    color: 'var(--c-text-sub)',
-                                    marginBottom: '0.5rem',
-                                    paddingLeft: '1rem',
-                                    borderLeft: '2px solid rgba(255,255,255,0.05)'
-                                }}>
-                                    {sub}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        </section>
-    </div>
-);
+                            <h4 style={{
+                                fontSize: '1.1rem',
+                                color: 'var(--c-brand)',
+                                marginBottom: '1rem',
+                                borderBottom: '1px solid var(--c-border)',
+                                paddingBottom: '0.5rem'
+                            }}>
+                                {industry.category}
+                            </h4>
+                            <ul style={{
+                                listStyle: 'none',
+                                padding: 0,
+                                margin: 0
+                            }}>
+                                {industry.items.map((sub, idx) => (
+                                    <li
+                                        key={idx}
+                                        onClick={() => setSelectedSector({ name: sub, category: industry.category })}
+                                        className="sector-node-item"
+                                        style={{
+                                            fontSize: '0.9rem',
+                                            color: 'var(--c-text-sub)',
+                                            marginBottom: '0.5rem',
+                                            padding: '0.5rem 1rem',
+                                            borderLeft: '2px solid rgba(255,255,255,0.05)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            background: 'transparent',
+                                            borderRadius: '0 4px 4px 0'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(0, 255, 157, 0.05)';
+                                            e.currentTarget.style.borderLeft = '2px solid #00ff9d';
+                                            e.currentTarget.style.color = '#fff';
+                                            e.currentTarget.style.paddingLeft = '1.5rem';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                            e.currentTarget.style.borderLeft = '2px solid rgba(255,255,255,0.05)';
+                                            e.currentTarget.style.color = 'var(--c-text-sub)';
+                                            e.currentTarget.style.paddingLeft = '1rem';
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            {sub}
+                                            <span style={{ fontSize: '10px', opacity: 0.3 }}>+</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
+};
 
 const ProgressTrack = ({ progress }) => {
     // Reconstructing from Step 765 visual context

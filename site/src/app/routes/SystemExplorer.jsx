@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Layout from "../../components/Layout.jsx";
-import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
+import { NS_ENGINES, SL_ENGINES } from "@shared/data/engineRegistry";
 import { DOCS_REGISTRY } from "../../data/docsRegistry.js";
 import SystemTopology3D from "../../components/SystemTopology3D.jsx";
 import MermaidDiagram from "../../components/MermaidDiagram.jsx";
@@ -128,7 +128,8 @@ export default function SystemExplorer({ context }) {
     const nav = isSL ? [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
         { type: "divider" },
         { label: "Docs", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
@@ -137,7 +138,8 @@ export default function SystemExplorer({ context }) {
     ] : isWSP ? [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
         { type: "divider" },
         { label: "Docs", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },

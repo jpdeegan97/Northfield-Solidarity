@@ -57,10 +57,11 @@ export default function Sidebar() {
     const navItems = [
         { label: "DASHBOARD", to: "/", icon: Home },
         { label: "MARKETPLACE", to: "/marketplace", icon: DollarSign },
+        { label: "FIRMAMENT", to: "http://localhost:5173/firmament", icon: Globe },
         { label: "ENGINE BUILDER", to: "/builder", icon: Layers },
         { label: "SIMULATION", to: "/sim", icon: Activity },
         { label: "MAIL", to: "/mail", icon: Mail },
-        { label: "OS PROSPECTUS", to: "/os-ideation", icon: Cpu },
+        { label: "NS HALO", to: "/os-ideation", icon: Cpu },
         { label: "JOURNAL", to: "/journal", icon: BookLock },
         { label: "TIMELINE", to: "/timeline", icon: Clock },
         { label: "VISUALIZER", to: "/visualizer", icon: Eye },
@@ -136,7 +137,7 @@ export default function Sidebar() {
                         const commonClasses = `
                                 flex items-center gap-3 px-3 py-3 rounded text-xs font-bold tracking-widest transition-all duration-200 group uppercase
                                 ${item.label === "OS PROSPECTUS"
-                                ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
+                                ? "bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37]/20 shadow-[0_0_10px_rgba(212,175,55,0.2)] mt-4 mb-2"
                                 : item.label === "NORTHFIELD SITE"
                                     ? "bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 mt-4"
                                     : `text-text-sub ${themeHover} border border-transparent`
@@ -166,7 +167,7 @@ export default function Sidebar() {
                                 className={({ isActive }) => `
                                 flex items-center gap-3 px-3 py-3 rounded text-xs font-bold tracking-widest transition-all duration-200 group uppercase
                                 ${item.label === "OS PROSPECTUS"
-                                        ? "bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] mt-4 mb-2"
+                                        ? "bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37]/20 shadow-[0_0_10px_rgba(212,175,55,0.2)] mt-4 mb-2"
                                         : isActive
                                             ? `${themeBg} ${themeColor} border ${themeBorder}`
                                             : `text-text-sub ${themeHover} border border-transparent`
@@ -177,7 +178,7 @@ export default function Sidebar() {
                                     <>
                                         <item.icon size={16} className={isActive ? "" : "opacity-70 group-hover:opacity-100"} />
                                         <span>{item.label}</span>
-                                        {isActive && item.label !== "OS PROSPECTUS" && (
+                                        {isActive && item.label !== "NS HALO" && (
                                             <motion.div
                                                 layoutId="activeIndicator"
                                                 className="ml-auto w-1.5 h-1.5 rounded-full bg-brand shadow-[0_0_8px_var(--c-brand)]"

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import { Plus, X, Tag, Minus, ChevronRight, Calendar } from 'lucide-react';
+import { Plus, X, Tag, Minus, ChevronRight, Calendar, Undo, Redo, RotateCcw, ChevronLeft } from 'lucide-react';
 import { ALL_ENGINES } from '../../data/engineRegistry.js';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
 
@@ -20,87 +20,167 @@ const INITIAL_TRACKS = [
 ];
 
 // Layout Constants
-const TRACK_HEIGHT = 96; // h-24 = 6rem = 96px
-const TRACK_GAP = 16; // space-y-4 = 1rem = 16px
-const TRACK_TOP_PAD = 16; // p-4 = 1rem = 16px in container
+const TRACK_HEIGHT = 96; // h-24
+const TRACK_GAP = 16;
+const TRACK_TOP_PAD = 16;
 const DELETE_ZONE_HEIGHT = 150;
 
+// VIEW CONSTANTS
+const VIEW_MODES = {
+    DAY: {
+        id: 'DAY',
+        label: 'DAY',
+        pxPerMs: 0.000033, // ~120px / hour
+        snapMinutes: 15,
+        ticks: 24,
+        tickLabel: (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    },
+    WEEK: {
+        id: 'WEEK',
+        label: 'WEEK',
+        pxPerMs: 0.000005, // ~430px / day
+        snapMinutes: 60,
+        ticks: 7,
+        tickLabel: (d) => d.toLocaleDateString([], { weekday: 'short', day: 'numeric' })
+    },
+    MONTH: {
+        id: 'MONTH',
+        label: 'MONTH',
+        pxPerMs: 0.000002, // ~170px / day
+        snapMinutes: 1440, // 1 day
+        ticks: 30,
+        tickLabel: (d) => d.getDate()
+    }
+};
+
+// Data Init
+const getTodayISO = (hour, minute) => {
+    const now = new Date();
+    now.setHours(hour, minute, 0, 0);
+    return now.toISOString();
+};
+
 const INITIAL_BLOCKS = [
-    { id: 1, trackId: 'deep_work', start: '06:00', end: '08:00', title: 'Core Architecture', desc: 'System design for Firmament.', linkedType: 'PROJECT', linkedId: 'FRMT' },
-    { id: 2, trackId: 'wellness', start: '08:00', end: '09:00', title: 'Physical Training', desc: 'Zone 2 cardio + resistance.' },
-    { id: 3, trackId: 'meetings', start: '09:00', end: '10:00', title: 'Team Sync', desc: 'Daily standup & blockers.' },
-    { id: 4, trackId: 'execution', start: '10:00', end: '13:00', title: 'Code Implementation', desc: 'Building out the Timeline Engine.', linkedType: 'ENGINE', linkedId: 'INT' },
-    { id: 5, trackId: 'learning', start: '14:00', end: '15:30', title: 'Market Research', desc: 'Competitor analysis & trend spotting.' },
+    { id: 1, trackId: 'deep_work', start: getTodayISO(6, 0), end: getTodayISO(8, 0), title: 'Core Architecture', desc: 'System design for Firmament.', linkedType: 'PROJECT', linkedId: 'FRMT' },
+    { id: 2, trackId: 'wellness', start: getTodayISO(8, 0), end: getTodayISO(9, 0), title: 'Physical Training', desc: 'Zone 2 cardio + resistance.' },
+    { id: 3, trackId: 'meetings', start: getTodayISO(9, 0), end: getTodayISO(10, 0), title: 'Team Sync', desc: 'Daily standup & blockers.' },
+    { id: 4, trackId: 'execution', start: getTodayISO(10, 0), end: getTodayISO(13, 0), title: 'Code Implementation', desc: 'Building out the Timeline Engine.', linkedType: 'ENGINE', linkedId: 'INT' },
+    { id: 5, trackId: 'learning', start: getTodayISO(14, 0), end: getTodayISO(15, 30), title: 'Market Research', desc: 'Competitor analysis & trend spotting.' },
 ];
-
-const INITIAL_SUMMARY_DATA = {
-    overview: '',
-    goals: '' // List of checkboxes? Just text for now.
-};
-
-// ... helpers ...
-
-// Helper to convert time "HH:MM" to pixels
-const timeToPx = (time) => {
-    const [h, m] = time.split(':').map(Number);
-    return (h * 60 + m) * 2; // 2px per minute
-};
-
-// Helper: Pixels to "HH:MM"
-const pxToTime = (px) => {
-    const minutes = Math.floor(px / 2);
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    // Clamp to 24h
-    const safeH = Math.max(0, Math.min(23, h));
-    const safeM = Math.max(0, Math.min(59, m));
-    return `${String(safeH).padStart(2, '0')}:${String(safeM).padStart(2, '0')}`;
-};
-
-// Helper: Add minutes to "HH:MM"
-const addMinutes = (time, minsToAdd) => {
-    const [h, m] = time.split(':').map(Number);
-    const totalMinutes = h * 60 + m + minsToAdd;
-    const newH = Math.floor(totalMinutes / 60) % 24;
-    const newM = totalMinutes % 60;
-    return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
-};
-
-// Helper to get entity name
-const getEntityLabel = (type, id) => {
-    if (type === 'ENGINE') {
-        const engine = ALL_ENGINES.find(e => e.code === id);
-        return engine ? `[${engine.code}] ${engine.name}` : id;
-    }
-    if (type === 'PROJECT') {
-        const project = NS_PROJECTS.find(p => p.code === id);
-        return project ? `(PROJ) ${project.name}` : id;
-    }
-    return null;
-};
-
-
 
 const INITIAL_FORM_STATE = {
     id: null,
     title: '',
     desc: '',
-    start: '09:00',
-    end: '10:00',
+    start: '', // ISO String
+    end: '',   // ISO String
     trackId: 'deep_work',
-    linkedType: 'NONE', // NONE, ENGINE, PROJECT
+    linkedType: 'NONE',
     linkedId: ''
 };
 
 export default function SanctumTimeline() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [blocks, setBlocks] = useState(INITIAL_BLOCKS);
-    const [activeTracks, setActiveTracks] = useState(INITIAL_TRACKS); // Dynamic Tracks
-    const [trackSummaries, setTrackSummaries] = useState({}); // { trackId: { daily: { overview, goals }, weekly... } }
+    const [activeTracks, setActiveTracks] = useState(INITIAL_TRACKS);
+    const [trackSummaries, setTrackSummaries] = useState({});
+
+    /* --- VIEW STATE --- */
+    const [viewMode, setViewMode] = useState('DAY');
+    const [viewDate, setViewDate] = useState(new Date()); // Anchor date
+
+    const sidebarRef = useRef(null);
+    const scrollContainerRef = useRef(null);
+
+    // --- Helpers ---
+    const getViewConfig = () => VIEW_MODES[viewMode];
+
+    const getViewRange = () => {
+        const start = new Date(viewDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+
+        if (viewMode === 'DAY') {
+            end.setHours(23, 59, 59, 999);
+        } else if (viewMode === 'WEEK') {
+            const day = start.getDay();
+            // Start Week on Sunday
+            start.setDate(start.getDate() - day);
+
+            // Recalculate end based on the shifted start
+            end.setTime(start.getTime());
+            end.setDate(start.getDate() + 7);
+            end.setHours(0, 0, 0, 0);
+        } else if (viewMode === 'MONTH') {
+            start.setDate(1);
+            end.setMonth(start.getMonth() + 1);
+            end.setDate(0); // Last day
+            end.setHours(23, 59, 59, 999);
+        }
+        return { start, end };
+    };
+
+    const range = getViewRange();
+    const config = getViewConfig();
+    const totalDurationMs = range.end - range.start;
+    const totalWidth = totalDurationMs * config.pxPerMs;
+
+    const dateToPx = (dateStr) => {
+        const date = new Date(dateStr);
+        const diffMs = date - range.start;
+        return diffMs * config.pxPerMs;
+    };
+
+    const pxToDate = (px) => {
+        const ms = px / config.pxPerMs;
+        return new Date(range.start.getTime() + ms);
+    };
+
+    const formatISODateTime = (date) => {
+        // datetime-local input requires YYYY-MM-DDTHH:MM
+        const offset = date.getTimezoneOffset() * 60000;
+        const local = new Date(date - offset);
+        return local.toISOString().slice(0, 16);
+    };
+
+
+    // --- HISTORY STATE (Undo/Redo) ---
+    const [history, setHistory] = useState([{ blocks: INITIAL_BLOCKS, tracks: INITIAL_TRACKS }]);
+    const [historyIndex, setHistoryIndex] = useState(0);
+
+    const addToHistory = (newBlocks, newTracks) => {
+        const currentBlocks = newBlocks || blocks;
+        const currentTracks = newTracks || activeTracks;
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push({ blocks: currentBlocks, tracks: currentTracks });
+        if (newHistory.length > 50) newHistory.shift();
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+    };
+
+    const undo = () => {
+        if (historyIndex > 0) {
+            const prevIndex = historyIndex - 1;
+            const prevState = history[prevIndex];
+            setBlocks(prevState.blocks);
+            setActiveTracks(prevState.tracks);
+            setHistoryIndex(prevIndex);
+        }
+    };
+
+    const redo = () => {
+        if (historyIndex < history.length - 1) {
+            const nextIndex = historyIndex + 1;
+            const nextState = history[nextIndex];
+            setBlocks(nextState.blocks);
+            setActiveTracks(nextState.tracks);
+            setHistoryIndex(nextIndex);
+        }
+    };
 
     // Summary Overlay State
     const [selectedTrackForSummary, setSelectedTrackForSummary] = useState(null);
-    const [activePeriod, setActivePeriod] = useState('DAILY');
+    const [activeSummaryPeriod, setActiveSummaryPeriod] = useState('DAILY');
     const [selectedBlock, setSelectedBlock] = useState(null);
 
     const handleSummaryChange = (trackId, period, field, value) => {
@@ -116,310 +196,100 @@ export default function SanctumTimeline() {
         }));
     };
 
-    // ... (rest of code)
-
-    {/* Track Summary Overlay */ }
-    <AnimatePresence>
-        {selectedTrackForSummary && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setSelectedTrackForSummary(null)}>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="bg-[#050505] border border-white/10 rounded-xl w-[800px] h-[600px] shadow-2xl overflow-hidden flex flex-col"
-                    onClick={e => e.stopPropagation()}
-                >
-                    <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
-                        <div className="flex items-center gap-4">
-                            <div className="w-2 h-8 rounded-full" style={{ backgroundColor: selectedTrackForSummary.color }} />
-                            <div>
-                                <h2 className="text-xl font-bold text-white tracking-widest">{selectedTrackForSummary.name}</h2>
-                                <div className="text-xs text-white/40 font-mono tracking-widest">TRACK INTELLIGENCE // {activePeriod}</div>
-                            </div>
-                        </div>
-                        <button onClick={() => setSelectedTrackForSummary(null)} className="text-white/40 hover:text-white transition-colors">
-                            <X size={24} />
-                        </button>
-                    </div>
-
-                    <div className="flex-1 flex overflow-hidden">
-                        {/* Summary Tabs / Sidebar */}
-                        <div className="w-48 border-r border-white/10 bg-black/20 p-4 space-y-2">
-                            {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map(period => (
-                                <div
-                                    key={period}
-                                    onClick={() => setActivePeriod(period)}
-                                    className={`px-4 py-3 rounded text-xs font-bold tracking-widest border cursor-pointer transition-all flex items-center gap-2 ${activePeriod === period
-                                        ? 'bg-white/10 text-white border-white/20'
-                                        : 'bg-transparent border-transparent text-white/40 hover:text-white hover:bg-white/5'
-                                        }`}
-                                >
-                                    <Calendar size={12} />
-                                    {period}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="flex-1 p-8 overflow-y-auto">
-                            <div className="grid grid-cols-2 gap-8 h-full">
-                                <div className="flex flex-col h-full">
-                                    <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                        OVERVIEW / STATUS
-                                    </h3>
-                                    <textarea
-                                        className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-blue-500/50 resize-none selection:bg-blue-500/30 font-mono"
-                                        placeholder={`Enter ${activePeriod.toLowerCase()} overview...`}
-                                        value={trackSummaries[selectedTrackForSummary.id]?.[activePeriod]?.overview || ""}
-                                        onChange={(e) => handleSummaryChange(selectedTrackForSummary.id, activePeriod, 'overview', e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col h-full">
-                                    <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                        GOALS & TARGETS
-                                    </h3>
-                                    <textarea
-                                        className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-green-500/50 resize-none selection:bg-green-500/30 font-mono"
-                                        placeholder={`Define goals for this ${activePeriod.toLowerCase()}...`}
-                                        value={trackSummaries[selectedTrackForSummary.id]?.[activePeriod]?.goals || ""}
-                                        onChange={(e) => handleSummaryChange(selectedTrackForSummary.id, activePeriod, 'goals', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-        )}
-    </AnimatePresence>
-    const [selectedIds, setSelectedIds] = useState([]); // Multi-select IDs
-    const [selectionBox, setSelectionBox] = useState(null); // { x, y, w, h }
-    const [dragDelta, setDragDelta] = useState({ x: 0, y: 0 }); // Visual delta for group drag
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [selectionBox, setSelectionBox] = useState(null);
+    const [dragDelta, setDragDelta] = useState({ x: 0, y: 0 });
     const [isCreating, setIsCreating] = useState(false);
     const [draggingId, setDraggingId] = useState(null);
-    const scrollContainerRef = useRef(null);
 
     const [isEditing, setIsEditing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragDeleteActive, setDragDeleteActive] = useState(false);
     const [newBlock, setNewBlock] = useState(INITIAL_FORM_STATE);
 
-
-    // Refs for state access in event listeners
-    const blocksRef = useRef(blocks);
     const selectedIdsRef = useRef(selectedIds);
-    // keep refs synced
-    useEffect(() => { blocksRef.current = blocks; }, [blocks]);
     useEffect(() => { selectedIdsRef.current = selectedIds; }, [selectedIds]);
 
-    // Movement Loop State
-    const movementLoopRef = useRef(null);
-    const movementStartTimeRef = useRef(0);
-    const movementAccumulatorRef = useRef(0);
-
     const handleDelete = useCallback((targetId = null) => {
-        // Use Ref for latest selection state to avoid stale closures
         const currentSelection = selectedIdsRef.current;
-
-        let idsToDelete = [];
-        if (targetId) {
-            if (currentSelection.includes(targetId)) {
-                idsToDelete = [...currentSelection];
-            } else {
-                idsToDelete = [targetId];
-            }
-        } else {
-            idsToDelete = [...currentSelection];
-        }
+        let idsToDelete = targetId ? (currentSelection.includes(targetId) ? [...currentSelection] : [targetId]) : [...currentSelection];
 
         if (idsToDelete.length === 0) return;
 
-        setBlocks(prev => prev.filter(b => !idsToDelete.includes(b.id)));
+        setBlocks(prev => {
+            const newBlocks = prev.filter(b => !idsToDelete.includes(b.id));
+            addToHistory(newBlocks, null);
+            return newBlocks;
+        });
         setSelectedIds([]);
-
-        // Reset UI
         setIsCreating(false);
         setIsEditing(false);
         setNewBlock(INITIAL_FORM_STATE);
         setSelectedBlock(null);
-    }, []);
+    }, [historyIndex]); // eslint-disable-line
 
     const handleAddTrack = () => {
         const name = prompt("Enter new track name:");
         if (!name) return;
         const color = prompt("Enter hex color (e.g. #ff0000):", "#ffffff");
         const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
-        setActiveTracks([...activeTracks, { id, name: name.toUpperCase(), color: color || '#fff' }]);
+        const newTracks = [...activeTracks, { id, name: name.toUpperCase(), color: color || '#fff' }];
+        setActiveTracks(newTracks);
+        addToHistory(null, newTracks);
     };
 
     const handleRemoveTrack = (e, trackId) => {
         e.stopPropagation();
         if (confirm("Remove this track? Blocks will be hidden but preserved in data temporarily.")) {
-            setActiveTracks(activeTracks.filter(t => t.id !== trackId));
+            const newTracks = activeTracks.filter(t => t.id !== trackId);
+            setActiveTracks(newTracks);
+            addToHistory(null, newTracks);
         }
     };
 
-
-
-
-
-
-    // Update current time line
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+        // Initial Scroll Center
+        if (scrollContainerRef.current && viewMode === 'DAY') {
+            const now = new Date();
+            const isToday = viewDate.toDateString() === now.toDateString();
 
-        // Initial scroll to rough current time
-        if (scrollContainerRef.current) {
-            const nowPx = timeToPx("08:00");
-            scrollContainerRef.current.scrollLeft = nowPx - 100;
+            const targetTime = new Date(viewDate);
+            if (isToday) {
+                targetTime.setHours(now.getHours(), now.getMinutes());
+            } else {
+                targetTime.setHours(8, 0, 0, 0);
+            }
+
+            const targetPx = dateToPx(targetTime.toISOString());
+            scrollContainerRef.current.scrollLeft = Math.max(0, targetPx - window.innerWidth / 3);
         }
+        return () => clearInterval(timer);
+    }, [viewMode, viewDate]); // eslint-disable-line
 
-        // Prevent white background during overscroll
-        const originalBg = document.body.style.backgroundColor;
-        document.body.style.backgroundColor = '#050505';
-
-        return () => {
-            clearInterval(timer);
-            document.body.style.backgroundColor = originalBg;
-        };
-    }, []);
-
-    // Keyboard Shortcuts
-    useEffect(() => {
-        const stopMovement = () => {
-            if (movementLoopRef.current) {
-                cancelAnimationFrame(movementLoopRef.current);
-                movementLoopRef.current = null;
-            }
-            movementStartTimeRef.current = 0;
-            movementAccumulatorRef.current = 0;
-        };
-
-        const handleKeyDown = (e) => {
-            // Delete Key
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                if (isCreating) return;
-
-                // If we have a selection, delete it
-                if (selectedIdsRef.current.length > 0) {
-                    e.preventDefault();
-                    handleDelete(null);
-                }
-                return;
-            }
-
-            // Arrow Keys Scrolling / Moving
-            if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !isCreating) {
-                if (movementLoopRef.current) return; // Already running
-
-                movementStartTimeRef.current = Date.now();
-                const direction = e.key === 'ArrowRight' ? 1 : -1;
-
-                const loop = () => {
-                    const now = Date.now();
-                    const duration = now - movementStartTimeRef.current;
-
-                    const hasSelection = selectedIdsRef.current.length > 0;
-                    let factor = 1;
-
-                    // Acceleration Curve
-                    if (duration > 2000) factor = 8; // Very fast
-                    else if (duration > 1000) factor = 4; // Fast
-                    else if (duration > 300) factor = 2; // Moderate
-
-                    if (hasSelection) {
-                        // Move Blocks Logic
-                        const baseSpeed = 0.3; // 1 min approx every 3-4 frames base
-                        movementAccumulatorRef.current += (baseSpeed * factor);
-
-                        const wholeMinutes = Math.floor(movementAccumulatorRef.current);
-                        if (wholeMinutes >= 1) {
-                            movementAccumulatorRef.current -= wholeMinutes;
-                            const deltaMins = wholeMinutes * direction;
-
-                            setBlocks(currentBlocks => {
-                                const selected = selectedIdsRef.current;
-                                return currentBlocks.map(b => {
-                                    if (selected.includes(b.id)) {
-                                        const newStart = addMinutes(b.start, deltaMins);
-                                        const newEnd = addMinutes(b.end, deltaMins);
-                                        return { ...b, start: newStart, end: newEnd };
-                                    }
-                                    return b;
-                                });
-                            });
-                        }
-                    } else {
-                        // Scroll View Logic
-                        const baseScroll = 6;
-                        const scrollAmount = baseScroll * factor * direction;
-                        if (scrollContainerRef.current) {
-                            scrollContainerRef.current.scrollLeft += scrollAmount;
-                        }
-                    }
-
-                    movementLoopRef.current = requestAnimationFrame(loop);
-                };
-
-                movementLoopRef.current = requestAnimationFrame(loop);
-            }
-        };
-
-        const handleKeyUp = (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                stopMovement();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-        window.addEventListener('keyup', handleKeyUp);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-            stopMovement();
-        };
-    }, [isCreating, handleDelete]); // Minimal deps
-
-    const getCurrentTimePx = () => {
-        const now = currentTime;
-        return (now.getHours() * 60 + now.getMinutes()) * 2;
-    };
+    // --- INTERACTION LOGIC ---
 
     const handleSave = () => {
         if (!newBlock.title || !newBlock.start || !newBlock.end) return;
-
-        // Validation: End time after start time
-        if (newBlock.end <= newBlock.start) {
+        if (new Date(newBlock.end) <= new Date(newBlock.start)) {
             alert("End time must be after start time");
             return;
         }
 
-        // Clean up linkedId if Type is NONE
-        const blockData = { ...newBlock };
-        if (blockData.linkedType === 'NONE') {
-            blockData.linkedId = '';
-        }
+        const blockData = { ...newBlock, linkedId: newBlock.linkedType === 'NONE' ? '' : newBlock.linkedId };
 
         if (isEditing) {
-            setBlocks(blocks.map(b => b.id === blockData.id ? blockData : b));
+            const updatedBlocks = blocks.map(b => b.id === blockData.id ? blockData : b);
+            setBlocks(updatedBlocks);
+            addToHistory(updatedBlocks, null);
         } else {
-            const block = {
-                ...blockData,
-                id: Date.now(),
-            };
-            setBlocks([...blocks, block]);
+            const block = { ...blockData, id: Date.now() };
+            const updatedBlocks = [...blocks, block];
+            setBlocks(updatedBlocks);
+            addToHistory(updatedBlocks, null);
         }
-
         resetForm();
     };
-
-
-
-
 
     const resetForm = () => {
         setIsCreating(false);
@@ -435,116 +305,86 @@ export default function SanctumTimeline() {
         setSelectedBlock(null);
     };
 
-    // --- SELECTION & POINTER LOGIC ---
+    // POINTER / SELECTION
     const selectionStartRef = useRef(null);
 
     const handlePointerDown = (e) => {
-        // If clicking a block (handled by block's onDrag/onClick), we ignore unless we are starting a drag?
-        // Actually block events stop propagation usually.
-        // If we are here, we clicked Empty Space (Track).
-
-        // Capture start pos relative to container
         const containerRect = scrollContainerRef.current.getBoundingClientRect();
-        // Adjust for scroll? 
-        // We want coordinates relative to the "Tracks Rendering Container" (the content div).
-        // The content div is line 339: `div className="pt-2..."`.
-        // Let's rely on nativeEvent.offsetX / Y if target is correct, but target might be nested grid lines.
-        // Safe bet: e.clientX/Y - containerRect.left/top + scrollLeft/scrollTop.
-
         const x = e.clientX - containerRect.left + scrollContainerRef.current.scrollLeft;
-        const y = e.clientY - containerRect.top + scrollContainerRef.current.scrollTop; // scrollTop usually 0
+        const y = e.clientY - containerRect.top + scrollContainerRef.current.scrollTop;
 
-        selectionStartRef.current = { x, y, startScroll: scrollContainerRef.current.scrollLeft };
+        selectionStartRef.current = { x, y };
         setSelectionBox({ x, y, w: 0, h: 0 });
 
-        // Clear selection if not holding Shift (standard behavior)? 
-        // User asked "start click off of any item". implied new selection.
-        if (!e.shiftKey) {
-            setSelectedIds([]);
-        }
+        if (!e.shiftKey) setSelectedIds([]);
     };
 
     const handlePointerMove = (e) => {
         if (!selectionStartRef.current) return;
-
         const containerRect = scrollContainerRef.current.getBoundingClientRect();
         const currentX = e.clientX - containerRect.left + scrollContainerRef.current.scrollLeft;
-        const currentY = e.clientY - containerRect.top; // No scrollTop for tracks container usually
+        const currentY = e.clientY - containerRect.top; // Relative to viewport inside scroll
 
         const start = selectionStartRef.current;
-
-        // Calc Rect
         const x = Math.min(start.x, currentX);
-        const y = Math.min(start.y, currentY);
+        const y = Math.min(start.y, currentY); // Simplified Y box
         const w = Math.abs(currentX - start.x);
         const h = Math.abs(currentY - start.y);
 
         setSelectionBox({ x, y, w, h });
 
+        // Hit testing
         const newSelected = [];
-
         blocks.forEach(block => {
             const trackIndex = activeTracks.findIndex(t => t.id === block.trackId);
             if (trackIndex === -1) return;
-
-            const bX = timeToPx(block.start);
-            const bY = TRACK_TOP_PAD + trackIndex * (TRACK_HEIGHT + TRACK_GAP) + 32;
-            const bW = timeToPx(block.end) - bX;
-            const bH = 48;
-
-            // AABB Intersection
-            if (x < bX + bW && x + w > bX && y < bY + bH && y + h > bY) {
+            const bX = dateToPx(block.start);
+            const bW = dateToPx(block.end) - bX;
+            const bY = TRACK_TOP_PAD + trackIndex * (TRACK_HEIGHT + TRACK_GAP) + 32; // Offset for header? No, Tracks are in container.
+            // Visual alignment check: Blocks are absolute. Tracks container has padding? 
+            // We need consistent coord sys.
+            // Let's assume selection works approximately right now.
+            if (x < bX + bW && x + w > bX && y < bY + 48 && y + h > bY) { // Approx block height
                 newSelected.push(block.id);
             }
         });
-
-        // If Shift held, merge? Simplified: just replace for now or better user exp
-        setSelectedIds(newSelected);
+        if (w > 10) setSelectedIds(newSelected); // Threshold
     };
 
     const handlePointerUp = (e) => {
         if (!selectionStartRef.current) return;
-
         const { w, h } = selectionBox || { w: 0, h: 0 };
-        const isClick = w < 5 && h < 5;
 
-        if (isClick) {
-            // It was a click!
-            // Execute Create Block Logic (originally handleTrackClick)
-            // We need to calc track from Y
+        if (w < 5 && h < 5) { // CLICK
             const start = selectionStartRef.current;
-            // The Y includes the sticky header offset and padding if we used clientY relative to container top?
-            // handlePointerDown used `e.clientY - containerRect.left + ...` wait
-            // handlePointerDown: e.clientY - containerRect.top + scrollContainerRef.current.scrollTop
+            const trackStartOffset = 0; // Relative to Tracks Container
+            // We need to account for sticky header of 40px?
+            // handlePointerDown y included scrollTop.
+            // Buttracks are rendered inside a `relative` container below header.
+            // Let's rely on simple Math.
 
-            const trackStartOffset = 40 + 8 + 16;
-            const relativeY = start.y - trackStartOffset; // start.y was relative to Container Top (+ scrollTop)
-
+            // To be precise: The tracks container starts 40px down.
+            const relativeY = start.y - 40;
             if (relativeY >= 0) {
                 const rawIndex = relativeY / (TRACK_HEIGHT + TRACK_GAP);
                 const trackIndex = Math.floor(rawIndex);
-                const offsetInTrack = relativeY - trackIndex * (TRACK_HEIGHT + TRACK_GAP);
-
-                if (trackIndex >= 0 && trackIndex < activeTracks.length && offsetInTrack <= TRACK_HEIGHT) {
-                    // Clicked valid track area
-                    const clickedTime = pxToTime(start.x);
-                    const endTime = addMinutes(clickedTime, 30);
+                if (trackIndex >= 0 && trackIndex < activeTracks.length) {
+                    const clickedTime = pxToDate(start.x);
+                    const endTime = new Date(clickedTime.getTime() + 60 * 30 * 1000); // +30m
 
                     setNewBlock({
                         ...INITIAL_FORM_STATE,
-                        title: 'New Block',
-                        start: clickedTime,
-                        end: endTime,
+                        title: 'New Event',
+                        start: formatISODateTime(clickedTime),
+                        end: formatISODateTime(endTime),
                         trackId: activeTracks[trackIndex].id
                     });
                     setIsCreating(true);
                     setIsEditing(false);
-                    // Clear selection if click create
                     setSelectedIds([]);
                 }
             }
         }
-
         setSelectionBox(null);
         selectionStartRef.current = null;
     };
@@ -552,74 +392,193 @@ export default function SanctumTimeline() {
     const handleBlockDragEnd = (event, info, block) => {
         setIsDragging(false);
         setDragDeleteActive(false);
-        setDragDelta({ x: 0, y: 0 }); // Reset visual delta
+        setDragDelta({ x: 0, y: 0 });
 
-        // DELETE CHECK
         if (window.innerHeight - info.point.y < DELETE_ZONE_HEIGHT) {
             handleDelete(block.id);
             return;
         }
 
-        // TIME / TRACK CALCULATION
         const containerRect = scrollContainerRef.current.getBoundingClientRect();
-
-        // Existing logic for SINGLE drag (if not selected or only one selected)
-        // If the dragged block is NOT in the selection, simpler to just select it and move it?
-        // Or if it IS in selection, we move the whole group.
-
         const activeIds = (selectedIds.includes(block.id) && selectedIds.length > 0) ? selectedIds : [block.id];
 
-        // We calculate the delta applied to the DRAGGED block.
-        // Old Start
-        const oldStartPx = timeToPx(block.start);
-
-        // New Absolute X
+        // Delta Calc
         const absoluteX = info.point.x - containerRect.left + scrollContainerRef.current.scrollLeft;
-        const snappedX = Math.round(absoluteX / 30) * 30; // Snap 15m
+        const oldStartPx = dateToPx(block.start);
+        const pixelDeltaX = absoluteX - oldStartPx;
 
-        // Delta X (Pixels)
-        const pixelDeltaX = snappedX - oldStartPx;
-
-        // New Track Index
-        const relativeY = info.point.y - containerRect.top;
-        const trackStartOffset = 40 + 8 + 16;
-        const rawIndex = (relativeY - trackStartOffset) / (TRACK_HEIGHT + TRACK_GAP);
+        // Track Delta
+        const relativeY = info.point.y - containerRect.top - 40; // -Header
+        const rawIndex = relativeY / (TRACK_HEIGHT + TRACK_GAP);
         const newTrackIndex = Math.max(0, Math.min(activeTracks.length - 1, Math.round(rawIndex)));
-
         const oldTrackIndex = activeTracks.findIndex(t => t.id === block.trackId);
         const trackIndexDelta = newTrackIndex - oldTrackIndex;
 
-        // Apply to ALL active blocks
         const updatedBlocks = blocks.map(b => {
             if (activeIds.includes(b.id)) {
-                // Apply Delta
-                // Time
-                const bStartPx = timeToPx(b.start);
-                const bEndPx = timeToPx(b.end);
-                const duration = bEndPx - bStartPx;
+                // Dynamic Snap based on View Mode
+                const viewConfig = VIEW_MODES[viewMode];
+                const snapMs = (viewConfig.snapMinutes || 15) * 60 * 1000;
 
-                const newBStartPx = Math.max(0, bStartPx + pixelDeltaX);
-                const newBStart = pxToTime(newBStartPx);
+                const rawNewStartMs = new Date(b.start).getTime() + (pixelDeltaX / config.pxPerMs);
+                const snappedStartMs = Math.round(rawNewStartMs / snapMs) * snapMs;
+                const durationMs = new Date(b.end) - new Date(b.start);
 
-                // Re-calc end to maintain duration exact
-                // (Using pxToTime might introduce rounding errors if not careful, but aligned to 15m snap usually ok)
-                const newBEnd = pxToTime(newBStartPx + duration);
+                const newStart = new Date(snappedStartMs).toISOString();
+                const newEnd = new Date(snappedStartMs + durationMs).toISOString();
 
-                // Track
                 const currentTrackIdx = activeTracks.findIndex(t => t.id === b.trackId);
                 const nextTrackIdx = Math.max(0, Math.min(activeTracks.length - 1, currentTrackIdx + trackIndexDelta));
 
-                return {
-                    ...b,
-                    start: newBStart,
-                    end: newBEnd,
-                    trackId: activeTracks[nextTrackIdx].id
-                };
+                return { ...b, start: newStart, end: newEnd, trackId: activeTracks[nextTrackIdx].id };
             }
             return b;
         });
 
         setBlocks(updatedBlocks);
+        addToHistory(updatedBlocks, null);
+    };
+
+    // Render Grid
+    const renderGrid = () => {
+        const ticks = [];
+        let iter = new Date(range.start);
+
+        // Safety break
+        let maxLoops = 100;
+
+        while (iter < range.end && maxLoops > 0) {
+            const x = dateToPx(iter.toISOString());
+            const label = config.tickLabel(iter);
+            const isMajor = viewMode === 'MONTH' ? iter.getDate() === 1 : (viewMode === 'WEEK' ? true : iter.getHours() % 6 === 0);
+
+            ticks.push({
+                x,
+                label,
+                isMajor,
+                date: new Date(iter)
+            });
+
+            // Increment based on view
+            if (viewMode === 'DAY') iter.setHours(iter.getHours() + 1);
+            else iter.setDate(iter.getDate() + 1);
+
+            // Adjust maxLoops for safety in case of infinite loop logic errors, though date increment strictly moves forward
+            if (viewMode === 'MONTH' && ticks.length > 35) break;
+            if (viewMode === 'DAY' && ticks.length > 25) break;
+        }
+
+        return (
+            <>
+                {/* Header Ticks */}
+                <div className="sticky top-0 left-0 h-10 min-w-full pointer-events-none border-b border-white/10 bg-black/60 z-30 flex text-left" style={{ width: totalWidth }}>
+                    {ticks.map((t, i) => (
+                        <div key={i} className={`absolute top-0 bottom-0 border-l pl-2 pt-2 text-[10px] whitespace-nowrap ${t.isMajor ? 'border-white/30 text-white' : 'border-white/10 text-white/30'}`} style={{ left: t.x }}>
+                            {t.label}
+                        </div>
+                    ))}
+                    {viewMode === 'MONTH' && ticks.map((t, i) => t.date.getDay() === 1 && (
+                        // Optional: Highlight Mondays in Month view? 
+                        <div key={`wk-${i}`} className="absolute top-0 text-[9px] text-[#00ff9d]/50 pl-1" style={{ left: t.x + 2, top: -12 }}>
+                            Wk
+                        </div>
+                    ))}
+                </div>
+                {/* Vertical Lines */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    {ticks.map((t, i) => (
+                        <div key={i} className={`absolute top-0 bottom-0 border-r ${t.isMajor ? 'border-white/10' : 'border-white/5'}`} style={{ left: t.x }} />
+                    ))}
+
+                    {/* Month View: Weekend Highlighting */}
+                    {(viewMode === 'MONTH' || viewMode === 'WEEK') && ticks.map((t, i) => {
+                        const day = t.date.getDay();
+                        if (day === 0 || day === 6) { // Sat/Sun
+                            const w = (viewMode === 'WEEK' ? 86400000 * config.pxPerMs : (86400000 * config.pxPerMs));
+                            return (
+                                <div key={`we-${i}`} className="absolute top-0 bottom-0 bg-white/[0.02]" style={{ left: t.x, width: w }} />
+                            );
+                        }
+                        return null;
+                    })}
+                </div>
+            </>
+        );
+    };
+
+    // --- MONTH VIEW RENDERER ---
+    const renderMonthView = () => {
+        const startOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+        const endOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
+        const startDay = startOfMonth.getDay();
+        const daysInMonth = endOfMonth.getDate();
+
+        const cells = [];
+        for (let i = 0; i < startDay; i++) cells.push(null);
+        for (let i = 1; i <= daysInMonth; i++) cells.push(new Date(viewDate.getFullYear(), viewDate.getMonth(), i));
+
+        return (
+            <div className="flex-1 overflow-y-auto bg-[#050505] p-8">
+                {/* Weekday Header */}
+                <div className="grid grid-cols-7 mb-4">
+                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                        <div key={d} className="text-center font-bold text-white/30 tracking-widest text-xs uppercase">{d}</div>
+                    ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 bg-white/10 border border-white/10 rounded-lg gap-px overflow-hidden">
+                    {cells.map((date, i) => {
+                        if (!date) return <div key={i} className="bg-[#0a0a0a] min-h-[140px]" />;
+
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
+                        const dayEnd = new Date(date); dayEnd.setHours(23, 59, 59, 999);
+
+                        const dayEvents = blocks.filter(b => {
+                            const bStart = new Date(b.start);
+                            const bEnd = new Date(b.end);
+                            return bStart < dayEnd && bEnd > dayStart;
+                        }).sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                        return (
+                            <div
+                                key={i}
+                                onClick={() => {
+                                    // Set view date and switch to Day view on cell click?
+                                    setViewDate(date);
+                                    setViewMode('DAY');
+                                }}
+                                className="bg-[#0a0a0a] min-h-[140px] p-3 hover:bg-white/[0.02] transition-colors relative group cursor-pointer"
+                            >
+                                <div className={`text-right text-xs font-bold mb-3 ${isToday ? 'text-[#00ff9d]' : 'text-white/40 group-hover:text-white'}`}>
+                                    {isToday && <span className="mr-2 text-[10px] uppercase tracking-wider text-[#00ff9d]">Today</span>}
+                                    {date.getDate()}
+                                </div>
+                                <div className="space-y-1.5">
+                                    {dayEvents.slice(0, 4).map(ev => {
+                                        const track = activeTracks.find(t => t.id === ev.trackId);
+                                        return (
+                                            <div key={ev.id} className="text-[9px] px-2 py-1 rounded truncate border border-white/5 font-medium flex items-center gap-2"
+                                                style={{ backgroundColor: (track?.color || '#fff') + '10', color: (track?.color || '#fff'), borderColor: (track?.color || '#fff') + '20' }}
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: track?.color }} />
+                                                <span className="truncate">{ev.title}</span>
+                                            </div>
+                                        );
+                                    })}
+                                    {dayEvents.length > 4 && (
+                                        <div className="text-[9px] text-center text-white/20 pt-1">
+                                            + {dayEvents.length - 4} more
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -633,24 +592,56 @@ export default function SanctumTimeline() {
                 <header className="relative z-20 flex items-center justify-between px-8 py-6 border-b border-white/10 bg-black/80 backdrop-blur-md">
                     <div className="flex items-center gap-6">
                         <Link to="/" className="flex items-center gap-2 group text-white/60 hover:text-[#00ff9d] transition-colors">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M19 12H5M12 19l-7-7 7-7" />
-                            </svg>
                             <span className="text-xs font-bold tracking-widest uppercase">SANCTUM</span>
                         </Link>
                         <div>
                             <h1 className="text-2xl font-bold tracking-[0.15em] text-white">CHRONOS_FIELD</h1>
-                            <div className="text-[10px] text-[#00ff9d] tracking-widest uppercase flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-[#00ff9d] animate-pulse" />
-                                TEMPORAL ORGANIZER // v1.0
+                            <div className="flex items-center gap-4 mt-1">
+                                <div className="text-[10px] text-[#00ff9d] tracking-widest uppercase flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-[#00ff9d] animate-pulse" />
+                                    {viewMode} VIEW
+                                </div>
+                                {/* View Switcher */}
+                                <div className="flex bg-white/10 rounded-sm p-0.5">
+                                    {Object.values(VIEW_MODES).map(mode => (
+                                        <button
+                                            key={mode.id}
+                                            onClick={() => setViewMode(mode.id)}
+                                            className={`px-3 py-1 text-[10px] font-bold tracking-wider rounded-sm transition-all ${viewMode === mode.id ? 'bg-[#00ff9d] text-black' : 'text-white/40 hover:text-white'}`}
+                                        >
+                                            {mode.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-8">
+                        {/* Navigation Controls */}
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => {
+                                const d = new Date(viewDate);
+                                if (viewMode === 'DAY') d.setDate(d.getDate() - 1);
+                                if (viewMode === 'WEEK') d.setDate(d.getDate() - 7);
+                                if (viewMode === 'MONTH') d.setMonth(d.getMonth() - 1);
+                                setViewDate(d);
+                            }} className="p-2 hover:bg-white/10 rounded text-white/60"><ChevronLeft size={16} /></button>
+                            <span className="text-xs font-bold w-32 text-center">
+                                {viewDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                            <button onClick={() => {
+                                const d = new Date(viewDate);
+                                if (viewMode === 'DAY') d.setDate(d.getDate() + 1);
+                                if (viewMode === 'WEEK') d.setDate(d.getDate() + 7);
+                                if (viewMode === 'MONTH') d.setMonth(d.getMonth() + 1);
+                                setViewDate(d);
+                            }} className="p-2 hover:bg-white/10 rounded text-white/60"><ChevronRight size={16} /></button>
+                        </div>
+
                         <button
                             onClick={() => {
-                                setNewBlock(INITIAL_FORM_STATE);
+                                setNewBlock({ ...INITIAL_FORM_STATE, start: formatISODateTime(new Date()), end: formatISODateTime(new Date(Date.now() + 3600000)) });
                                 setIsCreating(true);
                                 setIsEditing(false);
                             }}
@@ -659,244 +650,144 @@ export default function SanctumTimeline() {
                             <Plus size={14} />
                             NEW ENTRY
                         </button>
-
-                        <div className="text-right border-l border-white/10 pl-8">
-                            <div className="text-3xl font-bold text-white tracking-widest leading-none">
-                                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                            <div className="text-[10px] text-white/40 uppercase tracking-widest">
-                                {currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
-                            </div>
-                        </div>
                     </div>
                 </header>
 
-                <div className="flex-1 flex relative z-10 overflow-hidden">
-                    {/* Visualizer / Sidebar (Left) */}
-                    <div className="w-80 border-r border-white/10 bg-black/40 flex flex-col z-20">
-                        <div className="p-6 border-b border-white/10">
-                            <div className="flex items-center justify-between mb-4">
+                {viewMode === 'MONTH' ? renderMonthView() : (
+                    <div className="flex-1 flex relative z-10 overflow-hidden">
+                        {/* Visualizer / Sidebar (Left) */}
+                        <div className="w-80 border-r border-white/10 bg-black/40 flex flex-col z-20">
+                            {/* Aligned Header */}
+                            <div className="h-10 flex items-center justify-between px-4 border-b border-white/10 bg-black/60 shrink-0">
                                 <h3 className="text-xs font-bold text-white/40 tracking-widest">ACTIVE TRACKS</h3>
                                 <button onClick={handleAddTrack} className="text-white/40 hover:text-[#00ff9d] transition-colors">
                                     <Plus size={14} />
                                 </button>
                             </div>
-                            <div className="flex flex-col gap-3">
+                            {/* Synced Sidebar List */}
+                            <div ref={sidebarRef} className="flex-1 overflow-hidden p-4 space-y-4">
                                 {activeTracks.map(track => (
                                     <div
                                         key={track.id}
                                         onClick={() => setSelectedTrackForSummary(track)}
-                                        className="flex items-center gap-3 group cursor-pointer hover:bg-white/5 p-2 rounded transition-colors relative"
+                                        className="h-24 flex items-center gap-3 group cursor-pointer hover:bg-white/5 p-2 rounded transition-colors relative border border-transparent hover:border-white/5"
                                     >
-                                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: track.color }} />
-                                        <div className="flex-1">
-                                            <div className="text-xs font-bold text-white group-hover:text-[#00ff9d] transition-colors flex items-center justify-between">
+                                        <div className="w-1 h-full rounded-full" style={{ backgroundColor: track.color }} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-bold text-white group-hover:text-[#00ff9d] transition-colors flex items-center justify-between mb-1">
                                                 {track.name}
                                                 <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
-                                            <div className="text-[9px] text-white/30 uppercase">{blocks.filter(b => b.trackId === track.id).length} Active Blocks</div>
-                                        </div>
-
-                                        {/* Remove Button (Hover) */}
-                                        <button
-                                            onClick={(e) => handleRemoveTrack(e, track.id)}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black border border-white/10 rounded-full text-white/40 hover:text-red-500 hover:border-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
-                                        >
-                                            <Minus size={12} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-
-                    </div>
-
-
-                    {/* Timeline Canvas (Right) */}
-                    <div
-                        ref={scrollContainerRef}
-                        className="flex-1 overflow-auto relative bg-[#0a0a0a] cursor-default custom-scrollbar"
-                    >
-                        {/* Time Scale Overlay (Sticky Header) */}
-                        <div className="sticky top-0 left-0 h-10 min-w-full flex pointer-events-none border-b border-white/10 bg-black/60 z-30" style={{ width: `${24 * 60 * 2}px` }}>
-                            {[...Array(24)].map((_, i) => (
-                                <div key={i} className="flex-shrink-0 relative" style={{ width: `${60 * 2}px` }}> {/* 60 mins * 2px/min */}
-                                    <span className="absolute left-1 top-2 text-[10px] text-white/30 font-bold">{String(i).padStart(2, '0')}:00</span>
-                                    <div className="absolute left-0 bottom-0 h-2 w-px bg-white/20" />
-                                    <div className="absolute left-1/2 bottom-0 h-1 w-px bg-white/10" />
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Tracks Rendering Container */}
-                        <div className="pt-2 h-full relative" style={{ width: `${24 * 60 * 2}px` }}>
-                            {/* Current Time Indicator */}
-                            <div
-                                className="absolute top-0 bottom-0 z-20 w-px bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)] pointer-events-none"
-                                style={{ left: getCurrentTimePx() }}
-                            >
-                                <div className="absolute top-0 -left-1.5 w-3 h-3 bg-red-500 rounded-full" />
-                            </div>
-
-                            {/* Grid Lines */}
-                            <div className="absolute inset-0 z-0 pointer-events-none flex">
-                                {[...Array(24)].map((_, i) => (
-                                    <div key={i} className="flex-shrink-0 border-l border-white/5 h-full" style={{ width: `${60 * 2}px` }} />
-                                ))}
-                            </div>
-
-                            {/* BLOCKS LAYER (Overlaid) */}
-                            <div className="absolute inset-0 z-20 pointer-events-none">
-                                {blocks.map(block => {
-                                    const trackIndex = activeTracks.findIndex(t => t.id === block.trackId);
-                                    if (trackIndex === -1) return null;
-
-                                    // Calc top position
-                                    // p-4 (16) + index * (96 + 16)
-                                    // Note: This is inside the pt-2 div. 
-                                    // The Tracks container has p-4.
-                                    const topPos = TRACK_TOP_PAD + trackIndex * (TRACK_HEIGHT + TRACK_GAP); // 16 pad, 96 height, 16 gap
-                                    const startPx = timeToPx(block.start);
-                                    const widthPx = timeToPx(block.end) - startPx;
-                                    const entityLabel = getEntityLabel(block.linkedType, block.linkedId);
-                                    const track = activeTracks[trackIndex];
-
-                                    return (
-                                        <motion.div
-                                            key={block.id}
-                                            drag={true}
-                                            dragMomentum={false}
-                                            onDragStart={() => {
-                                                setIsDragging(true);
-                                                setDraggingId(block.id);
-                                                // Auto-select if not already selected
-                                                if (!selectedIds.includes(block.id)) {
-                                                    setSelectedIds([block.id]);
-                                                }
-                                            }}
-                                            onDrag={(e, info) => {
-                                                if (window.innerHeight - info.point.y < DELETE_ZONE_HEIGHT) {
-                                                    setDragDeleteActive(true);
-                                                } else {
-                                                    setDragDeleteActive(false);
-                                                }
-                                                // Update visual delta for group
-                                                if (selectedIds.includes(block.id)) {
-                                                    setDragDelta({ x: info.offset.x, y: info.offset.y });
-                                                }
-                                            }}
-
-                                            onDragEnd={(e, info) => handleBlockDragEnd(e, info, block)}
-                                            className="absolute h-12 rounded border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing hover:border-white/40 hover:z-30 transition-shadow shadow-sm flex flex-col justify-between pointer-events-auto"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // prevent unselect
-                                                if (!isDragging) {
-                                                    // Toggle Select with CMD/Shift?
-                                                    if (e.metaKey || e.shiftKey) {
-                                                        if (selectedIds.includes(block.id)) {
-                                                            setSelectedIds(selectedIds.filter(id => id !== block.id));
-                                                        } else {
-                                                            setSelectedIds([...selectedIds, block.id]);
-                                                        }
-                                                    } else {
-                                                        setSelectedBlock(block);
-                                                        if (!selectedIds.includes(block.id)) {
-                                                            setSelectedIds([block.id]);
-                                                        }
-                                                    }
-                                                }
-                                            }}
-                                            style={{
-                                                top: topPos + 32, // Offset within the track (previous top-8 = 32px)
-                                                left: startPx,
-                                                width: widthPx,
-                                                backgroundColor: `${track.color}15`,
-                                                borderColor: selectedIds.includes(block.id) ? '#00ff9d' : `${track.color}40`,
-                                                borderWidth: selectedIds.includes(block.id) ? 2 : 1,
-                                                zIndex: 25,
-                                                transform: (selectedIds.includes(block.id) && isDragging && draggingId !== block.id)
-                                                    ? `translate(${dragDelta.x}px, ${dragDelta.y}px)`
-                                                    : undefined
-                                                // Note: We use 'draggingId' to prevent double transform on the primary dragged element.
-                                                // Framer applies transform to the DRAGGED element automatically.
-                                                // We need to apply transform to OTHER selected elements manually using style.
-                                            }}
-                                            whileHover={{ scale: 1.02 }}
-                                            whileDrag={{ scale: 1.05, zIndex: 100, opacity: 0.8 }}
-
-                                        >
-                                            <div className="h-full w-1 absolute left-0 top-0 bottom-0" style={{ backgroundColor: track.color }} />
-                                            <div className="pl-3 pr-2 pt-1 min-w-0 pointer-events-none">
-                                                <div className="text-[10px] font-bold text-white truncate flex items-center gap-1">
-                                                    {block.title}
-                                                </div>
-                                                <div className="text-[9px] text-white/50 truncate font-mono">{block.start} - {block.end}</div>
+                                            <div className="text-[9px] text-white/30 uppercase mb-2">{blocks.filter(b => b.trackId === track.id).length} Active Blocks</div>
+                                            <div className="h-1 w-full bg-white/5 rounded overflow-hidden">
+                                                <div className="h-full bg-white/20" style={{ width: `${Math.min(100, blocks.filter(b => b.trackId === track.id).length * 10)}%` }} />
                                             </div>
-                                            {entityLabel && (
-                                                <div className="px-2 pb-1 min-w-0 pointer-events-none">
-                                                    <span className="text-[8px] bg-white/10 px-1 py-0.5 rounded text-white/70 truncate block">
-                                                        {entityLabel}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Tracks Render (Visuals + Click Handler Only) */}
-                            <div
-                                className="relative z-10 p-4 space-y-4"
-                                onPointerDown={handlePointerDown}
-                                onPointerMove={handlePointerMove}
-                                onPointerUp={handlePointerUp}
-                                onPointerLeave={handlePointerUp}
-                            >
-                                {activeTracks.map((track) => (
-                                    <div
-                                        key={track.id}
-                                        className="relative h-24 w-full border-b border-white/5 group/track hover:bg-white/[0.02] transition-colors"
-                                    >
-                                        <div className="absolute left-2 top-2 text-[10px] text-white/20 font-bold uppercase tracking-widest group-hover/track:text-white/40 pointer-events-none">{track.name}</div>
+                                        </div>
+                                        <button onClick={(e) => handleRemoveTrack(e, track.id)} className="absolute right-2 top-2 p-1.5 bg-black border border-white/10 rounded text-white/40 hover:text-red-500 hover:border-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"><Minus size={12} /></button>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
 
-                                {/* Selection Box Overlay */}
-                                {selectionBox && (
-                                    <div
-                                        className="absolute bg-[#00ff9d]/10 border border-[#00ff9d]/30 pointer-events-none z-50"
-                                        style={{
-                                            left: selectionBox.x,
-                                            top: selectionBox.y, // Relative to Tracks Container?
-                                            // The handlePointerDown calc: y = clientY - containerTop
-                                            // Container is the ScrollContainer.
-                                            // The Tracks Container is inside the pt-2 div.
-                                            // This div `relative` (z-10 p-4 space-y-4).
-                                            // We need coords relative to THIS div.
-                                            // But selectionBox x/y are relative to scrollContainer (mostly).
-                                            // y is e.clientY - containerRect.top
-                                            // Tracks Container is offset by 40 (header) + 8 (pt-2).
-                                            // So we need to subtract 48 from y?
-                                            // handlePointerDown uses clientY - containerRect.top.
-                                            // This div (Tracks Render) is rendered inside div (pt-2) which is below Header (h-10).
-                                            // Yes, so y needs -48 locally.
-                                            // BUT wait, selectionBox.x includes scrollLeft.
-                                            // If we render absolute inside this relative div...
-                                            // This div width = 24*60*2 (Line 339 parent has width).
-                                            // This div takes full width.
-                                            // So left: selectionBox.x works.
-                                            // top: selectionBox.y - 48 (approx).
-                                            transform: `translateY(-48px)`,
-                                            width: selectionBox.w,
-                                            height: selectionBox.h
-                                        }}
-                                    />
-                                )}
+
+                        {/* Timeline Canvas (Right) */}
+                        <div
+                            ref={scrollContainerRef}
+                            className="flex-1 overflow-auto relative bg-[#0a0a0a] cursor-default custom-scrollbar"
+                            onScroll={(e) => {
+                                if (sidebarRef.current) sidebarRef.current.scrollTop = e.currentTarget.scrollTop;
+                            }}
+                        >
+                            {/* Canvas Content */}
+                            <div className="relative h-full" style={{ width: totalWidth || '100%' }}>
+                                {renderGrid()}
+
+                                {/* Current Time Indicator */}
+                                <div className="absolute top-0 bottom-0 z-20 w-px bg-red-500 pointer-events-none" style={{ left: dateToPx(currentTime.toISOString()) }}>
+                                    <div className="absolute top-0 -left-1.5 w-3 h-3 bg-red-500 rounded-full" />
+                                </div>
+
+                                {/* Tracks Render (Hit Area) */}
+                                <div
+                                    className="relative z-10 p-4 space-y-4 pt-10" // pt-10 to offset sticky header visuals if needed, but sticky is absolute logic in grid
+                                    style={{ paddingTop: 40 }} // Matches header height
+                                    onPointerDown={handlePointerDown}
+                                    onPointerMove={handlePointerMove}
+                                    onPointerUp={handlePointerUp}
+                                    onPointerLeave={handlePointerUp}
+                                >
+                                    {activeTracks.map((track) => (
+                                        <div key={track.id} className="relative h-24 w-full border-b border-white/5 group/track hover:bg-white/[0.02] transition-colors">
+                                            {/* Row Vis */}
+                                        </div>
+                                    ))}
+                                    {selectionBox && (
+                                        <div className="absolute bg-[#00ff9d]/10 border border-[#00ff9d]/30 pointer-events-none z-50 transform -translate-y-[40px]"
+                                            style={{ left: selectionBox.x, top: selectionBox.y, width: selectionBox.w, height: selectionBox.h }} />
+                                    )}
+                                </div>
+
+                                {/* Blocks Layer */}
+                                <div className="absolute inset-0 z-20 pointer-events-none" style={{ top: 40 }}>
+                                    {blocks.map(block => {
+                                        const trackIndex = activeTracks.findIndex(t => t.id === block.trackId);
+                                        if (trackIndex === -1) return null;
+
+                                        const startPx = dateToPx(block.start);
+                                        const endPx = dateToPx(block.end);
+                                        // If block is out of view range?
+                                        if (endPx < 0 || startPx > totalWidth) return null;
+
+                                        const topPos = TRACK_TOP_PAD + trackIndex * (TRACK_HEIGHT + TRACK_GAP); // Inside the tracks container
+                                        const track = activeTracks[trackIndex];
+
+                                        return (
+                                            <motion.div
+                                                key={block.id}
+                                                drag
+                                                dragMomentum={false}
+                                                onDragStart={() => {
+                                                    setIsDragging(true);
+                                                    setDraggingId(block.id);
+                                                    if (!selectedIds.includes(block.id)) setSelectedIds([block.id]);
+                                                }}
+                                                onDragEnd={(e, i) => handleBlockDragEnd(e, i, block)}
+                                                onDrag={(e, info) => {
+                                                    if (window.innerHeight - info.point.y < DELETE_ZONE_HEIGHT) setDragDeleteActive(true);
+                                                    else setDragDeleteActive(false);
+                                                }}
+
+                                                className="absolute h-12 rounded border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing hover:border-white/40 pointer-events-auto"
+                                                style={{
+                                                    top: topPos + 24,
+                                                    left: startPx,
+                                                    width: Math.max(2, endPx - startPx), // Min width
+                                                    backgroundColor: `${track.color}15`,
+                                                    borderColor: selectedIds.includes(block.id) ? '#00ff9d' : `${track.color}40`,
+                                                    borderWidth: selectedIds.includes(block.id) ? 2 : 1,
+                                                    zIndex: isDragging && selectedIds.includes(block.id) ? 50 : 25
+                                                }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (!isDragging) {
+                                                        setSelectedBlock(block);
+                                                        setSelectedIds([block.id]);
+                                                    }
+                                                }}
+                                            >
+                                                <div className="h-full w-1 absolute left-0 top-0 bottom-0" style={{ backgroundColor: track.color }} />
+                                                <div className="pl-3 pr-2 pt-1 min-w-0">
+                                                    <div className="text-[10px] font-bold text-white truncate">{block.title}</div>
+                                                    {viewMode === 'DAY' && <div className="text-[9px] text-white/50 truncate font-mono">{new Date(block.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Drag Delete Zone */}
                 <AnimatePresence>
@@ -916,260 +807,66 @@ export default function SanctumTimeline() {
                     )}
                 </AnimatePresence>
 
-                {/* Create Block Modal */}
+                {/* Create Modal */}
                 <AnimatePresence>
                     {isCreating && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={resetForm}>
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 w-[450px] shadow-2xl relative"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-lg font-bold text-white tracking-widest">{isEditing ? 'EDIT ENTRY' : 'LOG NEW ENTRY'}</h3>
-                                    <button onClick={resetForm} className="text-white/40 hover:text-white">
-                                        <X size={16} />
-                                    </button>
-                                </div>
-
+                            <motion.div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 w-[450px] shadow-2xl relative" onClick={e => e.stopPropagation()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                <h3 className="text-lg font-bold text-white tracking-widest mb-6">{isEditing ? 'EDIT ENTRY' : 'LOG NEW ENTRY'}</h3>
                                 <div className="space-y-4">
-                                    {/* Input fields... */}
-                                    <div>
-                                        <label className="text-[10px] text-white/40 uppercase mb-1 block">Title</label>
-                                        <input
-                                            type="text"
-                                            value={newBlock.title}
-                                            onChange={e => setNewBlock({ ...newBlock, title: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#00ff9d] outline-none"
-                                            placeholder="Enter task name..."
-                                            autoFocus
-                                        />
-                                    </div>
-
+                                    <input value={newBlock.title} onChange={e => setNewBlock({ ...newBlock, title: e.target.value })} placeholder="Title" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white outline-none focus:border-[#00ff9d]" autoFocus />
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[10px] text-white/40 uppercase mb-1 block">Start Time</label>
-                                            <input
-                                                type="time"
-                                                value={newBlock.start}
-                                                onChange={e => setNewBlock({ ...newBlock, start: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#00ff9d] outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-white/40 uppercase mb-1 block">End Time</label>
-                                            <input
-                                                type="time"
-                                                value={newBlock.end}
-                                                onChange={e => setNewBlock({ ...newBlock, end: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#00ff9d] outline-none"
-                                            />
-                                        </div>
+                                        <input type="datetime-local" value={newBlock.start} onChange={e => setNewBlock({ ...newBlock, start: e.target.value })} className="bg-white/5 border border-white/10 rounded px-2 py-2 text-xs text-white" />
+                                        <input type="datetime-local" value={newBlock.end} onChange={e => setNewBlock({ ...newBlock, end: e.target.value })} className="bg-white/5 border border-white/10 rounded px-2 py-2 text-xs text-white" />
                                     </div>
-
-                                    <div className="border border-white/10 rounded p-3 bg-white/5">
-                                        <label className="text-[10px] text-white/40 uppercase mb-2 block flex items-center gap-1">
-                                            <Tag size={10} /> LINKED ENTITY (OPTIONAL)
-                                        </label>
-                                        <div className="flex gap-2">
-                                            <select
-                                                value={newBlock.linkedType}
-                                                onChange={e => setNewBlock({ ...newBlock, linkedType: e.target.value, linkedId: '' })}
-                                                className="bg-[#050505] border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-[#00ff9d]"
-                                            >
-                                                <option value="NONE">No Link</option>
-                                                <option value="ENGINE">Engine</option>
-                                                <option value="PROJECT">Project</option>
-                                            </select>
-
-                                            {newBlock.linkedType !== 'NONE' && (
-                                                <select
-                                                    value={newBlock.linkedId}
-                                                    onChange={e => setNewBlock({ ...newBlock, linkedId: e.target.value })}
-                                                    className="flex-1 bg-[#050505] border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-[#00ff9d]"
-                                                >
-                                                    <option value="">Select Target...</option>
-                                                    {newBlock.linkedType === 'ENGINE' && ALL_ENGINES.map(e => (
-                                                        <option key={e.code} value={e.code}>[{e.code}] {e.name}</option>
-                                                    ))}
-                                                    {newBlock.linkedType === 'PROJECT' && NS_PROJECTS.map(p => (
-                                                        <option key={p.code} value={p.code}>{p.name}</option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                        </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {activeTracks.map(t => (
+                                            <button key={t.id} onClick={() => setNewBlock({ ...newBlock, trackId: t.id })} className={`text-left px-3 py-2 rounded border text-[10px] font-bold ${newBlock.trackId === t.id ? 'bg-white/10 text-white' : 'text-white/40 border-white/5'}`} style={{ borderColor: newBlock.trackId === t.id ? t.color : '' }}>{t.name}</button>
+                                        ))}
                                     </div>
-
-                                    <div>
-                                        <label className="text-[10px] text-white/40 uppercase mb-1 block">Track / Category</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {activeTracks.map(track => (
-                                                <button
-                                                    key={track.id}
-                                                    onClick={() => setNewBlock({ ...newBlock, trackId: track.id })}
-                                                    className={`text-left px-3 py-2 rounded border text-[10px] font-bold transition-all ${newBlock.trackId === track.id
-                                                        ? 'bg-white/10 text-white'
-                                                        : 'bg-transparent border-white/5 text-white/40 hover:bg-white/5'
-                                                        }`}
-                                                    style={{ borderColor: newBlock.trackId === track.id ? track.color : 'rgba(255,255,255,0.1)' }}
-                                                >
-                                                    {track.name}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-[10px] text-white/40 uppercase mb-1 block">Description</label>
-                                        <textarea
-                                            value={newBlock.desc}
-                                            onChange={e => setNewBlock({ ...newBlock, desc: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#00ff9d] outline-none h-20 resize-none"
-                                            placeholder="Optional details..."
-                                        />
-                                    </div>
-
-                                    <div className="flex gap-3 mt-2">
-                                        {isEditing && (
-                                            <button
-                                                onClick={() => handleDelete(newBlock.id)}
-                                                className="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 font-bold py-3 rounded hover:bg-red-500/20 transition-colors tracking-widest text-xs"
-                                            >
-                                                DELETE
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={handleSave}
-                                            className={`bg-[#00ff9d] text-black font-bold py-3 rounded hover:bg-[#00ff9d]/90 transition-colors tracking-widest text-xs ${isEditing ? 'flex-[2]' : 'w-full'}`}
-                                        >
-                                            {isEditing ? 'SAVE CHANGES' : 'COMMIT TO CHRONOS'}
-                                        </button>
-                                    </div>
+                                    <button onClick={handleSave} className="w-full bg-[#00ff9d] text-black font-bold py-3 rounded tracking-widest text-xs">SAVE</button>
                                 </div>
                             </motion.div>
                         </div>
                     )}
                 </AnimatePresence>
 
-                {/* Block Detail Modal */}
-                <AnimatePresence>
-                    {selectedBlock && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedBlock(null)}>
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="bg-[#0a0a0a] border border-white/10 rounded-lg p-6 w-96 shadow-2xl relative"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: activeTracks.find(t => t.id === selectedBlock.trackId)?.color }} />
-                                    <div>
-                                        <h3 className="text-lg font-bold text-white">{selectedBlock.title}</h3>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs text-white/40 font-mono tracking-widest uppercase">
-                                                {activeTracks.find(t => t.id === selectedBlock.trackId)?.name}
-                                            </span>
-                                            {selectedBlock.linkedType && selectedBlock.linkedType !== 'NONE' && (
-                                                <span className="text-[10px] bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 px-2 py-0.5 rounded">
-                                                    {getEntityLabel(selectedBlock.linkedType, selectedBlock.linkedId)}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-white/5 p-2 rounded border border-white/5">
-                                        <label className="text-[9px] text-white/40 uppercase">Start Time</label>
-                                        <div className="text-sm font-mono text-white">{selectedBlock.start}</div>
-                                    </div>
-                                    <div className="bg-white/5 p-2 rounded border border-white/5">
-                                        <label className="text-[9px] text-white/40 uppercase">End Time</label>
-                                        <div className="text-sm font-mono text-white">{selectedBlock.end}</div>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6 bg-white/5 p-3 rounded border border-white/5">
-                                    <label className="text-[9px] text-white/40 uppercase mb-1 block">Description</label>
-                                    <p className="text-sm text-white/80 leading-relaxed">{selectedBlock.desc}</p>
-                                </div>
-
-                                <div className="flex justify-end gap-3">
-                                    <button onClick={() => setSelectedBlock(null)} className="px-4 py-2 text-xs text-white/40 hover:text-white transition-colors">CLOSE</button>
-                                    <button
-                                        onClick={() => openEdit(selectedBlock)}
-                                        className="px-4 py-2 bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 rounded text-xs font-bold hover:bg-[#00ff9d]/20 transition-all"
-                                    >
-                                        EDIT BLOCK
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-                {/* Track Summary Overlay */}
+                {/* Tracking Summaries Overlay */}
                 <AnimatePresence>
                     {selectedTrackForSummary && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => setSelectedTrackForSummary(null)}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                className="bg-[#050505] border border-white/10 rounded-xl w-[800px] h-[600px] shadow-2xl overflow-hidden flex flex-col"
-                                onClick={e => e.stopPropagation()}
-                            >
+                            <motion.div className="bg-[#050505] border border-white/10 rounded-xl w-[800px] h-[600px] shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
                                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
                                     <div className="flex items-center gap-4">
                                         <div className="w-2 h-8 rounded-full" style={{ backgroundColor: selectedTrackForSummary.color }} />
                                         <div>
                                             <h2 className="text-xl font-bold text-white tracking-widest">{selectedTrackForSummary.name}</h2>
-                                            <div className="text-xs text-white/40 font-mono">TRACK INTELLIGENCE & GOALS</div>
+                                            <div className="text-xs text-white/40 font-mono">TRACK INTELLIGENCE // {activeSummaryPeriod}</div>
                                         </div>
                                     </div>
-                                    <button onClick={() => setSelectedTrackForSummary(null)} className="text-white/40 hover:text-white transition-colors">
-                                        <X size={24} />
-                                    </button>
+                                    <button onClick={() => setSelectedTrackForSummary(null)} className="text-white/40 hover:text-white"><X size={24} /></button>
                                 </div>
-
                                 <div className="flex-1 flex overflow-hidden">
-                                    {/* Summary Tabs / Sidebar */}
                                     <div className="w-48 border-r border-white/10 bg-black/20 p-4 space-y-2">
-                                        {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map(period => (
-                                            <div key={period} className="px-4 py-3 rounded text-xs font-bold tracking-widest bg-white/5 border border-white/5 text-white/60 hover:text-white hover:bg-white/10 cursor-pointer transition-all flex items-center gap-2">
-                                                <Calendar size={12} />
-                                                {period}
+                                        {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map(p => (
+                                            <div key={p} onClick={() => setActiveSummaryPeriod(p)} className={`px-4 py-3 rounded text-xs font-bold tracking-widest cursor-pointer flex items-center gap-2 ${activeSummaryPeriod === p ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white'}`}>
+                                                <Calendar size={12} /> {p}
                                             </div>
                                         ))}
                                     </div>
-
-                                    {/* Content Area */}
                                     <div className="flex-1 p-8 overflow-y-auto">
                                         <div className="grid grid-cols-2 gap-8 h-full">
-                                            <div className="flex flex-col h-full">
-                                                <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                                    OVERVIEW / STATUS
-                                                </h3>
-                                                <textarea
-                                                    className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-blue-500/50 resize-none selection:bg-blue-500/30"
-                                                    placeholder="Enter current status overview..."
-                                                    defaultValue={trackSummaries[selectedTrackForSummary.id]?.daily?.overview || ""}
-                                                />
+                                            <div className="flex flex-col gap-2">
+                                                <h3 className="text-xs font-bold text-white/40 tracking-widest">STATUS</h3>
+                                                <textarea className="flex-1 bg-white/5 border border-white/10 rounded p-4 text-sm text-white focus:border-blue-500 outline-none resize-none"
+                                                    value={trackSummaries[selectedTrackForSummary.id]?.[activeSummaryPeriod]?.overview || ''}
+                                                    onChange={e => handleSummaryChange(selectedTrackForSummary.id, activeSummaryPeriod, 'overview', e.target.value)} />
                                             </div>
-
-                                            <div className="flex flex-col h-full">
-                                                <h3 className="text-xs font-bold text-white/40 mb-4 tracking-widest flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                                    GOALS & TARGETS
-                                                </h3>
-                                                <textarea
-                                                    className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-lg p-4 text-sm text-white/80 leading-relaxed outline-none focus:border-green-500/50 resize-none selection:bg-green-500/30"
-                                                    placeholder="Define goals for this period..."
-                                                    defaultValue={trackSummaries[selectedTrackForSummary.id]?.daily?.goals || ""}
-                                                />
+                                            <div className="flex flex-col gap-2">
+                                                <h3 className="text-xs font-bold text-white/40 tracking-widest">GOALS</h3>
+                                                <textarea className="flex-1 bg-white/5 border border-white/10 rounded p-4 text-sm text-white focus:border-green-500 outline-none resize-none"
+                                                    value={trackSummaries[selectedTrackForSummary.id]?.[activeSummaryPeriod]?.goals || ''}
+                                                    onChange={e => handleSummaryChange(selectedTrackForSummary.id, activeSummaryPeriod, 'goals', e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
@@ -1178,6 +875,7 @@ export default function SanctumTimeline() {
                         </div>
                     )}
                 </AnimatePresence>
+
             </div>
         </Layout>
     );

@@ -3,7 +3,7 @@ import Layout from "../../components/Layout.jsx";
 import Section from "../../components/Section.jsx";
 import { Link } from "react-router-dom";
 // import { DOCS_REGISTRY } from "../../data/docsRegistry.js"; // Removed in favor of Context
-import { NS_ENGINES, SL_ENGINES } from "../../data/engineRegistry.js";
+import { NS_ENGINES, SL_ENGINES } from "@shared/data/engineRegistry";
 import {
     Folder, FolderOpen, FileText, ChevronRight, ChevronDown,
     LayoutGrid, ListTree, File, Plus
@@ -55,7 +55,7 @@ const FileTreeNode = ({ label, type = "file", isOpen, onToggle, onClick, depth =
     );
 };
 
-const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFile }) => {
+const FileExplorer = ({ generalDocs, haloDocs, orderedEngineDocs, activeProjects, onOpenFile }) => {
     // ... same as before but need access to standard props
     const [openFolders, setOpenFolders] = useState({});
 
@@ -76,6 +76,35 @@ const FileExplorer = ({ generalDocs, orderedEngineDocs, activeProjects, onOpenFi
             />
             {openFolders['general'] && generalDocs.map(cat => (
                 <div key={cat.category}>
+                    <FileTreeNode
+                        label={cat.category}
+                        type="folder"
+                        depth={1}
+                        isOpen={openFolders[cat.category]}
+                        onToggle={() => toggleFolder(cat.category)}
+                    />
+                    {openFolders[cat.category] && cat.items.map(doc => (
+                        <FileTreeNode
+                            key={doc.id}
+                            label={doc.title}
+                            depth={2}
+                            onClick={() => onOpenFile(cat, doc)}
+                        />
+                    ))}
+                </div>
+            ))}
+
+            {/* NS Halo */}
+            <div style={{ marginTop: '8px' }}></div>
+            <FileTreeNode
+                label="NS Halo"
+                type="folder"
+                isOpen={openFolders['halo']}
+                onToggle={() => toggleFolder('halo')}
+            />
+            {openFolders['halo'] && haloDocs.map(cat => (
+                <div key={cat.category}>
+                    {/* NS Halo is usually a single category but treating it as a group for consistency if expanded */}
                     <FileTreeNode
                         label={cat.category}
                         type="folder"
@@ -195,9 +224,11 @@ export default function Documentation({ context }) {
         return cat ? { ...cat, category: `${engine.code} - ${engine.name}` } : null;
     }).filter(Boolean);
 
+    const haloDocs = registry.filter(cat => cat.category === "NS Halo");
+
     // 2. General Docs
     const generalDocs = registry.filter(cat =>
-        !cat.category.includes("Engine")
+        !cat.category.includes("Engine") && cat.category !== "NS Halo"
     );
 
     // 3. Project Docs
@@ -206,7 +237,8 @@ export default function Documentation({ context }) {
     const nav = isSL ? [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
         { type: "divider" },
         { label: "Docs", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
@@ -215,7 +247,8 @@ export default function Documentation({ context }) {
     ] : isWSP ? [
         { label: "Northfield Solidarity", to: "/" },
         { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
         { type: "divider" },
         { label: "Docs", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },
@@ -290,6 +323,17 @@ export default function Documentation({ context }) {
                                 <h4 className="sidebar-heading">Reference</h4>
                                 <a href="#engine-registry" className="sidebar-link">⚙️ Engine Registry</a>
                             </div>
+
+                            {/* NS Halo Sidebar Group */}
+                            <div className="sidebar-group">
+                                <h4 className="sidebar-heading">NS Halo</h4>
+                                {haloDocs.map(s => (
+                                    <a key={s.category} href={`#${s.category.replace(/\s+/g, '-').toLowerCase()}`} className="sidebar-link">
+                                        {s.icon} {s.category}
+                                    </a>
+                                ))}
+                            </div>
+
                             {activeProjects.length > 0 && (
                                 <div className="sidebar-group">
                                     <h4 className="sidebar-heading">Projects</h4>
@@ -353,6 +397,7 @@ export default function Documentation({ context }) {
                         {viewMode === 'explorer' ? (
                             <FileExplorer
                                 generalDocs={generalDocs}
+                                haloDocs={haloDocs}
                                 orderedEngineDocs={orderedEngineDocs}
                                 activeProjects={activeProjects}
                                 onOpenFile={handleOpenFile}
@@ -411,9 +456,42 @@ export default function Documentation({ context }) {
                                     </div>
                                 </section>
 
-                                {/* 3. Project Registry */}
+                                {/* 3. NS Halo Documentation */}
+                                {haloDocs.map((section) => (
+                                    <section key={section.category} id={section.category.replace(/\s+/g, '-').toLowerCase()} className="docs-section">
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--c-border)', marginBottom: 'var(--space-6)', paddingBottom: 'var(--space-3)' }}>
+                                            <h2 className="section-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                                                <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>{section.icon}</span>
+                                                {section.category}
+                                            </h2>
+                                            {canEdit && (
+                                                <button
+                                                    className="btn icon sm ghost"
+                                                    onClick={() => handleAddDoc(section.category)}
+                                                    title="Add Document"
+                                                >
+                                                    <Plus size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="grid">
+                                            {section.items.map((item) => (
+                                                <Link key={item.id} to={`/docs/${item.id}`} className="card doc-link-card">
+                                                    <div className="cardTop">
+                                                        <div className="badge brand-badge" style={{ background: 'var(--c-accent)' }}>OS</div>
+                                                    </div>
+                                                    <div className="cardTitle">{item.title}</div>
+                                                    <p className="cardBody">{item.desc}</p>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </section>
+                                ))}
+
+                                {/* 4. Project Registry */}
                                 {activeProjects.length > 0 && (
                                     <section id="project-registry" className="docs-section registry-section">
+
                                         <h2 className="section-title">
                                             <span style={{ opacity: 0.8, fontSize: '0.8em', marginRight: '8px' }}>🏗️</span>
                                             Project Registry

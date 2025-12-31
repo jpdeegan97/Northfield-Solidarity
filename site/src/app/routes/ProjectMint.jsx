@@ -43,11 +43,35 @@ export default function ProjectMint() {
                 <div className="max-w-5xl mx-auto px-6 pb-24 grid gap-12">
                     <div className="border border-white/10 bg-white/5 p-8 rounded-xl">
                         <h2 className="text-2xl font-bold mb-4 text-[#00ff9d]">System Status</h2>
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 mb-8">
                             <StatusRow label="Network State" value="TESTNET ALFA" status="active" />
                             <StatusRow label="Validators Online" value="12" status="active" />
                             <StatusRow label="Current Block Height" value="8,492,102" />
                             <StatusRow label="Last Finality" value="1.2s" />
+                        </div>
+
+                        {/* Health Bars Visualization */}
+                        <div className="border-t border-white/5 pt-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-4 text-[#00ff9d]">Validator Liveness</h4>
+                            <div className="flex items-end gap-1 h-24 bg-black/20 rounded-lg p-4 border border-white/5 relative overflow-hidden">
+                                {/* Background Grid */}
+                                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(0,255,157,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,157,0.1) 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+
+                                {[40, 65, 55, 80, 45, 90, 70, 35, 60, 75, 50, 85, 65, 40, 95, 60, 70, 50, 80, 65, 45, 75, 60, 85].map((h, i) => (
+                                    <div key={i}
+                                        className="flex-1 rounded-t-sm transition-all duration-500 hover:opacity-100"
+                                        style={{
+                                            height: `${h}%`,
+                                            backgroundColor: '#00ff9d',
+                                            opacity: 0.3 + (h / 200)
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <div className="flex justify-between items-center mt-2 text-[10px] font-mono opacity-50 uppercase text-[#00ff9d]">
+                                <span>Epoch: 204</span>
+                                <span>Consensus: 99.8%</span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -63,7 +63,60 @@ export default function SanctumMail() {
         ssl: true
     });
 
-    const filteredEmails = MOCK_EMAILS.filter(e => {
+    // Email State
+    const [emails, setEmails] = useState(MOCK_EMAILS);
+    const [emailMenuOpen, setEmailMenuOpen] = useState(false);
+
+    // Compose State
+    const [showCompose, setShowCompose] = useState(false);
+    const [composeForm, setComposeForm] = useState({
+        to: '',
+        subject: '',
+        body: ''
+    });
+
+    const handleSendEmail = (e) => {
+        e.preventDefault();
+        alert(`Email sent to ${composeForm.to}! (Mock)`);
+        setShowCompose(false);
+        setComposeForm({ to: '', subject: '', body: '' });
+    };
+
+    const toggleStar = (e, emailId) => {
+        e.stopPropagation();
+        setEmails(prev => prev.map(email => {
+            if (email.id === emailId) {
+                const updated = { ...email, starred: !email.starred };
+                if (selectedEmail?.id === emailId) {
+                    setSelectedEmail(updated);
+                }
+                return updated;
+            }
+            return email;
+        }));
+    };
+
+    const deleteEmail = () => {
+        if (!selectedEmail) return;
+        setEmails(prev => prev.filter(e => e.id !== selectedEmail.id));
+        setSelectedEmail(null);
+        setEmailMenuOpen(false);
+    };
+
+    const toggleRead = () => {
+        if (!selectedEmail) return;
+        setEmails(prev => prev.map(email => {
+            if (email.id === selectedEmail.id) {
+                const updated = { ...email, read: !email.read };
+                setSelectedEmail(updated);
+                return updated;
+            }
+            return email;
+        }));
+        setEmailMenuOpen(false);
+    };
+
+    const filteredEmails = emails.filter(e => {
         if (e.accountId !== activeAccountId) return false;
         if (filter === 'starred') return e.starred;
         return true;
@@ -232,6 +285,71 @@ export default function SanctumMail() {
                     </div>
                 )}
 
+                {/* Compose Modal */}
+                {showCompose && (
+                    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-[#0f172a] w-full max-w-2xl rounded-xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
+                            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                                    <Plus size={16} className="text-purple-400" />
+                                    New Message
+                                </h2>
+                                <button onClick={() => setShowCompose(false)} className="text-white/40 hover:text-white transition-colors">
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                <form onSubmit={handleSendEmail} className="space-y-4">
+                                    <div className="space-y-1">
+                                        <input
+                                            type="text"
+                                            placeholder="To"
+                                            className="w-full bg-transparent border-b border-white/10 py-2 text-sm text-white focus:border-purple-500 outline-none placeholder-white/30"
+                                            value={composeForm.to}
+                                            onChange={e => setComposeForm({ ...composeForm, to: e.target.value })}
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <input
+                                            type="text"
+                                            placeholder="Subject"
+                                            className="w-full bg-transparent border-b border-white/10 py-2 text-sm text-white focus:border-purple-500 outline-none placeholder-white/30 font-medium"
+                                            value={composeForm.subject}
+                                            onChange={e => setComposeForm({ ...composeForm, subject: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="pt-2">
+                                        <textarea
+                                            placeholder="Write something..."
+                                            className="w-full h-64 bg-transparent resize-none text-sm text-white/80 outline-none placeholder-white/20 custom-scrollbar"
+                                            value={composeForm.body}
+                                            onChange={e => setComposeForm({ ...composeForm, body: e.target.value })}
+                                        ></textarea>
+                                    </div>
+                                    <div className="flex justify-end pt-4 border-t border-white/10">
+                                        <div className="flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCompose(false)}
+                                                className="px-4 py-2 text-xs font-bold text-white/60 hover:text-white transition-colors"
+                                            >
+                                                DISCARD
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded shadow-lg shadow-purple-900/20 transition-all flex items-center gap-2"
+                                            >
+                                                <Send size={14} /> SEND MESSAGE
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Mail Navigation */}
                 <div className="w-64 bg-[#111] border-r border-white/5 flex flex-col">
                     {/* Account Switcher Header */}
@@ -341,7 +459,10 @@ export default function SanctumMail() {
                     </div>
 
                     <div className="p-4">
-                        <button className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-purple-900/20">
+                        <button
+                            onClick={() => setShowCompose(true)}
+                            className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-purple-900/20"
+                        >
                             <Plus size={18} /> Compose
                         </button>
                     </div>
@@ -404,9 +525,44 @@ export default function SanctumMail() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button className="p-2 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"><Star size={18} /></button>
-                                    <button className="p-2 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"><MoreVertical size={18} /></button>
+                                <div className="flex gap-2 relative">
+                                    <button
+                                        onClick={(e) => toggleStar(e, selectedEmail.id)}
+                                        className={`p-2 hover:bg-white/10 rounded transition-colors ${selectedEmail.starred ? 'text-yellow-400 hover:text-yellow-300' : 'text-white/60 hover:text-white'}`}
+                                    >
+                                        <Star size={18} fill={selectedEmail.starred ? "currentColor" : "none"} />
+                                    </button>
+                                    <button
+                                        onClick={() => setEmailMenuOpen(!emailMenuOpen)}
+                                        className={`p-2 hover:bg-white/10 rounded transition-colors ${emailMenuOpen ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white'}`}
+                                    >
+                                        <MoreVertical size={18} />
+                                    </button>
+
+                                    {/* Three Dots Menu */}
+                                    {emailMenuOpen && (
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-[#0f172a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden">
+                                            <button
+                                                onClick={toggleRead}
+                                                className="w-full text-left px-4 py-2 text-xs text-white hover:bg-white/5 flex items-center gap-2"
+                                            >
+                                                <Mail size={14} /> Mark as {selectedEmail.read ? 'Unread' : 'Read'}
+                                            </button>
+                                            <button
+                                                onClick={() => { alert('Archive Mock'); setEmailMenuOpen(false); }}
+                                                className="w-full text-left px-4 py-2 text-xs text-white hover:bg-white/5 flex items-center gap-2"
+                                            >
+                                                <Archive size={14} /> Archive
+                                            </button>
+                                            <div className="h-px bg-white/10 my-1"></div>
+                                            <button
+                                                onClick={deleteEmail}
+                                                className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                                            >
+                                                <X size={14} /> Delete
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex-1 p-8 overflow-y-auto">

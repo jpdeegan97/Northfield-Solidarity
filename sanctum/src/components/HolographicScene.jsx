@@ -1,7 +1,8 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Icosahedron, Text, Float, MeshDistortMaterial } from '@react-three/drei';
+import { Sphere, Icosahedron, Text, Float, MeshDistortMaterial, Stars, Line } from '@react-three/drei';
 import * as THREE from 'three';
+import { nsGridAreas, nsNodeCoords, nsConnections3d } from '../data/topologyData.js';
 
 // Utility: Enforce contrast against black background (0x000000)
 // Ensures that any user-provided color has a minimum lightness [0-1] of 0.6
@@ -66,7 +67,7 @@ function Constellation({ radius = 3, color = "white", count = 30 }) {
     );
 }
 
-function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = true }) {
+export function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = true, position = [0, 0, 0] }) {
     const meshRef = useRef();
 
     // Use useMemo for static positions to avoid render jitter, using spherical coords
@@ -109,7 +110,7 @@ function FirmamentGlobe({ activeLayers = {}, showStars = true, enableRotation = 
     });
 
     return (
-        <group ref={meshRef}>
+        <group position={position} ref={meshRef}>
             {/* Core Globe */}
             <Float speed={enableRotation ? 1 : 0} rotationIntensity={enableRotation ? 0.2 : 0} floatIntensity={enableRotation ? 0.5 : 0}>
                 <Sphere args={[2.5, 32, 32]}>
@@ -226,7 +227,7 @@ function EngineObject({ code, enableRotation = true }) {
     );
 }
 
-function Stars() {
+function CustomStars() {
     const points = useMemo(() => {
         const p = [];
         for (let i = 0; i < 500; i++) {
@@ -248,11 +249,80 @@ function Stars() {
     );
 }
 
+// System Topology Wrapper for Holographic Scene
+// SystemTopology3D expects full container props usually, but here we just want the inner Scene if possible
+// The SystemTopology3D component we have wraps Canvas, which is bad for nesting inside Canvas.
+// We need to either export the inner Scene from SystemTopology3D or reimplement the nodes here.
+// Reimplementing logic using the imported component logic minus Canvas.
+
+export function TopologyHologram({ position = [-4, 0, 0] }) {
+    // Basic reconstruction of node graph for hologram use
+    const scale = 0.05; // Increased scale for better distribution
+    const scaledCoords = useMemo(() => {
+        const newCoords = {};
+        Object.keys(nsNodeCoords).forEach(key => {
+            const { x, y, z } = nsNodeCoords[key];
+            // Spread out coordinates
+            newCoords[key] = [x * scale, -y * scale, z * scale];
+        });
+        return newCoords;
+    }, []);
+
+    return (
+        <group position={position}>
+            {/* Edges */}
+            {nsConnections3d.map(([start, end], i) => {
+                const startPos = scaledCoords[start]; // Vector3 not strictly needed for Drei Line points prop
+                const endPos = scaledCoords[end];
+
+                if (!startPos || !endPos) return null;
+
+                return (
+                    <Line
+                        key={i}
+                        points={[startPos, endPos]}
+                        color="#38bdf8"
+                        transparent
+                        opacity={0.6}
+                        lineWidth={2}
+                    />
+                );
+            })}
+
+            {/* Nodes */}
+            {nsGridAreas.map(node => (
+                <mesh key={node.code} position={scaledCoords[node.code]}>
+                    <sphereGeometry args={[0.08, 16, 16]} />
+                    <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.8} />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+
 export default function HolographicScene({ activeCode, activeLayers, scale = 1, showStars = true, enableRotation = true }) {
+    // If specific engine code is active (and not Firmament), show that engine
+    // Otherwise show the FULL Firmament view (Globe + Topology side by side)
+    const isFirmament = !activeCode || activeCode === 'FIRMAMENT' || activeCode === 'ALL';
+
     return (
         <group scale={[scale, scale, scale]}>
-            {activeCode === 'FIRMAMENT' ? (
-                <FirmamentGlobe activeLayers={activeLayers} showStars={showStars} enableRotation={enableRotation} />
+            {isFirmament ? (
+                <group>
+                    {/* Left Side: System Topology Hologram */}
+                    {/* Positioned to the left of center */}
+                    <TopologyHologram position={[-3.5, 0, 0]} />
+
+                    {/* Right Side: Firmament Globe */}
+                    {/* Positioned to the right of center */}
+                    <FirmamentGlobe
+                        position={[3.5, 0, 0]}
+                        activeLayers={activeLayers}
+                        showStars={showStars}
+                        enableRotation={enableRotation}
+                    />
+                </group>
             ) : (
                 <EngineObject code={activeCode} enableRotation={enableRotation} />
             )}

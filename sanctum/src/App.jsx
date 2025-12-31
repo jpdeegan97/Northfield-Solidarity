@@ -80,7 +80,6 @@ export default function App() {
             <Route path="account" element={<Account />} /> {/* Added Route for Account */}
             <Route path="checkout" element={<Checkout />} />
             <Route path="login" element={<Login />} />
-            <Route path="platform" element={<ProductCanvas />} />
             <Route path="networking" element={<Networking />} />
             <Route path="ide" element={<IdeRoute />} />
             <Route path="os-ideation" element={<OSIdeation />} />

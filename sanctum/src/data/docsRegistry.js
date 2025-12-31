@@ -152,7 +152,8 @@ import {
 import {
     NS_INT_000_CHARTER,
     NS_INT_001_OVERVIEW,
-    NS_INT_005_DECISION
+    NS_INT_005_DECISION,
+    NS_INT_015_IDEATION
 } from "./docs/INT_content.js";
 
 import {
@@ -163,7 +164,37 @@ import {
     NS_ARCH_010_NETWORKING
 } from "./docs/ARCH_content.js";
 
+import {
+    NS_PLAN_001_GTM
+} from "./docs/PLAN_content.js";
+
+import {
+    NS_OS_000_CHARTER,
+    NS_OS_001_NON_GOALS,
+    NS_OS_002_PRIMITIVES,
+    NS_OS_003_WORLDVIEW,
+    NS_OS_004_VISION,
+    NS_OS_005_ABI,
+    NS_OS_006_HCG,
+    NS_OS_007_SCHEDULER,
+    NS_OS_008_TSU,
+    NS_OS_009_PRS,
+    NS_OS_010_INTEGRATION,
+    NS_OS_011_OBSERVABILITY,
+    NS_OS_012_SECURITY,
+    NS_OS_013_ROADMAP,
+    NS_OS_014_GLOSSARY,
+    NS_OS_015_REFERENCES
+} from "./docs/OS_content.js";
+
 export const DOCS_REGISTRY = [
+    {
+        category: "Strategic Planning",
+        icon: "🗺️",
+        items: [
+            { id: "ns-gtm-plan", title: "GTM Execution Plan", desc: "Phase 1-5 Roadmap for Market Readiness.", content: NS_PLAN_001_GTM }
+        ]
+    },
     {
         category: "GGP Engine",
         icon: "🧠",
@@ -353,7 +384,7 @@ export const DOCS_REGISTRY = [
         category: "CWP Engine",
         icon: "📋",
         items: [
-            { id: "cwp-overview", title: "001 Overview", desc: "Critical Workflows & Procedures.", content: "# CWP\n\nOverview coming soon." }
+            { id: "cwp-overview", title: "001 Overview", desc: "Cognitive Worker Plane.", content: "# Cognitive Worker Plane\n\nAgentic orchestration and MSP server overview coming soon." }
         ]
     },
     {
@@ -412,100 +443,29 @@ export const DOCS_REGISTRY = [
             { id: "int-charter", title: "000 Charter", desc: "Engine identity and mission.", content: NS_INT_000_CHARTER },
             { id: "int-overview", title: "001 Overview", desc: "Purpose and role of Intervention.", content: NS_INT_001_OVERVIEW },
             { id: "int-decision", title: "005 Decision", desc: "Architectural decisions log.", content: NS_INT_005_DECISION },
+            { id: "int-ideation", title: "015 QuickScope Features", desc: "20 enhanced capabilities ideation.", content: NS_INT_015_IDEATION },
         ]
     },
     {
         category: "Architecture",
         icon: "🏗️",
         items: [
-            {
-                id: "dashboard-concepts",
-                title: "Dashboard Concepts (HUD)",
-                desc: "Ten conceptual directions for the Sanctum Dashboard evolution.",
-                content: `
-# Sanctum Dashboard Concepts
-
-Ten conceptual directions for the evolution of the Sanctum Dashboard (\`/\`). These designs aim to transform the dashboard from a simple navigational menu into a high-density "Heads-Up Display" (HUD) for situational awareness.
-
-## 1. The "Daily Briefing" / Command Deck
-Turn the dashboard into a **Pre-Flight Checklist** for your day.
-*   **The Hook:** "What is required of me today?"
-*   **Features:**
-    *   **Chronicle Integration:** Displays yesterday's closing "State of Mind" and today's "Primary Intent."
-    *   **Pending Approvals:** A queue of high-priority decisions (Mock GGP permissions, MINT formations awaiting signature).
-    *   **Critical Alerts:** A filtered list of red-flag events from the CWP (e.g., "Asset Scraper Failed," "SSL Expiry").
-
-## 2. The "Financial Fortress" HUD
-A dedicated, high-fidelity financial control center.
-*   **The Hook:** "Show me the money and the targets."
-*   **Features:**
-    *   **Live Net Worth:** Aggregated real-time balances (Crypto + Fiat + Equity).
-    *   **Target vs. Reality:** A visual burn-down chart comparing your current liquidity against the **Total Target Value** from the "Dreams" engine (e.g., *Current: $2.4M / Target: $184M*).
-    *   **Cashflow Velocity:** Gauges showing burn rate vs. income rate across all projects.
-
-## 3. The "Entity Topology" (MINT Surface)
-A visual web of your legal and corporate empire.
-*   **The Hook:** "Who owns what?"
-*   **Features:**
-    *   **Interactive Graph:** A 2D force-directed graph showing the parent-child relationships between *Northfield Solidarity*, *South Lawn*, and the *LLCs* created in MINT.
-    *   **Compliance Heatmap:** Color-code entities based on their standing (Good Standing = Green, Franchise Tax Due = Yellow).
-
-## 4. The "Signal Intelligence" Room (SIG Engine)
-A trading-desk style interface for incoming data streams.
-*   **The Hook:** "What is the world doing?"
-*   **Features:**
-    *   **Market Feeds:** Tickers for relevant asset classes (Real Estate Indexes, Crypto, Competitor Stock).
-    *   **Active Scrapes:** Live terminal output from your **CWP Crawlers** showing assets being discovered in real-time.
-    *   **Pattern Recognition:** A "Trending Topic" cloud generated from your journal entries and research.
-
-## 5. The "Engineering Stack" Topology
-A blueprint view of your software ecosystem.
-*   **The Hook:** "Is the machine healthy?"
-*   **Features:**
-    *   **Layered Cake View:** Visual layers for *Infrastructure*, *Data*, *Engines*, and *Interfaces*.
-    *   **Engine Health Matrix:** A grid of all registered engines (GGP, FLO, DAT, MINT) blinking with their real-time heartbeat status.
-    *   **Build Status:** Recent commits and deployment status for the Sanctum codebase itself.
-
-## 6. The "War Room" Map (Geospatial)
-A 2D global map focusing on physical presence.
-*   **The Hook:** "Where are we physically?"
-*   **Features:**
-    *   **Asset Locations:** Pins for every physical asset in "Dreams" (e.g., 432 Park Ave, The Exumas) and active real estate (South Lawn).
-    *   **Server Nodes:** Locations of your digital infrastructure.
-    *   **Personnel Tracker:** A global view of the "Active Personnel" (from your sidebar widget) plotted on the map.
-
-## 7. The "Manifold Tracer" Productivity Meter
-A gamified, quantified-self view of your output.
-*   **The Hook:** "Am I in Flow?"
-*   **Features:**
-    *   **Flow State Gauge:** A visual meter that fills up based on your activity (lines of code, journal entries, tasks closed).
-    *   **Session Timer:** A deep-work timer that tracks "Focus Blocks" achieved today.
-    *   **Output Velocity:** A graph showing your creative output over the last 7 days.
-
-## 8. The "Governance" Console (GGP Focus)
-A presidential view of rules, laws, and access.
-*   **The Hook:** "Who has the keys?"
-*   **Features:**
-    *   **Access Log Stream:** A live matrix rain of every successful/failed login attempt (like the sidebar widget but expanded).
-    *   **Role Hierarchy:** A visual pyramid of active roles (Admin, Operator, Viewer).
-    *   **Policy Editor:** Quick access to change system-wide DEFCON levels or security protocols.
-
-## 9. The "Dream Vault" (Visual Motivation)
-A pure aesthetic 'Art Gallery' mode.
-*   **The Hook:** "Eyes on the prize."
-*   **Features:**
-    *   **Cover Flow:** A cinematic, auto-rotating carousel of your highest-value targets (The Bugatti, The Penthouse).
-    *   **Motivation Mode:** No data, no text—just high-res imagery and ambient soundscapes to center your mind before work.
-
-## 10. The "System Pulse" / KPI Grid
-A 'Bloomberg Terminal' for your life and business.
-*   **The Hook:** "Just the numbers."
-*   **Features:**
-    *   **Modular Grid:** Customizable 4x4 grid of widgets.
-    *   **Widgets:** Server Uptime, Bank Balance, Unread Emails, Next Calendar Event, Daily Stock Price, System Load.
-    *   **Dense Data:** Minimalist, high-contrast text, maximum information density.
-`
-            },
+            { id: "os-000", title: "OS 000 - Charter", desc: "NS OS Philosophy.", content: NS_OS_000_CHARTER },
+            { id: "os-001", title: "OS 001 - Non-Goals", desc: "Explicit refusals & boundaries.", content: NS_OS_001_NON_GOALS },
+            { id: "os-002", title: "OS 002 - Primitives", desc: "Core conceptual primitives.", content: NS_OS_002_PRIMITIVES },
+            { id: "os-003", title: "OS 003 - Worldview", desc: "Compute worldview & planes.", content: NS_OS_003_WORLDVIEW },
+            { id: "os-004", title: "OS 004 - Vision", desc: "Vision & Principles.", content: NS_OS_004_VISION },
+            { id: "os-005", title: "OS 005 - ABI", desc: "Probabilistic Primitives & ABI.", content: NS_OS_005_ABI },
+            { id: "os-006", title: "OS 006 - HCG", desc: "Heterogeneous Compute Graph.", content: NS_OS_006_HCG },
+            { id: "os-007", title: "OS 007 - Scheduler", desc: "Scheduler & QoS.", content: NS_OS_007_SCHEDULER },
+            { id: "os-008", title: "OS 008 - TSU", desc: "TSU Device Model.", content: NS_OS_008_TSU },
+            { id: "os-009", title: "OS 009 - PRS", desc: "Probabilistic Runtime Service API.", content: NS_OS_009_PRS },
+            { id: "os-010", title: "OS 010 - Integration", desc: "Engine Integration Map.", content: NS_OS_010_INTEGRATION },
+            { id: "os-011", title: "OS 011 - Observability", desc: "Observability & Audit.", content: NS_OS_011_OBSERVABILITY },
+            { id: "os-012", title: "OS 012 - Security", desc: "Security & Isolation.", content: NS_OS_012_SECURITY },
+            { id: "os-013", title: "OS 013 - Roadmap", desc: "MVP Roadmap.", content: NS_OS_013_ROADMAP },
+            { id: "os-014", title: "OS 014 - Glossary", desc: "Terminology.", content: NS_OS_014_GLOSSARY },
+            { id: "os-015", title: "OS 015 - References", desc: "External References.", content: NS_OS_015_REFERENCES },
             {
                 id: "charters-and-boundaries",
                 title: "Engine charters & boundaries",

@@ -17,6 +17,14 @@ import WSPLanding from "./app/WSPLanding.jsx";
 import WSPPricing from "./app/routes/WSPPricing.jsx";
 import WSPInvestors from "./app/routes/WSPInvestors.jsx";
 import WSPContact from "./app/routes/WSPContact.jsx";
+import MTELanding from "./app/routes/MTELanding.jsx";
+import IronLogicLanding from "./app/IronLogicLanding.jsx";
+import SessionLog from "./app/routes/mte/SessionLog.jsx";
+import Codex from "./app/routes/mte/Codex.jsx";
+import Blueprints from "./app/routes/mte/Blueprints.jsx";
+import CognitionStatus from "./app/routes/mte/CognitionStatus.jsx";
+import StudentAnalyzer from "./app/routes/mte/StudentAnalyzer.jsx";
+import Register from "./app/routes/mte/Register.jsx";
 import Account from "./app/routes/Account.jsx";
 import Checkout from "./app/routes/Checkout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
@@ -31,6 +39,14 @@ import Ascension from "./app/routes/Ascension.jsx";
 import Features from "./app/routes/Features.jsx";
 import Education from "./app/routes/Education.jsx";
 import ExternalApi from "./app/routes/ExternalApi.jsx";
+import SmallBusinessConsulting from "./app/routes/SmallBusinessConsulting.jsx";
+
+import NsMgmt from "./app/routes/entities/NsMgmt.jsx";
+import NsdcEducation from "./app/routes/entities/NsdcEducation.jsx";
+import NsdcOperations from "./app/routes/entities/NsdcOperations.jsx";
+import NsdcInnovation from "./app/routes/entities/NsdcInnovation.jsx";
+import NsdcIpHoldings from "./app/routes/entities/NsdcIpHoldings.jsx";
+import NsdcExperimental from "./app/routes/entities/NsdcExperimental.jsx";
 
 import SouthLawnInvestors from "./app/routes/SouthLawnInvestors.jsx";
 import SouthLawnThesis from "./app/routes/SouthLawnThesis.jsx";
@@ -60,14 +76,21 @@ export default function App() {
           <Route path="features" element={<Features />} />
           <Route path="education" element={<Education />} />
           <Route path="api" element={<ExternalApi />} />
+          <Route path="consulting" element={<SmallBusinessConsulting />} />
           <Route path="pricing" element={<Pricing />} />
           <Route path="investors" element={<Investors />} />
+          <Route path="investors/mgmt" element={<NsMgmt />} />
+          <Route path="investors/education" element={<NsdcEducation />} />
+          <Route path="investors/ops" element={<NsdcOperations />} />
+          <Route path="investors/labs" element={<NsdcInnovation />} />
+          <Route path="investors/ip" element={<NsdcIpHoldings />} />
+          <Route path="investors/experimental" element={<NsdcExperimental />} />
           <Route path="contact" element={<Contact />} />
           <Route path="signup" element={<Signup />} />
           <Route path="account" element={<Account />} /> {/* Added Route for Account */}
           <Route path="checkout" element={<Checkout />} />
           <Route path="login" element={<Login />} />
-          <Route path="platform" element={<ProductCanvas />} />
+          <Route path="firmament" element={<ProductCanvas />} />
           <Route path="projects" element={<ProjectsGallery />} />
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="careers" element={<Ascension />} />
@@ -88,6 +111,14 @@ export default function App() {
           <Route path="wsp/docs" element={<Documentation context="WSP" />} />
           <Route path="wsp/system" element={<SystemExplorer context="WSP" />} />
           <Route path="wsp/contact" element={<WSPContact />} />
+          <Route path="iron" element={<IronLogicLanding />} />
+          <Route path="mte" element={<MTELanding />} />
+          <Route path="mte/history" element={<SessionLog />} />
+          <Route path="mte/codex" element={<Codex />} />
+          <Route path="mte/blueprints" element={<Blueprints />} />
+          <Route path="mte/status" element={<CognitionStatus />} />
+          <Route path="mte/analyzer" element={<StudentAnalyzer />} />
+          <Route path="mte/register" element={<Register />} />
         </Route>
       </Routes>
     </>

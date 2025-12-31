@@ -1,6 +1,6 @@
 # CWP Asset Crawler (MCP)
 
-This is a Model Context Protocol (MCP) server designed to be part of the CWP (Critical Workflows & Procedures) engine.
+This is a Model Context Protocol (MCP) server designed to be part of the CWP (Cognitive Worker Plane) engine.
 
 ## Purpose
 

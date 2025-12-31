@@ -245,6 +245,21 @@ export default function BCPView() {
         else setDefcon(5);
     };
 
+    const handleReboot = () => {
+        if (!selectedSystem) return;
+        addLog(`[CMD] REBOOT sequence initiated for ${selectedSystem.name}...`);
+        // Simulate reboot delay or just feedback
+        setTimeout(() => addLog(`[INFO] ${selectedSystem.name} restart detailed log: Success.`), 2000);
+        alert(`System ${selectedSystem.name} is rebooting...`);
+    };
+
+    const handleSSH = () => {
+        if (!selectedSystem) return;
+        addLog(`[SEC] Authenticating secure shell request for ${selectedSystem.name}...`);
+        setTimeout(() => addLog(`[SEC] SSH Connection established: ${selectedSystem.id} (root)`), 800);
+        alert(`Establishing SSH connection to ${selectedSystem.id} (${selectedSystem.type})... Connected.`);
+    };
+
     const filteredSystems = systems.filter(s => filterRegion === 'ALL' || s.region === filterRegion);
 
     // Helper to reset layout
@@ -413,11 +428,15 @@ export default function BCPView() {
 
                                     {/* Actions */}
                                     <div className="grid grid-cols-2 gap-2 mt-auto">
-                                        <button className="py-2 px-3 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-2 group transition-all border border-white/5 hover:border-white/20">
+                                        <button
+                                            onClick={handleReboot}
+                                            className="py-2 px-3 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-2 group transition-all border border-white/5 hover:border-white/20">
                                             <RefreshCw className="w-3 h-3 text-white/40 group-hover:text-white" />
                                             <span className="text-[10px] font-bold text-white/60 group-hover:text-white">REBOOT</span>
                                         </button>
-                                        <button className="py-2 px-3 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-2 group transition-all border border-white/5 hover:border-white/20">
+                                        <button
+                                            onClick={handleSSH}
+                                            className="py-2 px-3 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-2 group transition-all border border-white/5 hover:border-white/20">
                                             <Terminal className="w-3 h-3 text-white/40 group-hover:text-white" />
                                             <span className="text-[10px] font-bold text-white/60 group-hover:text-white">SSH</span>
                                         </button>

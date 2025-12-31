@@ -7,14 +7,16 @@ export default function WSPPricing() {
 
     // WSP Custom Nav
     const nav = [
-        { label: "Northfield Solidarity", to: "/" },
-        { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
-        { type: "divider" },
         { label: "Documentation", to: "/wsp/docs" },
         { label: "Pricing", to: "/wsp/pricing" },
         { label: "System", to: "/wsp/system" },
         { label: "Investor Relations", to: "/wsp/investors" },
+        { type: "divider" },
+        { label: "Northfield Solidarity", to: "/" },
+        { label: "South Lawn", to: "/southlawn" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
+        { label: "Iron Logic", to: "/iron" },
     ];
 
     return (

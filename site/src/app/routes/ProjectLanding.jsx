@@ -3,6 +3,10 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import Layout from "../../components/Layout.jsx";
 import { NS_PROJECTS } from "../../data/projectRegistry.js";
 import { BarChart3, Activity, FileText } from "lucide-react";
+import ManifoldView from "../engines/ManifoldView.jsx";
+import FLView from "../engines/FLView.jsx";
+import RELAYView from "../engines/RELAYView.jsx";
+import TineLanding from "./project/tine/TineLanding.jsx";
 
 export default function ProjectLanding() {
     const { code } = useParams();
@@ -10,9 +14,52 @@ export default function ProjectLanding() {
     // Direct derivation - no need for state if data is static/synchronous
     const project = NS_PROJECTS.find(p => p.code === code);
 
+    console.log('ProjectLanding:', { code, projectFound: !!project });
+
     if (!code) return <Navigate to="/docs" />;
     // If project not found, maybe redirect or show 404
     if (!project) return <div className="p-20 text-center text-white">Project {code} Not Found</div>;
+
+    // Special Case: Manifold Tracer (MT)
+    if (code === 'MT') {
+        console.log('ProjectLanding: Rendering ManifoldView');
+        return (
+            <Layout>
+                <div className="h-[calc(100vh-80px)] w-full overflow-hidden">
+                    <ManifoldView project={project} />
+                </div>
+            </Layout>
+        );
+    }
+
+    // Special Case: Relay (RL)
+    if (code === 'RL') {
+        console.log('ProjectLanding: Rendering RELAYView');
+        return (
+            <Layout>
+                <div className="h-[calc(100vh-80px)] w-full overflow-hidden">
+                    <RELAYView project={project} />
+                </div>
+            </Layout>
+        );
+    }
+
+    // Special Case: Fantasy Land (FL)
+    if (code === 'FL') {
+        console.log('ProjectLanding: Rendering FLView');
+        return (
+            <Layout>
+                <div className="h-[calc(100vh-80px)] w-full overflow-hidden">
+                    <FLView project={project} />
+                </div>
+            </Layout>
+        );
+    }
+
+    // Special Case: TINE (Meal Logic)
+    if (code === 'TINE') {
+        return <TineLanding />;
+    }
 
     // Default theme if none provided
     const themeColor = project.themeColor || "#ffffff";
@@ -100,7 +147,7 @@ export default function ProjectLanding() {
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className="grid md:grid-cols-2 gap-8 mb-8">
                             <div className="space-y-4">
                                 <StatusRow label="Project Status" value={(project.status || 'Unknown').toUpperCase()} themeColor={themeColor} />
                                 <StatusRow label="Funding Goal" value={project.fundingGoal ? `$${project.fundingGoal.toLocaleString()}` : 'N/A'} themeColor={themeColor} />
@@ -110,6 +157,30 @@ export default function ProjectLanding() {
                                 <StatusRow label="Backers" value={project.backers || 0} themeColor={themeColor} />
                                 <StatusRow label="Docs Available" value={project.documents ? project.documents.length : (project.charterContent ? 1 : 0)} themeColor={themeColor} />
                                 <StatusRow label="Network Uptime" value="99.9%" themeColor={themeColor} />
+                            </div>
+                        </div>
+
+                        {/* Health Bars Visualization */}
+                        <div className="border-t border-white/5 pt-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-4">Real-time Metrics</h4>
+                            <div className="flex items-end gap-1 h-24 bg-black/20 rounded-lg p-4 border border-white/5 relative overflow-hidden">
+                                {/* Background Grid */}
+                                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255.1) 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+
+                                {[40, 65, 55, 80, 45, 90, 70, 35, 60, 75, 50, 85, 65, 40, 95, 60, 70, 50, 80, 65, 45, 75, 60, 85].map((h, i) => (
+                                    <div key={i}
+                                        className="flex-1 rounded-t-sm transition-all duration-500 hover:opacity-100"
+                                        style={{
+                                            height: `${h}%`,
+                                            backgroundColor: themeColor,
+                                            opacity: 0.3 + (h / 200)
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <div className="flex justify-between items-center mt-2 text-[10px] font-mono opacity-50 uppercase">
+                                <span>24h Latency: 12ms</span>
+                                <span>Throughput: 842 TPS</span>
                             </div>
                         </div>
                     </div>

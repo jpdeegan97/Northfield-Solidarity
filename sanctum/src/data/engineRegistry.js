@@ -22,6 +22,26 @@ export const NS_ENGINES = [
         timeline: { phase: "Phase 1: Foundation", start: 2, duration: 6, color: "var(--c-brand)" }
     },
     {
+        code: "ASC",
+        org: "NS",
+        name: "Ascention Portal",
+        category: "Operations",
+        oneLiner: "Employee portal, leaderboards, and workforce oversight.",
+        description:
+            "Ascention (ASC) is the employee portal and management surface. It handles personnel tracking, leaderboards, equity visibility, and workforce ops.",
+        responsibilities: [
+            "Personnel tracking",
+            "Performance leaderboards",
+            "Equity/distribution visibility",
+            "Workforce oversight (Sanctum)"
+        ],
+        inputs: ["Employee data", "Performance metrics", "Financial distributions"],
+        outputs: ["Leaderboard rank", "Personnel bios", "Ops dashboard"],
+        integrations: ["GGP", "IDN", "FLO"],
+        status: "Active build",
+        timeline: { phase: "Phase 1: Foundation", start: 2, duration: 6, color: "var(--c-brand)" }
+    },
+    {
         code: "GGP",
         org: "NS",
         name: "Governance Graph Processor",
@@ -42,7 +62,7 @@ export const NS_ENGINES = [
         timeline: { phase: "Phase 1: Foundation", start: 0, duration: 6, color: "var(--c-brand)" }
     },
     {
-        code: "MTR",
+        code: "MT",
         org: "NS",
         name: "Manifold Tracer",
         category: "Core",
@@ -57,7 +77,7 @@ export const NS_ENGINES = [
         ],
         inputs: ["GGE", "IDN", "CWP"],
         outputs: ["Business Graph Topology", "Flow Metrics"],
-        integrations: ["GGE", "IDN", "CWP", "Fantasy Land"],
+        integrations: ["GGE", "IDN", "CWP", "FL"],
         status: "Active build",
         timeline: { phase: "Phase 1: Foundation", start: 1, duration: 8, color: "var(--c-brand)" }
     },
@@ -84,11 +104,11 @@ export const NS_ENGINES = [
     {
         code: "DAT",
         org: "NS",
-        name: "Digital Arbitrage Tooling",
-        category: "Execution",
-        oneLiner: "Execution tooling for digital market moves with traceable outcomes.",
+        name: "Deal Atlas",
+        category: "Research",
+        oneLiner: "Global Capital Deployment Registry & Analytics.",
         description:
-            "DAT executes constrained strategies in digital marketplaces—always under governance gates and with measurable outcomes.",
+            "Deal Atlas (NS-DA) is a structured registry of funded deals and analytics that reveals where and how capital is deployed across sectors and geographies.",
         responsibilities: [
             "Strategy execution rails",
             "Position/task lifecycle tracking",
@@ -239,13 +259,13 @@ export const NS_ENGINES = [
     {
         code: "CWP",
         org: "NS",
-        name: "Critical Workflows & Procedures",
+        name: "Cognitive Worker Plane",
         category: "Operations",
-        oneLiner: "SOP engine for standardizing critical human/system procedures.",
+        oneLiner: "Agentic orchestration and MSP server management.",
         description:
-            "CWP is the operational playbook. It defines, tracks, and enforces the standard operating procedures (SOPs) that keep the organism running efficiently and safely.",
+            "CWP is the Cognitive Worker Plane. It serves as the agentic arm of the system, managing MSP servers, diverse agents, and automated workflows.",
         responsibilities: [
-            "SOP definition & versioning",
+            "Agent management & Orchestration",
             "Workflow instantiation & tracking",
             "Checklist enforcement",
             "Human-in-the-loop coordination",
@@ -297,15 +317,15 @@ export const NS_ENGINES = [
         timeline: { phase: "Phase 1: Foundation", start: 1, duration: 5, color: "var(--c-brand)" }
     },
     {
-        code: "FRK",
+        code: "DEP",
         org: "NS",
-        name: "Project Fork",
+        name: "Dependency Engine",
         category: "Experimental",
-        oneLiner: "Experimental branches and divergence tracking.",
-        description: "Fork tracks experimental divergences, alternative reality branches, and low-fidelity prototypes that haven't yet graduated to Incubator.",
-        responsibilities: ["Branch tracking", "Prototype sandbox", "Divergence management"],
-        inputs: ["Ideas", "Divergent thoughts"],
-        outputs: ["Prototypes", "Incubator candidates"],
+        oneLiner: "Dependency management and divergence tracking.",
+        description: "DEP tracks system dependencies, experimental divergences, and code lineage across the ecosystem.",
+        responsibilities: ["Dependency tracking", "Branch divergence", "Code lineage"],
+        inputs: ["Codebases", "Divergent branches"],
+        outputs: ["Dependency graphs", "Compatibility reports"],
         integrations: ["INC", "DRE"],
         status: "Active",
         timeline: { phase: "Phase 2: Alpha Engines", start: 4, duration: 6, color: "#a855f7" }
@@ -318,9 +338,9 @@ export const NS_ENGINES = [
         oneLiner: "Venture hatching and early-stage project maturity.",
         description: "Incubator provides the resources, constraints, and milestones to turn raw prototypes (from Fork) into viable Engines or Ventures.",
         responsibilities: ["Venture validation", "Resource allocation", "Milestone tracking"],
-        inputs: ["Prototypes (FRK)", "Market signals (PIE)"],
+        inputs: ["Prototypes (DEP)", "Market signals (PIE)"],
         outputs: ["New Engines", "Ventures"],
-        integrations: ["FRK", "PIE", "GGP"],
+        integrations: ["DEP", "PIE", "GGP"],
         status: "Active",
         timeline: { phase: "Phase 2: Alpha Engines", start: 4, duration: 6, color: "#a855f7" }
     },
@@ -335,6 +355,20 @@ export const NS_ENGINES = [
         inputs: ["Daily actions", "Decisions"],
         outputs: ["Morning/Evening briefs", "Continuity state"],
         integrations: ["GGP", "DRE", "LUM"],
+        status: "Active",
+        timeline: { phase: "Phase 1: Foundation", start: 0, duration: 12, color: "var(--c-brand)" }
+    },
+    {
+        code: "DT",
+        org: "NS",
+        name: "Duct Tape",
+        category: "System",
+        oneLiner: "Intimate idea rambling sessions without interruptions.",
+        description: "Duct Tape Sessions provide an intimate, interruption-free space to capture raw thinking and turn it into structured artifacts.",
+        responsibilities: ["Audio/Video Capture", "Transcription", "Artifact Generation", "Bundle Delivery"],
+        inputs: ["Voice Stream", "User Intent"],
+        outputs: ["Build Bundles", "Transcripts", "Roadmaps"],
+        integrations: ["DRE", "CRN"],
         status: "Active",
         timeline: { phase: "Phase 1: Foundation", start: 0, duration: 12, color: "var(--c-brand)" }
     },
@@ -426,6 +460,25 @@ export const NS_ENGINES = [
         integrations: ["GGP", "IDN", "INT", "SIG"],
         status: "Planned",
         timeline: { phase: "Phase 3: Beta & Release", start: 8, duration: 4 }
+    },
+    {
+        code: "WPV",
+        org: "NS",
+        name: "White Paper Visualizer",
+        category: "Research",
+        oneLiner: "Turns dense research/white papers into accurate, explorable visual explanations.",
+        description: "WPV extracts structure (math, diagrams, claims, dependencies) from research papers and renders them as explorable interactive visuals without hallucination.",
+        responsibilities: [
+            "Structure extraction",
+            "Visual rendering",
+            "Source tracing",
+            "Interactive exploration"
+        ],
+        inputs: ["PDF Papers", "Markdown"],
+        outputs: ["Interactive Graphs", "Visual Explanations"],
+        integrations: ["DRE", "LUM", "SIG"],
+        status: "Active build",
+        timeline: { phase: "Phase 2: Alpha Engines", start: 3, duration: 4, color: "var(--c-brand)" }
     },
 ];
 

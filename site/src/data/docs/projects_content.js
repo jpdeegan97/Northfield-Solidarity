@@ -1380,3 +1380,1469 @@ export const MINDMIX_REFERENCES = `NS-MINDMIX-014 — REFERENCES
 References content unavailable in markdown.
 Please refer to NS-MINDMIX-014-REFERENCES.docx in documentation/software/projects/MINDMIX/
 `;
+
+export const MOBILE_APP_CHARTER = `NS-MOBILE-000 — CHARTER
+
+Project: Northfield Solidarity Mobile App
+Status: Active Beta
+Owner: Northfield Solidarity
+Origin System: React Native / Expo
+
+1. Purpose
+The Northfield Solidarity Mobile App serves as the portable interface for the NS ecosystem, providing real-time access to operational data, governance workflows, and system status monitoring.
+
+2. Core Function
+- System Monitoring: Real-time view of engine status (GGP, PIE, DAT, etc.).
+- Network Visualization: Interactive browsing of the organizational structure and entity relationships.
+- Governance Gates: Mobile-first approval flows for GGP decisions.
+
+3. Architecture
+- Framework: React Native with Expo
+- Navigation: Expo Router (File-based routing)
+- Styling: Custom Themed Components
+- Data Source: Shared constants and future API integration
+`;
+
+export const MOBILE_APP_OVERVIEW = `NS-MOBILE-001 — OVERVIEW
+
+The mobile application is designed to be an "Inner Sanctum" for operators, providing a distracted-free environment to monitor and interact with the Northfield Solidarity ecosystem.
+
+### Core Features
+- **Inner Sanctum Mode**: A high-focus interface for system health and active engines.
+- **Network Tab**: Visual representation of the organizational hierarchy and partners.
+- **Engine Status**: Live status indicators for all registered NS engines.
+`;
+
+export const BCO_CHARTER = `NS-BCO — Business Continuity Operations
+
+## 0. Context on Naming
+To avoid acronym collisions (e.g. with the former "Compute Plane" engine), we have standardized on:
+*   **NS-OCP** — Onchain Compute Plane
+*   **NS-BCO** — Business Continuity Operations
+
+*(Migration note: Old references to \`NS-BCP-*\` should now be \`NS-BCO-*\`)*
+
+## 1. Mission
+
+Establish and operate a repeatable, testable, auditable continuity capability so Northfield Solidarity can:
+
+*   Maintain delivery of critical services during disruption.
+*   Recover systems and operations within defined RTO/RPO targets.
+*   Minimize financial, legal, security, and reputational impact.
+
+## 2. Program scope
+
+**NS-BCO covers continuity across:**
+*   **People:** roles, on-call, escalation, key-person contingencies.
+*   **Process:** incident command, comms, approvals, change control during events.
+*   **Technology:** infrastructure, platforms, data stores, CI/CD, identity, observability.
+*   **Vendors:** cloud providers, third-party APIs, registrars/DNS, payment processors.
+*   **Facilities:** power, network, on-prem hardware (if applicable).
+
+**Disruption types in scope:**
+Cloud/provider outages, DNS/certificate failures, cyber incidents (including destructive actions), data corruption/deletion, bad releases/migrations, supply chain/vendor failure, and regional events.
+
+**Out of scope (but integrated):**
+General product roadmap, non-continuity security architecture, and long-range corporate strategy—except where they directly impact recovery capability.
+
+## 3. Operating objectives
+
+1.  **Service Inventory:** Maintain a service inventory with owners, tiers, dependencies, and recovery targets.
+2.  **Risk Management:** Maintain BIA (Business Impact Analysis) and a continuity-focused risk register.
+3.  **Controls:** Implement continuity controls: backups, immutability/isolation, replication, and runbooks.
+4.  **Validation:** Perform restore tests and DR exercises on a defined cadence; measure actual recovery time.
+5.  **Audit Readiness:** Produce and retain evidence suitable for audits and customer due diligence.
+
+## 4. Roles and accountability
+
+*   **BCO Owner:** accountable for program health, cadence, and reporting.
+*   **Service Owner:** accountable for meeting tier requirements (RTO/RPO, tests, runbooks).
+*   **Incident Commander:** accountable for response leadership during continuity-impacting events.
+*   **Comms Lead/Scribe:** accountable for updates, timeline, and evidence capture.
+
+## 5. Deliverables
+
+*   Tier model + tier assignment per service
+*   BIA records per service (RTO/RPO + impact)
+*   Runbooks (restore, failover, workaround)
+*   Exercise reports + remediation backlog
+*   Evidence packs per Tier 0/1 service
+
+## 6. Success metrics
+
+*   **Coverage:** % Tier 0/1 services with approved BIA + documented runbooks.
+*   **Validation:** restore test pass rate and recency vs policy.
+*   **Performance:** measured recovery times vs RTO/RPO targets.
+*   **Readiness:** open continuity gaps by tier (time-to-close).
+*   **Incident outcomes:** MTTR for continuity-impacting incidents.`;
+
+export const BCP_CHARTER = BCO_CHARTER;
+
+export const CON_CHARTER = `NS-CON-000-CHARTER — Engine Charter (Connectors / CON)
+
+**Engine Name:** Connectors  
+**Acronym:** CON  
+**Engine Type:** Integrations / Data Ingress & Egress / Connector Runtime  
+**Version:** 0.1  
+**Owner:** Northfield Solidarity — Platform Engineering  
+**Status:** Draft / Working Spec
+
+---
+
+## 0. Summary
+Connectors (CON) is the standardized integration layer that provides pluggable connectors for external systems (databases, SaaS, files, streams, clouds) and a secure runtime to move data/events in and out of the NS ecosystem. CON is responsible for connector lifecycle, auth/secrets, schedules/webhooks, incremental sync, schema discovery, rate limiting, retries, and delivery guarantees.
+
+## 1. Mission
+Make integrations **repeatable, secure, observable, and easy to extend** so every NS engine can “connect to anything” without bespoke glue code.
+
+## 2. Objectives
+- Provide a connector catalog (sources + destinations) with consistent interfaces.
+- Standardize auth (OAuth, API keys, SSH, certs) and secrets handling.
+- Support batch and streaming patterns (poll, webhook, CDC, event streams).
+- Enable incremental sync and backfill with idempotency guarantees.
+- Provide schema discovery and metadata capture for downstream engines.
+- Enforce throttling, retries, dead-lettering, and error classification.
+- Emit rich observability (metrics/traces/logs) and lineage events.
+
+## 3. Non-Goals
+- Replacing Quarentine (QTN) cleansing/quality gates (CON moves data; QTN cleans/gates).
+- Becoming a full ETL transformation engine (minimal normalization only; transforms live in QTN or domain engines).
+- Providing an end-user BI/analytics UI.
+
+## 4. Primary Users
+- Platform engineers onboarding new integrations.
+- Product/engine teams that need ingestion/export capabilities.
+- Governance operators overseeing credentials and data flows.
+
+## 5. Success Criteria
+- New connector can be shipped quickly (template + test suite).
+- Integrations are reliable (high success, low incident rate).
+- Credential exposure risk is minimized (least privilege + rotation + audit).
+- Downstream engines receive consistent metadata, lineage, and delivery guarantees.
+
+## 6. Key Risks
+- Credential leakage, overly broad scopes, token lifecycle issues.
+- Rate limiting and upstream API variability.
+- Schema drift / breaking changes.
+- Duplicate deliveries or missing events without idempotency.
+
+## 7. Guardrails
+- All secrets managed through approved secret store (Vault/external secrets).
+- Least privilege by default; explicit scopes required.
+- Idempotency keys for deliveries; exactly-once semantics where feasible, otherwise at-least-once with dedup hooks.
+- Mandatory observability + standardized error taxonomy.`;
+
+export const QTN_CHARTER = `NS-QTN-000-CHARTER — Engine Charter (Quarentine / QTN)
+
+**Engine Name:** Quarentine  
+**Acronym:** QTN  
+**Engine Type:** Data Quality / ETL Scrubbing / Data Governance Gate  
+**Version:** 0.1  
+**Owner:** Northfield Solidarity — Data Platform & Governance  
+**Status:** Draft / Working Spec
+
+---
+
+## 0. Summary
+Quarentine (QTN) is the universal **data cleansing + quality gate** that sits between ingestion and storage across Northfield Solidarity systems. It enforces data contracts, normalizes formats, scrubs sensitive data per policy, deduplicates, detects anomalies, and routes uncertain/bad records into quarantine lanes for review—before any data is promoted into curated storage or downstream engines.
+
+## 1. Mission
+Ensure every dataset entering NS ecosystems is **clean enough to trust**, **safe enough to store**, and **auditable enough to govern**.
+
+## 2. Objectives
+- Provide a standard **Raw → Staging → Cleansed → Curated** lifecycle.
+- Enforce **schema + contract validation** at ingestion boundaries.
+- Apply **normalization** (types, units, formats, canonical enums, timezones).
+- Perform **PII/PHI/secret detection** + redaction/tokenization per policy gates.
+- Support **dedup & entity resolution** for common domains.
+- Detect **anomalies and drift** (null storms, outliers, volume spikes).
+- Produce **lineage, provenance, and audit logs** for every transformation.
+- Promote only **quality-passing** data; quarantine the rest with explanations.
+
+## 3. Non-Goals
+- Replacing business-domain logic engines (DRE/GGE/etc.); QTN is a gate and cleaning layer.
+- Guaranteeing “perfect truth” of data; QTN focuses on quality, consistency, safety, and contracts.
+- Acting as a full MDM platform on day one (can evolve toward it).
+- Solving every unstructured parsing problem (handled via specialized adapters).
+
+## 4. Primary Users
+- Platform engineers and data engineers operating ingestion pipelines.
+- Product/engine teams consuming curated datasets.
+- Governance operators (GGE) defining what is allowed to be stored/exported.
+- Analysts needing trustworthy datasets and provenance.
+
+## 5. Success Criteria
+- High % of records promoted to curated with **low defect rate**.
+- Low false positives for quarantine (good data not blocked).
+- Fast time-to-detect for schema breaks and quality regressions.
+- Comprehensive auditability and reproducibility.
+- Policy-compliant handling of sensitive data.
+
+## 6. Key Risks
+- Over-blocking pipelines (too strict).
+- Under-blocking sensitive data (privacy/security exposure).
+- Coupling to one storage or one ingestion tool.
+- Performance/cost blowups for heavy transformations at scale.
+
+## 7. Guardrails
+- Always keep **raw immutable landing** separate from cleansed/curated.
+- Require **reason codes** for all drops/quarantines.
+- Policy gates mandatory for sensitive data transformation/export.
+- Version pinning for contracts and transformation rules.`;
+
+export const SWB_CHARTER = `NS-SWB-000-CHARTER — Engine Charter (Switchboard / SWB)
+
+**Engine Name:** Switchboard  
+**Acronym:** SWB  
+**Engine Type:** Model Routing / Intelligence Orchestration / Policy Gate  
+**Version:** 0.1  
+**Owner:** Northfield Solidarity — Platform & Governance  
+**Status:** Draft / Working Spec
+
+## 0. Summary
+Switchboard (SWB) is the unified routing layer for all “intelligence calls” across the NS ecosystem. Any request that expects an AI model/toolchain response flows through SWB, where the request is semantically analyzed, policy-checked, planned, and routed to the best-capable model(s) and tools under the caller’s constraints (quality, latency, cost, privacy, determinism).
+
+## 1. Mission
+Make model usage optimal, safe, auditable, and future-proof by centralizing selection, governance, execution plans, and measurement.
+
+## 2. Objectives
+- Single entrypoint for all model-backed intelligence
+- Semantic classification (task, modality, difficulty, risk)
+- Governance enforcement (classification, allowlists, redaction, retention)
+- Best-fit routing under constraints + tool planning
+- Ensemble plans (draft → critique → finalize) where needed
+- Robust fallbacks (outage, tool failure, low confidence)
+- Full observability (tokens, latency, cost, rationale)
+- Continuous improvement from outcomes
+
+## 3. Non-Goals
+- Building a proprietary foundation model
+- Guaranteeing perfect truth; SWB governs selection and execution
+- Circumventing policies or unauthorized access
+- Permanent lock-in to one provider
+
+## 4. Primary Users
+- NS engines/projects needing intelligence (docs, extraction, planning, code, analysis)
+- Governance operators (GGE) defining policy
+- Platform operators optimizing cost/latency/quality
+
+## 5. Success Criteria
+- High task success with calibrated uncertainty
+- Reduced cost vs “always biggest model”
+- Low latency for routine tasks with automatic escalation for hard tasks
+- Zero policy violations
+- Reproducible runs with route rationale
+
+## 6. Key Risks
+Misrouting, policy leakage, complexity creep, metric gaming.
+
+## 7. Guardrails
+Mandatory policy gate before external calls; mandatory route metadata; deterministic mode; strict separation of observed vs inferred vs speculative where relevant.`;
+
+export const IPR_CHARTER = `NS-IPR-000 — CHARTER (IP Formalization + Registration Engine)
+
+1) Mission
+
+Build an internal engine that turns Northfield Solidarity’s IP into formal, defensible, and searchable assets by:
+
+capturing invention/creation evidence
+
+standardizing ownership + assignment
+
+managing filing workflows (copyright, trademark, patent strategy)
+
+producing audit-ready provenance and status
+
+This engine exists to make “IP lockdown” operational and repeatable.
+
+2) Problem statement
+
+As NS creates many artifacts (engines, docs, code, brands, datasets, designs), IP risk increases:
+
+unclear ownership/assignment
+
+inconsistent marking and evidence
+
+missed filing windows
+
+trademark collisions
+
+accidental open-source leakage
+
+inability to prove invention dates or authorship
+
+NS-IPR solves this by creating a single IP pipeline from creation → classification → decision → registration → maintenance.
+
+3) Scope
+
+In scope
+
+IP intake workflow for everything created at NS (code, docs, brand, designs)
+
+IP asset registry (canonical inventory)
+
+Evidence capture + provenance
+
+Ownership + assignment management (entity/employee/contractor)
+
+Filing workflow tracking:
+
+trademarks
+
+copyrights
+
+patents (strategy + docketing)
+
+Open-source and third-party dependency policy hooks (NS-AEGIS alignment)
+
+Renewal/maintenance calendar (deadlines, fees, watch-outs)
+
+Out of scope (initially)
+
+Acting as a law firm or replacing counsel
+
+Automatically filing with governments (we track + package; counsel/files externally)
+
+Litigation management
+
+4) Primary users
+
+Founder/operator (you)
+
+Legal ops (future)
+
+Engineering leads (future)
+
+Brand/product owners (future)
+
+5) Core principles
+
+Evidence-first: every asset has a provenance trail.
+
+Default protect: treat novel work as protectable until decided otherwise.
+
+Separation of concerns: create → classify → decide → file → maintain.
+
+Least disclosure: don’t publish before decisions on patent/trade secret posture.
+
+Auditability: you can answer “who created what, when, under what assignment, and what’s its legal status?”
+
+6) IP classes supported
+
+Trademark: names, logos, slogans, product lines
+
+Copyright: code, docs, creative works
+
+Patent: inventions, methods, systems (provisional → non-provisional strategy)
+
+Trade secret: non-public know-how, processes, datasets, configs
+
+Contracts/Assignments: contributor agreements, contractor IP assignment, invention assignment
+
+7) Engine outputs (deliverables)
+
+NS-IPR produces:
+
+IP Asset Record (canonical registry entry)
+
+Evidence Pack (source files, hashes, timestamps, commit refs, author claims)
+
+Ownership Pack (assignment chain, entity mapping, contributor agreements)
+
+Filing Pack (draft descriptions, classes, specimens, priority dates, counsel handoff)
+
+Maintenance Pack (renewal schedule, reminders, watch service links)
+
+Risk Flags (collisions, missing assignments, OSS conflicts, public disclosure risk)
+
+8) Interfaces with other NS engines/projects
+
+GGE: governance policies (IP policy, OSS policy), decision logs
+
+NS-AEGIS: dependency and license compliance signals (OSS exposure risk)
+
+DRE: research provenance and invention threads
+
+quickscope: state tracking for filings, tasks, deadlines
+
+NS-CHRONICLE / NS-INC: daily/weekly iteration artifacts that create IP evidence trails
+
+9) Success metrics
+
+100% of projects have an IP asset record for names + core repos
+
+100% of contributors have signed assignment terms before substantial work
+
+No missed renewal/maintenance deadlines
+
+Time to produce a filing handoff pack ≤ 1 hour
+
+Reduction in “unknown ownership” or “untracked brand usage” to near zero
+
+10) Risks and mitigations
+
+Overhead creep: keep intake lightweight; automate hashing + metadata later.
+
+False confidence: use counsel review gates for filing decisions.
+
+Over-filing: introduce decision criteria so filings are strategic.
+
+Disclosure risk: patent/trade secret gates before publishing.
+
+11) Roadmap (high-level)
+
+Phase 1 — Registry + Intake (MVP)
+
+Asset taxonomy + registry
+
+Contributor/assignment checklist
+
+Evidence capture baseline (repo refs + hashes)
+
+Phase 2 — Filing workflow + packs
+
+Trademark/copyright/patent pack templates
+
+Docketing + deadline tracking
+
+Phase 3 — Automation + integrations
+
+AEGIS license risk ingestion
+
+quickscope state machine for filings
+
+LUM visibility for deadline health
+
+12) Next documents (standard template)
+
+NS-IPR-001 — OVERVIEW
+
+NS-IPR-002 — TAXONOMY
+
+NS-IPR-003 — ARCHITECTURE
+
+NS-IPR-004 — LIFECYCLE
+
+NS-IPR-005 — DECISION
+
+NS-IPR-006 — VERSION
+
+NS-IPR-007 — DATAMODEL
+
+NS-IPR-008 — EEE
+
+NS-IPR-009 — IMPL
+
+NS-IPR-010 — FE (optional operator UI)
+
+NS-IPR-011 — APIMAP
+
+NS-IPR-012 — STATE
+
+NS-IPR-013 — RUNBOOK
+
+NS-IPR-014 — DATAREF`;
+
+export const OCP_CHARTER = `NS-OCP-000 — CHARTER
+
+0. Document Control
+
+Program: Northfield Solidarity (NS)
+
+Engine: OCP — Onchain Compute Plane
+
+Document ID: NS-OCP-000-CHARTER
+
+Status: Draft v1
+
+Canonical Template Alignment: NS-GGP 000–014
+
+Owner: OCP Lead (TBD)
+
+Custodian: NS Governance (GGP/GGE)
+
+1. Purpose
+
+OCP exists to provide a first-class, governed, and secure platform for building and operating:
+
+Smart contracts (protocol and application contracts)
+
+Decentralized applications (dApps) that interface with those contracts
+
+ChainOps capabilities (deployments, monitoring, incident response)
+
+On-chain state intelligence (indexing, event streams, analytics)
+
+OCP transforms blockchain from “side projects” into a repeatable production capability: predictable delivery, strong security posture, auditable operations, and governed change control.
+
+2. Mission
+
+Make blockchain a safe, scalable, and productized capability inside Northfield Solidarity by:
+
+Standardizing how contracts are designed, tested, deployed, upgraded, and monitored
+
+Enforcing security and custody baselines by default
+
+Enabling rapid dApp development with reusable modules and proven UX patterns
+
+Integrating on-chain activity into NS’s broader operating system (governance, finance, identity, research)
+
+3. Scope
+
+3.1 In Scope
+
+OCP owns the end-to-end lifecycle for blockchain delivery and operations:
+
+A) Protocol & Contract Engineering
+
+Contract architecture, implementation, and versioning
+
+Standards adoption (e.g., ERC patterns) and internal libraries
+
+Upgradeability and ownership models (where applicable)
+
+B) dApp Product Development
+
+Web/mobile dApp implementations
+
+Wallet integrations and signing flows
+
+Session/key UX patterns (e.g., account abstraction-ready approaches)
+
+C) Security & Assurance
+
+Threat modeling as a gating artifact
+
+Code review, static analysis, fuzzing strategy
+
+Audit readiness and vendor coordination
+
+Security incident response (pause/rollback/communication procedures)
+
+D) ChainOps & Infrastructure
+
+CI/CD for contracts and dApps
+
+Network environment management (dev/test/prod, testnets/mainnets)
+
+RPC strategy, indexers, event ingestion pipelines
+
+Observability: alerts, dashboards, runbooks
+
+E) On-chain Data & Intelligence
+
+Event indexing, subgraphs/indexers, analytics
+
+Data products for internal engines (SIG/DRE/FLO/etc.)
+
+3.2 Out of Scope (for v1)
+
+Operating a Layer-1 blockchain network
+
+Running a public validator business (unless explicitly chartered later)
+
+Token issuance, treasury management, or protocol economics as a default activity
+
+Note: these may be chartered later under governed vehicles and explicit approvals.
+
+4. Non-Goals
+
+OCP is explicitly not:
+
+A replacement for NS governance (GGP/GGE)
+
+A general-purpose web application team
+
+An ad-hoc experimental playground without production discipline
+
+A custody provider without strict policy and auditability
+
+5. Operating Principles
+
+5.1 Security First
+
+“No secure deploy, no deploy.” Security gates are mandatory.
+
+Defaults favor minimal privilege, hardened patterns, and reduction of blast radius.
+
+5.2 Governed Change
+
+Contract and protocol changes are governed changes, not casual code pushes.
+
+Upgrade authority is explicit, documented, and reviewable.
+
+5.3 Reusability & Standardization
+
+OCP builds a library of primitives: modules, templates, and deploy scripts.
+
+dApp patterns are standardized to reduce UX and security risk.
+
+5.4 Observability by Default
+
+Every production contract includes event strategy, monitoring, and runbooks.
+
+On-chain signals are captured as first-class operational telemetry.
+
+5.5 Progressive Decentralization (Optional)
+
+Decentralization is treated as a roadmap outcome, not an immediate requirement.
+
+Governance and control can shift over time under explicit approvals.
+
+6. Core Deliverables (OCP v1)
+
+OCP v1 must ship three platform deliverables to become “real”:
+
+Contract Registry + Deployment Manager
+
+Canonical inventory of contracts, networks, addresses, versions, configs
+
+Deploy pipeline with approvals, provenance, and rollback/containment options
+
+Security Baseline Kit
+
+Mandatory artifacts: threat model template, audit checklist, upgrade policy
+
+Standard roles/permissions patterns and emergency controls (pause/guardian)
+
+dApp Starter Framework
+
+Wallet integration toolkit + signing UX patterns
+
+Indexing/data integration patterns for product teams
+
+7. Governance & Gatekeeping
+
+OCP introduces hard gates for production releases.
+
+7.1 Required Release Gates (Minimum)
+
+Threat model completed and reviewed
+
+Test coverage + property tests/fuzzing baseline where appropriate
+
+Static analysis results captured
+
+Two-person peer review (at least 2 reviewers on critical changes)
+
+Ownership / upgrade / pause model documented
+
+Monitoring + alerts + runbook created
+
+7.2 External Audit Policy (Principle)
+
+High-risk or high-value contracts require external audit prior to mainnet deployment.
+
+OCP manages audit readiness and remediation tracking.
+
+7.3 Key Custody Policy (Day 1)
+
+Key custody is policy-driven and auditable.
+
+Default: multisig / MPC / hardware-backed custody patterns.
+
+8. Interfaces to Other NS Engines
+
+OCP is designed to integrate cleanly with NS’s engine ecosystem:
+
+GGP / GGE (Governance): approvals, policy enforcement, upgrade decisions
+
+IDN (Identity & Entity Nexus): actor/role mapping, ownership, permissions
+
+FLO (Financial Ledger Orchestrator): on-chain accounting feeds and reconciliation
+
+SIG (Signal Aggregation Engine): event streams and monitoring signals
+
+DRE (Deep Research Engine): ecosystem tracking, chain standards, protocol intelligence
+
+SIM (Simulation & Scenario Engine): risk modeling, scenario tests for upgrades/incidents
+
+MUX (Market Integration Layer): integrating external providers (RPC, indexing, custodians)
+
+9. Users & Stakeholders
+
+Primary Users: OCP engineers, NS product teams building dApps, NS security function
+
+Stakeholders: Governance (GGP/GGE), Finance (FLO), Identity (IDN), Research (DRE)
+
+External Stakeholders (as applicable): audit firms, infrastructure providers, partners
+
+10. Success Criteria
+
+OCP is considered successful when:
+
+NS can ship blockchain products predictably (repeatable pipelines, known gates)
+
+Production contracts are secure-by-default (baselines, audits, monitoring)
+
+Contract state and deployments are fully traceable (registry, provenance)
+
+Incidents are manageable (pause/containment + runbooks + postmortems)
+
+On-chain activity becomes a usable internal signal (feeds to SIG/FLO/DRE)
+
+11. Risks & Mitigations (Charter-Level)
+
+Security Risk: mitigated via mandatory gates, audits, custody policy
+
+Operational Risk: mitigated via standardized deployment + observability
+
+Regulatory/Compliance Risk: mitigated via explicit governance approvals and scoped activities
+
+Vendor Risk (RPC/Indexing/Custody): mitigated via MUX-managed provider strategy and redundancy
+
+12. Initial Constraints & Assumptions
+
+Default chain strategy: EVM-first for v1 (broad tooling and ecosystem).
+
+Other chains may be added via explicit roadmap items.
+
+OCP will operate with a “production discipline” mindset from day one.
+
+Token issuance and treasury operations are not part of v1 unless explicitly chartered.
+
+13. Charter Commitments
+
+By adopting this charter, Northfield Solidarity commits that:
+
+Blockchain work is treated as production engineering with governance
+
+Security and custody are non-negotiable baselines
+
+OCP is the canonical home for smart contract lifecycle, ChainOps, and on-chain intelligence
+
+14. Next Documents
+
+NS-OCP-001 — OVERVIEW (what OCP is, how teams use it)
+
+NS-OCP-002 — TAXONOMY (entities, artifacts, environments, roles)
+
+NS-OCP-003 — ARCHITECTURE (reference architecture + data flows)
+
+NS-OCP-004 — LIFECYCLE (idea → build → audit → deploy → monitor → evolve)`;
+
+export const INT_CHARTER = `NS-INT-000 — CHARTER
+
+1. Identity
+
+Project / Engine Name: Intervention
+
+Nickname: quickscope
+
+Domain: System-wide state, context, and real-time coherence layer for Northfield Solidarity (NS)
+
+Owner Engine Class: Core platform engine (first-class NS engine)
+
+Primary Consumers: GGP, Firmament, all NS engines, operator UIs, observability tooling
+
+2. Mission
+
+Intervention exists to provide a single, authoritative, replayable, real-time state context for the entire NS ecosystem—so every engine and UI can reliably answer:
+
+What is true now?
+
+How did it become true?
+
+Who/what changed it?
+
+What is the current process state of long-running work?
+
+Intervention turns NS into a coherent, stateful “beast” with shared context, causal chains, and durable memory.
+
+3. Problem Statement
+
+As NS grows into many engines (SIG, DAT, PIE, SIM, IDN, FLO, MUX, CWP, Firmament, etc.), state tends to fragment:
+
+Each engine invents its own lifecycle semantics
+
+UIs reconcile “truth” inconsistently
+
+Cross-engine workflows lose correlation and causal provenance
+
+Debugging becomes archaeology
+
+Governance evidence becomes scattered
+
+Without a unified state fabric, NS cannot scale reliably, explainably, or in real time.
+
+4. Scope
+
+4.1 In Scope (What Intervention is)
+
+Intervention is the State Fabric + Context Plane for NS. It provides:
+
+Immutable Event Log (System Memory)
+
+Append-only record of state changes across engines
+
+Idempotent ingest and deduplication guarantees
+
+Schema/version evolution controls
+
+Materialized State Views (System Present)
+
+Queryable “current state” projections derived from events
+
+Domain-agnostic canonical projections (e.g., entity status, workflow status, request status)
+
+Engine-specific projections when needed, using standard projector patterns
+
+Time Travel, Replay, and Reconstruction (System Forensics)
+
+Rebuild any view at time T
+
+Replay event streams into sandboxes / simulators
+
+Support audits, debugging, and retrospective governance
+
+Real-Time Deltas and Subscriptions (System Nervous System)
+
+Stream deltas to Firmament and operator surfaces
+
+Topic routing by entity, engine, workflow, and correlation IDs
+
+Backpressure-aware fanout and resumable subscriptions
+
+Cross-Engine Correlation and Causality (System Threading)
+
+Correlation IDs unify multi-engine work
+
+Causation IDs link “what triggered what”
+
+Traceable actor identity for human/agent/system actions
+
+Edge State Caches (Local Coherence)
+
+Lightweight local cache clients (sidecars/SDK) for engines and UIs
+
+Low-latency reads and offline-tolerant behavior
+
+Standard sync/resync and conflict-handling protocol
+
+4.2 Out of Scope (What Intervention is not)
+
+Not a governance authority: It does not decide what is allowed (GGP does).
+
+Not a monolithic OLTP replacement: It does not replace domain databases.
+
+Not a data lake / analytics warehouse: It is for state coherence, not BI.
+
+Not “just UI state”: Frontend local state remains a separate concern.
+
+5. Principles
+
+Event-first truth: state is derived from events, not edited in place.
+
+Explainability by default: every state change has provenance.
+
+Replayability: any state can be reconstructed.
+
+Contractual interoperability: engines integrate via a canonical envelope.
+
+Governance-gated transitions: protected state transitions consult GGP.
+
+Edge-first performance: reads should be fast where work happens.
+
+6. Success Criteria
+
+Intervention is successful when:
+
+Firmament can render global NS state in real time (snapshot + deltas)
+
+Any operator can answer “why is this stuck?” with causal chain + evidence
+
+Cross-engine workflows have a single correlated thread end-to-end
+
+Audits can reconstruct the exact state at any time
+
+Engines integrate without inventing bespoke state conventions
+
+7. Core Interfaces (Charter-Level)
+
+7.1 Canonical Event Envelope (Minimum Contract)
+
+All NS engines emit events using a canonical envelope:
+
+event_id
+
+event_type
+
+engine_id
+
+entity_id (or aggregate_id)
+
+occurred_at (when it happened)
+
+observed_at (when received)
+
+correlation_id (thread)
+
+causation_id (trigger)
+
+actor (human/agent/system)
+
+schema_version
+
+policy_context_ref (governance context pointer)
+
+payload (domain-specific)
+
+7.2 Subscription Channels (High-Level)
+
+Intervention exposes stream subscriptions keyed by:
+
+engine
+
+entity / aggregate
+
+workflow instance
+
+correlation_id
+
+event_type
+
+8. Governance Relationship to GGP
+
+Intervention enforces structural validity (schema, versioning, idempotency).
+
+GGP enforces semantic legitimacy (policy, approvals, permissioned transitions).
+
+Intervention consults GGP for protected transitions (configurable event types).
+
+9. Risks and Mitigations
+
+Scope creep into “do everything data platform” → hard boundaries + projection patterns.
+
+Event schema chaos → canonical envelope + schema registry + version gates.
+
+Hot partitions / fanout overload → partitioning strategy + backpressure + edge caches.
+
+Governance bottlenecks → asynchronous gating options with clear state semantics.
+
+10. Roadmap (Charter-Level)
+
+Phase 0 — Contract + Spine
+
+Canonical envelope, schema/versioning rules
+
+Ingest + immutable log
+
+Basic projector framework
+
+Phase 1 — Read Models + Firmament Integration
+
+Snapshot API + delta streams
+
+Firmament state channels
+
+Edge cache client for UI
+
+Phase 2 — Workflow State + Correlation
+
+Workflow instance state model
+
+Correlation/causation query and visualization hooks
+
+Phase 3 — Advanced “quickscope” Extensions
+
+Time-travel UX primitives
+
+Replay-to-sandbox pipelines
+
+Predictive state hints (optional)
+
+11. Definition of Done (for Engine Acceptance)
+
+Intervention is “live” when:
+
+At least 3 NS engines publish canonical envelope events
+
+Snapshot + delta stream works for Firmament
+
+Correlation threading works end-to-end for a representative workflow
+
+GGP gating for at least one protected transition class is operational`;
+
+export const CWP_CHARTER = `NS-CWP-000 — CHARTER
+
+0. Overview
+
+System Name: Cognitive Work Plane (CWP)
+
+Document Title: NSDC Engine Charter — CWP (Cognitive Work Plane)
+
+Document ID: NS-CWP-000-CHARTER
+
+Version: 0.1
+
+Prepared By: Strategy & Governance Office
+
+Approved By: Parent / HoldCo Manager
+
+Effective Date: TBD
+
+Review Cycle: Annual or upon material change
+
+1. Engine Identity
+
+Engine Name: Cognitive Work Plane
+
+Acronym: CWP
+
+Engine Type: Operations / Workforce Orchestration / Agent Coordination
+
+Primary Function: Represent, coordinate, supervise, and audit agentic workers (human, AI, and hybrid) and operational work—translating intent into executable tasks and outcomes—while remaining fully governed by GGP.
+
+2. Mission Statement (One Sentence)
+
+CWP exists to turn objectives into coordinated, accountable work by organizing agentic workers, tasks, roles, and performance signals into a governed operational plane that reliably executes day-to-day operations.
+
+3. Core Responsibilities (Allowed Actions)
+
+CWP may:
+
+Model operational work as tasks, playbooks, workflows, and queues
+
+Represent workers (humans, AI agents, hybrid teams) with roles, capabilities, and assignments
+
+Coordinate execution of work across engines and systems (handoffs, dependencies, escalation)
+
+Operate work supervision: checkpoints, status tracking, exception handling, and completion verification
+
+Manage operational SOPs/playbooks (run steps, enforce required artifacts)
+
+Maintain work performance signals (throughput, cycle time, quality markers)
+
+Support approval routing and human-in-the-loop steps (as required by GGP)
+
+Emit structured operational events for telemetry and audit correlation (to LUM and GGP)
+
+CWP must NOT:
+
+Create or override governance policy (GGP is the authority)
+
+Operate as the financial ledger (FLO is the authority)
+
+Act as a general data lake/warehouse (DRE/PIE own research/analytics)
+
+4. Scope Boundaries & Interfaces
+
+4.1 What CWP owns
+
+Worker registry (agent profiles, capabilities, availability signals)
+
+Task/work item system (queues, assignments, SLAs, escalation)
+
+Workflow/playbook execution model (SOP steps, checklists, gating)
+
+Operational supervision surfaces (dashboards, work states, exception inbox)
+
+Work evidence capture for completion (artifacts, receipts, links, confirmations)
+
+4.2 What CWP depends on
+
+GGP: governance rules, approvals, constraints, evidence requirements
+
+IDN: identity, roles, permissions, entity records (who is a worker/actor)
+
+LUM: observability/telemetry correlation, incident signals, health of work execution
+
+FLO: capital/ledger actions (CWP can request; FLO records and executes under GGP)
+
+MUX: external system integrations (email, calendars, ticketing, vendor systems)
+
+4.3 Common integration surfaces
+
+GGP: evaluate decision gates before executing governed steps
+
+IDN: resolve actor identity, role-based eligibility for tasks/approvals
+
+LUM: emit work events and correlate with traces, incidents, and evidence bundles
+
+FLO: submit governed requests for payments, reimbursements, procurement events
+
+5. Core Concepts
+
+5.1 Worker
+
+A Worker is an actor capable of performing tasks.
+
+Worker types
+
+Human (employee/contractor)
+
+AI Agent (software agent operating with bounded permissions)
+
+Hybrid Unit (human + agent pair)
+
+Key attributes
+
+capabilities/skills
+
+authorization profile (derived from IDN + GGP)
+
+availability and load
+
+5.2 Work Item
+
+A Work Item is a unit of operational work tracked to completion.
+
+Examples
+
+triage inbox item
+
+vendor follow-up
+
+invoice verification
+
+publish a post (handoff to CDE)
+
+fulfill an order (handoff to DAT/FLO)
+
+5.3 Playbook (SOP)
+
+A Playbook is a structured sequence of steps that produces a consistent outcome.
+
+Playbook steps can include
+
+human actions
+
+agent actions
+
+external API calls (via MUX)
+
+approvals (via GGP)
+
+evidence collection (required artifacts)
+
+5.4 Governance Gates
+
+A Governance Gate is a required GGP decision/approval before proceeding.
+
+Examples
+
+spend threshold approval
+
+releasing a customer-facing communication
+
+modifying identity permissions
+
+executing high-risk automation
+
+5.5 Work Evidence
+
+Work Evidence is proof that a task or step was completed correctly.
+
+Examples
+
+receipt PDF
+
+signed approval
+
+vendor confirmation email
+
+screenshot/link to published artifact
+
+6. Key Outputs / Deliverables
+
+Canonical worker + task models
+
+Queue-based operational execution plane
+
+SOP/playbook library with governed gates
+
+Human-in-the-loop approval routing (when required)
+
+Standardized work event stream for correlation and audit
+
+Operational dashboards: status, throughput, exceptions, SLA risk
+
+7. Non-Goals
+
+Replacing HRIS/payroll systems
+
+Becoming a standalone project management product (unless later spun out)
+
+Serving as the single source of truth for finances (FLO) or governance policy (GGP)
+
+8. Risks & Mitigations
+
+Over-automation risk → require GGP gates for material actions; default to human confirmation
+
+Permission drift → IDN-backed roles; periodic access review via GGP policy
+
+Task sprawl / unclear ownership → explicit queues, assignment rules, escalation ladders
+
+Audit gaps → enforce required evidence and event emission for governed work
+
+Alert fatigue → route operational signals to LUM with severity taxonomy
+
+9. Initial Roadmap (MVP → v1)
+
+MVP
+
+Worker registry (humans + a small set of bounded AI agents)
+
+Work item model + queues + assignment rules
+
+Playbook runner (linear steps) with basic gating calls to GGP
+
+Evidence attachment per work item
+
+Event emission to LUM (work.started/work.completed/work.blocked)
+
+v1
+
+Advanced workflows (branching, retries, timeouts, escalations)
+
+Delegation + coverage schedules
+
+Performance signals (cycle time, quality markers, rework rate)
+
+Tight integration with external systems via MUX (email/calendar/ticketing)
+
+Built-in postmortem and continuous improvement loops (handoff to LUM + GGP)`;
+
+export const LUM_OVERVIEW = `NS-LUM-001 — OVERVIEW
+
+0. Overview
+
+Luminance Engine (LUM) is the observability and reliability platform for Northfield Solidarity. It provides standardized collection, correlation, and presentation of telemetry and evidence signals across all engines and external integrations.
+
+LUM’s goal is to make execution visible, explainable, and supportable—so incidents are detected early, resolved quickly, and audited reliably.
+
+LUM is not a governance authority. GGP defines what must be logged, what approvals exist, and who may access sensitive evidence. LUM implements the telemetry/evidence plumbing and surfaces.
+
+1. Why LUM Exists
+
+As the number of engines and integrations grows, observability must be:
+
+Consistent (shared schemas and correlation)
+
+Centralized (single place to see system health and incidents)
+
+Audit-grade (traceable actions and evidence bundles)
+
+Actionable (alerts + runbooks + incident workflows)
+
+Without LUM, each engine tends to:
+
+log differently
+
+alert inconsistently
+
+lose context across distributed workflows
+
+leave gaps in audit trails
+
+2. Core Capabilities
+
+2.1 Telemetry collection
+
+LUM ingests:
+
+Logs (structured, redacted)
+
+Metrics (SLIs: error rate, latency, throughput, saturation)
+
+Traces (distributed tracing: trace/span)
+
+Events (workflow and integration events)
+
+2.2 Correlation & context propagation
+
+LUM standardizes and enforces correlation fields so that a single action can be followed end-to-end.
+
+Minimum correlation set:
+
+request_id
+
+trace_id / span_id
+
+workflow_id
+
+decision_id (GGP)
+
+integration_id (external API integration)
+
+entity_id (IDN)
+
+job_id / task_id (CWP/CDE/DAT)
+
+2.3 Reliability management
+
+SLIs/SLOs and error budgets
+
+Alert routing and escalation policies
+
+Noise reduction (dedupe, suppression, severity thresholds)
+
+2.4 Incident lifecycle
+
+Incident creation (manual or automatic)
+
+Timeline and event stitching
+
+Runbook linkage
+
+Postmortem packet templates
+
+Action-item export/handoff to CWP
+
+2.5 Evidence support (audit-grade)
+
+LUM supports evidence by:
+
+persisting immutable-ish copies/metadata (where required)
+
+linking evidence to decisions (GGP) and ledger entries (FLO)
+
+maintaining chain-of-custody metadata
+
+LUM does not decide what evidence is required; it fulfills GGP requirements.
+
+3. LUM’s Relationship to Other Engines
+
+3.1 GGP (Governance Graph Processor)
+
+GGP defines the governance policies that require audit events/evidence.
+
+LUM enforces observability standards and stores/serves required evidence signals.
+
+3.2 IDN (Identity & Entity Nexus)
+
+IDN provides actor/entity identity for correlation and access control.
+
+LUM uses entity_id and role/claim metadata for secure evidence access.
+
+3.3 FLO (Financial Ledger Orchestrator)
+
+FLO actions must be traceable and auditable.
+
+LUM links financial events to decision_id, workflow_id, and ledger references.
+
+3.4 CWP (Cognitive Work Plane)
+
+CWP emits task/work events.
+
+LUM correlates tasks to system events, failures, and evidence bundles.
+
+3.5 MUX / SIG / DRE / CDE / DAT
+
+MUX: integration calls and webhooks (external API reliability)
+
+SIG/DRE: ingestion workflows and research pipeline observability
+
+CDE: distribution jobs and delivery receipts
+
+DAT: execution pipelines where idempotency and retries must be observable
+
+4. Operating Model
+
+4.1 What “good” looks like
+
+Every external API call is traceable to:
+
+the initiating actor/entity
+
+the governing decision (if any)
+
+the workflow/task that caused it
+
+the resulting side effect (receipt, ledger entry, published artifact)
+
+Incidents are:
+
+detected by SLIs/alerts
+
+diagnosable via correlated traces and logs
+
+resolved with a runbook
+
+closed with a postmortem packet
+
+4.2 Standard signal categories
+
+Health: service up/down, dependency health
+
+Performance: latency, throughput
+
+Correctness: error rates, schema mismatches, idempotency collisions
+
+Governance: blocked actions, missing evidence, approval timeouts
+
+Security: auth failures, key rotation failures, suspicious access patterns
+
+4.3 Storage tiers (conceptual)
+
+Hot: recent logs/metrics/traces for rapid incident response
+
+Warm: longer retention for trend analysis
+
+Evidence: immutable-ish store for governed audit bundles (access controlled)
+
+5. Key Interfaces
+
+5.1 Ingest interfaces
+
+Log shipping (structured JSON)
+
+Metrics scrape/push
+
+Trace export (OpenTelemetry-style)
+
+Event stream subscription (Pub/Sub or internal bus)
+
+5.2 Query and surfacing
+
+Dashboards by engine, integration, workflow
+
+Trace explorer
+
+Incident console
+
+Evidence viewer (policy-controlled)
+
+5.3 Alerting
+
+Severity taxonomy and routing
+
+Paging and notification connectors
+
+Automated incident creation triggers
+
+6. MVP Definition (First Shipping Slice)
+
+MVP LUM should deliver:
+
+A single normalized event schema (logs + events)
+
+Correlation ID enforcement in core services
+
+External integration dashboards for:
+
+Coinbase Commerce
+
+Google Maps Platform
+
+Alerting for:
+
+webhook failure/replay anomalies
+
+quota/rate-limit breaches
+
+elevated error rate and latency
+
+Incident record with timeline + runbook link + resolution notes
+
+7. Success Metrics
+
+Mean time to detect (MTTD) decreases
+
+Mean time to resolve (MTTR) decreases
+
+Percentage of governed actions with complete audit correlation approaches 100%
+
+Reduction in “unknown root cause” incidents
+
+Fewer false-positive alerts (alert hygiene)`;

@@ -25,6 +25,9 @@ const nsGridAreas = [
     { code: "DAT", label: "Execution" },
     { code: "FLO", label: "Finance" },
     { code: "BCP", label: "Blockchain" },
+    { code: "MT", label: "Tracer" },
+    { code: "FL", label: "Fantasy" },
+    { code: "RL", label: "Relay" },
 ];
 
 const nsNodeCoords = {
@@ -39,6 +42,9 @@ const nsNodeCoords = {
     DAT: { x: 150, y: 150, z: 50 },
     FLO: { x: 0, y: 250, z: 0 },
     BCP: { x: 0, y: -350, z: 0 },
+    MT: { x: 0, y: 0, z: -150 },
+    FL: { x: 0, y: 300, z: 100 },
+    RL: { x: 0, y: -250, z: 50 },
 };
 
 const nsConnections3d = [
@@ -49,7 +55,10 @@ const nsConnections3d = [
     ["GGP", "INT"],
     ["INT", "SIM"], ["INT", "DAT"],
     ["SIM", "FLO"], ["DAT", "FLO"],
-    ["BCP", "SIG"], ["BCP", "FLO"]
+    ["BCP", "SIG"], ["BCP", "FLO"],
+    ["RL", "MUX"], ["RL", "SIG"],
+    ["FL", "SIM"], ["MT", "GGP"],
+    ["RL", "GGP"]
 ];
 
 export default function ProductDock({ tabs, activeTab, primedTab, onSelect, filterType, onFilterChange, scale = 1 }) {

@@ -6,14 +6,16 @@ export default function SouthLawnInvestors() {
 
     // South Lawn specific nav
     const nav = [
-        { label: "Northfield Solidarity", to: "/" }, // Fix: point to root Home
-        { label: "South Lawn", to: "/southlawn" },
-        { label: "WSP", to: "/wsp" },
-        { type: "divider" },
         { label: "Documentation", to: "/southlawn/docs" },
         { label: "Pricing", to: "/southlawn/pricing" },
         { label: "System", to: "/southlawn/system" },
-        { label: "Investor Relations", to: "/southlawn/investors" }, // Circular internal link
+        { label: "Investor Relations", to: "/southlawn/investors" },
+        { type: "divider" },
+        { label: "Northfield Solidarity", to: "/" },
+        { label: "South Lawn", to: "/southlawn" },
+        { label: "Wall Street Pro", to: "/wsp" },
+        { label: "More Than Enough", to: "/mte" },
+        { label: "Iron Logic", to: "/iron" },
     ];
 
     return (

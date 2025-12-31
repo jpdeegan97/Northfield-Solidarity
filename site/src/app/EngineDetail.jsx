@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import Section from "../components/Section.jsx";
-import { getEngineByCode } from "../data/engineRegistry.js";
+import { getEngineByCode } from "@shared/data/engineRegistry";
 
 export default function EngineDetail() {
     const { code } = useParams();

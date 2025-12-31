@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Clock, Zap, Network, Share2, Database, Search } from 'lucide-react';
 
-export default function ManifoldView({ engine }) {
+export default function ManifoldView({ engine, embedded }) {
     const [flowState] = useState(74); // 0-100
     const [sessionTime, setSessionTime] = useState(0);
     const [traceLog, setTraceLog] = useState([]);
@@ -45,16 +45,7 @@ export default function ManifoldView({ engine }) {
         return () => clearInterval(interval);
     }, []);
 
-    const particles = useMemo(() => {
-        return [...Array(8)].map((_, i) => ({
-            id: i,
-            initialX: Math.random() * 500,
-            initialY: Math.random() * 200,
-            targetX: Math.random() * 500,
-            targetY: Math.random() * 200,
-            duration: 10 + Math.random() * 20
-        }));
-    }, []);
+
 
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
@@ -63,8 +54,58 @@ export default function ManifoldView({ engine }) {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    if (embedded) {
+        return (
+            <div className="flex flex-col gap-3 font-mono">
+                {/* Stats Row */}
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-white/5 rounded border border-white/10 p-2 flex flex-col items-center">
+                        <span className="text-[9px] text-white/40 uppercase">Nodes</span>
+                        <span className="text-sm text-white">{nodeCount}</span>
+                    </div>
+                    <div className="flex-1 bg-white/5 rounded border border-white/10 p-2 flex flex-col items-center">
+                        <span className="text-[9px] text-white/40 uppercase">Edges</span>
+                        <span className="text-sm text-white">{edgeCount}</span>
+                    </div>
+                </div>
+
+                {/* Flow State Mini */}
+                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded p-2 flex items-center justify-between">
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase">Flow State</span>
+                    <span className="text-xs text-emerald-300">{flowState}%</span>
+                </div>
+
+                {/* Live Trace Log (Compact) */}
+                <div className="bg-black rounded-lg border border-white/10 p-2 h-48 overflow-hidden relative">
+                    <div className="absolute top-0 left-0 right-0 bg-white/5 border-b border-white/10 p-1.5 flex justify-between items-center z-10 px-3">
+                        <span className="text-white/60 uppercase tracking-wider text-[8px]">Live Feed</span>
+                        <div className="flex gap-1.5 items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="text-emerald-500 text-[8px]">ON</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex flex-col gap-1 h-full overflow-y-auto pb-2 custom-scrollbar">
+                        <AnimatePresence initial={false}>
+                            {traceLog.map((log, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, x: -5 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="text-white/70 border-l border-white/10 pl-2 py-0.5 text-[9px] truncate hover:text-white transition-colors"
+                                >
+                                    <span className="text-emerald-500/50 mr-1">{log.split(']')[0]}]</span>
+                                    <span>{log.split(']')[1]}</span>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     return (
-        <div className="flex flex-col h-full w-full p-8 md:p-12 overflow-y-auto">
+        <div className="flex flex-col h-full w-full p-8 md:p-12 overflow-y-auto bg-[#09090b] text-white">
 
             {/* Header */}
             <div className="mb-8">
@@ -224,35 +265,30 @@ export default function ManifoldView({ engine }) {
                         </div>
                     </div>
 
-                    {/* Graph Visualizer Placeholder */}
-                    <div className="h-64 bg-black/40 border border-white/5 rounded-xl p-4 relative overflow-hidden">
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="text-center">
-                                <Network size={48} className="text-white/10 mx-auto mb-2" />
-                                <p className="text-white/30 text-xs">Topology Render Target</p>
-                            </div>
+                    {/* Graph Visualizer: Northfield Solidarity Organization Topology */}
+                    <div className="h-96 bg-black/40 border border-white/5 rounded-xl p-4 relative overflow-hidden group">
+
+                        {/* Background Grid */}
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+
+                        {/* Graph Container */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <TopologyGraph />
                         </div>
 
-                        {/* Animated Nodes (fake) */}
-                        {particles.map((p) => (
-                            <motion.div
-                                key={p.id}
-                                className="absolute w-2 h-2 rounded-full bg-emerald-500/40"
-                                initial={{
-                                    x: p.initialX,
-                                    y: p.initialY
-                                }}
-                                animate={{
-                                    x: [null, p.targetX],
-                                    y: [null, p.targetY],
-                                }}
-                                transition={{
-                                    duration: p.duration,
-                                    repeat: Infinity,
-                                    repeatType: 'reverse'
-                                }}
-                            />
-                        ))}
+                        {/* Overlay: Legend/Controls */}
+                        <div className="absolute bottom-4 right-4 flex flex-col gap-2 items-end pointer-events-none">
+                            <div className="bg-black/80 backdrop-blur border border-white/10 rounded-lg p-2 text-[10px] text-white/50 font-mono">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-2 h-2 rounded-full border border-emerald-400 bg-emerald-500/20"></div>
+                                    <span>Active Entity</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full border border-blue-400 bg-blue-500/20"></div>
+                                    <span>Asset / IP</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -279,3 +315,99 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function TopologyGraph() {
+    // Mock Data for the Graph
+    const nodes = [
+        { id: 'NS_LLC', label: 'Northfield Solidarity LLC', type: 'ENTITY', x: 400, y: 50 },
+        { id: 'IP_HOLD', label: 'NSDC IP Holdings LLC', type: 'ENTITY', x: 600, y: 150 },
+        { id: 'MGMT', label: 'NS MGMT LLC', type: 'ENTITY', x: 200, y: 150 },
+        { id: 'SANCTUM', label: 'Sanctum Platform', type: 'ASSET', x: 400, y: 200 },
+        { id: 'MT', label: 'Manifold Tracer', type: 'ASSET', x: 300, y: 300 },
+        { id: 'FLO', label: 'Flow Engine', type: 'ASSET', x: 500, y: 300 },
+        { id: 'GGP', label: 'Governance Graph', type: 'ASSET', x: 400, y: 280 },
+    ];
+
+    const edges = [
+        { from: 'NS_LLC', to: 'IP_HOLD' },
+        { from: 'NS_LLC', to: 'MGMT' },
+        { from: 'IP_HOLD', to: 'SANCTUM' },
+        { from: 'SANCTUM', to: 'MT' },
+        { from: 'SANCTUM', to: 'GGP' },
+        { from: 'SANCTUM', to: 'FLO' },
+    ];
+
+    // SVG Viewbox dimensions
+    const width = 800;
+    const height = 400;
+
+    return (
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
+            {/* Edges */}
+            {edges.map((edge, i) => {
+                const source = nodes.find(n => n.id === edge.from);
+                const target = nodes.find(n => n.id === edge.to);
+                return (
+                    <motion.line
+                        key={i}
+                        x1={source.x}
+                        y1={source.y}
+                        x2={target.x}
+                        y2={target.y}
+                        stroke="rgba(255,255,255,0.1)"
+                        strokeWidth="1"
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{ pathLength: 1, opacity: 1 }}
+                        transition={{ duration: 1.5, delay: i * 0.2 }}
+                    />
+                );
+            })}
+
+            {/* Nodes */}
+            {nodes.map((node, i) => (
+                <motion.g
+                    key={node.id}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.1 }}
+                >
+                    {/* Pulsing Ripple for Entities */}
+                    {node.type === 'ENTITY' && (
+                        <motion.circle
+                            cx={node.x}
+                            cy={node.y}
+                            r="6"
+                            fill="transparent"
+                            stroke={node.id === 'NS_LLC' ? '#10b981' : '#3b82f6'} // Emerald or Blue
+                            strokeWidth="1"
+                            animate={{ r: [6, 12], opacity: [0.5, 0] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                        />
+                    )}
+
+                    {/* Node Circle */}
+                    <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r="4"
+                        fill={node.type === 'ENTITY' ? '#10b981' : '#3b82f6'} // Emerald for Entity, Blue for Asset
+                        className="cursor-pointer hover:fill-white transition-colors"
+                    />
+
+                    {/* Label */}
+                    <text
+                        x={node.x}
+                        y={node.y + 15}
+                        textAnchor="middle"
+                        fill="rgba(255,255,255,0.6)"
+                        fontSize="8"
+                        fontFamily="monospace"
+                        className="pointer-events-none select-none uppercase tracking-wider"
+                    >
+                        {node.label}
+                    </text>
+                </motion.g>
+            ))}
+        </svg>
+    );
+}

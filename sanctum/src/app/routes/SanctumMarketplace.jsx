@@ -447,7 +447,11 @@ function AssetCard({ asset, accentColor, onClick, isOwned }) {
     );
 }
 
+import WPVView from '../../app/engines/WPVView';
+
 function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor, onEndpointClick }) {
+    const [showVisualSpecs, setShowVisualSpecs] = useState(false);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -462,134 +466,166 @@ function AssetDetailModal({ asset, onClose, onAddToCart, isOwned, accentColor, o
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-10"
+                className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-10 h-[80vh] flex flex-col"
             >
-                {/* Header */}
-                <div className="p-6 border-b border-white/10 flex justify-between items-start bg-white/5 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20" />
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.group}</span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.category}</span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 border rounded bg-black/20" style={{ color: accentColor, borderColor: `${accentColor}4D` }}>{asset.tier}</span>
+                {showVisualSpecs ? (
+                    <div className="flex flex-col h-full">
+                        {/* Visual Header */}
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Activity size={16} style={{ color: accentColor }} />
+                                {asset.name} <span className="text-white/40">// SPEC VISUALIZER</span>
+                            </h2>
+                            <button
+                                onClick={() => setShowVisualSpecs(false)}
+                                className="px-3 py-1 rounded border border-white/10 text-xs font-bold hover:bg-white/10 transition-colors"
+                            >
+                                BACK TO DETAILS
+                            </button>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-1">{asset.name}</h2>
-                        <div className="flex items-center gap-2 text-white/40 text-xs">
-                            <span>ID: {asset.id}</span>
-                            <span>•</span>
-                            <span>v2.4.0 (Stable)</span>
+                        <div className="flex-1 relative overflow-hidden">
+                            <WPVView
+                                title={`${asset.name} - Technical Whitepaper`}
+                                content={`# ${asset.name}\n\n**Category:** ${asset.category}\n**Tier:** ${asset.tier}\n\n${asset.desc}\n\n## Specifications\n${asset.specs?.map(s => `- ${s}`).join('\n')}`}
+                            />
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white z-10">
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2 space-y-6">
-                        {/* Description */}
-                        <div>
-                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Activity size={12} /> Overview
-                            </h3>
-                            <p className="text-white/80 leading-relaxed text-sm">
-                                {asset.desc}
-                                <br /><br />
-                                Designed for high-performance implementation within the Sanctum ecosystem. This module provides specialized capabilities for {asset.category.toLowerCase()} operations, ensuring seamless integration with existing architecture.
-                            </p>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="p-6 border-b border-white/10 flex justify-between items-start bg-white/5 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20" />
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.group}</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 border border-white/20 rounded text-white/60 bg-black/20">{asset.category}</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 border rounded bg-black/20" style={{ color: accentColor, borderColor: `${accentColor}4D` }}>{asset.tier}</span>
+                                </div>
+                                <h2 className="text-2xl font-bold text-white mb-1">{asset.name}</h2>
+                                <div className="flex items-center gap-2 text-white/40 text-xs">
+                                    <span>ID: {asset.id}</span>
+                                    <span>•</span>
+                                    <span>v2.4.0 (Stable)</span>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white z-10">
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        {/* Specs */}
-                        <div>
-                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Code size={12} /> Technical Specifications
-                            </h3>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(asset.specs || ['Latency: <5ms', 'Uptime: 99.99%', 'Support: 24/7']).map((spec, i) => (
-                                    <div key={i} className="bg-white/5 border border-white/5 rounded px-3 py-2 text-xs text-white/70 font-mono">
-                                        {spec}
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2 space-y-6">
+                                {/* Description */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <Activity size={12} /> Overview
+                                    </h3>
+                                    <p className="text-white/80 leading-relaxed text-sm">
+                                        {asset.desc}
+                                        <br /><br />
+                                        Designed for high-performance implementation within the Sanctum ecosystem. This module provides specialized capabilities for {asset.category.toLowerCase()} operations, ensuring seamless integration with existing architecture.
+                                    </p>
+                                </div>
+
+                                {/* Specs */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <Code size={12} /> Technical Specifications
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(asset.specs || ['Latency: <5ms', 'Uptime: 99.99%', 'Support: 24/7']).map((spec, i) => (
+                                            <div key={i} className="bg-white/5 border border-white/5 rounded px-3 py-2 text-xs text-white/70 font-mono">
+                                                {spec}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                {/* Integration Info */}
+                                <div className="bg-black/40 border border-white/10 rounded-lg p-4">
+                                    <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <Terminal size={12} /> Integration
+                                    </h3>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 text-xs text-white/60">
+                                            <Zap size={12} className="text-yellow-500" />
+                                            <span>Instant Activation</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-white/60">
+                                            <Shield size={12} className="text-green-500" />
+                                            <span>Verified Secure</span>
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-white/10">
+                                            <div className="text-[10px] text-white/30 uppercase mb-1">Pricing Model</div>
+                                            <div className="text-2xl font-bold" style={{ color: accentColor }}>${asset.price.toLocaleString()}</div>
+                                            <div className="text-[10px] text-white/40">One-time license fee</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* API Architecture Grid */}
+                                <div className="bg-black/40 border border-white/10 rounded-lg p-4 space-y-4">
+                                    <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider flex items-center gap-2">
+                                        <Code size={12} /> API Architecture
+                                    </h3>
+
+                                    {/* Vendor/Upstream Dependencies */}
+                                    <div>
+                                        <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
+                                            <span className="w-1 h-1 rounded-full bg-blue-500"></span> External Dependencies
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(asset.vendorApis || ['None']).map((api, i) => (
+                                                <span key={i} className="text-[10px] font-mono text-blue-300 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded">
+                                                    {api}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Offered/Downstream Interfaces */}
+                                    <div>
+                                        <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500"></span> Exposed Interfaces
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(asset.offeredApis || ['Standard REST']).map((api, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => onEndpointClick && onEndpointClick(api)}
+                                                    className="text-[10px] font-mono text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-colors cursor-pointer"
+                                                >
+                                                    {api}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <button
+                                    onClick={() => setShowVisualSpecs(true)}
+                                    className="w-full py-2 mb-3 rounded font-bold text-xs uppercase tracking-widest border border-white/20 text-white/60 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Activity size={14} /> View Visual Specs
+                                </button>
+                                <button
+                                    onClick={isOwned ? null : onAddToCart}
+                                    disabled={isOwned}
+                                    className={`w-full py-3 rounded font-bold text-sm uppercase tracking-widest transition-all ${isOwned
+                                        ? 'bg-white/10 text-white/30 cursor-not-allowed border border-white/5'
+                                        : 'text-black hover:brightness-110 shadow-lg'
+                                        }`}
+                                    style={!isOwned ? { backgroundColor: accentColor, boxShadow: `0 0 15px ${accentColor}4D` } : {}}
+                                >
+                                    {isOwned ? 'Already Active' : 'Add to Integration'}
+                                </button>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        {/* Integration Info */}
-                        <div className="bg-black/40 border border-white/10 rounded-lg p-4">
-                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                <Terminal size={12} /> Integration
-                            </h3>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-xs text-white/60">
-                                    <Zap size={12} className="text-yellow-500" />
-                                    <span>Instant Activation</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-white/60">
-                                    <Shield size={12} className="text-green-500" />
-                                    <span>Verified Secure</span>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-white/10">
-                                    <div className="text-[10px] text-white/30 uppercase mb-1">Pricing Model</div>
-                                    <div className="text-2xl font-bold" style={{ color: accentColor }}>${asset.price.toLocaleString()}</div>
-                                    <div className="text-[10px] text-white/40">One-time license fee</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* API Architecture Grid */}
-                        <div className="bg-black/40 border border-white/10 rounded-lg p-4 space-y-4">
-                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider flex items-center gap-2">
-                                <Code size={12} /> API Architecture
-                            </h3>
-
-                            {/* Vendor/Upstream Dependencies */}
-                            <div>
-                                <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
-                                    <span className="w-1 h-1 rounded-full bg-blue-500"></span> External Dependencies
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {(asset.vendorApis || ['None']).map((api, i) => (
-                                        <span key={i} className="text-[10px] font-mono text-blue-300 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded">
-                                            {api}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Offered/Downstream Interfaces */}
-                            <div>
-                                <div className="text-[10px] font-bold text-white/30 uppercase mb-2 flex items-center gap-1">
-                                    <span className="w-1 h-1 rounded-full bg-emerald-500"></span> Exposed Interfaces
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {(asset.offeredApis || ['Standard REST']).map((api, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => onEndpointClick && onEndpointClick(api)}
-                                            className="text-[10px] font-mono text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-colors cursor-pointer"
-                                        >
-                                            {api}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <button
-                            onClick={isOwned ? null : onAddToCart}
-                            disabled={isOwned}
-                            className={`w-full py-3 rounded font-bold text-sm uppercase tracking-widest transition-all ${isOwned
-                                ? 'bg-white/10 text-white/30 cursor-not-allowed border border-white/5'
-                                : 'text-black hover:brightness-110 shadow-lg'
-                                }`}
-                            style={!isOwned ? { backgroundColor: accentColor, boxShadow: `0 0 15px ${accentColor}4D` } : {}}
-                        >
-                            {isOwned ? 'Already Active' : 'Add to Integration'}
-                        </button>
-                    </div>
-                </div>
+                    </>
+                )}
             </motion.div>
         </div>
     );

@@ -721,3 +721,59 @@ governed by GGP for protected transitions
 
 optimized for real-time visualization and explainability
 `;
+
+export const NS_INT_015_IDEATION = `NS-INT-015 — QUICKSCOPE FEATURES & IDEATION
+Document ID: NS-INT-015
+Status: Living / Ideation
+Owner: Northfield Solidarity
+Category: Strategic Enhancement
+
+1. Purpose & Vision
+QuickScope is the "God Mode" console upgrade for the Intervention Engine (INT). It transforms Intervention from a passive state coherence layer into a time-travel component debugger and surgical intervention suite.
+
+Operators will visualize, pause, rewind, replay, and hot-patch the living state of the business.
+
+2. Feature Catalogue
+
+A) Time & Causality (The "Scope")
+1. Temporal Scrubber: A master timeline slider to revert the entire system state to any previous tick, allowing instant "replay" of incidents.
+2. Causal Graph Explorer: Visual node graph showing exactly which inputs caused a state change and what downstream effects it triggered.
+3. Ghost Forks: Create lightweight, sandboxed forks of the current state to simulate dangerous interventions without affecting live reality.
+4. Slow-Motion Playback: 0.1x - 100x replay speeds to debug race conditions or rapid-fire signal interactions.
+5. State Diff Overlay: Red/Green diff visualization between any two points in time or between a simulation fork and reality.
+
+B) Surgical Intervention (The "Quick")
+6. State Injection Console: Raw JSON editor to manually force-change any value in the system state (e.g., set treasury.balance = X).
+7. Logic Breakpoints: Set conditional traps (e.g., "HALT if Risk > CRITICAL") that pause the world state automatically.
+8. Sniper Watchlist: Pin specific Entity IDs to filter the firehose of events down to a single relevant thread.
+9. Hot-Patch Logic: "Swizzle" engine rules on the fly to test fixes before deploying code.
+10. The "Undo" Button: Global revert for the last committed transaction block.
+
+C) Deep Inspection
+11. X-Ray Search: Global Regex search across the entire historical state log.
+12. Dependency Heatmap: Visual overlay of "hot" engines (emitting high deltas) vs. idle ones.
+13. Mem-Pool Visualizer: Real-time view of pending deltas queued for commit.
+14. Identity Masquerade: "See As" a specific user role or service agent to debug permission issues.
+15. Governance Blame: Trace every state change back to the specific GGP Policy that allowed it.
+
+D) Chaos & Operations
+16. Entropy Generator: "Chaos Monkey" tooling to drop packets, mute engines, or inject noise for resilience testing.
+17. Incident Markers: Hotkey annotation dropping for post-mortem timelines.
+18. Macro Recorder: Save manual injection sequences as re-runnable test scripts.
+19. Auto Post-Mortem: Generate Markdown summaries of timeline, root cause, and interventions.
+20. Visual "Halt": Matrix-style chromatic aberration and freeze-frame effects when the system is paused.
+
+3. Implementation Phases
+
+Phase 1: The Observer (Current)
+- Delta stream visualization.
+- Manual Panic Button.
+
+Phase 2: The Time Traveler
+- Temporal Scrubber & Ghost Forks.
+- Replay/Reconstruct capability.
+
+Phase 3: The Surgeon
+- Write-back Injection.
+- Hot-patching & Breakpoints.
+`;

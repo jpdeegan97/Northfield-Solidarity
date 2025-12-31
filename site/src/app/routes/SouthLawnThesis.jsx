@@ -16,7 +16,8 @@ export default function SouthLawnThesis() {
                 nav={[
                     { label: "Northfield Solidarity", to: "/" },
                     { label: "South Lawn", to: "/southlawn" },
-                    { label: "WSP", to: "/wsp" },
+                    { label: "Wall Street Pro", to: "/wsp" },
+                    { label: "More Than Enough", to: "/mte" },
                     { type: "divider" },
                     { label: "Documentation", to: "/southlawn/docs" },
                     { label: "Pricing", to: "/southlawn/pricing" },

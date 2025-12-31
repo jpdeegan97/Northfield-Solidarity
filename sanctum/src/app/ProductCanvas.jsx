@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Stars, View } from '@react-three/drei';
+import * as THREE from 'three';
 import { ALL_ENGINES } from '../data/engineRegistry';
+import { NS_PROJECTS } from '../data/projectRegistry';
 import ProductDock from '../components/ProductDock';
 import EngineOverlay from '../components/EngineOverlay';
-import HolographicScene from '../components/HolographicScene';
+import HolographicScene, { FirmamentGlobe, TopologyHologram } from '../components/HolographicScene.jsx';
 import WindowFrame from '../components/WindowFrame';
 
-// Engine Views
+// Engine Views (imports omitted for brevity, assuming they remain)
 import GGPView from './engines/GGPView';
 import IDNView from './engines/IDNView';
 import PIEView from './engines/PIEView';
@@ -20,16 +22,31 @@ import DREView from './engines/DREView';
 import INTView from './engines/INTView';
 import CWPView from './engines/CWPView';
 import BCPView from './engines/BCPView';
+import BCOView from './engines/BCOView'; // Business Continuity Operations
 import LUMView from './engines/LUMView';
 import PTEView from './engines/PTEView';
 import MRFPEView from './engines/MRFPEView';
 import PECAView from './engines/PECAView';
-import FRKView from './engines/FRKView';
+import DEPView from './engines/DEPView';
 import INCView from './engines/INCView';
 import CRNView from './engines/CRNView';
 import IDEView from './engines/IDEView';
+import MINTView from './engines/MINTView';
 import FirmamentCockpit from './engines/FirmamentCockpit';
 import ManifoldView from './engines/ManifoldView';
+import WPVView from './engines/WPVView';
+import HPView from './engines/HPView';
+
+// Camera Animation Helper
+function CameraAnimator({ active }) {
+    useFrame((state, delta) => {
+        // Zoom in to effectively 0 if active, else pull back
+        const target = active ? new THREE.Vector3(0, 0, 0.5) : new THREE.Vector3(0, 0, 14);
+        state.camera.position.lerp(target, 2.5 * delta);
+        if (active) state.camera.lookAt(0, 0, 0);
+    });
+    return null;
+}
 
 export default function ProductCanvas() {
     // --- MULTI-INSTANCE STATE (Tabularization) ---
@@ -48,10 +65,12 @@ export default function ProductCanvas() {
         autoRotateSpeed: 0.2,
         firmamentLayers: {
             entities: true,
-            events: false,
             sectors: true,
+            apm: true,
+            events: true,
             risks: false,
-            manifold: true,
+            // 'manifold' handled separately or as a layer if needed, 
+            // but Cockpit expects keys matching its local LAYER_GROUPS for labels
         },
         filterType: 'ALL',
         dockScale: 1.0
@@ -81,10 +100,6 @@ export default function ProductCanvas() {
     // Active Window
     const activeWindowId = activeWorkspace.activeWindowId;
     const setActiveWindowId = (id) => updateActive({ activeWindowId: id });
-
-    // Z-Index
-    const topZ = activeWorkspace.topZ;
-    const setTopZ = (z) => updateActive({ topZ: z });
 
     // Viewport
     const viewport = activeWorkspace.viewport;
@@ -147,10 +162,10 @@ export default function ProductCanvas() {
             autoRotateSpeed: 0.2,
             firmamentLayers: {
                 entities: true,
-                events: false,
                 sectors: true,
+                apm: true,
+                events: true,
                 risks: false,
-                manifold: true,
             },
             filterType: 'ALL',
             dockScale: 1.0
@@ -174,51 +189,64 @@ export default function ProductCanvas() {
     const [resetPhrase, setResetPhrase] = useState('');
     const [primedCode, setPrimedCode] = useState(null);
 
+    // Refs for Split View
+    const leftViewRef = useRef(null);
+    const rightViewRef = useRef(null);
+
     // --- DATA ---
     const tabs = useMemo(() => {
-        const PROJECT_CODES = ['FRK', 'INC', 'CRN'];
-        const projects = PROJECT_CODES.map(code => {
-            const registryItem = ALL_ENGINES.find(e => e.code === code);
-            return {
-                code,
-                name: registryItem?.name || code,
-                type: 'PROJECT',
-                category: 'Project',
-                description: registryItem?.description || 'Active Project'
-            };
-        });
+        // 1. Define Static/Special Tools
+        // 1. Define Static/Special Tools
+        // Firmament definition moved/unused as it's now global
 
-        const ENGINE_CODES = ['GGP', 'DRE', 'PIE', 'INT', 'MUX', 'SIG', 'IDN', 'SIM', 'DAT', 'FLO', 'BCP', 'MTR'];
-        const engines = ENGINE_CODES.map(code => {
-            const registryItem = ALL_ENGINES.find(e => e.code === code);
-            return {
-                code,
-                name: registryItem?.name || code,
-                type: 'SYSTEM',
-                category: registryItem?.type || 'Engine',
-                description: registryItem?.description || 'System Component'
-            };
-        });
-
-        // IDE Tool
-        const tools = [{
+        const ide = {
             code: 'IDE',
             name: 'Northfield IDE',
             type: 'IDE',
             category: 'Tooling',
             description: 'Integrated Development Environment'
-        }];
+        };
 
-        // Firmament is a special system view
-        const firmament = [{
-            code: 'FIRMAMENT',
-            name: 'Firmament',
-            type: 'SYSTEM',
-            category: 'System',
-            description: 'Global Operations'
-        }];
+        // 2. Map All Engines from Registry
+        const engineTabs = ALL_ENGINES.map(eng => {
+            // Determine Type based on category or code
+            let type = 'SYSTEM';
+            if (['DEP', 'INC', 'CRN'].includes(eng.code)) type = 'PROJECT';
 
-        return [...firmament, ...projects, ...tools, ...engines];
+            // Override or Enhancement for specific codes if needed
+            if (eng.code === 'MTR') {
+                return {
+                    code: 'MTR',
+                    name: 'MANIFOLD TRACER',
+                    type: 'SYSTEM',
+                    category: 'Engine',
+                    description: eng.description
+                };
+            }
+
+            return {
+                code: eng.code,
+                name: eng.name,
+                type: type,
+                category: eng.category || 'Engine',
+                description: eng.description || eng.oneLiner || 'System Component'
+            };
+        });
+
+        // 3. Map Projects
+        const projectTabs = NS_PROJECTS.map(proj => ({
+            code: proj.code,
+            name: proj.name,
+            type: 'PROJECT',
+            category: proj.category || 'Project',
+            description: proj.description || 'Active Project'
+        }));
+
+        // 4. Assemble Final List (IDE, then Engines, then Projects)
+        // Firmament is now global overlay, removed from dock to prevent duplication
+        const uniqueEngines = engineTabs.filter(e => e.code !== 'FIRMAMENT' && e.code !== 'IDE');
+
+        return [ide, ...uniqueEngines, ...projectTabs];
     }, []);
 
     // --- DERIVED STATE ---
@@ -347,16 +375,8 @@ export default function ProductCanvas() {
     // Inactivity Timer Loop
     useEffect(() => {
         const interval = setInterval(() => {
-            const now = Date.now();
             setWorkspaces(prev => prev.map(ws => {
-                const hasTimeout = ws.windows.some(w =>
-                    w.isFullScreen &&
-                    windowActivityRefs.current[w.id] &&
-                    (now - windowActivityRefs.current[w.id] > 10000)
-                );
-
-                if (!hasTimeout) return ws;
-
+                const now = Date.now();
                 const newWindows = ws.windows.map(w => {
                     if (w.isFullScreen &&
                         windowActivityRefs.current[w.id] &&
@@ -376,7 +396,11 @@ export default function ProductCanvas() {
                     }
                     return w;
                 });
-                return { ...ws, windows: newWindows };
+                // Only update if windows actually changed to avoid unnecessary re-renders
+                if (JSON.stringify(newWindows) !== JSON.stringify(ws.windows)) {
+                    return { ...ws, windows: newWindows };
+                }
+                return ws;
             }));
         }, 1000);
         return () => clearInterval(interval);
@@ -487,6 +511,11 @@ export default function ProductCanvas() {
                 topZ: 100,
                 viewport: { x: 0, y: 0, scale: 1 },
                 interactionMode: 'canvas',
+                priorities: [
+                    { id: 1, text: 'Audit "Skeleton" Engines (DEP, INC, CRN)', status: 'done' },
+                    { id: 2, text: 'Draft GTM Execution Plan', status: 'done' },
+                    { id: 3, text: 'Finalize WPV integration', status: 'done' }
+                ],
                 isFirmamentLocked: true,
                 showStars: true,
                 autoRotate: true,
@@ -498,42 +527,50 @@ export default function ProductCanvas() {
     };
 
     // --- GRID LAYOUT (Requested Feature) ---
-    const tileWindows = () => {
-        if (windows.length === 0) return;
+    const tileWindows = React.useCallback(() => {
+        setWorkspaces(prevWS => prevWS.map(ws => {
+            if (ws.id !== activeWorkspaceId) return ws;
+            const currentWindows = ws.windows;
+            if (currentWindows.length === 0) return ws;
 
-        const count = windows.length;
-        const totalWidth = window.innerWidth; // Use full screen width
-        const totalHeight = window.innerHeight; // Use full screen height minus header/dock if needed, sticking to simple full for now
+            const count = currentWindows.length;
+            const totalWidth = window.innerWidth;
+            const totalHeight = window.innerHeight;
 
-        // Calculate Rows/Cols
-        // N=1 -> 1x1
-        // N=2 -> 2x1 (2 cols)
-        // N=3 -> 2x2 (last one empty) vs 3x1. Usually specific ratio is better.
-        // Simple algo: sqrt
-        const cols = Math.ceil(Math.sqrt(count));
-        const rows = Math.ceil(count / cols);
+            const cols = Math.ceil(Math.sqrt(count));
+            const rows = Math.ceil(count / cols);
 
-        const tileW = totalWidth / cols;
-        const tileH = totalHeight / rows;
+            const tileW = totalWidth / cols;
+            const tileH = totalHeight / rows;
 
-        const newWindows = windows.map((w, i) => {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            return {
-                ...w,
-                x: col * tileW,
-                y: row * tileH,
-                width: tileW,
-                height: tileH,
-                z: getNextZ(), // Bring all to front in order? Or keep relative? Resetting Z helps clarity.
-                isFullScreen: false, // Exit FS if active
-                restoreState: null // Clear restore state as this is a destructive layout change
-            };
-        });
+            const newWindows = currentWindows.map((w, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                return {
+                    ...w,
+                    x: col * tileW,
+                    y: row * tileH,
+                    width: tileW,
+                    height: tileH,
+                    z: w.z, // Keep z, or maybe re-stack? Original code kept z but reset fullscreen
+                    isFullScreen: false,
+                    restoreState: null
+                };
+            });
 
-        // Update state
-        setWindows(newWindows);
-    };
+            // Diff check inside reducer is tricky, but often unnecessary if we assume this is called on length change.
+            // But we can check equality here if needed.
+            // For simplicity, we just return the new windows.
+            return { ...ws, windows: newWindows };
+        }));
+    }, [activeWorkspaceId]);
+
+    // Auto-Tile when window count changes (Grid Mode)
+    useEffect(() => {
+        if (windows.length > 0) {
+            tileWindows();
+        }
+    }, [windows.length, tileWindows]);
 
     // --- INTERACTION HANDLERS ---
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -579,9 +616,13 @@ export default function ProductCanvas() {
 
     const getEngineComponent = (code) => {
         const engineData = getActiveEngineData(code);
-        const props = { engine: engineData };
+        const props = {
+            engine: engineData,
+            onLaunch: openWindow // Allow engines to launch other windows
+        };
         switch (code) {
             case 'FIRMAMENT': return <FirmamentCockpit {...props} activeLayers={firmamentLayers} onToggleLayer={toggleLayer} onTileWindows={tileWindows} />;
+            case 'WPV': return <WPVView {...props} />;
             case 'PIE': return <PIEView {...props} />;
             case 'DAT': return <DATView {...props} />;
             case 'MUX': return <MUXView {...props} />;
@@ -596,13 +637,24 @@ export default function ProductCanvas() {
             case 'BCP': return <BCPView {...props} />;
             case 'LUM': return <LUMView {...props} />;
             case 'PTE': return <PTEView {...props} />;
-            case 'MRFPE': return <MRFPEView {...props} />;
-            case 'PECA': return <PECAView {...props} />;
-            case 'FRK': return <FRKView {...props} />;
+            case 'BCO': return <BCOView {...props} />;
+
+            case 'DEP': return <DEPView {...props} />;
             case 'INC': return <INCView {...props} />;
             case 'CRN': return <CRNView {...props} />;
             case 'IDE': return <IDEView {...props} />;
             case 'MTR': return <ManifoldView {...props} />;
+            case 'MT': return <ManifoldView {...props} />; // Explicit MT alias since registry uses MT
+
+            // New Supported Projects
+            case 'AEGIS': return <AegisView {...props} />;
+            case 'RELAY': return <RelayView {...props} />;
+            case 'BOOM': return <BoomView {...props} />;
+            case 'TINE': return <TineView {...props} />;
+            case 'FL': return <FLView {...props} />;
+            case 'HP': return <HPView {...props} />;
+            case 'DT': return <DTView {...props} />;
+
             default: return <EngineOverlay {...props} />;
         }
     };
@@ -881,25 +933,40 @@ export default function ProductCanvas() {
 
             {/* 3D Background Canvas */}
             <div className="absolute inset-0 z-0 pointer-events-none">
-                <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
+                {/* View Tracking Elements (Pointer Events Auto to capture interaction) */}
+                {/* These are only active/visible when in Firmament Mode */}
+                {(isFirmamentLocked || (windows.find(w => w.id === activeWindowId)?.code === 'FIRMAMENT')) && (
+                    <div className="absolute inset-0 z-10 flex pointer-events-auto">
+                        <div ref={leftViewRef} className="w-1/2 h-full" />
+                        <div ref={rightViewRef} className="w-1/2 h-full" />
+                    </div>
+                )}
+
+                <Canvas eventSource={document.getElementById('root')} className="pointer-events-none">
+                    {/* Global Scene Settings */}
                     <color attach="background" args={['#050505']} />
                     {showStars && <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />}
+                    <CameraAnimator active={windows.length > 0} />
                     <ambientLight intensity={0.5} />
                     <pointLight position={[10, 10, 10]} />
 
+                    {/* Split View Logic */}
+                    {/* Main Holographic Scene */}
                     <HolographicScene
-                        activeCode={isFirmamentLocked ? 'FIRMAMENT' : (windows.find(w => w.id === activeWindowId)?.code || 'FIRMAMENT')}
+                        activeCode={activeWorkspace.filterType}
                         activeLayers={firmamentLayers}
                         scale={viewport.scale}
                         showStars={showStars}
                         enableRotation={autoRotate}
                     />
 
+                    {/* Controls */}
                     <OrbitControls
                         enableZoom={false}
                         enablePan={false}
                         autoRotate={autoRotate}
                         autoRotateSpeed={autoRotateSpeed}
+                        enabled={!windows.length}
                     />
                 </Canvas>
             </div>
@@ -935,7 +1002,7 @@ export default function ProductCanvas() {
                         >
                             <div
                                 className="relative w-full h-full overflow-hidden isolate"
-                                onWheel={(e) => interactionMode === 'window' ? e.stopPropagation() : undefined}
+                                onWheel={(e) => e.stopPropagation()}
                             >
                                 {getEngineComponent(win.code)}
                             </div>
@@ -946,9 +1013,20 @@ export default function ProductCanvas() {
 
             {/* Overlay UI (Header/Dock) */}
             <div className="absolute inset-0 z-50 pointer-events-none flex flex-col justify-between pt-12">
-                <header className="w-full p-6 flex justify-between items-start pointer-events-auto">
+
+                {/* Global Firmament HUD (Always Active) */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <FirmamentCockpit
+                        activeLayers={firmamentLayers}
+                        onToggleLayer={toggleLayer}
+                        onTileWindows={tileWindows}
+                        onLaunch={openWindow}
+                    />
+                </div>
+
+                <header className="w-full p-6 flex justify-between items-start pointer-events-auto relative z-10">
                     <div className="flex gap-4 items-center">
-                        <span className="text-[10px] font-bold text-brand tracking-widest animate-pulse">● SYSTEM ONLINE</span>
+                        {/* Static header removed in favor of FirmamentCockpit */}
                     </div>
                 </header>
 
@@ -960,7 +1038,7 @@ export default function ProductCanvas() {
                         activeTab={windows.find(w => w.id === activeWindowId)?.code || null}
                         primedTab={primedCode}
                         onSelect={openWindow}
-                        onHover={(code) => {
+                        onHover={() => {
                             // Optional: could sync primedCode here if desired, specific to mouse hover
                             // For now, let local dock state handle visual hover, but we clear primedCode on mousemove roughly
                         }}
@@ -982,7 +1060,7 @@ function DraggableDock({ children }) {
         try {
             const saved = localStorage.getItem('ns_dock_pos');
             return saved ? JSON.parse(saved) : { left: 40, bottom: 40 };
-        } catch (e) {
+        } catch {
             return { left: 40, bottom: 40 };
         }
     });

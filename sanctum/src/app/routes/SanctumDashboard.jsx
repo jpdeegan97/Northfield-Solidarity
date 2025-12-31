@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
+import FlatMap from '../../components/FlatMap'; // Added this line
 import {
     Activity, ArrowUpRight, BarChart2, Bell, Box, Calendar,
     CheckCircle, Clock, Code, Cpu, Database, DollarSign,
@@ -15,43 +16,91 @@ import { NS_PROJECTS } from '../../data/projectRegistry';
 /* --- SUB-COMPONENTS --- */
 
 // 1. Daily Briefing Widget
-const DailyBriefing = () => (
-    <div className="col-span-12 md:col-span-4 bg-black/40 border border-white/10 rounded-xl p-6 flex flex-col gap-4">
-        <div className="flex justify-between items-start">
-            <div>
-                <h3 className="text-sm font-bold text-white tracking-widest uppercase flex items-center gap-2">
-                    <CheckCircle size={14} className="text-emerald-500" /> Daily Briefing
-                </h3>
-                <p className="text-[10px] text-white/40 mt-1 uppercase">Pre-Flight Checklist</p>
-            </div>
-            <span className="text-[10px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded border border-red-500/20">3 ALERTS</span>
-        </div>
+const DailyBriefing = () => {
+    const [items, setItems] = React.useState([
+        { id: 1, title: 'Approve MINT Formation: "NS_AI_LABS"', subtitle: 'Pending Signature • 2h ago', type: 'success', action: 'SIGN' },
+        { id: 2, title: 'SSL Certificate Expiry: ns-api.com', subtitle: 'CRITICAL • Expires in 24h', type: 'error', action: 'FIX' },
+        { id: 3, title: 'Review Q4 Strategy Draft', subtitle: 'Primary Intent • Today', type: 'info', action: 'VIEW' },
+        { id: 4, title: 'Firmament Usage Spike', subtitle: 'Unusual activity detected in Sector 7', type: 'warning', action: 'CHECK' }
+    ]);
 
-        <div className="space-y-3 mt-2 flex-1 overflow-y-auto custom-scrollbar">
-            <div className="flex items-start gap-3 p-2 bg-white/5 rounded border-l-2 border-emerald-500">
-                <div className="flex-1">
-                    <p className="text-xs text-white/80 font-medium">Approve MINT Formation: "NS_AI_LABS"</p>
-                    <p className="text-[10px] text-white/40 mt-1">Pending Signature • 2h ago</p>
+    const handleAction = (id) => {
+        // Mock action - remove item for now
+        setItems(prev => prev.filter(item => item.id !== id));
+    };
+
+    const getBorderColor = (type) => {
+        switch (type) {
+            case 'success': return 'border-emerald-500';
+            case 'error': return 'border-red-500';
+            case 'warning': return 'border-yellow-500';
+            default: return 'border-blue-500';
+        }
+    };
+
+    const getBtnColor = (type) => {
+        switch (type) {
+            case 'success': return 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30';
+            case 'error': return 'bg-red-500/20 text-red-500 hover:bg-red-500/30';
+            case 'warning': return 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30';
+            default: return 'bg-blue-500/20 text-blue-500 hover:bg-blue-500/30';
+        }
+    };
+
+    return (
+        <div className="col-span-12 md:col-span-4 bg-black/40 border border-white/10 rounded-xl p-6 flex flex-col gap-4 min-h-[300px]">
+            <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="text-sm font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                        <CheckCircle size={14} className="text-emerald-500" /> Daily Briefing
+                    </h3>
+                    <p className="text-[10px] text-white/40 mt-1 uppercase">Pre-Flight Checklist</p>
                 </div>
-                <button className="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-500 rounded hover:bg-emerald-500/30">SIGN</button>
+                {items.length > 0 ? (
+                    <span className={`text-[10px] px-2 py-0.5 rounded border ${items.some(i => i.type === 'error')
+                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                        : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                        }`}>
+                        {items.length} ACTIVE
+                    </span>
+                ) : (
+                    <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">ALL CLEAR</span>
+                )}
             </div>
-            <div className="flex items-start gap-3 p-2 bg-white/5 rounded border-l-2 border-red-500">
-                <div className="flex-1">
-                    <p className="text-xs text-white/80 font-medium">SSL Certificate Expiry: ns-api.com</p>
-                    <p className="text-[10px] text-red-400 mt-1">CRITICAL • Expires in 24h</p>
-                </div>
-                <button className="text-[10px] px-2 py-1 bg-red-500/20 text-red-500 rounded hover:bg-red-500/30">FIX</button>
-            </div>
-            <div className="flex items-start gap-3 p-2 bg-white/5 rounded border-l-2 border-blue-500">
-                <div className="flex-1">
-                    <p className="text-xs text-white/80 font-medium">Review Q4 Strategy Draft</p>
-                    <p className="text-[10px] text-white/40 mt-1">Primary Intent • Today</p>
-                </div>
-                <button className="text-[10px] px-2 py-1 bg-white/10 text-white/60 rounded hover:bg-white/20">VIEW</button>
+
+            <div className="space-y-3 mt-2 flex-1 overflow-y-auto custom-scrollbar">
+                {items.length > 0 ? (
+                    items.map(item => (
+                        <motion.div
+                            layout
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            key={item.id}
+                            className={`flex items-start gap-3 p-2 bg-white/5 rounded border-l-2 ${getBorderColor(item.type)}`}
+                        >
+                            <div className="flex-1">
+                                <p className="text-xs text-white/80 font-medium">{item.title}</p>
+                                <p className="text-[10px] text-white/40 mt-1">{item.subtitle}</p>
+                            </div>
+                            <button
+                                onClick={() => handleAction(item.id)}
+                                className={`text-[10px] px-2 py-1 rounded font-mono font-bold transition-colors ${getBtnColor(item.type)}`}
+                            >
+                                {item.action}
+                            </button>
+                        </motion.div>
+                    ))
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-white/20">
+                        <CheckCircle size={32} className="mb-2 opacity-50" />
+                        <p className="text-xs uppercase tracking-widest">Calculations Complete</p>
+                    </div>
+                )}
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 // 2. Financial Fortress HUD
 const FinancialFortress = () => (
@@ -192,30 +241,8 @@ const EngineeringStack = () => (
 
 // 6. War Room (Map)
 const WarRoom = () => (
-    <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-black/40 border border-white/10 rounded-xl p-6 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center grayscale invert" />
-
-        <div className="relative z-10 h-full flex flex-col justify-between pointer-events-none">
-            <h3 className="text-sm font-bold text-white tracking-widest uppercase flex justify-between">
-                <span>War Room</span>
-                <Globe size={14} className="text-white/40" />
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-black/80 backdrop-blur border border-white/10 p-2 rounded">
-                    <p className="text-[10px] text-white/40 uppercase">Active Personnel</p>
-                    <p className="text-xl font-mono text-white">4</p>
-                </div>
-                <div className="bg-black/80 backdrop-blur border border-white/10 p-2 rounded">
-                    <p className="text-[10px] text-white/40 uppercase">Physical Assets</p>
-                    <p className="text-xl font-mono text-white">12</p>
-                </div>
-            </div>
-        </div>
-
-        {/* Fake Pins */}
-        <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-        <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-blue-500 rounded-full animate-ping delay-75"></div>
+    <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-black/40 border border-white/10 rounded-xl overflow-hidden relative shadow-2xl min-h-[400px]">
+        <FlatMap />
     </div>
 );
 

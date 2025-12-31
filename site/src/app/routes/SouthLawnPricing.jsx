@@ -23,14 +23,16 @@ export default function SouthLawnPricing() {
                     footerNote: "Quiet execution. Long-horizon compounding.",
                 }}
                 nav={[
-                    { label: "Northfield Solidarity", to: "/" },
-                    { label: "South Lawn", to: "/southlawn" },
-                    { label: "WSP", to: "/wsp" },
-                    { type: "divider" },
                     { label: "Documentation", to: "/southlawn/docs" },
                     { label: "Pricing", to: "/southlawn/pricing" },
                     { label: "System", to: "/southlawn/system" },
                     { label: "Investor Relations", to: "/southlawn/investors" },
+                    { type: "divider" },
+                    { label: "Northfield Solidarity", to: "/" },
+                    { label: "South Lawn", to: "/southlawn" },
+                    { label: "Wall Street Pro", to: "/wsp" },
+                    { label: "More Than Enough", to: "/mte" },
+                    { label: "Iron Logic", to: "/iron" },
                 ]}
             >
                 <div className="pricing-page">

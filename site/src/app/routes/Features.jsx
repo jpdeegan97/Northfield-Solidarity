@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Layout from '../../components/Layout.jsx';
-import { NS_ENGINES, SL_ENGINES, NS_BMP } from '../../data/engineRegistry.js';
+import { NS_ENGINES, SL_ENGINES, NS_BMP } from '@shared/data/engineRegistry';
 import { NS_PROJECTS } from '../../data/projectRegistry.js';
 import { Cpu, Shield, Layers, Zap, Database, Globe, Lock, GitMerge, ChevronDown, ChevronUp } from 'lucide-react';
 
