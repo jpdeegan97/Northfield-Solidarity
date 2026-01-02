@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+        <rect width="100%" height="100%" fill="#050505"/>
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="4.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <line x1="0" y1="74" x2="400" y2="74" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="170" x2="400" y2="170" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="221" x2="400" y2="221" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="130" x2="400" y2="130" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="137" x2="400" y2="137" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="193" y1="0" x2="193" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="309" y1="0" x2="309" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="10" y1="0" x2="10" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="56" y1="0" x2="56" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="218" y1="0" x2="218" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" />
+        <g filter="url(#glow)">
+            <rect x="185" y="270" width="67" height="67" fill="#3b82f6" fill-opacity="0.13" transform="rotate(5 218.5 303.5)" /><circle cx="128" cy="17" r="43.5" fill="#3b82f6" fill-opacity="0.21" /><circle cx="243" cy="244" r="28" fill="#3b82f6" fill-opacity="0.23" /><circle cx="88" cy="98" r="21.5" fill="#3b82f6" fill-opacity="0.17" /><circle cx="40" cy="144" r="54" fill="#3b82f6" fill-opacity="0.18" /><rect x="330" y="45" width="22" height="22" fill="#3b82f6" fill-opacity="0.13" transform="rotate(86 341 56)" /><rect x="134" y="174" width="87" height="87" fill="#3b82f6" fill-opacity="0.26" transform="rotate(72 177.5 217.5)" />
+        </g>
+        <rect width="100%" height="100%" fill="url(#grad)" fill-opacity="0.2"/>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0" />
+            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+        </linearGradient>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="48" fill="white" style="text-shadow: 0 0 20px #3b82f6">AEGIS</text>
+    </svg>

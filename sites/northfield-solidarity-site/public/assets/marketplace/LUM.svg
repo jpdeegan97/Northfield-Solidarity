@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+        <rect width="100%" height="100%" fill="#050505"/>
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="4.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <line x1="0" y1="248" x2="400" y2="248" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="271" x2="400" y2="271" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="145" x2="400" y2="145" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="150" x2="400" y2="150" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="0" y1="157" x2="400" y2="157" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="255" y1="0" x2="255" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="286" y1="0" x2="286" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="340" y1="0" x2="340" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="236" y1="0" x2="236" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" /><line x1="382" y1="0" x2="382" y2="300" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1" />
+        <g filter="url(#glow)">
+            <rect x="352" y="271" width="83" height="83" fill="#3b82f6" fill-opacity="0.29" transform="rotate(78 393.5 312.5)" /><circle cx="208" cy="110" r="45.5" fill="#3b82f6" fill-opacity="0.12" /><rect x="94" y="296" width="28" height="28" fill="#3b82f6" fill-opacity="0.14" transform="rotate(82 108 310)" /><rect x="372" y="119" width="38" height="38" fill="#3b82f6" fill-opacity="0.21" transform="rotate(7 391 138)" /><circle cx="40" cy="162" r="44" fill="#3b82f6" fill-opacity="0.15" /><circle cx="216" cy="32" r="38" fill="#3b82f6" fill-opacity="0.26" /><rect x="58" y="43" width="24" height="24" fill="#3b82f6" fill-opacity="0.37" transform="rotate(18 70 55)" />
+        </g>
+        <rect width="100%" height="100%" fill="url(#grad)" fill-opacity="0.2"/>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0" />
+            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+        </linearGradient>
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="48" fill="white" style="text-shadow: 0 0 20px #3b82f6">LUM</text>
+    </svg>

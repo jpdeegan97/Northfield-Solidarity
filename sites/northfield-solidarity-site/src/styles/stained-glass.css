@@ -1,0 +1,197 @@
+.stained-glass-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    /* Dark, moody backing */
+    background: linear-gradient(to bottom, #0f172a, #000000);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* The "Source" background that will be clipped */
+.sg-layer {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    /* Futuristic/Cyberpunk stained glass texture source */
+    /* Using an abstract colorful image or gradient */
+    background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop') no-repeat center/cover fixed;
+}
+
+/* --- GROUPS --- */
+
+/* Corners: Green/Teal hue shift */
+.sg-corners {
+    filter: blur(1px) hue-rotate(120deg) saturate(350%) brightness(1.1);
+}
+
+.sg-corners.tl {
+    clip-path: polygon(24px 24px, 12% 26px, 18% 18%, 26px 12%);
+}
+
+.sg-corners.tr {
+    clip-path: polygon(calc(100% - 24px) 24px, 88% 26px, 82% 18%, calc(100% - 26px) 12%);
+}
+
+.sg-corners.bl {
+    clip-path: polygon(24px calc(100% - 24px), 26px 88%, 18% 82%, 12% calc(100% - 26px));
+}
+
+.sg-corners.br {
+    clip-path: polygon(calc(100% - 24px) calc(100% - 24px), 88% calc(100% - 26px), 82% 82%, calc(100% - 26px) 88%);
+}
+
+/* Padding: Blue/Purple shift */
+.sg-padding {
+    filter: blur(1px) hue-rotate(-40deg) saturate(250%) brightness(1.1);
+}
+
+.sg-padding.top {
+    clip-path: polygon(13% 26px, 87% 26px, 81% 18%, 19% 18%);
+}
+
+.sg-padding.bottom {
+    clip-path: polygon(13% calc(100% - 26px), 87% calc(100% - 26px), 81% 82%, 19% 82%);
+}
+
+.sg-padding.left {
+    clip-path: polygon(26px 13%, 26px 87%, 18% 81%, 18% 19%);
+}
+
+.sg-padding.right {
+    clip-path: polygon(calc(100% - 26px) 13%, calc(100% - 26px) 87%, 82% 81%, 82% 19%);
+}
+
+/* Bars: Golden/Amber shift */
+.sg-bar {
+    filter: blur(2px) hue-rotate(10deg) saturate(250%) brightness(1.1);
+}
+
+.sg-bar.top {
+    clip-path: polygon(27% 19%, 81% 19%, 81% 26%, 27% 26%);
+}
+
+.sg-bar.bottom {
+    clip-path: polygon(19% 74%, 73% 74%, 73% 81%, 19% 81%);
+}
+
+.sg-bar.left {
+    clip-path: polygon(19% 19%, 26% 19%, 26% 73%, 19% 73%);
+}
+
+.sg-bar.right {
+    clip-path: polygon(74% 27%, 81% 27%, 81% 81%, 74% 81%);
+}
+
+/* Inner Bottom */
+.sg-inner.bottom {
+    filter: blur(2px) hue-rotate(30deg) saturate(350%) brightness(1.2);
+}
+
+.sg-bottom-1 {
+    clip-path: polygon(27% 73%, 32% 73%, 32% 60%, 27% 63%);
+}
+
+.sg-bottom-2 {
+    clip-path: polygon(33% 73%, 35% 73%, 35% 59%, 33% 60%);
+}
+
+.sg-bottom-3 {
+    clip-path: polygon(36% 73%, 42% 73%, 42% 59%, 36% 60%);
+}
+
+.sg-bottom-4 {
+    clip-path: polygon(43% 73%, 45% 73%, 45% 57%, 43% 56%);
+}
+
+.sg-bottom-5 {
+    clip-path: polygon(46% 73%, 59% 73%, 59% 59%, 46% 60%);
+}
+
+.sg-bottom-6 {
+    clip-path: polygon(60% 73%, 70% 73%, 70% 59%, 60% 58%);
+}
+
+.sg-bottom-7 {
+    clip-path: polygon(71% 73%, 73% 73%, 73% 51%, 71% 52%);
+}
+
+/* Inner Mid */
+.sg-inner.mid {
+    filter: blur(0px) hue-rotate(20deg) saturate(180%) brightness(1.1);
+}
+
+.sg-inner.mid.accent {
+    filter: blur(3px) hue-rotate(-40deg) saturate(350%) contrast(200%);
+}
+
+.sg-mid-1 {
+    clip-path: polygon(27% 62%, 32% 59%, 32% 47%, 27% 47%);
+}
+
+.sg-mid-2 {
+    clip-path: polygon(33% 59%, 35% 58%, 35% 55%, 33% 55%);
+}
+
+.sg-mid-3 {
+    clip-path: polygon(33% 54%, 35% 54%, 35% 47%, 33% 47%);
+}
+
+.sg-mid-4 {
+    clip-path: polygon(36% 59%, 42% 58%, 42% 47%, 36% 47%);
+}
+
+.sg-mid-5 {
+    clip-path: polygon(43% 55%, 45% 56%, 45% 51%, 43% 51%);
+}
+
+.sg-mid-6 {
+    clip-path: polygon(43% 50%, 45% 50%, 45% 47%, 43% 47%);
+}
+
+.sg-mid-7 {
+    clip-path: polygon(46% 59%, 59% 58%, 59% 49%, 46% 47%);
+}
+
+.sg-mid-8 {
+    clip-path: polygon(60% 57%, 70% 58%, 70% 52%, 60% 49%);
+}
+
+.sg-mid-9 {
+    clip-path: polygon(71% 51%, 73% 50%, 73% 46%, 71% 46%);
+}
+
+/* Inner Top */
+.sg-inner.top {
+    filter: blur(0px) hue-rotate(150deg) saturate(300%) brightness(1.2);
+}
+
+.sg-inner.top.accent {
+    filter: blur(3px) hue-rotate(20deg) saturate(350%) brightness(1.2);
+}
+
+.sg-top-1 {
+    clip-path: polygon(27% 27%, 44% 27%, 44% 30%, 42% 34%, 36% 40%, 31% 42%, 27% 42%);
+}
+
+.sg-top-2 {
+    clip-path: polygon(45% 27%, 73% 27%, 73% 45%, 71% 45%, 45% 30%);
+}
+
+.sg-top-3 {
+    clip-path: polygon(45% 31%, 70% 46%, 70% 51%, 60% 48%, 43% 35%);
+}
+
+.sg-top-4 {
+    clip-path: polygon(42% 36%, 58% 48%, 46% 46%, 37% 41%);
+}
+
+.sg-top-5 {
+    clip-path: polygon(27% 43%, 31% 43%, 36% 41.5%, 44% 46%, 27% 46%);
+}
